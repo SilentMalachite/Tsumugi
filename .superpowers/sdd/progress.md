@@ -23,3 +23,9 @@ Task 5: complete (commits 979c2d5..353d31c, review clean — spec ✅, quality A
 Task 6: complete (commits 353d31c..981dc41, review clean — spec ✅, quality Approved; VACUUM INTO escaping verified injection-safe, EF1002 pragma narrowly scoped)
   Minor/deferred for final-review triage:
    - No automated test for BackupDatabaseUseCase blank-path ArgumentException guard (logic verified by reading). Add an async ThrowsAsync test with a fake IBackupService (project uses fakes, not Moq).
+
+Task 7: complete (commits 981dc41..1908754, review clean — spec ✅, quality Approved; Important temp-file-leak fixed)
+  CUMULATIVE CHECKPOINT after Task 7: dotnet build -c Release = 0 warnings; dotnet format --verify-no-changes = pass; dotnet test = 12/12 pass (Domain 3, Application 4, Infrastructure 3, App 2).
+  Minor/deferred for final-review triage:
+   - App ServiceProvider not disposed on shutdown (wire lifetime.ShutdownRequested -> dispose before Phase 1 ViewModel injection).
+   - SQLite path uses ApplicationData (~/.config on macOS, not ~/Library/Application Support) — final policy to be recorded in ADR 0003 (Task 9).
