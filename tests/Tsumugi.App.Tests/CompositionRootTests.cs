@@ -15,11 +15,20 @@ public sealed class CompositionRootTests
     public void Build_resolves_use_cases_from_root()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), $"tsumugi-ci-{Guid.NewGuid():N}.db");
-        using var provider = (ServiceProvider)CompositionRoot.Build($"Data Source={dbPath}");
-        using var scope = provider.CreateScope();
+        try
+        {
+            using var provider = (ServiceProvider)CompositionRoot.Build($"Data Source={dbPath}");
+            using var scope = provider.CreateScope();
 
-        scope.ServiceProvider.GetRequiredService<RegisterOfficeUseCase>().Should().NotBeNull();
-        scope.ServiceProvider.GetRequiredService<BackupDatabaseUseCase>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<RegisterOfficeUseCase>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<BackupDatabaseUseCase>().Should().NotBeNull();
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            foreach (var f in new[] { dbPath, dbPath + "-shm", dbPath + "-wal" })
+                if (File.Exists(f)) File.Delete(f);
+        }
     }
 
     [Fact]
