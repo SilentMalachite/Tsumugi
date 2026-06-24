@@ -7,3 +7,8 @@ Task 2+3: complete (commits f5a20ef..ab38df1, review clean — spec ✅, quality
    - ArchitectureTests checks DIRECT refs only (brief-mandated reflection approach; transitive not caught). Suggest XML-doc remark noting the limitation.
    - Office.Create has no null guards (deferred per phased approach; Nullable=enable covers typed callers).
    - Note: .editorconfig gained CA1707.severity=none scoped to [tests/**/*.cs] (idiomatic for xUnit underscore test names).
+
+Task 4: complete (commits ab38df1..979c2d5, review clean — spec ✅, quality Approved)
+  Minor/deferred for final-review triage:
+   - RegisterOfficeUseCaseTests success test does not assert dto.Id round-trips (add dto.Id.Should().Be(repo.Added!.Id)).
+   - Note: App.axaml.cs gained `using AvaloniaApplication = Avalonia.Application` alias to resolve CS0118 (Tsumugi.Application namespace vs Avalonia.Application base type).
