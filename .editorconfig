@@ -15,6 +15,14 @@ dotnet_sort_system_directives_first = true
 [tests/**/*.cs]
 dotnet_diagnostic.CA1707.severity = none
 
+# EF Core generates migrations that don't conform to file-scoped namespaces or null-guard style;
+# suppress those diagnostics so raw-generated files build without hand-editing.
+[src/Tsumugi.Infrastructure/Migrations/**.cs]
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.IDE0161.severity = none
+csharp_style_namespace_declarations = block_scoped:silent
+generated_code = true
+
 [*.{csproj,props,targets}]
 indent_size = 2
 
