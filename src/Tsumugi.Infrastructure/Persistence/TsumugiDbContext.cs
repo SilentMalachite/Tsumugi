@@ -13,7 +13,19 @@ public sealed class TsumugiDbContext(DbContextOptions<TsumugiDbContext> options)
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TsumugiDbContext).Assembly);
     }
 
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        RotateConcurrencyTokens();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        RotateConcurrencyTokens();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void RotateConcurrencyTokens()
     {
         // 楽観ロック: 追跡中の変更エンティティのトークンを保存時に更新する。
         foreach (var entry in ChangeTracker.Entries<Entity>())
@@ -23,7 +35,5 @@ public sealed class TsumugiDbContext(DbContextOptions<TsumugiDbContext> options)
                 entry.Property(nameof(Entity.ConcurrencyToken)).CurrentValue = Guid.NewGuid();
             }
         }
-
-        return base.SaveChangesAsync(cancellationToken);
     }
 }

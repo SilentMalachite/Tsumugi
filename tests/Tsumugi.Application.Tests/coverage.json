@@ -1,0 +1,195 @@
+{
+  "Tsumugi.Domain.dll": {
+    "/Users/hiro/Projetct/GitHub/Tsumugi/src/Tsumugi.Domain/Entities/Entity.cs": {
+      "Tsumugi.Domain.Entities.Entity": {
+        "System.Guid Tsumugi.Domain.Entities.Entity::get_Id()": {
+          "Lines": {
+            "6": 3
+          },
+          "Branches": []
+        },
+        "System.DateTimeOffset Tsumugi.Domain.Entities.Entity::get_CreatedAt()": {
+          "Lines": {
+            "7": 2
+          },
+          "Branches": []
+        },
+        "System.String Tsumugi.Domain.Entities.Entity::get_CreatedBy()": {
+          "Lines": {
+            "8": 3
+          },
+          "Branches": []
+        },
+        "System.Guid Tsumugi.Domain.Entities.Entity::get_ConcurrencyToken()": {
+          "Lines": {
+            "11": 3
+          },
+          "Branches": []
+        }
+      }
+    },
+    "/Users/hiro/Projetct/GitHub/Tsumugi/src/Tsumugi.Domain/Entities/Office.cs": {
+      "Tsumugi.Domain.Entities.Office": {
+        "System.String Tsumugi.Domain.Entities.Office::get_OfficeNumber()": {
+          "Lines": {
+            "6": 4
+          },
+          "Branches": []
+        },
+        "System.String Tsumugi.Domain.Entities.Office::get_Name()": {
+          "Lines": {
+            "7": 3
+          },
+          "Branches": []
+        },
+        "Tsumugi.Domain.Entities.Office Tsumugi.Domain.Entities.Office::Create(System.Guid,System.String,System.String,System.String,System.DateTimeOffset,System.Guid)": {
+          "Lines": {
+            "15": 2,
+            "16": 2,
+            "17": 2,
+            "18": 2,
+            "19": 2,
+            "20": 2,
+            "21": 2,
+            "22": 2,
+            "23": 2
+          },
+          "Branches": []
+        }
+      }
+    }
+  },
+  "Tsumugi.Application.dll": {
+    "/Users/hiro/Projetct/GitHub/Tsumugi/src/Tsumugi.Application/UseCases/BackupDatabaseUseCase.cs": {
+      "Tsumugi.Application.UseCases.BackupDatabaseUseCase": {
+        "System.Threading.Tasks.Task Tsumugi.Application.UseCases.BackupDatabaseUseCase::ExecuteAsync(System.String,System.Threading.CancellationToken)": {
+          "Lines": {
+            "9": 0,
+            "10": 0,
+            "11": 0
+          },
+          "Branches": [
+            {
+              "Line": 9,
+              "Offset": 6,
+              "EndOffset": 8,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 0
+            },
+            {
+              "Line": 9,
+              "Offset": 6,
+              "EndOffset": 24,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 0
+            }
+          ]
+        },
+        "System.Void Tsumugi.Application.UseCases.BackupDatabaseUseCase::.ctor(Tsumugi.Application.Abstractions.IBackupService)": {
+          "Lines": {
+            "5": 0
+          },
+          "Branches": []
+        }
+      }
+    },
+    "/Users/hiro/Projetct/GitHub/Tsumugi/src/Tsumugi.Application/UseCases/RegisterOfficeUseCase.cs": {
+      "Tsumugi.Application.UseCases.RegisterOfficeUseCase": {
+        "System.Void Tsumugi.Application.UseCases.RegisterOfficeUseCase::.ctor(Tsumugi.Application.Abstractions.IOfficeRepository,Tsumugi.Application.Abstractions.IUnitOfWork,System.TimeProvider)": {
+          "Lines": {
+            "7": 4,
+            "8": 4,
+            "9": 4,
+            "10": 4
+          },
+          "Branches": []
+        }
+      },
+      "Tsumugi.Application.UseCases.RegisterOfficeUseCase/<ExecuteAsync>d__4": {
+        "System.Void Tsumugi.Application.UseCases.RegisterOfficeUseCase/<ExecuteAsync>d__4::MoveNext()": {
+          "Lines": {
+            "15": 4,
+            "16": 1,
+            "17": 3,
+            "18": 1,
+            "20": 2,
+            "21": 1,
+            "23": 1,
+            "24": 1,
+            "25": 1,
+            "26": 1,
+            "27": 1,
+            "28": 1,
+            "29": 1,
+            "31": 1,
+            "32": 1,
+            "34": 1,
+            "35": 1
+          },
+          "Branches": [
+            {
+              "Line": 15,
+              "Offset": 43,
+              "EndOffset": 45,
+              "Path": 0,
+              "Ordinal": 0,
+              "Hits": 1
+            },
+            {
+              "Line": 15,
+              "Offset": 43,
+              "EndOffset": 61,
+              "Path": 1,
+              "Ordinal": 1,
+              "Hits": 3
+            },
+            {
+              "Line": 17,
+              "Offset": 72,
+              "EndOffset": 74,
+              "Path": 0,
+              "Ordinal": 2,
+              "Hits": 1
+            },
+            {
+              "Line": 17,
+              "Offset": 72,
+              "EndOffset": 90,
+              "Path": 1,
+              "Ordinal": 3,
+              "Hits": 2
+            },
+            {
+              "Line": 20,
+              "Offset": 198,
+              "EndOffset": 200,
+              "Path": 0,
+              "Ordinal": 4,
+              "Hits": 1
+            },
+            {
+              "Line": 20,
+              "Offset": 198,
+              "EndOffset": 211,
+              "Path": 1,
+              "Ordinal": 5,
+              "Hits": 1
+            }
+          ]
+        }
+      }
+    },
+    "/Users/hiro/Projetct/GitHub/Tsumugi/src/Tsumugi.Application/Dtos/OfficeDto.cs": {
+      "Tsumugi.Application.Dtos.OfficeDto": {
+        "System.Guid Tsumugi.Application.Dtos.OfficeDto::get_Id()": {
+          "Lines": {
+            "3": 2
+          },
+          "Branches": []
+        }
+      }
+    }
+  }
+}

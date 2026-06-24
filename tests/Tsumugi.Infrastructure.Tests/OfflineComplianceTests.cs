@@ -23,6 +23,7 @@ public sealed class OfflineComplianceTests
     [InlineData("Tsumugi.Infrastructure")]
     public void Tsumugi_assemblies_do_not_reference_network_libraries(string assemblyName)
     {
+        // NOTE: GetReferencedAssemblies() returns DIRECT references only; transitive references are not walked (tracked in docs/open-questions.md).
         var asm = Assembly.Load(assemblyName);
         var referenced = asm.GetReferencedAssemblies().Select(a => a.Name ?? "").ToArray();
 

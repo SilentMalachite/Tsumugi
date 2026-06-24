@@ -29,3 +29,12 @@ Task 7: complete (commits 981dc41..1908754, review clean — spec ✅, quality A
   Minor/deferred for final-review triage:
    - App ServiceProvider not disposed on shutdown (wire lifetime.ShutdownRequested -> dispose before Phase 1 ViewModel injection).
    - SQLite path uses ApplicationData (~/.config on macOS, not ~/Library/Application Support) — final policy to be recorded in ADR 0003 (Task 9).
+
+Task 8: complete (commits 1908754..3b1c39b, review clean — spec ✅, quality Approved; offline test non-vacuous, ci.sh fail-fast verified, CI OK with 15/15)
+  Minor/deferred for final-review triage:
+   - OfflineComplianceTests + ArchitectureTests check DIRECT refs only — add a one-line comment noting transitive refs not checked.
+   - App-layer offline compliance must be tracked in open-questions.md (Task 9).
+
+Task 9: complete (commit 3b1c39b..ed0649a, docs-only — open-questions.md captures GHSA suppression + App-offline + direct-ref limitation; ADRs 0001/0002/0003 present, 0003 reflects implemented ApplicationData path)
+
+ALL 9 TASKS COMPLETE. Branch base = a243d18, tip = ed0649a.

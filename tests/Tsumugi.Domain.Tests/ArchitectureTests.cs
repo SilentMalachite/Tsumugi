@@ -21,6 +21,7 @@ public sealed class ArchitectureTests
         // Domain 内の既知の型からアセンブリを取得（型は Task 3 で追加する Entity を使う）
         var domainAssembly = typeof(Tsumugi.Domain.Entities.Entity).Assembly;
 
+        // NOTE: GetReferencedAssemblies() returns DIRECT references only; transitive references are not walked (tracked in docs/open-questions.md).
         var referencedNames = domainAssembly
             .GetReferencedAssemblies()
             .Select(a => a.Name ?? string.Empty)
