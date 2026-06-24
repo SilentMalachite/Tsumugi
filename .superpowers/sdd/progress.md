@@ -19,3 +19,7 @@ Task 5: complete (commits 979c2d5..353d31c, review clean — spec ✅, quality A
   Minor/deferred for final-review triage:
    - SqliteFixture.NewContext() calls Database.Migrate() per call (idempotent; could move to ctor).
    - Round-trip tests don't exercise the 32-char OfficeNumber maxlen boundary.
+
+Task 6: complete (commits 353d31c..981dc41, review clean — spec ✅, quality Approved; VACUUM INTO escaping verified injection-safe, EF1002 pragma narrowly scoped)
+  Minor/deferred for final-review triage:
+   - No automated test for BackupDatabaseUseCase blank-path ArgumentException guard (logic verified by reading). Add an async ThrowsAsync test with a fake IBackupService (project uses fakes, not Moq).
