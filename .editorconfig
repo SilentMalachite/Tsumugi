@@ -1,0 +1,30 @@
+root = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+dotnet_diagnostic.CA1062.severity = warning
+csharp_style_namespace_declarations = file_scoped:warning
+dotnet_style_qualification_for_field = false:warning
+dotnet_sort_system_directives_first = true
+
+# xUnit test methods conventionally use underscores; suppress CA1707 in test projects
+[tests/**/*.cs]
+dotnet_diagnostic.CA1707.severity = none
+
+# EF Core generates migrations that don't conform to file-scoped namespaces or null-guard style;
+# suppress those diagnostics so raw-generated files build without hand-editing.
+[src/Tsumugi.Infrastructure/Migrations/**.cs]
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.IDE0161.severity = none
+csharp_style_namespace_declarations = block_scoped:silent
+generated_code = true
+
+[*.{csproj,props,targets}]
+indent_size = 2
+
+[*.{json,yml,yaml}]
+indent_size = 2

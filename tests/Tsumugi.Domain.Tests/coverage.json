@@ -1,0 +1,62 @@
+{
+  "Tsumugi.Domain.dll": {
+    "/Users/hiro/Projetct/GitHub/Tsumugi/src/Tsumugi.Domain/Entities/Entity.cs": {
+      "Tsumugi.Domain.Entities.Entity": {
+        "System.Guid Tsumugi.Domain.Entities.Entity::get_Id()": {
+          "Lines": {
+            "6": 4
+          },
+          "Branches": []
+        },
+        "System.DateTimeOffset Tsumugi.Domain.Entities.Entity::get_CreatedAt()": {
+          "Lines": {
+            "7": 4
+          },
+          "Branches": []
+        },
+        "System.String Tsumugi.Domain.Entities.Entity::get_CreatedBy()": {
+          "Lines": {
+            "8": 4
+          },
+          "Branches": []
+        },
+        "System.Guid Tsumugi.Domain.Entities.Entity::get_ConcurrencyToken()": {
+          "Lines": {
+            "11": 4
+          },
+          "Branches": []
+        }
+      }
+    },
+    "/Users/hiro/Projetct/GitHub/Tsumugi/src/Tsumugi.Domain/Entities/Office.cs": {
+      "Tsumugi.Domain.Entities.Office": {
+        "System.String Tsumugi.Domain.Entities.Office::get_OfficeNumber()": {
+          "Lines": {
+            "6": 4
+          },
+          "Branches": []
+        },
+        "System.String Tsumugi.Domain.Entities.Office::get_Name()": {
+          "Lines": {
+            "7": 4
+          },
+          "Branches": []
+        },
+        "Tsumugi.Domain.Entities.Office Tsumugi.Domain.Entities.Office::Create(System.Guid,System.String,System.String,System.String,System.DateTimeOffset,System.Guid)": {
+          "Lines": {
+            "15": 3,
+            "16": 3,
+            "17": 3,
+            "18": 3,
+            "19": 3,
+            "20": 3,
+            "21": 3,
+            "22": 3,
+            "23": 3
+          },
+          "Branches": []
+        }
+      }
+    }
+  }
+}
