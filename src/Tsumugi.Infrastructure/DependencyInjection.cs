@@ -13,8 +13,7 @@ public static class DependencyInjection
         services.AddDbContext<TsumugiDbContext>(o => o.UseSqlite(connectionString));
         services.AddScoped<IOfficeRepository, OfficeRepository>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
-        // TODO(Task 6): enable backup registration
-        // services.AddScoped<IBackupService, SqliteBackupService>();
+        services.AddScoped<IBackupService, SqliteBackupService>();
         return services;
     }
 }
