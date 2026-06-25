@@ -8,3 +8,8 @@ coverage/
 *.db
 *.db-shm
 *.db-wal
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
