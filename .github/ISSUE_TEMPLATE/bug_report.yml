@@ -1,0 +1,110 @@
+name: 🐛 バグ報告
+description: 動作の不具合・想定外の挙動を報告する
+title: "[bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        報告ありがとうございます。**個人情報・機微情報は記載しないでください**（受給者証番号・利用者氏名・実データ など）。
+        セキュリティ脆弱性は本フォームではなく [Security Advisory](https://github.com/SilentMalachite/Tsumugi/security/advisories/new) で非公開報告してください。
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要
+      description: 何が起きたかを 1〜2 文で。
+      placeholder: 例：起動時に SqliteLocationService が PlatformNotSupportedException を投げる
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 重大度（自己判断）
+      options:
+        - Critical（業務停止／データ破損）
+        - High（主要機能の不可）
+        - Medium（迂回可能だが不便）
+        - Low（軽微・見た目）
+      default: 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      description: できるだけ最小再現で。コマンド・操作順を順序付きで。
+      placeholder: |
+        1. `dotnet run --project src/Tsumugi.App`
+        2. メインウィンドウの「…」をクリック
+        3. …
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待される動作
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の動作 / エラーメッセージ
+      description: スタックトレースやログがあれば貼ってください。**個人情報・保存先フルパスをマスク**してから貼ること。
+    validations:
+      required: true
+
+  - type: input
+    id: tsumugi-version
+    attributes:
+      label: Tsumugi のバージョン / コミット
+      placeholder: 例：v0.0.1-phase0 / commit 4b4d225
+    validations:
+      required: true
+
+  - type: input
+    id: dotnet-version
+    attributes:
+      label: .NET SDK のバージョン
+      description: '`dotnet --version` の出力'
+      placeholder: 例：10.0.100
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - 複数 OS で再現（本文に記載）
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS のバージョン
+      placeholder: 例：macOS 14.5 / Windows 11 23H2 / Ubuntu 24.04
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 補足情報（任意）
+      description: スクリーンショット・関連 Issue・ワークアラウンド等。
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: プライバシー確認
+      options:
+        - label: 本 Issue 本文・添付物に個人情報（氏名・受給者証番号・実データ・保存先フルパス）を含めていません。
+          required: true

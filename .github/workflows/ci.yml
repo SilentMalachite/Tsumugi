@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# 既定で write 権限を最小化（必要に応じてジョブ単位で昇格）
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: build & test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore local tools (dotnet-ef 等)
+        run: dotnet tool restore
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Build.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Format verify (gate #2)
+        run: dotnet format --verify-no-changes
+
+      - name: Build warnings-as-errors (gate #1)
+        run: dotnet build --no-restore -c Release
+
+      - name: Test + coverage (gate #3 / arch=gate#4 / offline=gate#5)
+        run: |
+          dotnet test --no-build -c Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./TestResults
+        shell: bash
+
+      - name: Coverage threshold — Domain (gate #3 enforcement, floor 70%)
+        run: |
+          dotnet test tests/Tsumugi.Domain.Tests -c Release \
+            /p:CollectCoverage=true \
+            /p:Threshold=70 \
+            /p:ThresholdType=line \
+            /p:ThresholdStat=total
+        shell: bash
+
+      - name: Coverage threshold — Application (gate #3 enforcement, floor 70%)
+        run: |
+          dotnet test tests/Tsumugi.Application.Tests -c Release \
+            /p:CollectCoverage=true \
+            /p:Threshold=70 \
+            /p:ThresholdType=line \
+            /p:ThresholdStat=total
+        shell: bash
+
+      - name: Upload TestResults on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: ./TestResults
+          retention-days: 7
+          if-no-files-found: ignore

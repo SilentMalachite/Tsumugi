@@ -1,0 +1,22 @@
+Tsumugi
+Copyright 2026 SilentMalachite
+
+This product includes software developed at SilentMalachite.
+
+---
+
+This product depends on the following third-party software,
+which is licensed under its own terms:
+
+- .NET Runtime / BCL — MIT License — https://github.com/dotnet/runtime
+- Avalonia — MIT License — https://github.com/AvaloniaUI/Avalonia
+- Microsoft.EntityFrameworkCore (incl. Sqlite provider) — MIT License — https://github.com/dotnet/efcore
+- CommunityToolkit.Mvvm — MIT License — https://github.com/CommunityToolkit/dotnet
+- Microsoft.Extensions.* (Hosting / DependencyInjection / Logging) — MIT License — https://github.com/dotnet/runtime
+- SQLitePCLRaw — Apache License 2.0 / zlib — https://github.com/ericsink/SQLitePCL.raw
+- SkiaSharp / HarfBuzzSharp — MIT License — https://github.com/mono/SkiaSharp
+- xUnit.net — Apache License 2.0 — https://github.com/xunit/xunit
+- FluentAssertions — Apache License 2.0 — https://github.com/fluentassertions/fluentassertions
+- Coverlet — MIT License — https://github.com/coverlet-coverage/coverlet
+
+ライセンス本文は各プロジェクトのリポジトリを参照してください。

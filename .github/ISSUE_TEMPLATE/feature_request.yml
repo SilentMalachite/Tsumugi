@@ -1,0 +1,78 @@
+name: ✨ 機能リクエスト
+description: 新機能・既存機能の拡張を提案する
+title: "[feat] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        提案ありがとうございます。**責務境界**（[README.md](https://github.com/SilentMalachite/Tsumugi/blob/main/README.md#責務境界重要誤解防止)）を確認してください — 国保連伝送・電子証明書・回線処理はアプリの範囲外です。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 解決したい課題
+      description: なぜこの機能が必要か。誰が・どの業務で・何に困っているか。
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 提案する解決策
+      description: どんなふうに解決したいか。UI 案・データ構造案・コマンド案など。
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 検討した代替案
+      description: 他に考えたアプローチと、なぜ採用しないか。
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: 想定フェーズ
+      description: 本リポジトリのフェーズ番号
+      options:
+        - フェーズ 1（マスタ + 記録）
+        - フェーズ 2（工賃計算）
+        - フェーズ 3（国保連請求 CSV 生成）
+        - フェーズ未定・横断的改善
+    validations:
+      required: true
+
+  - type: textarea
+    id: ac
+    attributes:
+      label: 受け入れ基準（あれば）
+      description: 「何を満たせば完了か」を箇条書きで。
+      placeholder: |
+        - [ ] xx ができる
+        - [ ] yy のテストが緑
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: ハード制約への影響
+      description: |
+        オフライン・依存方向・データ保護・報酬告示外部化・アクセシビリティ・クロスプラットフォームへの影響を簡潔に。
+      placeholder: |
+        例：通信は不要、Application 層に新ユースケース追加、報酬値は既存マスタを参照、追加 OS API なし
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 補足情報（任意）
+      description: モックアップ・参考資料・関連 Issue 等。
+
+  - type: checkboxes
+    id: scope-check
+    attributes:
+      label: 責務境界の確認
+      options:
+        - label: 本提案は国保連伝送・電子証明書管理・回線処理を **含まない**（アプリの責務範囲外を提案していない）。
+          required: true
+        - label: 報酬告示・CSV 仕様の数値はコード直書きではなく、外部マスタ（DB + シード JSON）で扱う方針を踏襲する。
+          required: true
