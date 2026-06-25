@@ -13,8 +13,11 @@ namespace Tsumugi.Infrastructure.Tests;
 public sealed class AppOfflineComplianceTests
 {
     // 禁止 namespace 集合（このいずれかが前方一致する型はアウト）
+    // "System.Net" を先頭に置くことで Dns/NetworkInformation 等も漏れなく検知する。
+    // 以下の個別エントリは "System.Net" に包含されるが、意図を明示するために残す。
     private static readonly string[] ForbiddenNamespaces =
     {
+        "System.Net",
         "System.Net.Http",
         "System.Net.Sockets",
         "System.Net.WebSockets",
