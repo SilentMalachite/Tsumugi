@@ -8,3 +8,15 @@
   - 保存先パス解決を合成ルートに集約済み。
   - ログに個人情報を出さない実装規約を維持。
   - macOS での `ApplicationData` が `~/Library/Application Support` ではなく `~/.config` に解決される点は macOS 慣例と異なる。将来的に macOS ネイティブパス（`~/Library/Application Support/Tsumugi`）へ移行するかどうかは open-questions として残す。
+
+## 追補: 権限ポリシー（2026-06-26 / AC0-6）
+
+- **Unix (Linux/macOS)**: ディレクトリ `0700`、DBファイル `0600`。`Directory.CreateDirectory(path, UnixFileMode)` ＋ `File.SetUnixFileMode` で**作成時に強制**。WAL/SHM サイドカーはディレクトリ権限で保護される。
+- **Windows**: 現在ユーザー (`WindowsIdentity.GetCurrent().User`) のみフルコントロール。`DirectorySecurity.SetAccessRuleProtection(isProtected: true, preserveInheritance: false)` で**継承無効・継承 ACE 除去**。同等のポリシーを DBファイルにも適用。Windows 専用 API は `[SupportedOSPlatform("windows")]` でガードする。
+- **既存ゆるい権限の扱い**: 起動時に**冪等に締め直す**（広げない・狭めるのみ）。理由: 単一ユーザーデスクトップアプリで保存先はユーザー自身の `ApplicationData` 配下である／毎回失敗にすると業務継続が阻害される／締め直しはユーザー意図を破壊しない。所有者検証ポリシー（マルチユーザー乗っ取り対策）はフェーズ1以降で追加検討。
+- **検証**: `tests/Tsumugi.Infrastructure.Tests/SqliteLocationServiceTests.cs` で OS 別に `[Fact]` を立て、該当 OS 以外は早期 `return` でスキップ（xUnit 2.x のため `Skip.If` は使わない）。
+- **実装場所**: `src/Tsumugi.Infrastructure/Persistence/SqliteLocationService.cs`（Infrastructure 層）。App は合成ルートでサービスを 1 回構築し `EnsureSecuredStorage()` を呼ぶのみ。
+
+暗号化（SQLCipher 等）採否は本追補の対象外（open-questions.md 引き続き）。
+
+> 補足: 2026-06-26 の .NET 10 macOS 環境で `Environment.SpecialFolder.ApplicationData` の実解決は `~/Library/Application Support/Tsumugi/` となることを smoke test で確認した（ADR 本文の `~/.config/Tsumugi/` 記述は .NET 7 当時の挙動。環境変数 `XDG_CONFIG_HOME` の有無や SDK 版で揺れる。実体パスがどちらでも、本追補の権限ポリシー（ディレクトリ 0700 / ファイル 0600）は適用される）。
