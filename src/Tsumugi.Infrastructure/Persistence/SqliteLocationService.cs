@@ -1,6 +1,9 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace Tsumugi.Infrastructure.Persistence;
 
@@ -65,11 +68,41 @@ public sealed class SqliteLocationService : ISqliteLocation
         }
     }
 
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    [SupportedOSPlatform("windows")]
     private void EnsureWindows()
     {
-        // Task 3 で DACL 設定を実装
-        throw new NotImplementedException(
-            "SqliteLocationService の Windows 分岐は Task 3 で実装する。");
+        var currentUser = WindowsIdentity.GetCurrent().User!;
+
+        var dirSecurity = new DirectorySecurity();
+        dirSecurity.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+        dirSecurity.AddAccessRule(new FileSystemAccessRule(
+            currentUser,
+            FileSystemRights.FullControl,
+            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+            PropagationFlags.None,
+            AccessControlType.Allow));
+
+        if (!Directory.Exists(_directory))
+        {
+            var di = Directory.CreateDirectory(_directory);
+            di.SetAccessControl(dirSecurity);
+        }
+        else
+        {
+            new DirectoryInfo(_directory).SetAccessControl(dirSecurity);
+        }
+
+        var fileSecurity = new FileSecurity();
+        fileSecurity.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
+        fileSecurity.AddAccessRule(new FileSystemAccessRule(
+            currentUser,
+            FileSystemRights.FullControl,
+            AccessControlType.Allow));
+
+        if (!File.Exists(DatabasePath))
+        {
+            using (File.Create(DatabasePath)) { }
+        }
+        new FileInfo(DatabasePath).SetAccessControl(fileSecurity);
     }
 }
