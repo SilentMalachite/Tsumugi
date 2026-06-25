@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 セキュリティ脆弱性の報告
+    url: https://github.com/SilentMalachite/Tsumugi/security/advisories/new
+    about: 脆弱性は Public Issue ではなく Private Security Advisory で報告してください。詳細は SECURITY.md を参照。
+  - name: 💬 質問・議論・機能アイデア
+    url: https://github.com/SilentMalachite/Tsumugi/discussions
+    about: 使い方の質問・設計議論・実装アイデアは Discussions へどうぞ。
