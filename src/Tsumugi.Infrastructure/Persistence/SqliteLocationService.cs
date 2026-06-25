@@ -64,6 +64,9 @@ public sealed class SqliteLocationService : ISqliteLocation
             File.SetUnixFileMode(_directory, dirMode);
         }
 
+        // File.Create はデフォルト権限(プロセス umask 経由)でファイルを作成し、直後に SetUnixFileMode で 0600 に締める。
+        // 管理コードでは「DACL/モード付きアトミック作成」API は提供されないため、この瞬間は不可避。
+        // ディレクトリ 0700 の保護が外部ユーザーからのアクセスを遮るため、実害は無視できる。
         if (!File.Exists(DatabasePath))
         {
             using (File.Create(DatabasePath)) { }
@@ -103,6 +106,9 @@ public sealed class SqliteLocationService : ISqliteLocation
             FileSystemRights.FullControl,
             AccessControlType.Allow));
 
+        // File.Create は親ディレクトリ継承の ACL でファイルを作成し、直後に SetAccessControl で「現在ユーザーのみ」DACL に締める。
+        // 管理コードでは「DACL 付きアトミック作成」API は提供されないため、この瞬間は不可避。
+        // ディレクトリの DACL が既に「現在ユーザーのみ」+ 継承無効になっているため、実害は無視できる。
         if (!File.Exists(DatabasePath))
         {
             using (File.Create(DatabasePath)) { }

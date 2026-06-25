@@ -91,7 +91,7 @@ internal static class AppAssemblyLocator
     private static string ExtractConfigurationFromPath(string path)
     {
         var parts = path.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 0; i < parts.Length - 1; i++)
+        for (int i = parts.Length - 2; i >= 0; i--)
         {
             if (string.Equals(parts[i], "bin", StringComparison.OrdinalIgnoreCase))
             {
