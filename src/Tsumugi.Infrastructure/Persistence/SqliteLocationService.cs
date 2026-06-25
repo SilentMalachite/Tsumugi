@@ -58,14 +58,18 @@ public sealed class SqliteLocationService : ISqliteLocation
         {
             Directory.CreateDirectory(_directory, dirMode);
         }
-        // 既存ゆるい権限の締め直しは Task 4 で追加
+        else
+        {
+            // 既存ディレクトリは「広い→狭める」方向にのみ更新する
+            File.SetUnixFileMode(_directory, dirMode);
+        }
 
         if (!File.Exists(DatabasePath))
         {
-            // 空ファイルを先に作って 0600 を強制 → SQLite は空ファイルを新規DBとして扱う
             using (File.Create(DatabasePath)) { }
-            File.SetUnixFileMode(DatabasePath, fileMode);
         }
+        // 既存ファイルも含めて常に 0600 に揃える（冪等）
+        File.SetUnixFileMode(DatabasePath, fileMode);
     }
 
     [SupportedOSPlatform("windows")]

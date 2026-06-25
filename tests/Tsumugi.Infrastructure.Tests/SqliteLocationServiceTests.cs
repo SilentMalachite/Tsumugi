@@ -47,6 +47,45 @@ public sealed class SqliteLocationServiceTests
     }
 
     [Fact]
+    public void EnsureSecuredStorage_tightens_loose_permissions_on_unix()
+    {
+        if (!IsUnix) return;
+
+        var dir = NewTempDir();
+        try
+        {
+            // 事前に「ゆるい」状態を作る: 0755 のディレクトリ + 0644 のDBファイル
+#pragma warning disable CA1416 // if (!IsUnix) return; が先行しているため Windows では到達しない
+            Directory.CreateDirectory(dir);
+            File.SetUnixFileMode(dir,
+                UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+                UnixFileMode.GroupRead | UnixFileMode.GroupExecute |
+                UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
+
+            var dbPath = Path.Combine(dir, "tsumugi.db");
+            using (File.Create(dbPath)) { }
+            File.SetUnixFileMode(dbPath,
+                UnixFileMode.UserRead | UnixFileMode.UserWrite |
+                UnixFileMode.GroupRead | UnixFileMode.OtherRead);
+
+            var svc = new SqliteLocationService(dir);
+            svc.EnsureSecuredStorage();
+
+            File.GetUnixFileMode(dir).Should().Be(
+                UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute,
+                "既存ディレクトリは 0700 に締め直されるべき");
+            File.GetUnixFileMode(dbPath).Should().Be(
+                UnixFileMode.UserRead | UnixFileMode.UserWrite,
+                "既存DBファイルは 0600 に締め直されるべき");
+#pragma warning restore CA1416
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    [Fact]
     public void EnsureSecuredStorage_sets_current_user_only_dacl_on_windows()
     {
         if (!OperatingSystem.IsWindows()) return; // 非該当OSではスキップ
