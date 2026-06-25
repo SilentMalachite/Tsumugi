@@ -52,6 +52,16 @@ public sealed class AppOfflineComplianceTests
         var appDllPath = AppAssemblyLocator.LocateTsumugiAppDll();
         var referenced = AssemblyMetadataScanner.ScanReferencedTypeFullNames(appDllPath);
 
+        // 空 Reason の allowlist 追加を CI で失格させる（OfflineComplianceTests の AssemblyAllowlist と方針統一）。
+        var emptyReasonEntries = Allowlist
+            .Where(a => string.IsNullOrWhiteSpace(a.Reason))
+            .Select(a => a.FullName)
+            .ToArray();
+        emptyReasonEntries.Should().BeEmpty(
+            because: "Allowlist エントリには根拠を Reason に記すこと（空文字禁止）。"
+                     + Environment.NewLine
+                     + "Reason 空: " + string.Join(", ", emptyReasonEntries));
+
         var allowed = Allowlist.Select(a => a.FullName).ToHashSet(StringComparer.Ordinal);
 
         var hits = referenced
