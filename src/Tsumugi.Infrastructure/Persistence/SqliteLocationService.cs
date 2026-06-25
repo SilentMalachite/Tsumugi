@@ -9,8 +9,8 @@ namespace Tsumugi.Infrastructure.Persistence;
 
 /// <summary>
 /// SQLite 保存先のディレクトリ／DBファイルを作成し、OS 別の最小権限で初期化する。
-/// Unix: dir 0700 / db 0600。Windows: 現在ユーザーのみフルコントロール（Task 3 で追加）。
-/// WAL/SHM サイドカーはディレクトリ権限（0700）で保護される。
+/// Unix: dir 0700 / db 0600。Windows: 現在ユーザーのみフルコントロール / 継承無効。
+/// WAL/SHM サイドカーはディレクトリ権限（0700 / Windows は親 DACL）で保護される。
 /// </summary>
 public sealed class SqliteLocationService : ISqliteLocation
 {
@@ -38,7 +38,7 @@ public sealed class SqliteLocationService : ISqliteLocation
 
         if (OperatingSystem.IsWindows())
         {
-            EnsureWindows(); // Task 3 で実装
+            EnsureWindows();
             return;
         }
 
