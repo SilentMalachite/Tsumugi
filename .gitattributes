@@ -1,0 +1,38 @@
+# Tsumugi はクロスプラットフォーム .NET プロジェクト。
+# Windows GA ランナー (core.autocrlf=true 既定) で LF→CRLF 変換が起きると
+# .editorconfig (end_of_line = lf) と矛盾し dotnet format --verify-no-changes が落ちるため、
+# 全 text ファイルを LF 固定にする。
+* text=auto eol=lf
+
+# Source / project / config
+*.cs            text eol=lf
+*.csproj        text eol=lf
+*.props         text eol=lf
+*.targets       text eol=lf
+*.sln           text eol=lf
+*.json          text eol=lf
+*.xml           text eol=lf
+*.axaml         text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+*.md            text eol=lf
+*.editorconfig  text eol=lf
+*.gitignore     text eol=lf
+*.gitattributes text eol=lf
+*.sh            text eol=lf
+*.ps1           text eol=lf
+*.manifest      text eol=lf
+
+# Binary
+*.dll    binary
+*.pdb    binary
+*.exe    binary
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.icns   binary
+*.dylib  binary
+*.so     binary
+*.snk    binary
