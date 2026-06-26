@@ -64,19 +64,19 @@ jobs:
       - name: Coverage threshold — Domain (gate #3 enforcement, floor 70%)
         run: |
           dotnet test tests/Tsumugi.Domain.Tests -c Release \
-            /p:CollectCoverage=true \
-            /p:Threshold=70 \
-            /p:ThresholdType=line \
-            /p:ThresholdStat=total
+            -p:CollectCoverage=true \
+            -p:Threshold=70 \
+            -p:ThresholdType=line \
+            -p:ThresholdStat=total
         shell: bash
 
       - name: Coverage threshold — Application (gate #3 enforcement, floor 70%)
         run: |
           dotnet test tests/Tsumugi.Application.Tests -c Release \
-            /p:CollectCoverage=true \
-            /p:Threshold=70 \
-            /p:ThresholdType=line \
-            /p:ThresholdStat=total
+            -p:CollectCoverage=true \
+            -p:Threshold=70 \
+            -p:ThresholdType=line \
+            -p:ThresholdStat=total
         shell: bash
 
       - name: Upload TestResults on failure
