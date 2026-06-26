@@ -31,13 +31,20 @@ public sealed class BackupServiceTests : IClassFixture<SqliteFixture>
 
             File.Exists(backupPath).Should().BeTrue();
 
-            // バックアップを別コンテキストで開いてデータを確認
+            // バックアップを別コンテキストで開いてデータを確認。
+            // Windows は open file の削除を許さないため、検証スコープを明示的に閉じてから
+            // SqliteConnection.ClearAllPools() でプール接続を解放し、その後に削除する。
             var options = new DbContextOptionsBuilder<TsumugiDbContext>()
                 .UseSqlite($"Data Source={backupPath}").Options;
-            await using var restored = new TsumugiDbContext(options);
-            (await restored.Offices.SingleAsync(o => o.Id == id)).Name.Should().Be("元DB");
-
-            File.Delete(backupPath);
+            await using (var restored = new TsumugiDbContext(options))
+            {
+                (await restored.Offices.SingleAsync(o => o.Id == id)).Name.Should().Be("元DB");
+            }
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            foreach (var f in new[] { backupPath, backupPath + "-shm", backupPath + "-wal" })
+            {
+                if (File.Exists(f)) File.Delete(f);
+            }
         }
     }
 }
