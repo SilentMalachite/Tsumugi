@@ -5,6 +5,9 @@ obj/
 .idea/
 TestResults/
 coverage/
+coverage.json
+coverage.cobertura.xml
+coverage.opencover.xml
 *.db
 *.db-shm
 *.db-wal
