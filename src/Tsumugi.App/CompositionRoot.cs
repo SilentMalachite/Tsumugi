@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Tsumugi.App.ViewModels;
 using Tsumugi.Application.UseCases;
 using Tsumugi.Application.UseCases.Certificate;
 using Tsumugi.Application.UseCases.Contract;
@@ -52,6 +53,15 @@ public static class CompositionRoot
         services.AddScoped<CorrectDailyRecordUseCase>();
         services.AddScoped<CancelDailyRecordUseCase>();
         services.AddScoped<QueryMonthDailyRecordsUseCase>();
+
+        // ViewModels
+        services.AddTransient<RecipientListViewModel>();
+        services.AddTransient<RecipientEditViewModel>();
+        services.AddTransient<CertificateViewModel>();
+        services.AddTransient<ContractViewModel>();
+        services.AddTransient<OfficeViewModel>();
+        services.AddTransient<DailyRecordViewModel>();
+        services.AddTransient<MainViewModel>();
 
         return services;
     }

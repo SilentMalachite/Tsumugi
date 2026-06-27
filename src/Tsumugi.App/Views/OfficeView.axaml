@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             xmlns:conv="using:Tsumugi.App.Converters"
+             x:Class="Tsumugi.App.Views.OfficeView"
+             x:DataType="vm:OfficeViewModel">
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
+    </UserControl.KeyBindings>
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="事業所管理" FontSize="16" Margin="8,8,8,4" />
+        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="8">
+            <StackPanel Spacing="4">
+                <TextBlock Text="事業所番号" />
+                <TextBox Text="{Binding OfficeNumber}" Watermark="例：2700012345" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+                <TextBlock Text="事業所名" />
+                <TextBox Text="{Binding Name}" Watermark="例：つむぎ作業所" />
+            </StackPanel>
+            <TextBlock Text="{Binding SaveErrorMessage}"
+                       Foreground="#FF4444"
+                       IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+            <Button Content="保存 (Ctrl+S)" Command="{Binding SaveCommand}" />
+        </StackPanel>
+        <DataGrid ItemsSource="{Binding Items}"
+                  IsReadOnly="True"
+                  AutoGenerateColumns="False"
+                  Margin="8">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="事業所番号" Binding="{Binding OfficeNumber}" Width="Auto" />
+                <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

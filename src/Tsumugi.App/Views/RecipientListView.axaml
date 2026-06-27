@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             x:Class="Tsumugi.App.Views.RecipientListView"
+             x:DataType="vm:RecipientListViewModel">
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="F5" Command="{Binding LoadCommand}" />
+    </UserControl.KeyBindings>
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="利用者一覧" FontSize="16" Margin="8,8,8,4" />
+        <DataGrid ItemsSource="{Binding Items}"
+                  SelectedItem="{Binding Selected}"
+                  IsReadOnly="True"
+                  AutoGenerateColumns="False"
+                  Margin="8">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="氏名（漢字）" Binding="{Binding KanjiName}" Width="*" />
+                <DataGridTextColumn Header="氏名（カナ）" Binding="{Binding KanaName}" Width="*" />
+                <DataGridTextColumn Header="生年月日" Binding="{Binding DateOfBirth}" Width="Auto" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

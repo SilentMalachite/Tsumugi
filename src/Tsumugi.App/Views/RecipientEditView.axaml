@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             xmlns:conv="using:Tsumugi.App.Converters"
+             x:Class="Tsumugi.App.Views.RecipientEditView"
+             x:DataType="vm:RecipientEditViewModel">
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
+        <KeyBinding Gesture="Escape" Command="{Binding SaveCommand}" />
+    </UserControl.KeyBindings>
+    <StackPanel Spacing="12" Margin="16">
+        <TextBlock Text="利用者登録・編集" FontSize="16" />
+        <StackPanel Spacing="4">
+            <TextBlock Text="氏名（漢字）" />
+            <TextBox Text="{Binding KanjiName}" Watermark="例：山田 太郎" />
+        </StackPanel>
+        <StackPanel Spacing="4">
+            <TextBlock Text="氏名（カナ）" />
+            <TextBox Text="{Binding KanaName}" Watermark="例：ヤマダ タロウ" />
+        </StackPanel>
+        <StackPanel Spacing="4">
+            <TextBlock Text="生年月日（yyyy-MM-dd）" />
+            <TextBox Text="{Binding DateOfBirth, Converter={x:Static conv:DateOnlyConverter.Instance}}"
+                     Watermark="例：1990-01-01" />
+        </StackPanel>
+        <TextBlock Text="{Binding SaveErrorMessage}"
+                   Foreground="#FF4444"
+                   IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+        <Button Content="保存 (Ctrl+S)" Command="{Binding SaveCommand}" />
+    </StackPanel>
+</UserControl>

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Application.UseCases.Recipient;
 
@@ -12,6 +13,7 @@ public sealed partial class RecipientListViewModel(ListRecipientsUseCase listUse
     [ObservableProperty]
     private RecipientDto? _selected;
 
+    [RelayCommand]
     public async Task LoadAsync()
     {
         Items.Clear();

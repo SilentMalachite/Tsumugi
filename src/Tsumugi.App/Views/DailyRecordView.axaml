@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             x:Class="Tsumugi.App.Views.DailyRecordView"
+             x:DataType="vm:DailyRecordViewModel">
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="F5" Command="{Binding LoadCommand}" />
+    </UserControl.KeyBindings>
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="日次記録" FontSize="16" Margin="8,8,8,4" />
+        <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding Cells}" Margin="8">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="vm:DailyCellViewModel">
+                        <Border BorderBrush="#444" BorderThickness="1" Width="80" Height="80" Margin="2">
+                            <StackPanel Spacing="2" Margin="4">
+                                <TextBlock Text="{Binding Date.Day}"
+                                           FontWeight="Bold"
+                                           HorizontalAlignment="Center" />
+                                <TextBlock Text="{Binding EffectiveAttendance}"
+                                           FontSize="11"
+                                           HorizontalAlignment="Center" />
+                                <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Center">
+                                    <Button Content="出" FontSize="10" Padding="2"
+                                            Command="{Binding RecordCommand}"
+                                            CommandParameter="Present" />
+                                    <Button Content="取" FontSize="10" Padding="2"
+                                            Command="{Binding CancelCommand}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

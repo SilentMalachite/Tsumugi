@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.Input;
 using Tsumugi.Application.UseCases.DailyRecord;
 
 namespace Tsumugi.App.ViewModels;
@@ -18,6 +19,7 @@ public sealed partial class DailyRecordViewModel(
     public void SetRecipient(Guid id) => _recipientId = id;
     public void SetMonth(int year, int month) { _year = year; _month = month; }
 
+    [RelayCommand]
     public async Task LoadAsync()
     {
         Cells.Clear();
