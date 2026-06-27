@@ -19,4 +19,12 @@
 - [ ] **Avalonia GUI 目視確認 (AC1-8 補完)**: Phase 1 では `AccessibilityDefaults` の値・適用・XAML 配線を全て CI テストで担保したが、実機起動でのフォント拡大追従、Reduce Motion の Transition 抑止、各 View のタブ順とフォーカス移動は手動 QA でしか確認できない。Phase 2 着手前に macOS/Windows 双方で 1 回ずつ目視チェックする。
 - [ ] **OfficeCapability の正式コード集合**: ADR 0006 の通り Phase 1 は `mealProvision` / `transportSupport` のみの暫定キーで運用。Phase 3 で報酬告示と突合して正式コード（食事提供体制加算 I/II、送迎加算 I/II 等）を確定する。
 - [ ] **`UpdateOffice` / `UpdateRecipient` の actor 監査ログ**: 引数で `actor` を受けているが Phase 1 では未使用（`_ = actor`）。Phase 2 で監査ログテーブルへ「いつ誰が何を更新したか」を追記する設計を入れる。
-- [ ] **性別など利用者属性の拡張**: 国保連請求 CSV では性別が必須項目の可能性が高い。Phase 1 の `Recipient` は漢字氏名 / カナ氏名 / 生年月日のみ。Phase 3 着手前に CSV インターフェース仕様書で必須項目を洗い出し、enum + migration を発行する。
+- [ ] **性別など利用者属性の拡張**: 国保連請求 CSV では性別が必須項目の可能性が高い。Phase 1 の `Recipient` は漢字氏名 / カナ氏名 / 生年月日のみ。Phase 3 着手前に CSV インターフェース仕様書で必須項目を洗い出し、enum + migration を発行する。**進捗**: 2026-06-28 に `Certificate` 側に発行時点スナップショットとして `RecipientGender` 等を追加（ADR 0010）。`Recipient` マスタへの拡張は Phase 3 で CSV 仕様確認後に実施。
+
+## Phase 1 受給者証 様式準拠（2026-06-28 追加）
+
+- [ ] **自治体差異**: 受給者証の様式は MHLW 告示で共通項目が定義される一方、自治体ごとに独自の補足欄（例: 通所給食提供時間帯・上限管理事業所の電話番号など）がある。Tsumugi では「主要セクションのみ準拠」とし、自治体独自項目は当面 `SupplyNotes` / `Notes` の自由記述で受ける（ADR 0010）。利用自治体ごとに具体的な追加項目が判明したら個別に enum 化を検討する。
+- [ ] **食事提供体制加算 / 高額障害福祉サービス費等の単位数**: Phase 1 では「適用 yes/no」のフラグのみ保持し、金額算定（単位数・利用額）は Phase 3 報酬告示と突合してから実装する（CLAUDE.md §ハード制約 3）。
+- [ ] **負担区分の月額上限金額表**: `PaymentBurdenCategory` の各区分（生活保護/低所得/一般1/一般2）の月額上限額（円）は告示で定義される。現状は `MonthlyCostCap` 列に手入力。Phase 3 で区分→上限額の対応テーブルをシード JSON 化し、`PaymentBurden` 設定時に自動入力する案を検討する。
+- [ ] **計画相談支援事業者マスタ**: 現状は受給者証ごとに事業者名を自由記述。複数受給者で同じ事業者を参照することが多いため、Phase 3 で `ConsultationProvider` マスタを切り出して FK 参照に変更するか検討する。
+- [ ] **ContractedProvider と Contract の整理**: Phase 1 既存の `Contract` は自社事業所の利用契約のみ表現する。新規 `ContractedProvider` は受給者証「サービス事業者記入欄」に書かれる**全契約事業所**（他事業所含む）を網羅する。重複格納を避けたい場合は、自社契約は `Contract` 側のみで管理し `ContractedProvider` には他事業所のみ書く運用も検討する。Phase 2 着手前に運用方針を確定する。

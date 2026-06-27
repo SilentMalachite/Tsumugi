@@ -9,8 +9,9 @@
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
     </UserControl.KeyBindings>
     <DockPanel>
+        <!-- ヘッダ：期限アラート設定 + 更新 -->
         <DockPanel DockPanel.Dock="Top" Margin="8,8,8,4">
-            <TextBlock Text="受給者証（登録 / 期限アラート）"
+            <TextBlock Text="受給者証（MHLW 様式準拠）"
                        FontSize="{DynamicResource HeadingFontSize}" VerticalAlignment="Center" />
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" Margin="8,0,0,0">
                 <TextBlock Text="期限アラートしきい値：" VerticalAlignment="Center" />
@@ -20,68 +21,256 @@
             </StackPanel>
         </DockPanel>
 
-        <!-- 登録フォーム -->
-        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="8">
-            <TextBlock Text="登録（保存 Ctrl+S）" FontWeight="Bold" />
-            <StackPanel Spacing="4">
-                <TextBlock Text="利用者（必須）" />
-                <ComboBox ItemsSource="{Binding Recipients}"
-                          SelectedItem="{Binding SelectedRecipient}"
-                          PlaceholderText="利用者を選択"
-                          HorizontalAlignment="Stretch">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding KanjiName}" />
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-            </StackPanel>
-            <StackPanel Spacing="4">
-                <TextBlock Text="受給者証番号" />
-                <TextBox Text="{Binding CertificateNumber}" Watermark="例：1234567890" />
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <StackPanel Spacing="4">
-                    <TextBlock Text="有効期間 開始" />
-                    <TextBox Text="{Binding ValidityStart, Converter={x:Static conv:DateOnlyConverter.Instance}}"
-                             Watermark="2026-04-01" />
-                </StackPanel>
-                <StackPanel Spacing="4">
-                    <TextBlock Text="有効期間 終了" />
-                    <TextBox Text="{Binding ValidityEnd, Converter={x:Static conv:DateOnlyConverter.Instance}}"
-                             Watermark="2027-03-31" />
-                </StackPanel>
-                <StackPanel Spacing="4">
-                    <TextBlock Text="支給量(日/月)" />
-                    <TextBox Text="{Binding SupplyDays}" Width="80" />
-                </StackPanel>
-                <StackPanel Spacing="4">
-                    <TextBlock Text="月額上限(円)" />
-                    <TextBox Text="{Binding MonthlyCostCap}" Width="100" />
-                </StackPanel>
-                <StackPanel Spacing="4">
-                    <TextBlock Text="市町村" />
-                    <TextBox Text="{Binding Municipality}" Watermark="例：杉並区" />
-                </StackPanel>
-            </StackPanel>
-            <TextBlock Text="{Binding SaveErrorMessage}"
-                       Foreground="#FF4444"
-                       IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
-            <TextBlock Text="{Binding OverlapWarning}"
-                       Foreground="#FFAA00"
-                       IsVisible="{Binding OverlapWarning, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
-            <Button Content="保存 (Ctrl+S)" Command="{Binding SaveCommand}" />
-        </StackPanel>
-
-        <DataGrid ItemsSource="{Binding ExpiringItems}"
+        <!-- 期限アラート一覧 -->
+        <DataGrid DockPanel.Dock="Bottom"
+                  ItemsSource="{Binding ExpiringItems}"
                   IsReadOnly="True"
                   AutoGenerateColumns="False"
-                  Margin="8">
+                  Margin="8" MaxHeight="160">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="受給者証番号" Binding="{Binding CertificateNumber}" Width="*" />
                 <DataGridTextColumn Header="有効期限" Binding="{Binding ExpiryDate}" Width="Auto" />
                 <DataGridTextColumn Header="残日数" Binding="{Binding RemainingDays}" Width="Auto" />
             </DataGrid.Columns>
         </DataGrid>
+
+        <!-- 入力フォーム（スクロール領域） -->
+        <ScrollViewer>
+            <StackPanel Spacing="12" Margin="8">
+
+                <!-- 1. 支給決定障害者等 -->
+                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="1. 支給決定障害者等" FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <StackPanel Spacing="2" Width="280">
+                                <TextBlock Text="利用者（必須）" />
+                                <ComboBox ItemsSource="{Binding Recipients}"
+                                          SelectedItem="{Binding SelectedRecipient}"
+                                          PlaceholderText="利用者を選択"
+                                          HorizontalAlignment="Stretch">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding KanjiName}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="200">
+                                <TextBlock Text="受給者証番号" />
+                                <TextBox Text="{Binding CertificateNumber}" Watermark="例：1234567890" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="120">
+                                <TextBlock Text="性別" />
+                                <ComboBox ItemsSource="{Binding GenderOptions}"
+                                          SelectedItem="{Binding RecipientGender}"
+                                          HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <StackPanel Spacing="2" Width="400">
+                                <TextBlock Text="居住地" />
+                                <TextBox Text="{Binding RecipientAddress}" Watermark="例：東京都杉並区..." />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="180">
+                                <TextBlock Text="保護者氏名（障害児の場合）" />
+                                <TextBox Text="{Binding GuardianName}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="120">
+                                <TextBlock Text="続柄" />
+                                <TextBox Text="{Binding GuardianRelationship}" Watermark="父/母 等" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 2. 障害種別 -->
+                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="2. 障害種別" FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <CheckBox Content="身体障害" IsChecked="{Binding DisabilityPhysical}" />
+                            <CheckBox Content="知的障害" IsChecked="{Binding DisabilityIntellectual}" />
+                            <CheckBox Content="精神障害" IsChecked="{Binding DisabilityMental}" />
+                            <CheckBox Content="難病等" IsChecked="{Binding DisabilityIntractable}" />
+                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="障害支援区分：" VerticalAlignment="Center" />
+                                <ComboBox ItemsSource="{Binding SupportCategoryOptions}"
+                                          SelectedItem="{Binding SupportCategory}" Width="120" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 3. 訓練等給付費の支給決定内容 -->
+                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="3. 訓練等給付費の支給決定内容" FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <StackPanel Spacing="2" Width="140">
+                                <TextBlock Text="給付種別" />
+                                <ComboBox ItemsSource="{Binding BenefitTypeOptions}"
+                                          SelectedItem="{Binding BenefitType}"
+                                          HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="220">
+                                <TextBlock Text="サービス種別" />
+                                <TextBox Text="{Binding ServiceCategory}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="120">
+                                <TextBlock Text="有効期間 開始" />
+                                <TextBox Text="{Binding ValidityStart, Converter={x:Static conv:DateOnlyConverter.Instance}}"
+                                         Watermark="2026-04-01" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="120">
+                                <TextBlock Text="有効期間 終了" />
+                                <TextBox Text="{Binding ValidityEnd, Converter={x:Static conv:DateOnlyConverter.Instance}}"
+                                         Watermark="2027-03-31" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="100">
+                                <TextBlock Text="支給量(日/月)" />
+                                <TextBox Text="{Binding SupplyDays}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="140">
+                                <TextBlock Text="月額上限(円)" />
+                                <TextBox Text="{Binding MonthlyCostCap}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="140">
+                                <TextBlock Text="市町村" />
+                                <TextBox Text="{Binding Municipality}" Watermark="例：杉並区" />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="支給決定内容に関する特記事項" />
+                            <TextBox Text="{Binding SupplyNotes}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="40" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 4. 計画相談支援給付費の支援内容 -->
+                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="4. 計画相談支援給付費の支援内容" FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <StackPanel Spacing="2" Width="240">
+                                <TextBlock Text="計画相談支援事業者" />
+                                <TextBox Text="{Binding ConsultationProviderName}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="160">
+                                <TextBlock Text="事業所番号" />
+                                <TextBox Text="{Binding ConsultationProviderNumber}" Watermark="10桁" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="140">
+                                <TextBlock Text="支援期間 開始" />
+                                <TextBox Text="{Binding ConsultationStart, Converter={x:Static conv:DateOnlyConverter.Instance}}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="140">
+                                <TextBlock Text="支援期間 終了" />
+                                <TextBox Text="{Binding ConsultationEnd, Converter={x:Static conv:DateOnlyConverter.Instance}}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 5. 利用者負担に関する事項 -->
+                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="5. 利用者負担に関する事項" FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <StackPanel Spacing="2" Width="140">
+                                <TextBlock Text="負担区分" />
+                                <ComboBox ItemsSource="{Binding PaymentBurdenOptions}"
+                                          SelectedItem="{Binding PaymentBurden}"
+                                          HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="280">
+                                <TextBlock Text="上限額管理事業所" />
+                                <TextBox Text="{Binding UpperLimitManagementProvider}" />
+                            </StackPanel>
+                            <CheckBox Content="食事提供体制加算 対象"
+                                      IsChecked="{Binding MealProvisionApplicable}" VerticalAlignment="Center" />
+                            <CheckBox Content="高額障害福祉サービス費等 適用"
+                                      IsChecked="{Binding HighCostBenefitApplicable}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 保存ボタンとメッセージ -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding SaveErrorMessage}"
+                               Foreground="#FF4444"
+                               IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+                    <TextBlock Text="{Binding OverlapWarning}"
+                               Foreground="#FFAA00"
+                               IsVisible="{Binding OverlapWarning, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+                    <Button Content="受給者証を保存 (Ctrl+S)" Command="{Binding SaveCommand}" />
+                </StackPanel>
+
+                <!-- 6. サービス事業者記入欄 -->
+                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="6. サービス事業者記入欄" FontWeight="Bold" />
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="対象受給者証（選択中の利用者の既存受給者証）" />
+                            <ComboBox ItemsSource="{Binding CertificatesForRecipient}"
+                                      SelectedItem="{Binding SelectedCertificate}"
+                                      PlaceholderText="利用者を選択すると候補が表示されます"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding CertificateNumber, StringFormat='受給者証 {0}'}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <StackPanel Spacing="2" Width="140">
+                                <TextBlock Text="事業所番号" />
+                                <TextBox Text="{Binding ProviderNumber}" Watermark="10桁" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="220">
+                                <TextBlock Text="事業者名" />
+                                <TextBox Text="{Binding ProviderName}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="180">
+                                <TextBlock Text="サービス種別" />
+                                <TextBox Text="{Binding ProviderServiceCategory}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="100">
+                                <TextBlock Text="支給量(日/月)" />
+                                <TextBox Text="{Binding ProviderSupplyDays}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="120">
+                                <TextBlock Text="契約日" />
+                                <TextBox Text="{Binding ProviderContractDate, Converter={x:Static conv:DateOnlyConverter.Instance}}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="120">
+                                <TextBlock Text="契約終了日" />
+                                <TextBox Text="{Binding ProviderTerminationDate, Converter={x:Static conv:DateOnlyConverter.Instance}}" />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="備考" />
+                            <TextBox Text="{Binding ProviderNotes}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="40" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding ProviderSaveErrorMessage}"
+                                   Foreground="#FF4444"
+                                   IsVisible="{Binding ProviderSaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+                        <Button Content="契約事業所を追加" Command="{Binding AddProviderCommand}" HorizontalAlignment="Left" />
+                        <DataGrid ItemsSource="{Binding ContractedProviders}"
+                                  IsReadOnly="True" AutoGenerateColumns="False" MaxHeight="180">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="事業所番号" Binding="{Binding ProviderNumber}" Width="Auto" />
+                                <DataGridTextColumn Header="事業者名" Binding="{Binding ProviderName}" Width="*" />
+                                <DataGridTextColumn Header="サービス種別" Binding="{Binding ServiceCategory}" Width="Auto" />
+                                <DataGridTextColumn Header="支給量" Binding="{Binding ContractedSupplyDays}" Width="Auto" />
+                                <DataGridTextColumn Header="契約日" Binding="{Binding ContractDate}" Width="Auto" />
+                                <DataGridTextColumn Header="契約終了日" Binding="{Binding TerminationDate}" Width="Auto" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
     </DockPanel>
 </UserControl>

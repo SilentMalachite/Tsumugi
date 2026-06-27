@@ -41,6 +41,9 @@ public static class CompositionRoot
         // Phase 1: 受給者証
         services.AddScoped<RegisterCertificateUseCase>();
         services.AddScoped<ListExpiringCertificatesUseCase>();
+        services.AddScoped<ListCertificatesByRecipientUseCase>();
+        services.AddScoped<RegisterContractedProviderUseCase>();
+        services.AddScoped<ListContractedProvidersUseCase>();
 
         // Phase 1: 契約
         services.AddScoped<RegisterContractUseCase>();
