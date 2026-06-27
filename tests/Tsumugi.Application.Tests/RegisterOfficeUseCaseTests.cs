@@ -46,7 +46,7 @@ public sealed class RegisterOfficeUseCaseTests
         var uow = new FakeUnitOfWork();
         var sut = new RegisterOfficeUseCase(repo, uow, Clock);
 
-        var dto = await sut.ExecuteAsync("1234567890", "つむぎ作業所", "tester", CancellationToken.None);
+        var dto = await sut.ExecuteAsync("1234567890", "つむぎ作業所", ServiceCategory.TypeB, RegionGrade.Grade4, "tester", CancellationToken.None);
 
         dto.OfficeNumber.Should().Be("1234567890");
         repo.Added.Should().NotBeNull();
@@ -62,7 +62,7 @@ public sealed class RegisterOfficeUseCaseTests
         var repo = new FakeOfficeRepository { Existing = existing };
         var sut = new RegisterOfficeUseCase(repo, new FakeUnitOfWork(), Clock);
 
-        var act = () => sut.ExecuteAsync("1234567890", "別名", "tester", CancellationToken.None);
+        var act = () => sut.ExecuteAsync("1234567890", "別名", ServiceCategory.TypeB, RegionGrade.Grade4, "tester", CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
@@ -74,7 +74,7 @@ public sealed class RegisterOfficeUseCaseTests
     {
         var sut = new RegisterOfficeUseCase(new FakeOfficeRepository(), new FakeUnitOfWork(), Clock);
 
-        var act = () => sut.ExecuteAsync(number, name, "tester", CancellationToken.None);
+        var act = () => sut.ExecuteAsync(number, name, ServiceCategory.TypeB, RegionGrade.Grade4, "tester", CancellationToken.None);
 
         await act.Should().ThrowAsync<ArgumentException>();
     }
