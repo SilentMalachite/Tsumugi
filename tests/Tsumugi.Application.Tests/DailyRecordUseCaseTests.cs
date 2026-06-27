@@ -132,6 +132,63 @@ public sealed class DailyRecordUseCaseTests
     }
 
     [Fact]
+    public async Task Correct_throws_when_origin_is_not_current_effective_due_to_sibling_cancel()
+    {
+        // R3-H1: 取消 (x) が n の sibling として既に入った状態で、n.Id を origin として訂正 (c) を追加すると、
+        // DailyRecordPolicy.Effective は同一 origin の最新子を採るため、訂正が取消を上書きしてしまう。
+        // Application 層で「現行実効レコードでないものへの訂正」を拒否することで防御する。
+        var rid = Guid.NewGuid();
+        var day = new DateOnly(2026, 6, 5);
+        var n = DailyRecord.NewRecord(Guid.NewGuid(), rid, day,
+            Attendance.Present, TransportKind.None, false, null, "u", DateTimeOffset.UnixEpoch);
+        var cancel = DailyRecord.Cancellation(Guid.NewGuid(), rid, day, n.Id,
+            "u", DateTimeOffset.UnixEpoch.AddSeconds(1));
+        _repo.Added.AddRange(new[] { n, cancel });
+
+        var sut = new CorrectDailyRecordUseCase(_repo, _uow, _clock);
+        var act = () => sut.ExecuteAsync(n.Id,  // ← stale: n は cancel で既に実効から外れている
+            Attendance.Absent, TransportKind.None, false, null, "u", default);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        _repo.Added.Count.Should().Be(2);  // 訂正は追記されていない
+    }
+
+    [Fact]
+    public async Task Cancel_throws_when_origin_is_not_current_effective_due_to_prior_correction()
+    {
+        // 同じく取消側: n の後に correct c1 が入って実効が c1 になっている状態で、n.Id を origin として取消を出すのは禁止。
+        var rid = Guid.NewGuid();
+        var day = new DateOnly(2026, 6, 6);
+        var n = DailyRecord.NewRecord(Guid.NewGuid(), rid, day,
+            Attendance.Present, TransportKind.None, false, null, "u", DateTimeOffset.UnixEpoch);
+        var c1 = DailyRecord.Correction(Guid.NewGuid(), rid, day, n.Id,
+            Attendance.Absent, TransportKind.None, false, null, "u", DateTimeOffset.UnixEpoch.AddSeconds(1));
+        _repo.Added.AddRange(new[] { n, c1 });
+
+        var sut = new CancelDailyRecordUseCase(_repo, _uow, _clock);
+        var act = () => sut.ExecuteAsync(n.Id, "u", default);  // ← stale: n は c1 で実効から外れている
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        _repo.Added.Count.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task Correct_succeeds_when_origin_is_current_effective()
+    {
+        // 正常経路: 何も無い日に n を入れて、n.Id を origin として訂正 c を入れる。
+        var rid = Guid.NewGuid();
+        var day = new DateOnly(2026, 6, 7);
+        var n = DailyRecord.NewRecord(Guid.NewGuid(), rid, day,
+            Attendance.Present, TransportKind.None, false, null, "u", DateTimeOffset.UnixEpoch);
+        _repo.Added.Add(n);
+
+        var sut = new CorrectDailyRecordUseCase(_repo, _uow, _clock);
+        await sut.ExecuteAsync(n.Id, Attendance.Absent, TransportKind.None, false, null, "u", default);
+
+        _repo.Added.Count.Should().Be(2);
+    }
+
+    [Fact]
     public async Task QueryMonth_returns_effective_records()
     {
         var rid = Guid.NewGuid();
