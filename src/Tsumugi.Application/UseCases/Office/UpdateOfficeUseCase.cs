@@ -14,12 +14,12 @@ public sealed class UpdateOfficeUseCase(IOfficeRepository repo, IUnitOfWork uow)
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("事業所名は必須です。", nameof(name));
 
+        // ConcurrencyToken の更新は TsumugiDbContext.RotateConcurrencyTokens が担う
         var updated = existing with
         {
             Name = name,
             ServiceCategory = category,
             RegionGrade = region,
-            ConcurrencyToken = Guid.NewGuid(),
         };
         await repo.UpdateAsync(updated, ct);
         await uow.SaveChangesAsync(ct);

@@ -11,6 +11,7 @@ public sealed class ListExpiringCertificatesUseCase(ICertificateRepository repo)
     {
         var all = await repo.ListAllAsync(ct);
         var hits = CertificatePolicy.FindExpiring(all, asOf, thresholdDays);
+        // End!.Value: CertificatePolicy.FindExpiring filters out null-End certificates
         return hits.Select(h => new ExpiringCertificateDto(
             h.Certificate.Id, h.Certificate.RecipientId, h.Certificate.CertificateNumber,
             h.Certificate.Validity.End!.Value, h.RemainingDays)).ToArray();

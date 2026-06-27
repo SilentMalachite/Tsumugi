@@ -3,7 +3,7 @@ using Tsumugi.Application.Validation;
 
 namespace Tsumugi.Application.UseCases.Recipient;
 
-public sealed class UpdateRecipientUseCase(IRecipientRepository repo, IUnitOfWork uow, TimeProvider clock)
+public sealed class UpdateRecipientUseCase(IRecipientRepository repo, IUnitOfWork uow)
 {
     public async Task ExecuteAsync(
         Guid id, string kanjiName, string kanaName, DateOnly dateOfBirth,
@@ -20,6 +20,6 @@ public sealed class UpdateRecipientUseCase(IRecipientRepository repo, IUnitOfWor
         var updated = existing with { KanjiName = kanjiName, KanaName = kanaName, DateOfBirth = dateOfBirth };
         await repo.UpdateAsync(updated, ct);
         await uow.SaveChangesAsync(ct);
-        _ = actor; _ = clock;  // 監査ログ拡張用フック（フェーズ1では使用しない）
+        _ = actor;  // 監査ログ拡張用フック（フェーズ1では使用しない）
     }
 }

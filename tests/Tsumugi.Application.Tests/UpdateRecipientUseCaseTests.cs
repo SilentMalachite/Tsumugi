@@ -25,7 +25,7 @@ public sealed class UpdateRecipientUseCaseTests
     {
         var repo = new FakeRecipientRepository();
         var uow = new FakeUnitOfWork();
-        var sut = new UpdateRecipientUseCase(repo, uow, new FixedTimeProvider(FixedNow));
+        var sut = new UpdateRecipientUseCase(repo, uow);
         var original = SeedRecipient(repo);
 
         await sut.ExecuteAsync(original.Id, "田中花子", "タナカハナコ",
@@ -43,8 +43,7 @@ public sealed class UpdateRecipientUseCaseTests
     public async Task Throws_when_recipient_not_found()
     {
         var sut = new UpdateRecipientUseCase(
-            new FakeRecipientRepository(), new FakeUnitOfWork(),
-            new FixedTimeProvider(FixedNow));
+            new FakeRecipientRepository(), new FakeUnitOfWork());
         Func<Task> act = () => sut.ExecuteAsync(
             Guid.NewGuid(), "田中", "タナカ", new DateOnly(1985, 5, 10), "editor", default);
         await act.Should().ThrowAsync<InvalidOperationException>();
@@ -55,7 +54,7 @@ public sealed class UpdateRecipientUseCaseTests
     {
         var repo = new FakeRecipientRepository();
         var original = SeedRecipient(repo);
-        var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(FixedNow));
+        var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork());
         Func<Task> act = () => sut.ExecuteAsync(
             original.Id, " ", "タナカ", new DateOnly(1985, 5, 10), "editor", default);
         await act.Should().ThrowAsync<ArgumentException>();
@@ -66,7 +65,7 @@ public sealed class UpdateRecipientUseCaseTests
     {
         var repo = new FakeRecipientRepository();
         var original = SeedRecipient(repo);
-        var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(FixedNow));
+        var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork());
         Func<Task> act = () => sut.ExecuteAsync(
             original.Id, "田中花子", " ", new DateOnly(1985, 5, 10), "editor", default);
         (await act.Should().ThrowAsync<ArgumentException>())
@@ -78,7 +77,7 @@ public sealed class UpdateRecipientUseCaseTests
     {
         var repo = new FakeRecipientRepository();
         var original = SeedRecipient(repo);
-        var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(FixedNow));
+        var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork());
         Func<Task> act = () => sut.ExecuteAsync(
             original.Id, "田中", "タナカ", DateOnly.MinValue, "editor", default);
         await act.Should().ThrowAsync<DateValidationException>();
