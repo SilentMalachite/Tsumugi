@@ -9,6 +9,24 @@
     </UserControl.KeyBindings>
     <DockPanel>
         <TextBlock DockPanel.Dock="Top" Text="日次記録" FontSize="16" Margin="8,8,8,4" />
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8,0,8,8">
+            <TextBlock Text="利用者" VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding Recipients}"
+                      SelectedItem="{Binding SelectedRecipient}"
+                      PlaceholderText="選択してください"
+                      MinWidth="180">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding KanjiName}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="年" VerticalAlignment="Center" Margin="8,0,0,0" />
+            <NumericUpDown Value="{Binding Year}" Minimum="1900" Maximum="9999" FormatString="0" Width="100" />
+            <TextBlock Text="月" VerticalAlignment="Center" />
+            <NumericUpDown Value="{Binding Month}" Minimum="1" Maximum="12" FormatString="0" Width="80" />
+            <Button Content="表示 (F5)" Command="{Binding LoadCommand}" />
+        </StackPanel>
         <ScrollViewer>
             <ItemsControl ItemsSource="{Binding Cells}" Margin="8">
                 <ItemsControl.ItemsPanel>

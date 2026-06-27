@@ -90,9 +90,11 @@ dotnet list package --vulnerable --include-transitive  # 脆弱性確認
 
 ## 仕様の所在（詳細はここを読む。本書には複製しない）
 - `01_ClaudeCode_実装指示書_Tsumugi.md` — 全体仕様・フェーズ別受け入れ基準（正本）
-- `02_Codex_レビュー指示書_Tsumugi.md` — レビュー観点・指摘フォーマット
 - `03_ClaudeCode_Phase0修正指示_Tsumugi.md` — フェーズ0の修正（オフライン検査のApp対応・DB権限）
+- `04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md` — フェーズ1（マスタ・記録）の実装指示と受け入れ基準
 - `docs/decisions/` — ADR / `docs/open-questions.md` — 未確定事項
+
+> Codex レビューのフォーマット（重大度・観点カテゴリ・該当行・推奨アクション・根拠）は本書のワークフロー節に従う。旧 `02_Codex_レビュー指示書_Tsumugi.md` は Phase0 完了時に削除済み（commit `12aa48c`）。
 
 ---
 

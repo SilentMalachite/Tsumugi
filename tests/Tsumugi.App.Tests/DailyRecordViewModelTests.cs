@@ -2,6 +2,7 @@ using FluentAssertions;
 using Tsumugi.App.ViewModels;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.UseCases.DailyRecord;
+using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
 using Xunit;
@@ -11,6 +12,7 @@ namespace Tsumugi.App.Tests;
 public sealed class DailyRecordViewModelTests
 {
     private readonly FakeDailyRecordRepo _repo = new();
+    private readonly InMemoryRecipientRepoForDaily _recipients = new();
     private readonly InMemoryUow _uow = new();
     private readonly FixedClock _clock = new(DateTimeOffset.UnixEpoch);
 
@@ -18,7 +20,57 @@ public sealed class DailyRecordViewModelTests
         new RecordDailyRecordUseCase(_repo, _uow, _clock),
         new CorrectDailyRecordUseCase(_repo, _uow, _clock),
         new CancelDailyRecordUseCase(_repo, _uow, _clock),
-        new QueryMonthDailyRecordsUseCase(_repo));
+        new QueryMonthDailyRecordsUseCase(_repo),
+        new ListRecipientsUseCase(_recipients));
+
+    [Fact]
+    public async Task LoadAsync_with_no_recipient_or_month_does_not_throw_and_keeps_cells_empty()
+    {
+        // F5 押下時に Year=Month=0 / RecipientId=Empty で DateTime.DaysInMonth(0,0) に落ちないこと。
+        var vm = NewVm();
+        await vm.LoadAsync();
+        vm.Cells.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void LoadCommand_is_disabled_when_recipient_or_month_unset()
+    {
+        var vm = NewVm();
+        vm.LoadCommand.CanExecute(null).Should().BeFalse();
+
+        vm.SetRecipient(Guid.NewGuid());
+        vm.LoadCommand.CanExecute(null).Should().BeFalse();  // 年月未指定
+
+        vm.SetMonth(2026, 6);
+        vm.LoadCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task LoadRecipientsAsync_populates_recipients_for_selection()
+    {
+        var r = Recipient.Create(Guid.NewGuid(), "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _recipients.Add(r);
+
+        var vm = NewVm();
+        await vm.LoadRecipientsAsync();
+
+        vm.Recipients.Should().ContainSingle(x => x.Id == r.Id);
+    }
+
+    [Fact]
+    public void SelectedRecipient_synchronises_RecipientId_and_enables_load()
+    {
+        var vm = NewVm();
+        vm.SetMonth(2026, 6);
+        var dto = new Tsumugi.Application.Dtos.RecipientDto(
+            Guid.NewGuid(), "氏名", "シメイ", new DateOnly(1990, 1, 1));
+
+        vm.SelectedRecipient = dto;
+
+        vm.RecipientId.Should().Be(dto.Id);
+        vm.LoadCommand.CanExecute(null).Should().BeTrue();
+    }
 
     [Fact]
     public async Task LoadAsync_creates_cell_per_day_of_month()
@@ -62,6 +114,23 @@ public sealed class DailyRecordViewModelTests
         vm.Cells[0].EffectiveAttendance.Should().BeNull();
         _repo.Added.Count.Should().Be(2);  // 元レコードは残り、追記で取消行が追加
     }
+}
+
+internal sealed class InMemoryRecipientRepoForDaily : IRecipientRepository
+{
+    private readonly List<Recipient> _list = [];
+    public void Add(Recipient r) => _list.Add(r);
+    public Task AddAsync(Recipient r, CancellationToken ct) { _list.Add(r); return Task.CompletedTask; }
+    public Task<Recipient?> FindByIdAsync(Guid id, CancellationToken ct) =>
+        Task.FromResult(_list.FirstOrDefault(r => r.Id == id));
+    public Task UpdateAsync(Recipient r, CancellationToken ct)
+    {
+        var idx = _list.FindIndex(x => x.Id == r.Id);
+        if (idx >= 0) _list[idx] = r;
+        return Task.CompletedTask;
+    }
+    public Task<IReadOnlyList<Recipient>> ListAsync(CancellationToken ct) =>
+        Task.FromResult<IReadOnlyList<Recipient>>(_list.ToArray());
 }
 
 internal sealed class FakeDailyRecordRepo : IDailyRecordRepository
