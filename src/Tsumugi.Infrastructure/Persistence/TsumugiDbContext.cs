@@ -6,6 +6,11 @@ namespace Tsumugi.Infrastructure.Persistence;
 public sealed class TsumugiDbContext(DbContextOptions<TsumugiDbContext> options) : DbContext(options)
 {
     public DbSet<Office> Offices => Set<Office>();
+    public DbSet<Recipient> Recipients => Set<Recipient>();
+    public DbSet<Certificate> Certificates => Set<Certificate>();
+    public DbSet<Contract> Contracts => Set<Contract>();
+    public DbSet<OfficeCapability> OfficeCapabilities => Set<OfficeCapability>();
+    public DbSet<DailyRecord> DailyRecords => Set<DailyRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
