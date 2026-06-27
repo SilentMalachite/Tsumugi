@@ -9,7 +9,7 @@
         <KeyBinding Gesture="Escape" Command="{Binding DiscardCommand}" />
     </UserControl.KeyBindings>
     <StackPanel Spacing="12" Margin="16">
-        <TextBlock Text="利用者登録・編集" FontSize="16" />
+        <TextBlock Text="利用者登録・編集" FontSize="{DynamicResource HeadingFontSize}" />
         <StackPanel Spacing="4">
             <TextBlock Text="氏名（漢字）" />
             <TextBox Text="{Binding KanjiName}" Watermark="例：山田 太郎" />

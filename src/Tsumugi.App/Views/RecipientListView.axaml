@@ -7,7 +7,8 @@
         <KeyBinding Gesture="F5" Command="{Binding LoadCommand}" />
     </UserControl.KeyBindings>
     <DockPanel>
-        <TextBlock DockPanel.Dock="Top" Text="利用者一覧" FontSize="16" Margin="8,8,8,4" />
+        <TextBlock DockPanel.Dock="Top" Text="利用者一覧"
+                   FontSize="{DynamicResource HeadingFontSize}" Margin="8,8,8,4" />
         <DataGrid ItemsSource="{Binding Items}"
                   SelectedItem="{Binding Selected}"
                   IsReadOnly="True"

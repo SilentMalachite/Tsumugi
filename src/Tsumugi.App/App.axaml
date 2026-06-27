@@ -1,7 +1,8 @@
+<!-- NOTE: RequestedThemeVariant とアクセシビリティ既定（リソース/低アニメーション Style）は
+     コードビハインドの AccessibilityDefaults.Apply() で適用する。XAML に既定値を書かない。 -->
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="Tsumugi.App.App"
-             RequestedThemeVariant="Dark">
+             x:Class="Tsumugi.App.App">
 
     <Application.Styles>
         <FluentTheme />

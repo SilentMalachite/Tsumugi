@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
+using Tsumugi.App.Settings;
 using Tsumugi.App.ViewModels;
 using Tsumugi.Infrastructure.Persistence;
 using AvaloniaApplication = Avalonia.Application;
@@ -18,6 +19,8 @@ public partial class App : AvaloniaApplication
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        // CLAUDE.md §ハード制約 5: アクセシビリティ既定（テーマ・低アニメーション・フォント拡大追従）。
+        AccessibilityDefaults.Apply(this);
     }
 
     public override void OnFrameworkInitializationCompleted()

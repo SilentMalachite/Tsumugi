@@ -8,7 +8,8 @@
         <KeyBinding Gesture="F5" Command="{Binding LoadCommand}" />
     </UserControl.KeyBindings>
     <DockPanel>
-        <TextBlock DockPanel.Dock="Top" Text="日次記録" FontSize="16" Margin="8,8,8,4" />
+        <TextBlock DockPanel.Dock="Top" Text="日次記録"
+                   FontSize="{DynamicResource HeadingFontSize}" Margin="8,8,8,4" />
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8,0,8,8">
             <TextBlock Text="利用者" VerticalAlignment="Center" />
             <ComboBox ItemsSource="{Binding Recipients}"
@@ -36,25 +37,33 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="vm:DailyCellViewModel">
-                        <Border BorderBrush="#444" BorderThickness="1" Width="80" Height="80" Margin="2">
+                        <!-- セル寸法と文字サイズは UiDefaults.MinimumFontSize に追従する。固定 px は使わない。 -->
+                        <Border BorderBrush="#444" BorderThickness="1" Margin="2"
+                                MinWidth="{DynamicResource DailyCellSize}"
+                                MinHeight="{DynamicResource DailyCellSize}">
                             <StackPanel Spacing="2" Margin="4">
                                 <TextBlock Text="{Binding Date.Day}"
                                            FontWeight="Bold"
+                                           FontSize="{DynamicResource BaseFontSize}"
                                            HorizontalAlignment="Center" />
                                 <TextBlock Text="{Binding EffectiveAttendance}"
-                                           FontSize="11"
+                                           FontSize="{DynamicResource BaseFontSize}"
                                            HorizontalAlignment="Center" />
                                 <WrapPanel HorizontalAlignment="Center">
-                                    <Button Content="出" FontSize="10" Padding="2" Margin="1"
+                                    <Button Content="出" Padding="4,2" Margin="1"
+                                            FontSize="{DynamicResource BaseFontSize}"
                                             Command="{Binding RecordCommand}"
                                             CommandParameter="{x:Static enums:Attendance.Present}" />
-                                    <Button Content="欠" FontSize="10" Padding="2" Margin="1"
+                                    <Button Content="欠" Padding="4,2" Margin="1"
+                                            FontSize="{DynamicResource BaseFontSize}"
                                             Command="{Binding RecordCommand}"
                                             CommandParameter="{x:Static enums:Attendance.Absent}" />
-                                    <Button Content="対" FontSize="10" Padding="2" Margin="1"
+                                    <Button Content="対" Padding="4,2" Margin="1"
+                                            FontSize="{DynamicResource BaseFontSize}"
                                             Command="{Binding RecordCommand}"
                                             CommandParameter="{x:Static enums:Attendance.AbsenceSupport}" />
-                                    <Button Content="取" FontSize="10" Padding="2" Margin="1"
+                                    <Button Content="取" Padding="4,2" Margin="1"
+                                            FontSize="{DynamicResource BaseFontSize}"
                                             Command="{Binding CancelCommand}" />
                                 </WrapPanel>
                             </StackPanel>
