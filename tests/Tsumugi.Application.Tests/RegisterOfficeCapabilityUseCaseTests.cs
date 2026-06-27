@@ -70,6 +70,23 @@ public sealed class RegisterOfficeCapabilityUseCaseTests
 
         await act.Should().ThrowAsync<DateValidationException>();
     }
+
+    [Fact]
+    public async Task Rejects_empty_office_id()
+    {
+        var sut = new RegisterOfficeCapabilityUseCase(
+            new FakeOfficeCapabilityRepository(), new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch));
+
+        Func<Task> act = () => sut.ExecuteAsync(
+            officeId: Guid.Empty,
+            period: new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            flags: new Dictionary<string, bool>(),
+            actor: "u", ct: default);
+
+        await act.Should().ThrowAsync<ArgumentException>()
+            .Where(e => e.ParamName == "officeId");
+    }
 }
 
 internal sealed class FakeOfficeCapabilityRepository : IOfficeCapabilityRepository

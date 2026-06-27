@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Tsumugi.Infrastructure.Tests;
@@ -24,7 +25,8 @@ internal static class NetworkArtifactRules
 
     // 外部通信を示唆する URL スキーム。文字列リテラルに混入していれば違反候補。
     // file:/// と data: と javascript: は対象外（前者はローカル、後者2つは送信に直結しない）。
-    private static readonly string[] ForbiddenUrlSchemes =
+    // 公開アクセサ: 消費側（AppOfflineComplianceTests）が重複配列を持たないようここに集約する。
+    public static IReadOnlyList<string> ForbiddenUrlSchemes { get; } = new[]
     {
         "http://", "https://", "ftp://", "ftps://",
         "ws://", "wss://", "smtp://",

@@ -26,6 +26,9 @@ public sealed partial class DailyRecordViewModel(
     public void SetRecipient(Guid id) => RecipientId = id;
     public void SetMonth(int year, int month) { Year = year; Month = month; }
 
+    /// <summary>View の Loaded から呼ばれる初期化フック。利用者一覧を読み込む。</summary>
+    public Task InitializeAsync(CancellationToken ct = default) => LoadRecipientsAsync(ct);
+
     public async Task LoadRecipientsAsync(CancellationToken ct = default)
     {
         var list = await listRecipients.ExecuteAsync(ct);

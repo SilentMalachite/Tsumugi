@@ -13,6 +13,8 @@ public sealed class RecordDailyRecordUseCase(
         Attendance attendance, TransportKind transport, bool mealProvided, string? note,
         string actor, CancellationToken ct)
     {
+        if (recipientId == Guid.Empty)
+            throw new ArgumentException("利用者IDが指定されていません。", nameof(recipientId));
         DateValidator.EnsureValid(serviceDate, nameof(serviceDate));
 
         var existing = await repo.ListByRecipientAndDateAsync(recipientId, serviceDate, ct);

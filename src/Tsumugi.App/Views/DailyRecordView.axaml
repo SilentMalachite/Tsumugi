@@ -49,18 +49,19 @@
                                 <TextBlock Text="{Binding EffectiveAttendance}"
                                            FontSize="{DynamicResource BaseFontSize}"
                                            HorizontalAlignment="Center" />
+                                <!-- 出欠ボタンは SetAttendanceCommand に統一。既存記録があれば訂正、無ければ新規に分岐する。 -->
                                 <WrapPanel HorizontalAlignment="Center">
                                     <Button Content="出" Padding="4,2" Margin="1"
                                             FontSize="{DynamicResource BaseFontSize}"
-                                            Command="{Binding RecordCommand}"
+                                            Command="{Binding SetAttendanceCommand}"
                                             CommandParameter="{x:Static enums:Attendance.Present}" />
                                     <Button Content="欠" Padding="4,2" Margin="1"
                                             FontSize="{DynamicResource BaseFontSize}"
-                                            Command="{Binding RecordCommand}"
+                                            Command="{Binding SetAttendanceCommand}"
                                             CommandParameter="{x:Static enums:Attendance.Absent}" />
                                     <Button Content="対" Padding="4,2" Margin="1"
                                             FontSize="{DynamicResource BaseFontSize}"
-                                            Command="{Binding RecordCommand}"
+                                            Command="{Binding SetAttendanceCommand}"
                                             CommandParameter="{x:Static enums:Attendance.AbsenceSupport}" />
                                     <Button Content="取" Padding="4,2" Margin="1"
                                             FontSize="{DynamicResource BaseFontSize}"

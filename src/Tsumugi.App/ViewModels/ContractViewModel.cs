@@ -25,6 +25,9 @@ public sealed partial class ContractViewModel(
     public ObservableCollection<ContractDto> Items { get; } = [];
     public ObservableCollection<RecipientDto> Recipients { get; } = [];
 
+    /// <summary>View の Loaded から呼ばれる初期化フック。利用者一覧を読み込む。</summary>
+    public Task InitializeAsync(CancellationToken ct = default) => LoadRecipientsAsync(ct);
+
     public async Task LoadRecipientsAsync(CancellationToken ct = default)
     {
         var list = await listRecipientsUseCase.ExecuteAsync(ct);

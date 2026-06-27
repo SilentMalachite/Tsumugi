@@ -30,6 +30,17 @@ public sealed class DailyRecordUseCaseTests
     }
 
     [Fact]
+    public async Task Record_rejects_empty_recipient_id()
+    {
+        var sut = new RecordDailyRecordUseCase(_repo, _uow, _clock);
+        Func<Task> act = () => sut.ExecuteAsync(
+            Guid.Empty, new DateOnly(2026, 6, 1),
+            Attendance.Present, TransportKind.None, false, null, "u", default);
+        await act.Should().ThrowAsync<ArgumentException>()
+            .Where(e => e.ParamName == "recipientId");
+    }
+
+    [Fact]
     public async Task Record_throws_when_new_already_exists()
     {
         var rid = Guid.NewGuid();

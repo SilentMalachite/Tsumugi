@@ -84,6 +84,21 @@ public sealed class ContractViewModelTests
     }
 
     [Fact]
+    public async Task InitializeAsync_populates_recipients_for_view_lifecycle()
+    {
+        var r = Recipient.Create(Guid.NewGuid(), "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _recipients.Add(r);
+
+        var vm = NewVm();
+        await vm.InitializeAsync();
+
+        // View の Loaded から InitializeAsync が呼ばれる契約。
+        // ここで Recipients が空のままだと ComboBox は実画面で永久に空。
+        vm.Recipients.Should().ContainSingle(x => x.Id == r.Id);
+    }
+
+    [Fact]
     public async Task LoadRecipientsAsync_populates_recipients_for_selection()
     {
         var r1 = Recipient.Create(Guid.NewGuid(), "氏名一", "シメイイチ",

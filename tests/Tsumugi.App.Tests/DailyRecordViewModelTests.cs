@@ -46,6 +46,19 @@ public sealed class DailyRecordViewModelTests
     }
 
     [Fact]
+    public async Task InitializeAsync_populates_recipients_for_view_lifecycle()
+    {
+        var r = Recipient.Create(Guid.NewGuid(), "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _recipients.Add(r);
+
+        var vm = NewVm();
+        await vm.InitializeAsync();
+
+        vm.Recipients.Should().ContainSingle(x => x.Id == r.Id);
+    }
+
+    [Fact]
     public async Task LoadRecipientsAsync_populates_recipients_for_selection()
     {
         var r = Recipient.Create(Guid.NewGuid(), "氏名", "シメイ",
@@ -95,6 +108,44 @@ public sealed class DailyRecordViewModelTests
         await cell.RecordCommand.ExecuteAsync(Attendance.Present);
         await vm.LoadAsync();
         vm.Cells[0].EffectiveAttendance.Should().Be(Attendance.Present);
+    }
+
+    [Fact]
+    public async Task SetAttendance_routes_to_record_when_no_effective()
+    {
+        var vm = NewVm();
+        vm.SetRecipient(Guid.NewGuid());
+        vm.SetMonth(2026, 6);
+        await vm.LoadAsync();
+
+        var cell = vm.Cells[0];
+        cell.EffectiveId.Should().BeNull();
+
+        await cell.SetAttendanceCommand.ExecuteAsync(Attendance.Present);
+
+        _repo.Added.Should().HaveCount(1);
+        _repo.Added[0].Kind.Should().Be(RecordKind.New);
+    }
+
+    [Fact]
+    public async Task SetAttendance_routes_to_correct_when_effective_exists()
+    {
+        // R2-H2: 既存記録の出欠変更時、UI から訂正経路（CorrectCommand）に届かないと
+        // RecordDailyRecordUseCase の同一日 New 重複拒否で例外になる。
+        var vm = NewVm();
+        vm.SetRecipient(Guid.NewGuid());
+        vm.SetMonth(2026, 6);
+        await vm.LoadAsync();
+
+        await vm.Cells[0].SetAttendanceCommand.ExecuteAsync(Attendance.Present);
+        await vm.LoadAsync();  // EffectiveId を反映
+
+        await vm.Cells[0].SetAttendanceCommand.ExecuteAsync(Attendance.Absent);
+
+        _repo.Added.Should().HaveCount(2);
+        _repo.Added[1].Kind.Should().Be(RecordKind.Correct);
+        _repo.Added[1].Attendance.Should().Be(Attendance.Absent);
+        _repo.Added[1].OriginId.Should().Be(_repo.Added[0].Id);
     }
 
     [Fact]

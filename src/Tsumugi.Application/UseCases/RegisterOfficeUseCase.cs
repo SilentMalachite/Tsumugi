@@ -35,6 +35,6 @@ public sealed class RegisterOfficeUseCase(
         await repository.AddAsync(office, ct);
         await unitOfWork.SaveChangesAsync(ct);
 
-        return new OfficeDto(office.Id, office.OfficeNumber, office.Name);
+        return new OfficeDto(office.Id, office.OfficeNumber, office.Name, office.ServiceCategory, office.RegionGrade);
     }
 }

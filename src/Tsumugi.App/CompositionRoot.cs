@@ -60,6 +60,7 @@ public static class CompositionRoot
         services.AddTransient<CertificateViewModel>();
         services.AddTransient<ContractViewModel>();
         services.AddTransient<OfficeViewModel>();
+        services.AddTransient<OfficeCapabilityViewModel>();
         services.AddTransient<DailyRecordViewModel>();
         services.AddTransient<MainViewModel>();
 

@@ -9,6 +9,8 @@ public sealed class UpdateRecipientUseCase(IRecipientRepository repo, IUnitOfWor
         Guid id, string kanjiName, string kanaName, DateOnly dateOfBirth,
         string actor, CancellationToken ct)
     {
+        if (id == Guid.Empty)
+            throw new ArgumentException("利用者IDが指定されていません。", nameof(id));
         var existing = await repo.FindByIdAsync(id, ct)
             ?? throw new InvalidOperationException("利用者が見つかりません。");
         if (string.IsNullOrWhiteSpace(kanjiName))

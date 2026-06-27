@@ -46,4 +46,24 @@ public sealed class NetworkArtifactRulesTests
     {
         NetworkArtifactRules.ContainsForbiddenUrl(s).Should().BeFalse();
     }
+
+    private static readonly string[] ExpectedTelnetLdapSchemes =
+        { "telnet://", "ldap://", "ldaps://" };
+
+    [Fact]
+    public void Forbidden_url_schemes_list_includes_telnet_and_ldap_family()
+    {
+        // R2-M2: 旧テストはローカル重複配列で telnet/ldap/ldaps を落としていた。
+        // 共通定義側に必ず含めて、消費側はそれを参照する。
+        NetworkArtifactRules.ForbiddenUrlSchemes.Should().Contain(ExpectedTelnetLdapSchemes);
+    }
+
+    [Theory]
+    [InlineData("Https://example.com")]   // 混在大文字
+    [InlineData("HTTPS://EXAMPLE.COM")]
+    [InlineData("Smtp://Mail")]
+    public void Mixed_case_url_schemes_are_detected_via_pure_predicate(string s)
+    {
+        NetworkArtifactRules.ContainsForbiddenUrl(s).Should().BeTrue();
+    }
 }

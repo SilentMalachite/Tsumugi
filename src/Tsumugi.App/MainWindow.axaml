@@ -8,11 +8,11 @@
         x:Class="Tsumugi.App.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="Tsumugi — 就労継続支援B型">
-    <TabControl>
+    <TabControl x:Name="MainTabs">
         <TabItem Header="利用者一覧(_1)">
             <views:RecipientListView DataContext="{Binding RecipientList}" />
         </TabItem>
-        <TabItem Header="利用者登録(_2)">
+        <TabItem Header="利用者登録/編集(_2)">
             <views:RecipientEditView DataContext="{Binding RecipientEdit}" />
         </TabItem>
         <TabItem Header="受給者証(_3)">
@@ -26,6 +26,9 @@
         </TabItem>
         <TabItem Header="事業所(_6)">
             <views:OfficeView DataContext="{Binding Office}" />
+        </TabItem>
+        <TabItem Header="事業所体制(_7)">
+            <views:OfficeCapabilityView DataContext="{Binding OfficeCapability}" />
         </TabItem>
     </TabControl>
 </Window>

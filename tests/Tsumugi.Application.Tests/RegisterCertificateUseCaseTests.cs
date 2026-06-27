@@ -49,6 +49,22 @@ public sealed class RegisterCertificateUseCaseTests
         warnings.Should().NotBeEmpty();
         warnings.Should().ContainMatch("*重複*");
     }
+    [Fact]
+    public async Task Rejects_empty_recipient_id()
+    {
+        var sut = new RegisterCertificateUseCase(
+            new FakeCertificateRepository(), new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch));
+
+        Func<Task> act = () => sut.ExecuteAsync(
+            recipientId: Guid.Empty, certificateNumber: "123",
+            validity: new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            supplyDays: 23, monthlyCostCap: 9300, municipality: "杉並区",
+            actor: "u", ct: default);
+
+        await act.Should().ThrowAsync<ArgumentException>()
+            .Where(e => e.ParamName == "recipientId");
+    }
 }
 
 internal sealed class FakeCertificateRepository : ICertificateRepository

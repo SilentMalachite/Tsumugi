@@ -4,7 +4,9 @@ using Tsumugi.Application.UseCases.Recipient;
 
 namespace Tsumugi.App.ViewModels;
 
-public sealed partial class RecipientEditViewModel(RegisterRecipientUseCase registerUseCase) : ViewModelBase
+public sealed partial class RecipientEditViewModel(
+    RegisterRecipientUseCase registerUseCase,
+    UpdateRecipientUseCase updateUseCase) : ViewModelBase
 {
     [ObservableProperty] private string _kanjiName = string.Empty;
     [ObservableProperty] private string _kanaName = string.Empty;
@@ -12,13 +14,35 @@ public sealed partial class RecipientEditViewModel(RegisterRecipientUseCase regi
     [ObservableProperty] private string? _saveErrorMessage;
     [ObservableProperty] private bool _isSaved;
 
+    // 編集モード: EditingId が null なら新規登録、値があれば更新。
+    [ObservableProperty] private Guid? _editingId;
+
+    /// <summary>RecipientList から渡された既存利用者をフォームに展開する。</summary>
+    public void LoadForEdit(Guid id, string kanjiName, string kanaName, DateOnly dateOfBirth)
+    {
+        EditingId = id;
+        KanjiName = kanjiName;
+        KanaName = kanaName;
+        DateOfBirth = dateOfBirth;
+        SaveErrorMessage = null;
+        IsSaved = false;
+    }
+
     [RelayCommand]
     private async Task SaveAsync()
     {
         try
         {
-            await registerUseCase.ExecuteAsync(
-                KanjiName, KanaName, DateOfBirth, actor: Environment.UserName, default);
+            if (EditingId is { } id)
+            {
+                await updateUseCase.ExecuteAsync(
+                    id, KanjiName, KanaName, DateOfBirth, actor: Environment.UserName, default);
+            }
+            else
+            {
+                await registerUseCase.ExecuteAsync(
+                    KanjiName, KanaName, DateOfBirth, actor: Environment.UserName, default);
+            }
             SaveErrorMessage = null;
             IsSaved = true;
         }
@@ -37,5 +61,6 @@ public sealed partial class RecipientEditViewModel(RegisterRecipientUseCase regi
         DateOfBirth = default;
         SaveErrorMessage = null;
         IsSaved = false;
+        EditingId = null;
     }
 }

@@ -128,20 +128,12 @@ public sealed class AppOfflineComplianceTests
             .Select(e => e.UrlPrefix.ToLowerInvariant())
             .ToHashSet(StringComparer.Ordinal);
 
-        // すべての禁止スキームを大文字/小文字両方で検査する（DLL バイナリ内のリテラルは原文のまま）。
-        var schemes = new[] { "http://", "https://", "ftp://", "ftps://", "ws://", "wss://", "smtp://" };
-        var hits = new List<string>();
-        foreach (var s in schemes)
-        {
-            foreach (var variant in new[] { s, s.ToUpperInvariant() })
-            {
-                if (allowed.Contains(variant.ToLowerInvariant())) continue;
-                if (AssemblyMetadataScanner.ContainsRawUtf16Substring(dll, variant))
-                {
-                    hits.Add(variant);
-                }
-            }
-        }
+        // 禁止スキーム集合は NetworkArtifactRules に一元化。検索は ASCII 大小無視で行うため、
+        // "Https://" や "HTTP://" のような混在ケースも漏れなく拾う。
+        var hits = NetworkArtifactRules.ForbiddenUrlSchemes
+            .Where(scheme => !allowed.Contains(scheme.ToLowerInvariant()))
+            .Where(scheme => AssemblyMetadataScanner.ContainsRawUtf16SubstringIgnoreCase(dll, scheme))
+            .ToArray();
 
         hits.Should().BeEmpty(
             because: $"{assemblyName} に外部通信 URL リテラルが埋め込まれている可能性。" +

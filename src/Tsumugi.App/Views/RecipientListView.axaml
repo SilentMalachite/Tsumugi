@@ -5,10 +5,16 @@
              x:DataType="vm:RecipientListViewModel">
     <UserControl.KeyBindings>
         <KeyBinding Gesture="F5" Command="{Binding LoadCommand}" />
+        <KeyBinding Gesture="Enter" Command="{Binding EditCommand}" />
     </UserControl.KeyBindings>
     <DockPanel>
-        <TextBlock DockPanel.Dock="Top" Text="利用者一覧"
-                   FontSize="{DynamicResource HeadingFontSize}" Margin="8,8,8,4" />
+        <DockPanel DockPanel.Dock="Top" Margin="8,8,8,4">
+            <TextBlock Text="利用者一覧"
+                       FontSize="{DynamicResource HeadingFontSize}" VerticalAlignment="Center" />
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+                <Button Content="編集 (Enter)" Command="{Binding EditCommand}" />
+            </StackPanel>
+        </DockPanel>
         <DataGrid ItemsSource="{Binding Items}"
                   SelectedItem="{Binding Selected}"
                   IsReadOnly="True"

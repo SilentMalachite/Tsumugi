@@ -4,9 +4,9 @@ using Tsumugi.App.ViewModels;
 
 namespace Tsumugi.App.Views;
 
-public partial class CertificateView : UserControl
+public partial class OfficeCapabilityView : UserControl
 {
-    public CertificateView()
+    public OfficeCapabilityView()
     {
         InitializeComponent();
         Loaded += OnLoaded;
@@ -14,7 +14,7 @@ public partial class CertificateView : UserControl
 
     private async void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is CertificateViewModel vm)
+        if (DataContext is OfficeCapabilityViewModel vm)
         {
             await vm.InitializeAsync();
         }

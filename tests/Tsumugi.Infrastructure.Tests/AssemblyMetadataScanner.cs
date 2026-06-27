@@ -94,6 +94,19 @@ internal static class AssemblyMetadataScanner
         return IndexOf(allBytes, encoded) >= 0;
     }
 
+    /// <summary>
+    /// 大小文字を区別せずに UTF-16 LE 部分文字列を検索する。ASCII 文字に対してのみ
+    /// 大小無視（low byte の ASCII 範囲のみ）。混在ケース（"Https://" 等）の取りこぼしを防ぐ。
+    /// </summary>
+    public static bool ContainsRawUtf16SubstringIgnoreCase(string dllPath, string needle)
+    {
+        EnsureExists(dllPath);
+        ArgumentException.ThrowIfNullOrEmpty(needle);
+        var lowered = Encoding.Unicode.GetBytes(needle.ToLowerInvariant());
+        var bytes = File.ReadAllBytes(dllPath);
+        return IndexOfAsciiCaseInsensitiveUtf16(bytes, lowered) >= 0;
+    }
+
     public readonly record struct PInvokeImport(string DllName, string MethodName);
 
     private static int IndexOf(byte[] hay, byte[] needle)
@@ -106,6 +119,35 @@ internal static class AssemblyMetadataScanner
             for (var j = 0; j < needle.Length; j++)
             {
                 if (hay[i + j] != needle[j]) { match = false; break; }
+            }
+            if (match) return i;
+        }
+        return -1;
+    }
+
+    // UTF-16 LE 想定: 偶数 index は ASCII low byte、奇数 index は high byte(=0)。
+    // needle は事前に ToLowerInvariant した小文字 ASCII 前提。
+    private static int IndexOfAsciiCaseInsensitiveUtf16(byte[] hay, byte[] needleLower)
+    {
+        if (needleLower.Length == 0 || hay.Length < needleLower.Length) return -1;
+        var limit = hay.Length - needleLower.Length;
+        for (var i = 0; i <= limit; i++)
+        {
+            var match = true;
+            for (var j = 0; j < needleLower.Length; j++)
+            {
+                var h = hay[i + j];
+                var n = needleLower[j];
+                if ((j & 1) == 0)
+                {
+                    // low byte: ASCII case-insensitive
+                    var hl = (h >= (byte)'A' && h <= (byte)'Z') ? (byte)(h + 32) : h;
+                    if (hl != n) { match = false; break; }
+                }
+                else
+                {
+                    if (h != n) { match = false; break; }
+                }
             }
             if (match) return i;
         }

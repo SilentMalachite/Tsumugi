@@ -14,6 +14,8 @@ public sealed class RegisterOfficeCapabilityUseCase(
         Guid officeId, DateRange period, IReadOnlyDictionary<string, bool> flags,
         string actor, CancellationToken ct)
     {
+        if (officeId == Guid.Empty)
+            throw new ArgumentException("事業所IDが指定されていません。", nameof(officeId));
         DateValidator.EnsureRange(period.Start, period.End, nameof(period));
         ArgumentNullException.ThrowIfNull(flags);
 

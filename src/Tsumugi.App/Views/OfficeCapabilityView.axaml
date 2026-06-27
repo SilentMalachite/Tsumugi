@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             xmlns:conv="using:Tsumugi.App.Converters"
+             x:Class="Tsumugi.App.Views.OfficeCapabilityView"
+             x:DataType="vm:OfficeCapabilityViewModel">
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
+        <KeyBinding Gesture="Escape" Command="{Binding DiscardCommand}" />
+    </UserControl.KeyBindings>
+    <StackPanel Spacing="8" Margin="8">
+        <TextBlock Text="事業所体制登録"
+                   FontSize="{DynamicResource HeadingFontSize}" Margin="0,0,0,4" />
+        <StackPanel Spacing="4">
+            <TextBlock Text="事業所（必須）" />
+            <ComboBox ItemsSource="{Binding Offices}"
+                      SelectedItem="{Binding SelectedOffice}"
+                      PlaceholderText="事業所を選択"
+                      HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <StackPanel Spacing="4">
+                <TextBlock Text="期間 開始" />
+                <TextBox Text="{Binding PeriodStart, Converter={x:Static conv:DateOnlyConverter.Instance}}"
+                         Watermark="2026-04-01" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+                <TextBlock Text="期間 終了（任意）" />
+                <TextBox Text="{Binding PeriodEnd, Converter={x:Static conv:DateOnlyConverter.Instance}}"
+                         Watermark="2027-03-31" />
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Spacing="4">
+            <TextBlock Text="体制フラグ（暫定キー）" FontWeight="Bold" />
+            <CheckBox Content="食事提供体制 (mealProvision)" IsChecked="{Binding MealProvision}" />
+            <CheckBox Content="送迎支援 (transportSupport)" IsChecked="{Binding TransportSupport}" />
+        </StackPanel>
+        <TextBlock Text="{Binding SaveErrorMessage}"
+                   Foreground="#FF4444"
+                   IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+        <TextBlock Text="{Binding OverlapWarning}"
+                   Foreground="#FFAA00"
+                   IsVisible="{Binding OverlapWarning, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+        <Button Content="保存 (Ctrl+S)" Command="{Binding SaveCommand}" />
+    </StackPanel>
+</UserControl>

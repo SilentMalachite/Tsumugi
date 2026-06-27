@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.UseCases;
+using Tsumugi.Application.UseCases.Office;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
 using Xunit;
@@ -77,5 +78,15 @@ public sealed class RegisterOfficeUseCaseTests
         var act = () => sut.ExecuteAsync(number, name, ServiceCategory.TypeB, RegionGrade.Grade4, "tester", CancellationToken.None);
 
         await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task Update_rejects_empty_id_before_db_lookup()
+    {
+        var sut = new UpdateOfficeUseCase(new FakeOfficeRepository(), new FakeUnitOfWork());
+        Func<Task> act = () => sut.ExecuteAsync(
+            Guid.Empty, "名前", ServiceCategory.TypeB, RegionGrade.None, CancellationToken.None);
+        await act.Should().ThrowAsync<ArgumentException>()
+            .Where(e => e.ParamName == "id");
     }
 }

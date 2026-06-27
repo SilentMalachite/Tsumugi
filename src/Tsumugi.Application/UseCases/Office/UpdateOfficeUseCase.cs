@@ -9,6 +9,8 @@ public sealed class UpdateOfficeUseCase(IOfficeRepository repo, IUnitOfWork uow)
         Guid id, string name, ServiceCategory category, RegionGrade region,
         CancellationToken ct)
     {
+        if (id == Guid.Empty)
+            throw new ArgumentException("事業所IDが指定されていません。", nameof(id));
         var existing = await repo.FindByIdAsync(id, ct)
             ?? throw new InvalidOperationException("事業所が見つかりません。");
         if (string.IsNullOrWhiteSpace(name))

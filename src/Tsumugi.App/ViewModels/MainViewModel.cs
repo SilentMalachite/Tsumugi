@@ -7,6 +7,7 @@ public sealed class MainViewModel(
     CertificateViewModel certificate,
     ContractViewModel contract,
     OfficeViewModel office,
+    OfficeCapabilityViewModel officeCapability,
     DailyRecordViewModel dailyRecord) : ViewModelBase
 {
     public RecipientListViewModel RecipientList { get; } = recipientList;
@@ -14,5 +15,6 @@ public sealed class MainViewModel(
     public CertificateViewModel Certificate { get; } = certificate;
     public ContractViewModel Contract { get; } = contract;
     public OfficeViewModel Office { get; } = office;
+    public OfficeCapabilityViewModel OfficeCapability { get; } = officeCapability;
     public DailyRecordViewModel DailyRecord { get; } = dailyRecord;
 }

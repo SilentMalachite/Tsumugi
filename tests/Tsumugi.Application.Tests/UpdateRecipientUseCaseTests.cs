@@ -50,6 +50,17 @@ public sealed class UpdateRecipientUseCaseTests
     }
 
     [Fact]
+    public async Task Rejects_empty_id_before_db_lookup()
+    {
+        var sut = new UpdateRecipientUseCase(
+            new FakeRecipientRepository(), new FakeUnitOfWork());
+        Func<Task> act = () => sut.ExecuteAsync(
+            Guid.Empty, "田中", "タナカ", new DateOnly(1985, 5, 10), "editor", default);
+        await act.Should().ThrowAsync<ArgumentException>()
+            .Where(e => e.ParamName == "id");
+    }
+
+    [Fact]
     public async Task Rejects_blank_kanji_name()
     {
         var repo = new FakeRecipientRepository();

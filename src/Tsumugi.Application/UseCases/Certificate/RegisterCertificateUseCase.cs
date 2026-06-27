@@ -15,6 +15,8 @@ public sealed class RegisterCertificateUseCase(
         int supplyDays, int monthlyCostCap, string municipality,
         string actor, CancellationToken ct)
     {
+        if (recipientId == Guid.Empty)
+            throw new ArgumentException("利用者IDが指定されていません。", nameof(recipientId));
         if (string.IsNullOrWhiteSpace(certificateNumber))
             throw new ArgumentException("受給者証番号は必須です。", nameof(certificateNumber));
         DateValidator.EnsureRange(validity.Start, validity.End, nameof(validity));

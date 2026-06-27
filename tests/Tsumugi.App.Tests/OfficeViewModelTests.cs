@@ -17,7 +17,8 @@ public sealed class OfficeViewModelTests
 
     private OfficeViewModel NewVm() => new(
         new RegisterOfficeUseCase(_repo, _uow, _clock),
-        new ListOfficesUseCase(_repo));
+        new ListOfficesUseCase(_repo),
+        new UpdateOfficeUseCase(_repo, _uow));
 
     [Fact]
     public async Task LoadAsync_populates_items()
@@ -72,6 +73,39 @@ public sealed class OfficeViewModelTests
 
         vm.SaveErrorMessage.Should().Contain("事業所番号");
         vm.IsSaved.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task SelectedItem_loads_form_for_editing()
+    {
+        var office = Office.Create(Guid.NewGuid(), "1234567890", "旧名",
+            ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _repo.Add(office);
+        var vm = NewVm();
+        await vm.LoadAsync();
+
+        vm.SelectedItem = vm.Items.Single();
+
+        vm.EditingId.Should().Be(office.Id);
+        vm.Name.Should().Be("旧名");
+        vm.OfficeNumber.Should().Be("1234567890");
+    }
+
+    [Fact]
+    public async Task UpdateCommand_renames_selected_office()
+    {
+        var office = Office.Create(Guid.NewGuid(), "1234567890", "旧名",
+            ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _repo.Add(office);
+        var vm = NewVm();
+        await vm.LoadAsync();
+        vm.SelectedItem = vm.Items.Single();
+        vm.Name = "新名";
+
+        await vm.UpdateCommand.ExecuteAsync(null);
+
+        var stored = await _repo.FindByIdAsync(office.Id, default);
+        stored!.Name.Should().Be("新名");
     }
 }
 

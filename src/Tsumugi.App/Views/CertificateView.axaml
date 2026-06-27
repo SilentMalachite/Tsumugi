@@ -1,14 +1,16 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Tsumugi.App.ViewModels"
+             xmlns:conv="using:Tsumugi.App.Converters"
              x:Class="Tsumugi.App.Views.CertificateView"
              x:DataType="vm:CertificateViewModel">
     <UserControl.KeyBindings>
         <KeyBinding Gesture="F5" Command="{Binding RefreshCommand}" />
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
     </UserControl.KeyBindings>
     <DockPanel>
         <DockPanel DockPanel.Dock="Top" Margin="8,8,8,4">
-            <TextBlock Text="受給者証（期限アラート）"
+            <TextBlock Text="受給者証（登録 / 期限アラート）"
                        FontSize="{DynamicResource HeadingFontSize}" VerticalAlignment="Center" />
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8" Margin="8,0,0,0">
                 <TextBlock Text="期限アラートしきい値：" VerticalAlignment="Center" />
@@ -17,6 +19,60 @@
                 <Button Content="更新 (F5)" Command="{Binding RefreshCommand}" />
             </StackPanel>
         </DockPanel>
+
+        <!-- 登録フォーム -->
+        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="8">
+            <TextBlock Text="登録（保存 Ctrl+S）" FontWeight="Bold" />
+            <StackPanel Spacing="4">
+                <TextBlock Text="利用者（必須）" />
+                <ComboBox ItemsSource="{Binding Recipients}"
+                          SelectedItem="{Binding SelectedRecipient}"
+                          PlaceholderText="利用者を選択"
+                          HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding KanjiName}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+            <StackPanel Spacing="4">
+                <TextBlock Text="受給者証番号" />
+                <TextBox Text="{Binding CertificateNumber}" Watermark="例：1234567890" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="有効期間 開始" />
+                    <TextBox Text="{Binding ValidityStart, Converter={x:Static conv:DateOnlyConverter.Instance}}"
+                             Watermark="2026-04-01" />
+                </StackPanel>
+                <StackPanel Spacing="4">
+                    <TextBlock Text="有効期間 終了" />
+                    <TextBox Text="{Binding ValidityEnd, Converter={x:Static conv:DateOnlyConverter.Instance}}"
+                             Watermark="2027-03-31" />
+                </StackPanel>
+                <StackPanel Spacing="4">
+                    <TextBlock Text="支給量(日/月)" />
+                    <TextBox Text="{Binding SupplyDays}" Width="80" />
+                </StackPanel>
+                <StackPanel Spacing="4">
+                    <TextBlock Text="月額上限(円)" />
+                    <TextBox Text="{Binding MonthlyCostCap}" Width="100" />
+                </StackPanel>
+                <StackPanel Spacing="4">
+                    <TextBlock Text="市町村" />
+                    <TextBox Text="{Binding Municipality}" Watermark="例：杉並区" />
+                </StackPanel>
+            </StackPanel>
+            <TextBlock Text="{Binding SaveErrorMessage}"
+                       Foreground="#FF4444"
+                       IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+            <TextBlock Text="{Binding OverlapWarning}"
+                       Foreground="#FFAA00"
+                       IsVisible="{Binding OverlapWarning, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+            <Button Content="保存 (Ctrl+S)" Command="{Binding SaveCommand}" />
+        </StackPanel>
+
         <DataGrid ItemsSource="{Binding ExpiringItems}"
                   IsReadOnly="True"
                   AutoGenerateColumns="False"
