@@ -48,7 +48,13 @@ public sealed class CompositionRootTests
     {
         public System.Threading.Tasks.Task AddAsync(Tsumugi.Domain.Entities.Office o, System.Threading.CancellationToken ct)
             => System.Threading.Tasks.Task.CompletedTask;
+        public System.Threading.Tasks.Task<Tsumugi.Domain.Entities.Office?> FindByIdAsync(Guid id, System.Threading.CancellationToken ct)
+            => System.Threading.Tasks.Task.FromResult<Tsumugi.Domain.Entities.Office?>(null);
         public System.Threading.Tasks.Task<Tsumugi.Domain.Entities.Office?> FindByNumberAsync(string n, System.Threading.CancellationToken ct)
             => System.Threading.Tasks.Task.FromResult<Tsumugi.Domain.Entities.Office?>(null);
+        public System.Threading.Tasks.Task UpdateAsync(Tsumugi.Domain.Entities.Office o, System.Threading.CancellationToken ct)
+            => System.Threading.Tasks.Task.CompletedTask;
+        public System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<Tsumugi.Domain.Entities.Office>> ListAsync(System.Threading.CancellationToken ct)
+            => System.Threading.Tasks.Task.FromResult<System.Collections.Generic.IReadOnlyList<Tsumugi.Domain.Entities.Office>>(System.Array.Empty<Tsumugi.Domain.Entities.Office>());
     }
 }

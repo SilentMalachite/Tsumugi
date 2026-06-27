@@ -17,8 +17,12 @@ public sealed class RegisterOfficeUseCaseTests
         public Office? Added { get; private set; }
         public Office? Existing { get; init; }
         public Task AddAsync(Office office, CancellationToken ct) { Added = office; return Task.CompletedTask; }
+        public Task<Office?> FindByIdAsync(Guid id, CancellationToken ct) => Task.FromResult<Office?>(null);
         public Task<Office?> FindByNumberAsync(string n, CancellationToken ct) =>
             Task.FromResult(Existing?.OfficeNumber == n ? Existing : null);
+        public Task UpdateAsync(Office office, CancellationToken ct) => Task.CompletedTask;
+        public Task<IReadOnlyList<Office>> ListAsync(CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<Office>>(Array.Empty<Office>());
     }
 
     private sealed class FakeUnitOfWork : IUnitOfWork

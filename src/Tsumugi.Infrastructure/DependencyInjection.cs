@@ -12,6 +12,11 @@ public static class DependencyInjection
     {
         services.AddDbContext<TsumugiDbContext>(o => o.UseSqlite(connectionString));
         services.AddScoped<IOfficeRepository, OfficeRepository>();
+        services.AddScoped<IRecipientRepository, RecipientRepository>();
+        services.AddScoped<ICertificateRepository, CertificateRepository>();
+        services.AddScoped<IContractRepository, ContractRepository>();
+        services.AddScoped<IOfficeCapabilityRepository, OfficeCapabilityRepository>();
+        services.AddScoped<IDailyRecordRepository, DailyRecordRepository>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<IBackupService, SqliteBackupService>();
         return services;
