@@ -24,6 +24,15 @@ public sealed class ViewInputWiringTests
             because: "地域区分の入力フィールドが画面に無いと AC1-1 を満たさず、報酬算定の前提が画面で確定できない");
     }
 
+    [Fact]
+    public void ContractView_exposes_PeriodEnd_input()
+    {
+        var xml = ReadView("ContractView.axaml");
+        // PeriodEnd は VM/UseCase で保存に使うが、画面に入力欄が無いと永久に null のまま保存される。
+        xml.Should().Contain("{Binding PeriodEnd",
+            because: "契約終了日の入力フィールドが画面に無いと AC1-1 を満たさない");
+    }
+
     private static string ReadView(string fileName)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

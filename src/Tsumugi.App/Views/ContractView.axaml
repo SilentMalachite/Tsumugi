@@ -25,10 +25,17 @@
                     </ComboBox.ItemTemplate>
                 </ComboBox>
             </StackPanel>
-            <StackPanel Spacing="4">
-                <TextBlock Text="契約開始日（yyyy-MM-dd）" />
-                <TextBox Text="{Binding PeriodStart, Converter={x:Static conv:DateOnlyConverter.Instance}}"
-                         Watermark="例：2026-04-01" />
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="契約開始日（yyyy-MM-dd）" />
+                    <TextBox Text="{Binding PeriodStart, Converter={x:Static conv:DateOnlyConverter.Instance}}"
+                             Watermark="例：2026-04-01" />
+                </StackPanel>
+                <StackPanel Spacing="4">
+                    <TextBlock Text="契約終了日（yyyy-MM-dd、空欄可）" />
+                    <TextBox Text="{Binding PeriodEnd, Converter={x:Static conv:DateOnlyConverter.Instance}}"
+                             Watermark="例：2027-03-31" />
+                </StackPanel>
             </StackPanel>
             <StackPanel Spacing="4">
                 <TextBlock Text="契約支給量（日/月）" />
