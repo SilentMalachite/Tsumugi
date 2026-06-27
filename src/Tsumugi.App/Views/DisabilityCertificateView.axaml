@@ -29,11 +29,17 @@
                 <StackPanel Spacing="6">
                     <TextBlock Text="新しい手帳情報を追加（等級改定や更新時も追記）" FontWeight="Bold" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <StackPanel Spacing="2" Width="180">
+                        <StackPanel Spacing="2" Width="220">
                             <TextBlock Text="種類" />
                             <ComboBox ItemsSource="{Binding TypeOptions}"
                                       SelectedItem="{Binding Type}"
-                                      HorizontalAlignment="Stretch" />
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={x:Static conv:EnumJapaneseLabelConverter.Instance}}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                         </StackPanel>
                         <StackPanel Spacing="2" Width="140">
                             <TextBlock Text="等級/度数 (必須)" />
@@ -79,7 +85,9 @@
                   AutoGenerateColumns="False"
                   Margin="8">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="種類" Binding="{Binding Type}" Width="Auto" />
+                <DataGridTextColumn Header="種類"
+                                    Binding="{Binding Type, Converter={x:Static conv:EnumJapaneseLabelConverter.Instance}}"
+                                    Width="Auto" />
                 <DataGridTextColumn Header="等級" Binding="{Binding Grade}" Width="Auto" />
                 <DataGridTextColumn Header="種別" Binding="{Binding Subtype}" Width="Auto" />
                 <DataGridTextColumn Header="交付日" Binding="{Binding IssuedDate}" Width="Auto" />
