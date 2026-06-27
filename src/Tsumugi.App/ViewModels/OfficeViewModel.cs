@@ -23,6 +23,8 @@ public sealed partial class OfficeViewModel(
     // 編集モード: 既存事業所を選ぶとフォームが populate され、UpdateCommand が有効になる。
     [ObservableProperty] private OfficeDto? _selectedItem;
     [ObservableProperty] private Guid? _editingId;
+    // 楽観的同時実行: SelectedItem 時点のトークンを保持し、Update でそのまま渡す。
+    private Guid _editingConcurrencyToken;
 
     public ObservableCollection<OfficeDto> Items { get; } = [];
 
@@ -39,9 +41,11 @@ public sealed partial class OfficeViewModel(
         if (value is null)
         {
             EditingId = null;
+            _editingConcurrencyToken = Guid.Empty;
             return;
         }
         EditingId = value.Id;
+        _editingConcurrencyToken = value.ConcurrencyToken;
         OfficeNumber = value.OfficeNumber;
         Name = value.Name;
         Category = value.ServiceCategory;
@@ -77,7 +81,9 @@ public sealed partial class OfficeViewModel(
         }
         try
         {
-            await updateUseCase.ExecuteAsync(EditingId.Value, Name, Category, Region, default);
+            await updateUseCase.ExecuteAsync(
+                EditingId.Value, _editingConcurrencyToken,
+                Name, Category, Region, default);
             SaveErrorMessage = null;
             IsSaved = true;
             await LoadAsync();
@@ -85,6 +91,11 @@ public sealed partial class OfficeViewModel(
         catch (ArgumentException ex)
         {
             SaveErrorMessage = ex.Message;
+            IsSaved = false;
+        }
+        catch (Tsumugi.Application.OptimisticConcurrencyException)
+        {
+            SaveErrorMessage = "他のユーザに先に更新されています。一覧を再選択して最新状態を読み込んでください。";
             IsSaved = false;
         }
     }

@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Tsumugi.App.ViewModels"
+             xmlns:enums="using:Tsumugi.Domain.Enums"
              xmlns:conv="using:Tsumugi.App.Converters"
              x:Class="Tsumugi.App.Views.OfficeView"
              x:DataType="vm:OfficeViewModel">
@@ -19,6 +20,33 @@
             <StackPanel Spacing="4">
                 <TextBlock Text="事業所名" />
                 <TextBox Text="{Binding Name}" Watermark="例：つむぎ作業所" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="サービス種別" />
+                    <!-- ServiceCategory enum 全値をバインド。現状は TypeB のみだが将来拡張用に Items を enum 全列挙にする。 -->
+                    <ComboBox SelectedItem="{Binding Category}" MinWidth="160">
+                        <ComboBox.Items>
+                            <enums:ServiceCategory>TypeB</enums:ServiceCategory>
+                        </ComboBox.Items>
+                    </ComboBox>
+                </StackPanel>
+                <StackPanel Spacing="4">
+                    <TextBlock Text="地域区分" />
+                    <ComboBox SelectedItem="{Binding Region}" MinWidth="160">
+                        <ComboBox.Items>
+                            <enums:RegionGrade>None</enums:RegionGrade>
+                            <enums:RegionGrade>Grade1</enums:RegionGrade>
+                            <enums:RegionGrade>Grade2</enums:RegionGrade>
+                            <enums:RegionGrade>Grade3</enums:RegionGrade>
+                            <enums:RegionGrade>Grade4</enums:RegionGrade>
+                            <enums:RegionGrade>Grade5</enums:RegionGrade>
+                            <enums:RegionGrade>Grade6</enums:RegionGrade>
+                            <enums:RegionGrade>Grade7</enums:RegionGrade>
+                            <enums:RegionGrade>Other</enums:RegionGrade>
+                        </ComboBox.Items>
+                    </ComboBox>
+                </StackPanel>
             </StackPanel>
             <TextBlock Text="{Binding SaveErrorMessage}"
                        Foreground="#FF4444"

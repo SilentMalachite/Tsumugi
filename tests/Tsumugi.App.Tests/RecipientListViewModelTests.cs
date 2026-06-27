@@ -30,7 +30,7 @@ public sealed class RecipientListViewModelTests
         var captured = (Tsumugi.Application.Dtos.RecipientDto?)null;
         vm.EditRequested = dto => captured = dto;
         var item = new Tsumugi.Application.Dtos.RecipientDto(
-            Guid.NewGuid(), "山田", "ヤマダ", new DateOnly(1990, 1, 1));
+            Guid.NewGuid(), "山田", "ヤマダ", new DateOnly(1990, 1, 1), Guid.NewGuid());
         vm.Selected = item;
 
         vm.EditCommand.Execute(null);

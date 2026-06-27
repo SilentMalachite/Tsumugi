@@ -6,13 +6,16 @@ namespace Tsumugi.Application.UseCases.Recipient;
 public sealed class UpdateRecipientUseCase(IRecipientRepository repo, IUnitOfWork uow)
 {
     public async Task ExecuteAsync(
-        Guid id, string kanjiName, string kanaName, DateOnly dateOfBirth,
+        Guid id, Guid expectedConcurrencyToken,
+        string kanjiName, string kanaName, DateOnly dateOfBirth,
         string actor, CancellationToken ct)
     {
         if (id == Guid.Empty)
             throw new ArgumentException("利用者IDが指定されていません。", nameof(id));
         var existing = await repo.FindByIdAsync(id, ct)
             ?? throw new InvalidOperationException("利用者が見つかりません。");
+        if (existing.ConcurrencyToken != expectedConcurrencyToken)
+            throw new OptimisticConcurrencyException(nameof(Tsumugi.Domain.Entities.Recipient), id);
         if (string.IsNullOrWhiteSpace(kanjiName))
             throw new ArgumentException("氏名（漢字）は必須です。", nameof(kanjiName));
         if (string.IsNullOrWhiteSpace(kanaName))

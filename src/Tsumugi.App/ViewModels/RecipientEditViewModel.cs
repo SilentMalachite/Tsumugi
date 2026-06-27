@@ -16,11 +16,15 @@ public sealed partial class RecipientEditViewModel(
 
     // 編集モード: EditingId が null なら新規登録、値があれば更新。
     [ObservableProperty] private Guid? _editingId;
+    // 楽観的同時実行: LoadForEdit 時点のトークンを保持し、Update でそのまま渡す。
+    private Guid _editingConcurrencyToken;
 
     /// <summary>RecipientList から渡された既存利用者をフォームに展開する。</summary>
-    public void LoadForEdit(Guid id, string kanjiName, string kanaName, DateOnly dateOfBirth)
+    public void LoadForEdit(
+        Guid id, string kanjiName, string kanaName, DateOnly dateOfBirth, Guid concurrencyToken)
     {
         EditingId = id;
+        _editingConcurrencyToken = concurrencyToken;
         KanjiName = kanjiName;
         KanaName = kanaName;
         DateOfBirth = dateOfBirth;
@@ -36,7 +40,8 @@ public sealed partial class RecipientEditViewModel(
             if (EditingId is { } id)
             {
                 await updateUseCase.ExecuteAsync(
-                    id, KanjiName, KanaName, DateOfBirth, actor: Environment.UserName, default);
+                    id, _editingConcurrencyToken,
+                    KanjiName, KanaName, DateOfBirth, actor: Environment.UserName, default);
             }
             else
             {
@@ -51,6 +56,11 @@ public sealed partial class RecipientEditViewModel(
             SaveErrorMessage = ex.Message;
             IsSaved = false;
         }
+        catch (Tsumugi.Application.OptimisticConcurrencyException)
+        {
+            SaveErrorMessage = "他のユーザに先に更新されています。一覧から再選択して最新状態を読み込んでください。";
+            IsSaved = false;
+        }
     }
 
     [RelayCommand]
@@ -62,5 +72,6 @@ public sealed partial class RecipientEditViewModel(
         SaveErrorMessage = null;
         IsSaved = false;
         EditingId = null;
+        _editingConcurrencyToken = Guid.Empty;
     }
 }

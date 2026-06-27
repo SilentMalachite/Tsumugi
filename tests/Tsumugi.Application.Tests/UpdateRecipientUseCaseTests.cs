@@ -28,8 +28,8 @@ public sealed class UpdateRecipientUseCaseTests
         var sut = new UpdateRecipientUseCase(repo, uow);
         var original = SeedRecipient(repo);
 
-        await sut.ExecuteAsync(original.Id, "田中花子", "タナカハナコ",
-            new DateOnly(1985, 5, 10), "editor", default);
+        await sut.ExecuteAsync(original.Id, original.ConcurrencyToken,
+            "田中花子", "タナカハナコ", new DateOnly(1985, 5, 10), "editor", default);
 
         var stored = repo.Added.Single(r => r.Id == original.Id);
         stored.KanjiName.Should().Be("田中花子");
@@ -45,7 +45,8 @@ public sealed class UpdateRecipientUseCaseTests
         var sut = new UpdateRecipientUseCase(
             new FakeRecipientRepository(), new FakeUnitOfWork());
         Func<Task> act = () => sut.ExecuteAsync(
-            Guid.NewGuid(), "田中", "タナカ", new DateOnly(1985, 5, 10), "editor", default);
+            Guid.NewGuid(), Guid.NewGuid(),
+            "田中", "タナカ", new DateOnly(1985, 5, 10), "editor", default);
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
@@ -55,9 +56,41 @@ public sealed class UpdateRecipientUseCaseTests
         var sut = new UpdateRecipientUseCase(
             new FakeRecipientRepository(), new FakeUnitOfWork());
         Func<Task> act = () => sut.ExecuteAsync(
-            Guid.Empty, "田中", "タナカ", new DateOnly(1985, 5, 10), "editor", default);
+            Guid.Empty, expectedConcurrencyToken: Guid.NewGuid(),
+            "田中", "タナカ", new DateOnly(1985, 5, 10), "editor", default);
         await act.Should().ThrowAsync<ArgumentException>()
             .Where(e => e.ParamName == "id");
+    }
+
+    [Fact]
+    public async Task Update_throws_OptimisticConcurrencyException_when_token_is_stale()
+    {
+        var repo = new FakeRecipientRepository();
+        var uow = new FakeUnitOfWork();
+        var sut = new UpdateRecipientUseCase(repo, uow);
+        var original = SeedRecipient(repo);
+
+        var staleToken = Guid.NewGuid();
+        Func<Task> act = () => sut.ExecuteAsync(
+            original.Id, expectedConcurrencyToken: staleToken,
+            "田中花子", "タナカハナコ", new DateOnly(1985, 5, 10), "editor", default);
+
+        await act.Should().ThrowAsync<Tsumugi.Application.OptimisticConcurrencyException>();
+    }
+
+    [Fact]
+    public async Task Update_succeeds_when_token_matches_current()
+    {
+        var repo = new FakeRecipientRepository();
+        var uow = new FakeUnitOfWork();
+        var sut = new UpdateRecipientUseCase(repo, uow);
+        var original = SeedRecipient(repo);
+
+        await sut.ExecuteAsync(
+            original.Id, expectedConcurrencyToken: original.ConcurrencyToken,
+            "田中花子", "タナカハナコ", new DateOnly(1985, 5, 10), "editor", default);
+
+        repo.Added.Single(r => r.Id == original.Id).KanjiName.Should().Be("田中花子");
     }
 
     [Fact]
@@ -67,7 +100,8 @@ public sealed class UpdateRecipientUseCaseTests
         var original = SeedRecipient(repo);
         var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork());
         Func<Task> act = () => sut.ExecuteAsync(
-            original.Id, " ", "タナカ", new DateOnly(1985, 5, 10), "editor", default);
+            original.Id, original.ConcurrencyToken,
+            " ", "タナカ", new DateOnly(1985, 5, 10), "editor", default);
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
@@ -78,7 +112,8 @@ public sealed class UpdateRecipientUseCaseTests
         var original = SeedRecipient(repo);
         var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork());
         Func<Task> act = () => sut.ExecuteAsync(
-            original.Id, "田中花子", " ", new DateOnly(1985, 5, 10), "editor", default);
+            original.Id, original.ConcurrencyToken,
+            "田中花子", " ", new DateOnly(1985, 5, 10), "editor", default);
         (await act.Should().ThrowAsync<ArgumentException>())
             .Which.ParamName.Should().Be("kanaName");
     }
@@ -90,7 +125,8 @@ public sealed class UpdateRecipientUseCaseTests
         var original = SeedRecipient(repo);
         var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork());
         Func<Task> act = () => sut.ExecuteAsync(
-            original.Id, "田中", "タナカ", DateOnly.MinValue, "editor", default);
+            original.Id, original.ConcurrencyToken,
+            "田中", "タナカ", DateOnly.MinValue, "editor", default);
         await act.Should().ThrowAsync<DateValidationException>();
     }
 }

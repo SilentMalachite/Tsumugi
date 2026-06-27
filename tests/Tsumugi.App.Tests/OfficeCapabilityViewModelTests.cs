@@ -43,7 +43,8 @@ public sealed class OfficeCapabilityViewModelTests
         vm.SelectedOffice = new Tsumugi.Application.Dtos.OfficeDto(
             oid, "1234567890", "事業所",
             Tsumugi.Domain.Enums.ServiceCategory.TypeB,
-            Tsumugi.Domain.Enums.RegionGrade.None);
+            Tsumugi.Domain.Enums.RegionGrade.None,
+            Guid.NewGuid());
         vm.PeriodStart = new DateOnly(2026, 4, 1);
         vm.PeriodEnd = new DateOnly(2027, 3, 31);
         vm.MealProvision = true;

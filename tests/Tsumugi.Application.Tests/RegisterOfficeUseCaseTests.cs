@@ -17,13 +17,15 @@ public sealed class RegisterOfficeUseCaseTests
     {
         public Office? Added { get; private set; }
         public Office? Existing { get; init; }
+        public Office? Updated { get; private set; }
         public Task AddAsync(Office office, CancellationToken ct) { Added = office; return Task.CompletedTask; }
-        public Task<Office?> FindByIdAsync(Guid id, CancellationToken ct) => Task.FromResult<Office?>(null);
+        public Task<Office?> FindByIdAsync(Guid id, CancellationToken ct) =>
+            Task.FromResult(Existing?.Id == id ? Existing : null);
         public Task<Office?> FindByNumberAsync(string n, CancellationToken ct) =>
             Task.FromResult(Existing?.OfficeNumber == n ? Existing : null);
-        public Task UpdateAsync(Office office, CancellationToken ct) => Task.CompletedTask;
+        public Task UpdateAsync(Office office, CancellationToken ct) { Updated = office; return Task.CompletedTask; }
         public Task<IReadOnlyList<Office>> ListAsync(CancellationToken ct) =>
-            Task.FromResult<IReadOnlyList<Office>>(Array.Empty<Office>());
+            Task.FromResult<IReadOnlyList<Office>>(Existing is null ? Array.Empty<Office>() : new[] { Existing });
     }
 
     private sealed class FakeUnitOfWork : IUnitOfWork
@@ -85,8 +87,46 @@ public sealed class RegisterOfficeUseCaseTests
     {
         var sut = new UpdateOfficeUseCase(new FakeOfficeRepository(), new FakeUnitOfWork());
         Func<Task> act = () => sut.ExecuteAsync(
-            Guid.Empty, "名前", ServiceCategory.TypeB, RegionGrade.None, CancellationToken.None);
+            Guid.Empty, expectedConcurrencyToken: Guid.NewGuid(),
+            "名前", ServiceCategory.TypeB, RegionGrade.None, CancellationToken.None);
         await act.Should().ThrowAsync<ArgumentException>()
             .Where(e => e.ParamName == "id");
+    }
+
+    [Fact]
+    public async Task Update_throws_OptimisticConcurrencyException_when_expected_token_does_not_match_current()
+    {
+        var currentToken = Guid.NewGuid();
+        var existing = Office.Create(Guid.NewGuid(), "1234567890", "名前",
+            ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, currentToken);
+        var repo = new FakeOfficeRepository { Existing = existing };
+        var sut = new UpdateOfficeUseCase(repo, new FakeUnitOfWork());
+
+        // 画面が開いた時点の古いトークン（別ユーザが先に保存して回転している想定）。
+        var staleToken = Guid.NewGuid();
+        Func<Task> act = () => sut.ExecuteAsync(
+            existing.Id, expectedConcurrencyToken: staleToken,
+            "新名", ServiceCategory.TypeB, RegionGrade.Grade2, CancellationToken.None);
+
+        await act.Should().ThrowAsync<Tsumugi.Application.OptimisticConcurrencyException>();
+    }
+
+    [Fact]
+    public async Task Update_succeeds_when_expected_token_matches_current()
+    {
+        var token = Guid.NewGuid();
+        var existing = Office.Create(Guid.NewGuid(), "1234567890", "旧名",
+            ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, token);
+        var repo = new FakeOfficeRepository { Existing = existing };
+        var sut = new UpdateOfficeUseCase(repo, new FakeUnitOfWork());
+
+        await sut.ExecuteAsync(
+            existing.Id, expectedConcurrencyToken: token,
+            "新名", ServiceCategory.TypeB, RegionGrade.Grade3, CancellationToken.None);
+
+        // Update が呼ばれていれば fake が保持する Updated 値が変わる。
+        repo.Updated.Should().NotBeNull();
+        repo.Updated!.Name.Should().Be("新名");
+        repo.Updated.RegionGrade.Should().Be(RegionGrade.Grade3);
     }
 }

@@ -8,6 +8,7 @@ public sealed class ListOfficesUseCase(IOfficeRepository repo)
     public async Task<IReadOnlyList<OfficeDto>> ExecuteAsync(CancellationToken ct)
     {
         var list = await repo.ListAsync(ct);
-        return list.Select(o => new OfficeDto(o.Id, o.OfficeNumber, o.Name, o.ServiceCategory, o.RegionGrade)).ToArray();
+        return list.Select(o => new OfficeDto(
+            o.Id, o.OfficeNumber, o.Name, o.ServiceCategory, o.RegionGrade, o.ConcurrencyToken)).ToArray();
     }
 }

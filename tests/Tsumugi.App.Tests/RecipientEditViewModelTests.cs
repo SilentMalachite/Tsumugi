@@ -40,7 +40,7 @@ public sealed class RecipientEditViewModelTests
             new RegisterRecipientUseCase(repo, uow, new FixedClock(DateTimeOffset.UnixEpoch)),
             new UpdateRecipientUseCase(repo, uow));
 
-        sut.LoadForEdit(existing.Id, existing.KanjiName, existing.KanaName, existing.DateOfBirth);
+        sut.LoadForEdit(existing.Id, existing.KanjiName, existing.KanaName, existing.DateOfBirth, existing.ConcurrencyToken);
 
         sut.EditingId.Should().Be(existing.Id);
         sut.KanjiName.Should().Be("山田太郎");
@@ -58,7 +58,7 @@ public sealed class RecipientEditViewModelTests
         var sut = new RecipientEditViewModel(
             new RegisterRecipientUseCase(repo, uow, new FixedClock(DateTimeOffset.UnixEpoch)),
             new UpdateRecipientUseCase(repo, uow));
-        sut.LoadForEdit(existing.Id, existing.KanjiName, existing.KanaName, existing.DateOfBirth);
+        sut.LoadForEdit(existing.Id, existing.KanjiName, existing.KanaName, existing.DateOfBirth, existing.ConcurrencyToken);
         sut.KanjiName = "新名";
 
         await sut.SaveCommand.ExecuteAsync(null);
