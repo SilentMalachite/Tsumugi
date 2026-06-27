@@ -6,7 +6,7 @@
              x:DataType="vm:RecipientEditViewModel">
     <UserControl.KeyBindings>
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
-        <KeyBinding Gesture="Escape" Command="{Binding SaveCommand}" />
+        <KeyBinding Gesture="Escape" Command="{Binding DiscardCommand}" />
     </UserControl.KeyBindings>
     <StackPanel Spacing="12" Margin="16">
         <TextBlock Text="利用者登録・編集" FontSize="16" />

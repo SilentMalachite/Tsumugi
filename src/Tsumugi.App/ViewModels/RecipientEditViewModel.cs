@@ -28,4 +28,14 @@ public sealed partial class RecipientEditViewModel(RegisterRecipientUseCase regi
             IsSaved = false;
         }
     }
+
+    [RelayCommand]
+    private void Discard()
+    {
+        KanjiName = string.Empty;
+        KanaName = string.Empty;
+        DateOfBirth = default;
+        SaveErrorMessage = null;
+        IsSaved = false;
+    }
 }

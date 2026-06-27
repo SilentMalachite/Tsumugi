@@ -48,4 +48,16 @@ public sealed partial class ContractViewModel(
             IsSaved = false;
         }
     }
+
+    [RelayCommand]
+    private void Discard()
+    {
+        RecipientId = default;
+        PeriodStart = default;
+        PeriodEnd = null;
+        ContractedSupplyDays = 0;
+        SaveErrorMessage = null;
+        OverlapWarning = null;
+        IsSaved = false;
+    }
 }

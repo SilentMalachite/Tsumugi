@@ -6,6 +6,7 @@
              x:DataType="vm:OfficeViewModel">
     <UserControl.KeyBindings>
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
+        <KeyBinding Gesture="Escape" Command="{Binding DiscardCommand}" />
     </UserControl.KeyBindings>
     <DockPanel>
         <TextBlock DockPanel.Dock="Top" Text="事業所管理" FontSize="16" Margin="8,8,8,4" />

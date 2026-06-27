@@ -46,4 +46,15 @@ public sealed partial class OfficeViewModel(
             IsSaved = false;
         }
     }
+
+    [RelayCommand]
+    private void Discard()
+    {
+        OfficeNumber = string.Empty;
+        Name = string.Empty;
+        Category = ServiceCategory.TypeB;
+        Region = RegionGrade.None;
+        SaveErrorMessage = null;
+        IsSaved = false;
+    }
 }

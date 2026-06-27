@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Tsumugi.App.ViewModels"
+             xmlns:enums="using:Tsumugi.Domain.Enums"
              x:Class="Tsumugi.App.Views.DailyRecordView"
              x:DataType="vm:DailyRecordViewModel">
     <UserControl.KeyBindings>
@@ -28,7 +29,7 @@
                                 <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Center">
                                     <Button Content="出" FontSize="10" Padding="2"
                                             Command="{Binding RecordCommand}"
-                                            CommandParameter="Present" />
+                                            CommandParameter="{x:Static enums:Attendance.Present}" />
                                     <Button Content="取" FontSize="10" Padding="2"
                                             Command="{Binding CancelCommand}" />
                                 </StackPanel>
