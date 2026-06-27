@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tsumugi.Infrastructure.Persistence;
 
@@ -10,9 +11,11 @@ using Tsumugi.Infrastructure.Persistence;
 namespace Tsumugi.Infrastructure.Migrations
 {
     [DbContext(typeof(TsumugiDbContext))]
-    partial class TsumugiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260627045205_AddPhase1Entities")]
+    partial class AddPhase1Entities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
