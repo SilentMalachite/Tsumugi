@@ -60,6 +60,27 @@ public sealed class DailyRecordPolicyTests
     }
 
     [Fact]
+    public void Sibling_corrections_latest_wins()
+    {
+        // 同じ origin (= n.Id) を持つ訂正が複数あるケース（兄弟関係）。
+        // 旧実装は CreatedAt 昇順で FirstOrDefault するため最古の c1 を選んでしまった。
+        var n = New(Guid.NewGuid(), Attendance.Present, 9);
+        var c1 = Corr(Guid.NewGuid(), n.Id, Attendance.Absent, 10);
+        var c2 = Corr(Guid.NewGuid(), n.Id, Attendance.AbsenceSupport, 11);
+        DailyRecordPolicy.Effective(new[] { n, c1, c2 }).Should().Be(c2);
+    }
+
+    [Fact]
+    public void Sibling_cancel_after_correction_terminates()
+    {
+        // 兄弟関係で取消が最新のとき、最終状態は null。
+        var n = New(Guid.NewGuid(), Attendance.Present, 9);
+        var c = Corr(Guid.NewGuid(), n.Id, Attendance.Absent, 10);
+        var x = Cancel(Guid.NewGuid(), n.Id, 11);
+        DailyRecordPolicy.Effective(new[] { n, c, x }).Should().BeNull();
+    }
+
+    [Fact]
     public void EffectiveByDate_groups_by_service_date()
     {
         var a = DailyRecord.NewRecord(Guid.NewGuid(), Recipient, new DateOnly(2026, 6, 1),

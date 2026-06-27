@@ -9,6 +9,7 @@ public static class DailyRecordPolicy
     /// <summary>
     /// (Recipient, ServiceDate) ごとの全レコードから実効レコードを返す。
     /// アルゴリズム: 新規レコードを起点に、自分を OriginId とする「次の訂正/取消」を辿る。
+    /// 同一 OriginId に複数の訂正・取消（兄弟）がぶら下がる場合は CreatedAt 最新を採用する。
     /// 取消に当たったらその時点で実効は null。
     /// </summary>
     public static DailyRecord? Effective(IEnumerable<DailyRecord> records)
@@ -23,9 +24,10 @@ public static class DailyRecordPolicy
         var current = origin;
         while (true)
         {
+            // 兄弟が複数あるときは最新を採る（最古を採ると stale な訂正が勝ってしまう）。
             var next = list
                 .Where(r => r.OriginId == current.Id && r.Kind != RecordKind.New)
-                .OrderBy(r => r.CreatedAt)
+                .OrderByDescending(r => r.CreatedAt)
                 .FirstOrDefault();
             if (next is null) return current;
             if (next.Kind == RecordKind.Cancel) return null;

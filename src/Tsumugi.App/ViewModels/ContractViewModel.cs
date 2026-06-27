@@ -3,15 +3,18 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Application.UseCases.Contract;
+using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.App.ViewModels;
 
 public sealed partial class ContractViewModel(
     RegisterContractUseCase registerUseCase,
-    ListContractsByRecipientUseCase listUseCase) : ViewModelBase
+    ListContractsByRecipientUseCase listUseCase,
+    ListRecipientsUseCase listRecipientsUseCase) : ViewModelBase
 {
     [ObservableProperty] private Guid _recipientId;
+    [ObservableProperty] private RecipientDto? _selectedRecipient;
     [ObservableProperty] private DateOnly _periodStart = new(2026, 4, 1);
     [ObservableProperty] private DateOnly? _periodEnd;
     [ObservableProperty] private int _contractedSupplyDays;
@@ -20,6 +23,21 @@ public sealed partial class ContractViewModel(
     [ObservableProperty] private bool _isSaved;
 
     public ObservableCollection<ContractDto> Items { get; } = [];
+    public ObservableCollection<RecipientDto> Recipients { get; } = [];
+
+    public async Task LoadRecipientsAsync(CancellationToken ct = default)
+    {
+        var list = await listRecipientsUseCase.ExecuteAsync(ct);
+        Recipients.Clear();
+        foreach (var r in list)
+            Recipients.Add(r);
+    }
+
+    partial void OnSelectedRecipientChanged(RecipientDto? value)
+    {
+        // 画面上の利用者選択を RecipientId に同期する（未選択時は Guid.Empty に戻す）。
+        RecipientId = value?.Id ?? Guid.Empty;
+    }
 
     public async Task LoadAsync(CancellationToken ct = default)
     {
@@ -52,7 +70,7 @@ public sealed partial class ContractViewModel(
     [RelayCommand]
     private void Discard()
     {
-        RecipientId = default;
+        SelectedRecipient = null;  // RecipientId は OnSelectedRecipientChanged 経由で Guid.Empty に戻る
         PeriodStart = default;
         PeriodEnd = null;
         ContractedSupplyDays = 0;

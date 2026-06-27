@@ -12,6 +12,19 @@
         <TextBlock DockPanel.Dock="Top" Text="契約管理" FontSize="16" Margin="8,8,8,4" />
         <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="8">
             <StackPanel Spacing="4">
+                <TextBlock Text="利用者（必須）" />
+                <ComboBox ItemsSource="{Binding Recipients}"
+                          SelectedItem="{Binding SelectedRecipient}"
+                          PlaceholderText="利用者を選択"
+                          HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding KanjiName}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+            <StackPanel Spacing="4">
                 <TextBlock Text="契約開始日（yyyy-MM-dd）" />
                 <TextBox Text="{Binding PeriodStart, Converter={x:Static conv:DateOnlyConverter.Instance}}"
                          Watermark="例：2026-04-01" />

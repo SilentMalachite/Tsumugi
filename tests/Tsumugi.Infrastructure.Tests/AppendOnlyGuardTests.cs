@@ -69,6 +69,28 @@ public sealed class AppendOnlyGuardTests : IClassFixture<SqliteFixture>
             .Where(e => e.EntityName == nameof(Certificate));
     }
 
+    // NOTE(teeth): SaveChangesAsync(CancellationToken) しか override していないと、
+    // 呼び出し側が ctx.SaveChangesAsync(acceptAllChangesOnSuccess, ct) を直接叩くだけで
+    // AppendOnlyGuard と更新トークン回転を素通りできる。bool overload も覆っていることを担保する。
+    [Fact]
+    public async Task Modifying_DailyRecord_via_async_bool_overload_throws()
+    {
+        var rid = Guid.NewGuid();
+        var id = Guid.NewGuid();
+        await using var ctx = _fixture.NewContext();
+        ctx.DailyRecords.Add(DailyRecord.NewRecord(id, rid, new DateOnly(2026, 6, 1),
+            Attendance.Present, TransportKind.None, false, null, "u", DateTimeOffset.UnixEpoch));
+        await ctx.SaveChangesAsync(acceptAllChangesOnSuccess: true, CancellationToken.None);
+
+        var loaded = await ctx.DailyRecords.SingleAsync(x => x.Id == id);
+        ctx.Entry(loaded).Property(nameof(DailyRecord.Note)).CurrentValue = "after the fact";
+        ctx.Entry(loaded).Property(nameof(DailyRecord.Note)).IsModified = true;
+
+        Func<Task> act = () => ctx.SaveChangesAsync(acceptAllChangesOnSuccess: false, CancellationToken.None);
+        await act.Should().ThrowAsync<AppendOnlyViolationException>()
+            .Where(e => e.EntityName == nameof(DailyRecord));
+    }
+
     [Fact]
     public async Task Modifying_Office_is_allowed_identity_master_uses_token()
     {

@@ -54,6 +54,24 @@ public sealed class RegisterContractUseCaseTests
     }
 
     [Fact]
+    public async Task Rejects_empty_recipient_id()
+    {
+        var repo = new FakeContractRepository();
+        var sut = new RegisterContractUseCase(repo, new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch));
+
+        Func<Task> act = () => sut.ExecuteAsync(
+            recipientId: Guid.Empty,  // 利用者未選択は受け付けない
+            period: new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            contractedSupplyDays: 23,
+            actor: "u", ct: default);
+
+        await act.Should().ThrowAsync<ArgumentException>()
+            .Where(e => e.ParamName == "recipientId");
+        repo.Added.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task Rejects_period_start_out_of_valid_range()
     {
         var sut = new RegisterContractUseCase(

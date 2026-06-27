@@ -14,6 +14,8 @@ public sealed class RegisterContractUseCase(
         Guid recipientId, DateRange period, int contractedSupplyDays,
         string actor, CancellationToken ct)
     {
+        if (recipientId == Guid.Empty)
+            throw new ArgumentException("利用者IDが指定されていません。", nameof(recipientId));
         DateValidator.EnsureRange(period.Start, period.End, nameof(period));
 
         var existing = await repo.ListByRecipientAsync(recipientId, ct);

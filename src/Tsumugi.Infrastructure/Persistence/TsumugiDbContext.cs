@@ -18,6 +18,9 @@ public sealed class TsumugiDbContext(DbContextOptions<TsumugiDbContext> options)
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TsumugiDbContext).Assembly);
     }
 
+    // NOTE: bool overload を「正本」として override する。
+    // EF Core の SaveChanges() / SaveChangesAsync(CancellationToken) は内部で bool overload を仮想呼び出しするため、
+    // ここを覆えば全 SaveChanges 経路が AppendOnlyGuard と更新トークン回転を通る。
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         AppendOnlyGuard.Inspect(ChangeTracker);
@@ -25,11 +28,12 @@ public sealed class TsumugiDbContext(DbContextOptions<TsumugiDbContext> options)
         return base.SaveChanges(acceptAllChangesOnSuccess);
     }
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
     {
         AppendOnlyGuard.Inspect(ChangeTracker);
         RotateConcurrencyTokens();
-        return base.SaveChangesAsync(cancellationToken);
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 
     private void RotateConcurrencyTokens()
