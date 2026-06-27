@@ -13,6 +13,8 @@ public sealed class UpdateRecipientUseCase(IRecipientRepository repo, IUnitOfWor
             ?? throw new InvalidOperationException("利用者が見つかりません。");
         if (string.IsNullOrWhiteSpace(kanjiName))
             throw new ArgumentException("氏名（漢字）は必須です。", nameof(kanjiName));
+        if (string.IsNullOrWhiteSpace(kanaName))
+            throw new ArgumentException("氏名（カナ）は必須です。", nameof(kanaName));
         DateValidator.EnsureValid(dateOfBirth, nameof(dateOfBirth));
 
         var updated = existing with { KanjiName = kanjiName, KanaName = kanaName, DateOfBirth = dateOfBirth };

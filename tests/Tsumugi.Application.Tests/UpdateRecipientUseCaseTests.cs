@@ -62,6 +62,18 @@ public sealed class UpdateRecipientUseCaseTests
     }
 
     [Fact]
+    public async Task Rejects_blank_kana_name()
+    {
+        var repo = new FakeRecipientRepository();
+        var original = SeedRecipient(repo);
+        var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(FixedNow));
+        Func<Task> act = () => sut.ExecuteAsync(
+            original.Id, "田中花子", " ", new DateOnly(1985, 5, 10), "editor", default);
+        (await act.Should().ThrowAsync<ArgumentException>())
+            .Which.ParamName.Should().Be("kanaName");
+    }
+
+    [Fact]
     public async Task Rejects_invalid_date_of_birth()
     {
         var repo = new FakeRecipientRepository();
