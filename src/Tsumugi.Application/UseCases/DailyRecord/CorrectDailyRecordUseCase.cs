@@ -14,6 +14,9 @@ public sealed class CorrectDailyRecordUseCase(
         var origin = await repo.FindByIdAsync(originId, ct)
             ?? throw new InvalidOperationException("訂正元レコードが見つかりません。");
 
+        if (origin.Kind == RecordKind.Cancel)
+            throw new InvalidOperationException("取消済みレコードは訂正できません。");
+
         var entity = Domain.Entities.DailyRecord.Correction(
             Guid.NewGuid(), origin.RecipientId, origin.ServiceDate, originId,
             attendance, transport, mealProvided, note,

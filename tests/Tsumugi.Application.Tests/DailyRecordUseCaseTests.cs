@@ -89,6 +89,38 @@ public sealed class DailyRecordUseCaseTests
     }
 
     [Fact]
+    public async Task Correct_throws_when_origin_is_cancelled()
+    {
+        var rid = Guid.NewGuid();
+        var origin = DailyRecord.NewRecord(Guid.NewGuid(), rid, new DateOnly(2026, 6, 3),
+            Attendance.Present, TransportKind.None, false, null, "u", DateTimeOffset.UnixEpoch);
+        var cancel = DailyRecord.Cancellation(Guid.NewGuid(), rid, new DateOnly(2026, 6, 3), origin.Id,
+            "u", DateTimeOffset.UnixEpoch.AddSeconds(1));
+        _repo.Added.AddRange(new[] { origin, cancel });
+
+        var sut = new CorrectDailyRecordUseCase(_repo, _uow, _clock);
+        var act = () => sut.ExecuteAsync(cancel.Id, Attendance.Present, TransportKind.None, false, null, "u", default);
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("取消済みレコードは訂正できません。");
+    }
+
+    [Fact]
+    public async Task Cancel_throws_when_origin_is_already_cancelled()
+    {
+        var rid = Guid.NewGuid();
+        var origin = DailyRecord.NewRecord(Guid.NewGuid(), rid, new DateOnly(2026, 6, 4),
+            Attendance.Present, TransportKind.None, false, null, "u", DateTimeOffset.UnixEpoch);
+        var cancel = DailyRecord.Cancellation(Guid.NewGuid(), rid, new DateOnly(2026, 6, 4), origin.Id,
+            "u", DateTimeOffset.UnixEpoch.AddSeconds(1));
+        _repo.Added.AddRange(new[] { origin, cancel });
+
+        var sut = new CancelDailyRecordUseCase(_repo, _uow, _clock);
+        var act = () => sut.ExecuteAsync(cancel.Id, "u", default);
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("取消済みレコードを再度取り消すことはできません。");
+    }
+
+    [Fact]
     public async Task QueryMonth_returns_effective_records()
     {
         var rid = Guid.NewGuid();
