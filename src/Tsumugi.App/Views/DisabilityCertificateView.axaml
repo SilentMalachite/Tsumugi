@@ -1,0 +1,93 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             xmlns:conv="using:Tsumugi.App.Converters"
+             x:Class="Tsumugi.App.Views.DisabilityCertificateView"
+             x:DataType="vm:DisabilityCertificateViewModel">
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="8,8,8,4">
+            <TextBlock Text="障害者手帳"
+                       FontSize="{DynamicResource HeadingFontSize}" VerticalAlignment="Center" />
+        </DockPanel>
+
+        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="8">
+            <StackPanel Spacing="2">
+                <TextBlock Text="利用者（必須）" />
+                <ComboBox ItemsSource="{Binding Recipients}"
+                          SelectedItem="{Binding SelectedRecipient}"
+                          PlaceholderText="利用者を選択"
+                          HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding KanjiName}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="新しい手帳情報を追加（等級改定や更新時も追記）" FontWeight="Bold" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <StackPanel Spacing="2" Width="180">
+                            <TextBlock Text="種類" />
+                            <ComboBox ItemsSource="{Binding TypeOptions}"
+                                      SelectedItem="{Binding Type}"
+                                      HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                        <StackPanel Spacing="2" Width="140">
+                            <TextBlock Text="等級/度数 (必須)" />
+                            <TextBox Text="{Binding Grade}" Watermark="例：1級, A1" />
+                        </StackPanel>
+                        <StackPanel Spacing="2" Width="100">
+                            <TextBlock Text="種別" />
+                            <TextBox Text="{Binding Subtype}" Watermark="1種/2種" />
+                        </StackPanel>
+                        <StackPanel Spacing="2" Width="140">
+                            <TextBlock Text="交付日" />
+                            <TextBox Text="{Binding IssuedDate, Converter={x:Static conv:DateOnlyConverter.Instance}}" />
+                        </StackPanel>
+                        <StackPanel Spacing="2" Width="140">
+                            <TextBlock Text="次回更新予定日" />
+                            <TextBox Text="{Binding NextRenewalDate, Converter={x:Static conv:DateOnlyConverter.Instance}}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <StackPanel Spacing="2" Width="200">
+                            <TextBlock Text="発行自治体 (必須)" />
+                            <TextBox Text="{Binding IssuingAuthority}" Watermark="例：東京都" />
+                        </StackPanel>
+                        <StackPanel Spacing="2" Width="200">
+                            <TextBlock Text="手帳番号" />
+                            <TextBox Text="{Binding CertificateNumber}" />
+                        </StackPanel>
+                        <StackPanel Spacing="2" Width="320">
+                            <TextBlock Text="備考（障害名/部位 等）" />
+                            <TextBox Text="{Binding Notes}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <TextBlock Text="{Binding SaveErrorMessage}"
+                               Foreground="#FF4444"
+                               IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+                    <Button Content="追加" Command="{Binding AddCommand}" HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <DataGrid ItemsSource="{Binding Items}"
+                  IsReadOnly="True"
+                  AutoGenerateColumns="False"
+                  Margin="8">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="種類" Binding="{Binding Type}" Width="Auto" />
+                <DataGridTextColumn Header="等級" Binding="{Binding Grade}" Width="Auto" />
+                <DataGridTextColumn Header="種別" Binding="{Binding Subtype}" Width="Auto" />
+                <DataGridTextColumn Header="交付日" Binding="{Binding IssuedDate}" Width="Auto" />
+                <DataGridTextColumn Header="次回更新" Binding="{Binding NextRenewalDate}" Width="Auto" />
+                <DataGridTextColumn Header="発行自治体" Binding="{Binding IssuingAuthority}" Width="*" />
+                <DataGridTextColumn Header="手帳番号" Binding="{Binding CertificateNumber}" Width="Auto" />
+                <DataGridTextColumn Header="備考" Binding="{Binding Notes}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

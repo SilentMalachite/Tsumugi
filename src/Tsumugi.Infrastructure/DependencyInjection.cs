@@ -15,6 +15,8 @@ public static class DependencyInjection
         services.AddScoped<IRecipientRepository, RecipientRepository>();
         services.AddScoped<ICertificateRepository, CertificateRepository>();
         services.AddScoped<IContractedProviderRepository, ContractedProviderRepository>();
+        services.AddScoped<IDisabilityCertificateRepository, DisabilityCertificateRepository>();
+        services.AddScoped<IFaceSheetRepository, FaceSheetRepository>();
         services.AddScoped<IContractRepository, ContractRepository>();
         services.AddScoped<IOfficeCapabilityRepository, OfficeCapabilityRepository>();
         services.AddScoped<IDailyRecordRepository, DailyRecordRepository>();

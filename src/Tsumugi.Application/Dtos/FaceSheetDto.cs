@@ -1,0 +1,35 @@
+namespace Tsumugi.Application.Dtos;
+
+public sealed record FaceSheetDto(
+    Guid Id,
+    Guid RecipientId,
+    DateTimeOffset CreatedAt,
+    string CreatedBy,
+    // 連絡先
+    string? PostalCode,
+    string? Address,
+    string? PhoneNumber,
+    string? EmailAddress,
+    string? EmergencyContactName,
+    string? EmergencyContactRelationship,
+    string? EmergencyContactPhone,
+    // 家族構成
+    string? FamilyComposition,
+    string? Cohabitants,
+    // 医療
+    string? PrimaryDoctorName,
+    string? PrimaryDoctorHospital,
+    string? PrimaryDoctorPhone,
+    string? MedicalHistory,
+    string? CurrentConditions,
+    string? Medications,
+    string? Allergies,
+    // 受給状況
+    bool ReceivesNursingInsurance,
+    bool ReceivesDisabilityPension,
+    string? PensionDetails,
+    // 生活歴・意向
+    string? LifeHistory,
+    string? PersonalWishes,
+    string? SupportNeeds,
+    string? AssessmentSummary);

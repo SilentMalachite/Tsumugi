@@ -15,19 +15,25 @@
         <TabItem Header="利用者登録/編集(_2)">
             <views:RecipientEditView DataContext="{Binding RecipientEdit}" />
         </TabItem>
-        <TabItem Header="受給者証(_3)">
+        <TabItem Header="障害者手帳(_3)">
+            <views:DisabilityCertificateView DataContext="{Binding DisabilityCertificate}" />
+        </TabItem>
+        <TabItem Header="フェースシート(_4)">
+            <views:FaceSheetView DataContext="{Binding FaceSheet}" />
+        </TabItem>
+        <TabItem Header="受給者証(_5)">
             <views:CertificateView DataContext="{Binding Certificate}" />
         </TabItem>
-        <TabItem Header="契約(_4)">
+        <TabItem Header="契約(_6)">
             <views:ContractView DataContext="{Binding Contract}" />
         </TabItem>
-        <TabItem Header="日次記録(_5)">
+        <TabItem Header="日次記録(_7)">
             <views:DailyRecordView DataContext="{Binding DailyRecord}" />
         </TabItem>
-        <TabItem Header="事業所(_6)">
+        <TabItem Header="事業所(_8)">
             <views:OfficeView DataContext="{Binding Office}" />
         </TabItem>
-        <TabItem Header="事業所体制(_7)">
+        <TabItem Header="事業所体制(_9)">
             <views:OfficeCapabilityView DataContext="{Binding OfficeCapability}" />
         </TabItem>
     </TabControl>

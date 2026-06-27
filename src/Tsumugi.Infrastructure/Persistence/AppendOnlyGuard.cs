@@ -16,6 +16,8 @@ public static class AppendOnlyGuard
         typeof(Certificate),
         typeof(Contract),
         typeof(OfficeCapability),
+        typeof(DisabilityCertificate),
+        typeof(FaceSheet),
     };
 
     public static void Inspect(ChangeTracker tracker)

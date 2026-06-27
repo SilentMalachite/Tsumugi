@@ -9,6 +9,8 @@ public sealed class TsumugiDbContext(DbContextOptions<TsumugiDbContext> options)
     public DbSet<Recipient> Recipients => Set<Recipient>();
     public DbSet<Certificate> Certificates => Set<Certificate>();
     public DbSet<ContractedProvider> ContractedProviders => Set<ContractedProvider>();
+    public DbSet<DisabilityCertificate> DisabilityCertificates => Set<DisabilityCertificate>();
+    public DbSet<FaceSheet> FaceSheets => Set<FaceSheet>();
     public DbSet<Contract> Contracts => Set<Contract>();
     public DbSet<OfficeCapability> OfficeCapabilities => Set<OfficeCapability>();
     public DbSet<DailyRecord> DailyRecords => Set<DailyRecord>();

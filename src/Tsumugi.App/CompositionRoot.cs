@@ -37,6 +37,10 @@ public static class CompositionRoot
         services.AddScoped<ListRecipientsUseCase>();
         services.AddScoped<ArchiveRecipientUseCase>();
         services.AddScoped<RestoreRecipientUseCase>();
+        services.AddScoped<RegisterDisabilityCertificateUseCase>();
+        services.AddScoped<ListDisabilityCertificatesUseCase>();
+        services.AddScoped<SaveFaceSheetUseCase>();
+        services.AddScoped<GetLatestFaceSheetUseCase>();
 
         // Phase 1: 受給者証
         services.AddScoped<RegisterCertificateUseCase>();
@@ -62,6 +66,8 @@ public static class CompositionRoot
         // ViewModels
         services.AddTransient<RecipientListViewModel>();
         services.AddTransient<RecipientEditViewModel>();
+        services.AddTransient<DisabilityCertificateViewModel>();
+        services.AddTransient<FaceSheetViewModel>();
         services.AddTransient<CertificateViewModel>();
         services.AddTransient<ContractViewModel>();
         services.AddTransient<OfficeViewModel>();

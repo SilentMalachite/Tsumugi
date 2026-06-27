@@ -4,6 +4,8 @@ namespace Tsumugi.App.ViewModels;
 public sealed class MainViewModel(
     RecipientListViewModel recipientList,
     RecipientEditViewModel recipientEdit,
+    DisabilityCertificateViewModel disabilityCertificate,
+    FaceSheetViewModel faceSheet,
     CertificateViewModel certificate,
     ContractViewModel contract,
     OfficeViewModel office,
@@ -12,6 +14,8 @@ public sealed class MainViewModel(
 {
     public RecipientListViewModel RecipientList { get; } = recipientList;
     public RecipientEditViewModel RecipientEdit { get; } = recipientEdit;
+    public DisabilityCertificateViewModel DisabilityCertificate { get; } = disabilityCertificate;
+    public FaceSheetViewModel FaceSheet { get; } = faceSheet;
     public CertificateViewModel Certificate { get; } = certificate;
     public ContractViewModel Contract { get; } = contract;
     public OfficeViewModel Office { get; } = office;

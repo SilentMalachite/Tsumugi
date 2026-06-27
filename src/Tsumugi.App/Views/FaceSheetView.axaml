@@ -1,0 +1,177 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             xmlns:conv="using:Tsumugi.App.Converters"
+             x:Class="Tsumugi.App.Views.FaceSheetView"
+             x:DataType="vm:FaceSheetViewModel">
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
+    </UserControl.KeyBindings>
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="8,8,8,4">
+            <TextBlock Text="フェースシート" FontSize="{DynamicResource HeadingFontSize}" VerticalAlignment="Center" />
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+                <TextBlock VerticalAlignment="Center"
+                           Text="{Binding LastUpdatedAt, StringFormat='最終更新: {0:yyyy-MM-dd HH:mm}'}"
+                           IsVisible="{Binding LastUpdatedAt, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                <TextBlock VerticalAlignment="Center"
+                           Text="{Binding LastUpdatedBy, StringFormat='更新者: {0}'}"
+                           IsVisible="{Binding LastUpdatedBy, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+            </StackPanel>
+        </DockPanel>
+
+        <ScrollViewer>
+            <StackPanel Spacing="12" Margin="8">
+                <!-- 利用者選択 -->
+                <StackPanel Spacing="2">
+                    <TextBlock Text="利用者（必須・選択すると最新フェースシートを読み込み）" />
+                    <ComboBox ItemsSource="{Binding Recipients}"
+                              SelectedItem="{Binding SelectedRecipient}"
+                              PlaceholderText="利用者を選択"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding KanjiName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- 連絡先 -->
+                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="連絡先" FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <StackPanel Spacing="2" Width="120">
+                                <TextBlock Text="郵便番号" />
+                                <TextBox Text="{Binding PostalCode}" Watermark="000-0000" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="380">
+                                <TextBlock Text="住所" />
+                                <TextBox Text="{Binding Address}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="140">
+                                <TextBlock Text="電話" />
+                                <TextBox Text="{Binding PhoneNumber}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="200">
+                                <TextBlock Text="メール" />
+                                <TextBox Text="{Binding EmailAddress}" />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <StackPanel Spacing="2" Width="200">
+                                <TextBlock Text="緊急連絡先 氏名" />
+                                <TextBox Text="{Binding EmergencyContactName}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="120">
+                                <TextBlock Text="続柄" />
+                                <TextBox Text="{Binding EmergencyContactRelationship}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="160">
+                                <TextBlock Text="緊急連絡先 電話" />
+                                <TextBox Text="{Binding EmergencyContactPhone}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 家族構成 -->
+                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="家族構成" FontWeight="Bold" />
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="家族構成" />
+                            <TextBox Text="{Binding FamilyComposition}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="48" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="同居人" />
+                            <TextBox Text="{Binding Cohabitants}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 医療情報 -->
+                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="医療情報" FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <StackPanel Spacing="2" Width="220">
+                                <TextBlock Text="主治医" />
+                                <TextBox Text="{Binding PrimaryDoctorName}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="240">
+                                <TextBlock Text="医療機関" />
+                                <TextBox Text="{Binding PrimaryDoctorHospital}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="160">
+                                <TextBlock Text="連絡先" />
+                                <TextBox Text="{Binding PrimaryDoctorPhone}" />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="既往歴" />
+                            <TextBox Text="{Binding MedicalHistory}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="48" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="現症" />
+                            <TextBox Text="{Binding CurrentConditions}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="48" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="服薬" />
+                            <TextBox Text="{Binding Medications}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="48" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="アレルギー" />
+                            <TextBox Text="{Binding Allergies}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 受給状況 -->
+                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="受給状況" FontWeight="Bold" />
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <CheckBox Content="介護保険 受給" IsChecked="{Binding ReceivesNursingInsurance}" />
+                            <CheckBox Content="障害年金 受給" IsChecked="{Binding ReceivesDisabilityPension}" />
+                            <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="年金詳細：" VerticalAlignment="Center" />
+                                <TextBox Text="{Binding PensionDetails}" Width="280" Watermark="例：障害基礎年金1級" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 生活歴・本人意向・アセスメント -->
+                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="生活歴・本人意向・アセスメント" FontWeight="Bold" />
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="生活歴" />
+                            <TextBox Text="{Binding LifeHistory}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="本人の希望・意向" />
+                            <TextBox Text="{Binding PersonalWishes}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="48" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="支援上の留意事項" />
+                            <TextBox Text="{Binding SupportNeeds}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="48" />
+                        </StackPanel>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="アセスメント要約" />
+                            <TextBox Text="{Binding AssessmentSummary}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding SaveErrorMessage}"
+                           Foreground="#FF4444"
+                           IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+                <Button Content="フェースシートを保存（新バージョンとして追記） (Ctrl+S)"
+                        Command="{Binding SaveCommand}" HorizontalAlignment="Left" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>
