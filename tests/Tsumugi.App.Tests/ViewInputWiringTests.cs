@@ -33,6 +33,15 @@ public sealed class ViewInputWiringTests
             because: "契約終了日の入力フィールドが画面に無いと AC1-1 を満たさない");
     }
 
+    [Fact]
+    public void ContractView_wires_LoadCommand_for_read_path()
+    {
+        var xml = ReadView("ContractView.axaml");
+        // 利用者選択後に契約一覧を読む導線が必要。F5 か更新ボタン経由で LoadCommand を発火させる。
+        xml.Should().Contain("{Binding LoadCommand}",
+            because: "契約一覧 Read が画面から到達不能だと AC1-1 CRUD を満たさない");
+    }
+
     private static string ReadView(string fileName)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

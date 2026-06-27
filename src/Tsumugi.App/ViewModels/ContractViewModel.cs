@@ -42,9 +42,14 @@ public sealed partial class ContractViewModel(
         RecipientId = value?.Id ?? Guid.Empty;
     }
 
-    public async Task LoadAsync(CancellationToken ct = default)
+    /// <summary>
+    /// 現在選択されている利用者の契約一覧を読み込む。F5 や「更新」ボタンから呼び出せる。
+    /// Save 成功後にも自動で呼び、登録した契約が即座に画面で見えるようにする。
+    /// </summary>
+    [RelayCommand]
+    public async Task LoadAsync()
     {
-        var list = await listUseCase.ExecuteAsync(RecipientId, ct);
+        var list = await listUseCase.ExecuteAsync(RecipientId, default);
         Items.Clear();
         foreach (var item in list)
             Items.Add(item);
@@ -62,6 +67,8 @@ public sealed partial class ContractViewModel(
             SaveErrorMessage = null;
             OverlapWarning = warnings.Count > 0 ? string.Join(" ", warnings) : null;
             IsSaved = true;
+            // 登録した契約を直ちに一覧に反映する（Codex R5-M1: Read 導線を画面に届ける）。
+            await LoadAsync();
         }
         catch (ArgumentException ex)
         {

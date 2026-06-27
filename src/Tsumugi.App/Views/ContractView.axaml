@@ -6,6 +6,7 @@
              x:DataType="vm:ContractViewModel">
     <UserControl.KeyBindings>
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
+        <KeyBinding Gesture="F5" Command="{Binding LoadCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding DiscardCommand}" />
     </UserControl.KeyBindings>
     <DockPanel>
@@ -48,7 +49,10 @@
             <TextBlock Text="{Binding OverlapWarning}"
                        Foreground="#FFAA00"
                        IsVisible="{Binding OverlapWarning, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
-            <Button Content="保存 (Ctrl+S)" Command="{Binding SaveCommand}" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="保存 (Ctrl+S)" Command="{Binding SaveCommand}" />
+                <Button Content="一覧更新 (F5)" Command="{Binding LoadCommand}" />
+            </StackPanel>
         </StackPanel>
         <DataGrid ItemsSource="{Binding Items}"
                   IsReadOnly="True"

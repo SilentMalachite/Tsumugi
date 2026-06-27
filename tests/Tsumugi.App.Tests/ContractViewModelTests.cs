@@ -124,6 +124,38 @@ public sealed class ContractViewModelTests
     }
 
     [Fact]
+    public async Task LoadCommand_populates_items_for_currently_selected_recipient()
+    {
+        var rid = Guid.NewGuid();
+        _repo.Add(Contract.Create(
+            Guid.NewGuid(), rid,
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            23, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid()));
+
+        var vm = NewVm();
+        vm.RecipientId = rid;
+        await vm.LoadCommand.ExecuteAsync(null);
+
+        vm.Items.Should().ContainSingle(c => c.ContractedSupplyDays == 23);
+    }
+
+    [Fact]
+    public async Task SaveCommand_refreshes_items_so_just_saved_contract_appears()
+    {
+        var rid = Guid.NewGuid();
+        var vm = NewVm();
+        vm.RecipientId = rid;
+        vm.PeriodStart = new DateOnly(2026, 4, 1);
+        vm.PeriodEnd = new DateOnly(2027, 3, 31);
+        vm.ContractedSupplyDays = 20;
+
+        await vm.SaveCommand.ExecuteAsync(null);
+
+        // Save 後に Items が更新され、登録した契約が即座に画面で見えるべき。
+        vm.Items.Should().ContainSingle(c => c.ContractedSupplyDays == 20);
+    }
+
+    [Fact]
     public async Task SaveCommand_with_overlapping_period_sets_overlap_warning()
     {
         var recipientId = Guid.NewGuid();
