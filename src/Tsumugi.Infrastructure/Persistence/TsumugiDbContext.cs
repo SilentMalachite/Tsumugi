@@ -20,12 +20,14 @@ public sealed class TsumugiDbContext(DbContextOptions<TsumugiDbContext> options)
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
+        AppendOnlyGuard.Inspect(ChangeTracker);
         RotateConcurrencyTokens();
         return base.SaveChanges(acceptAllChangesOnSuccess);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        AppendOnlyGuard.Inspect(ChangeTracker);
         RotateConcurrencyTokens();
         return base.SaveChangesAsync(cancellationToken);
     }
