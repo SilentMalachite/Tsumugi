@@ -32,7 +32,8 @@ public sealed class OfficeCapabilityConfiguration : IEntityTypeConfiguration<Off
             .HasConversion(
                 f => JsonSerializer.Serialize(f, (JsonSerializerOptions?)null),
                 s => DeserializeFlags(s))
-            .IsRequired();
+            .IsRequired()
+            .HasColumnName("FlagsJson");
     }
 
     private static ReadOnlyDictionary<string, bool> DeserializeFlags(string s) =>

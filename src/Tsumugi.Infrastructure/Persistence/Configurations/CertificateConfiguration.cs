@@ -13,7 +13,7 @@ public sealed class CertificateConfiguration : IEntityTypeConfiguration<Certific
         builder.HasKey(c => c.Id);
         builder.Property(c => c.RecipientId).IsRequired();
         builder.HasIndex(c => c.RecipientId);
-        builder.Property(c => c.CertificateNumber).IsRequired().HasMaxLength(64);
+        builder.Property(c => c.CertificateNumber).IsRequired().HasMaxLength(32);
         builder.Property(c => c.SupplyDays).IsRequired();
         builder.Property(c => c.MonthlyCostCap).IsRequired();
         builder.Property(c => c.Municipality).IsRequired().HasMaxLength(64);
