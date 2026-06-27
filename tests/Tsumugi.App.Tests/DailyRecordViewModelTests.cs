@@ -77,7 +77,7 @@ public sealed class DailyRecordViewModelTests
         var vm = NewVm();
         vm.SetMonth(2026, 6);
         var dto = new Tsumugi.Application.Dtos.RecipientDto(
-            Guid.NewGuid(), "氏名", "シメイ", new DateOnly(1990, 1, 1), Guid.NewGuid());
+            Guid.NewGuid(), "氏名", "シメイ", new DateOnly(1990, 1, 1), Guid.NewGuid(), IsArchived: false);
 
         vm.SelectedRecipient = dto;
 
@@ -180,8 +180,11 @@ internal sealed class InMemoryRecipientRepoForDaily : IRecipientRepository
         if (idx >= 0) _list[idx] = r;
         return Task.CompletedTask;
     }
-    public Task<IReadOnlyList<Recipient>> ListAsync(CancellationToken ct) =>
-        Task.FromResult<IReadOnlyList<Recipient>>(_list.ToArray());
+    public Task<IReadOnlyList<Recipient>> ListAsync(bool includeArchived, CancellationToken ct)
+    {
+        IEnumerable<Recipient> source = includeArchived ? _list : _list.Where(r => !r.IsArchived);
+        return Task.FromResult<IReadOnlyList<Recipient>>(source.ToArray());
+    }
 }
 
 internal sealed class FakeDailyRecordRepo : IDailyRecordRepository

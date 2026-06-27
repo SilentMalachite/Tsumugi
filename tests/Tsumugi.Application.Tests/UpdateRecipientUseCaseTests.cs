@@ -138,7 +138,7 @@ public sealed class ListRecipientsUseCaseTests
     {
         var repo = new FakeRecipientRepository();
         var sut = new ListRecipientsUseCase(repo);
-        var result = await sut.ExecuteAsync(default);
+        var result = await sut.ExecuteAsync(includeArchived: false, default);
         result.Should().BeEmpty();
     }
 
@@ -152,7 +152,7 @@ public sealed class ListRecipientsUseCaseTests
             new DateOnly(1985, 5, 10), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid()));
         var sut = new ListRecipientsUseCase(repo);
 
-        var result = await sut.ExecuteAsync(default);
+        var result = await sut.ExecuteAsync(includeArchived: false, default);
 
         result.Should().HaveCount(2);
         result.Should().ContainSingle(d => d.KanjiName == "山田太郎");

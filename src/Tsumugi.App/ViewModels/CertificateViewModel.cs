@@ -40,7 +40,7 @@ public sealed partial class CertificateViewModel(
 
     public async Task LoadRecipientsAsync(CancellationToken ct = default)
     {
-        var list = await listRecipients.ExecuteAsync(ct);
+        var list = await listRecipients.ExecuteAsync(includeArchived: false, ct);
         Recipients.Clear();
         foreach (var r in list) Recipients.Add(r);
     }

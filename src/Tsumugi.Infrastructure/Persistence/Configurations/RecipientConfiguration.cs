@@ -17,5 +17,9 @@ public sealed class RecipientConfiguration : IEntityTypeConfiguration<Recipient>
         builder.Property(r => r.CreatedBy).IsRequired().HasMaxLength(64);
         builder.Property(r => r.CreatedAt).IsRequired();
         builder.Property(r => r.ConcurrencyToken).IsConcurrencyToken();
+        builder.Property(r => r.ArchivedAt);
+        builder.Property(r => r.ArchivedBy).HasMaxLength(64);
+        builder.Ignore(r => r.IsArchived);
+        builder.HasIndex(r => r.ArchivedAt);
     }
 }

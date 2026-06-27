@@ -58,8 +58,13 @@ internal sealed class FakeRecipientRepository : IRecipientRepository
         Added[Added.FindIndex(x => x.Id == r.Id)] = r;
         return Task.CompletedTask;
     }
-    public Task<IReadOnlyList<Recipient>> ListAsync(CancellationToken ct) =>
-        Task.FromResult<IReadOnlyList<Recipient>>(Added);
+    public Task<IReadOnlyList<Recipient>> ListAsync(bool includeArchived, CancellationToken ct)
+    {
+        IEnumerable<Recipient> source = includeArchived
+            ? Added
+            : Added.Where(r => !r.IsArchived);
+        return Task.FromResult<IReadOnlyList<Recipient>>(source.ToList());
+    }
 }
 
 internal sealed class FakeUnitOfWork : IUnitOfWork

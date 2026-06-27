@@ -18,6 +18,13 @@ public sealed class RecipientRepository(TsumugiDbContext db) : IRecipientReposit
         return Task.CompletedTask;
     }
 
-    public async Task<IReadOnlyList<Recipient>> ListAsync(CancellationToken ct) =>
-        await db.Recipients.AsNoTracking().OrderBy(r => r.KanaName).ToListAsync(ct);
+    public async Task<IReadOnlyList<Recipient>> ListAsync(bool includeArchived, CancellationToken ct)
+    {
+        var query = db.Recipients.AsNoTracking().AsQueryable();
+        if (!includeArchived)
+        {
+            query = query.Where(r => r.ArchivedAt == null);
+        }
+        return await query.OrderBy(r => r.KanaName).ToListAsync(ct);
+    }
 }

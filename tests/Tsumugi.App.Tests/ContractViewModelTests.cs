@@ -116,7 +116,7 @@ public sealed class ContractViewModelTests
     {
         var vm = NewVm();
         var dto = new Tsumugi.Application.Dtos.RecipientDto(
-            Guid.NewGuid(), "氏名二", "シメイニ", new DateOnly(1990, 1, 1), Guid.NewGuid());
+            Guid.NewGuid(), "氏名二", "シメイニ", new DateOnly(1990, 1, 1), Guid.NewGuid(), IsArchived: false);
 
         vm.SelectedRecipient = dto;
 
@@ -202,6 +202,9 @@ internal sealed class InMemoryRecipientRepoForContract : IRecipientRepository
         if (idx >= 0) _list[idx] = r;
         return Task.CompletedTask;
     }
-    public Task<IReadOnlyList<Recipient>> ListAsync(CancellationToken ct) =>
-        Task.FromResult<IReadOnlyList<Recipient>>(_list.ToArray());
+    public Task<IReadOnlyList<Recipient>> ListAsync(bool includeArchived, CancellationToken ct)
+    {
+        IEnumerable<Recipient> source = includeArchived ? _list : _list.Where(r => !r.IsArchived);
+        return Task.FromResult<IReadOnlyList<Recipient>>(source.ToArray());
+    }
 }

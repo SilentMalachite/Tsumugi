@@ -30,7 +30,7 @@ public sealed partial class ContractViewModel(
 
     public async Task LoadRecipientsAsync(CancellationToken ct = default)
     {
-        var list = await listRecipientsUseCase.ExecuteAsync(ct);
+        var list = await listRecipientsUseCase.ExecuteAsync(includeArchived: false, ct);
         Recipients.Clear();
         foreach (var r in list)
             Recipients.Add(r);

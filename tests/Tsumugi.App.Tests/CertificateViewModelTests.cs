@@ -53,7 +53,7 @@ public sealed class CertificateViewModelTests
         var rid = Guid.NewGuid();
         var vm = NewVm();
         vm.SelectedRecipient = new Tsumugi.Application.Dtos.RecipientDto(
-            rid, "氏名", "シメイ", new DateOnly(1990, 1, 1), Guid.NewGuid());
+            rid, "氏名", "シメイ", new DateOnly(1990, 1, 1), Guid.NewGuid(), IsArchived: false);
         vm.CertificateNumber = "1234567890";
         vm.ValidityStart = new DateOnly(2026, 4, 1);
         vm.ValidityEnd = new DateOnly(2027, 3, 31);
@@ -92,8 +92,11 @@ internal sealed class InMemoryRecipientRepoForCertificate : Tsumugi.Application.
     public Task<Recipient?> FindByIdAsync(Guid id, CancellationToken ct) =>
         Task.FromResult(_list.FirstOrDefault(r => r.Id == id));
     public Task UpdateAsync(Recipient r, CancellationToken ct) => Task.CompletedTask;
-    public Task<IReadOnlyList<Recipient>> ListAsync(CancellationToken ct) =>
-        Task.FromResult<IReadOnlyList<Recipient>>(_list.ToArray());
+    public Task<IReadOnlyList<Recipient>> ListAsync(bool includeArchived, CancellationToken ct)
+    {
+        IEnumerable<Recipient> source = includeArchived ? _list : _list.Where(r => !r.IsArchived);
+        return Task.FromResult<IReadOnlyList<Recipient>>(source.ToArray());
+    }
 }
 
 internal sealed class InMemoryCertRepo : Tsumugi.Application.Abstractions.ICertificateRepository

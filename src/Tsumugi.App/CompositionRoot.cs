@@ -35,6 +35,8 @@ public static class CompositionRoot
         services.AddScoped<RegisterRecipientUseCase>();
         services.AddScoped<UpdateRecipientUseCase>();
         services.AddScoped<ListRecipientsUseCase>();
+        services.AddScoped<ArchiveRecipientUseCase>();
+        services.AddScoped<RestoreRecipientUseCase>();
 
         // Phase 1: 受給者証
         services.AddScoped<RegisterCertificateUseCase>();

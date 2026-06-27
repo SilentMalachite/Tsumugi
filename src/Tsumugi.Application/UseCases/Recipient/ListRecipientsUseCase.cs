@@ -5,10 +5,14 @@ namespace Tsumugi.Application.UseCases.Recipient;
 
 public sealed class ListRecipientsUseCase(IRecipientRepository repo)
 {
-    public async Task<IReadOnlyList<RecipientDto>> ExecuteAsync(CancellationToken ct)
+    /// <summary>
+    /// 利用者一覧を取得する。<paramref name="includeArchived"/> が true のときアーカイブ済みも含む。
+    /// </summary>
+    public async Task<IReadOnlyList<RecipientDto>> ExecuteAsync(
+        bool includeArchived, CancellationToken ct)
     {
-        var list = await repo.ListAsync(ct);
+        var list = await repo.ListAsync(includeArchived, ct);
         return list.Select(r => new RecipientDto(
-            r.Id, r.KanjiName, r.KanaName, r.DateOfBirth, r.ConcurrencyToken)).ToArray();
+            r.Id, r.KanjiName, r.KanaName, r.DateOfBirth, r.ConcurrencyToken, r.IsArchived)).ToArray();
     }
 }

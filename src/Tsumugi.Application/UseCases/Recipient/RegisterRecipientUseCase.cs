@@ -24,6 +24,7 @@ public sealed class RegisterRecipientUseCase(
         await repo.AddAsync(entity, ct);
         await uow.SaveChangesAsync(ct);
         return new RecipientDto(
-            entity.Id, entity.KanjiName, entity.KanaName, entity.DateOfBirth, entity.ConcurrencyToken);
+            entity.Id, entity.KanjiName, entity.KanaName, entity.DateOfBirth, entity.ConcurrencyToken,
+            entity.IsArchived);
     }
 }
