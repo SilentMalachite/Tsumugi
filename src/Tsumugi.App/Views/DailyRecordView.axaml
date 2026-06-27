@@ -26,13 +26,19 @@
                                 <TextBlock Text="{Binding EffectiveAttendance}"
                                            FontSize="11"
                                            HorizontalAlignment="Center" />
-                                <StackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Center">
-                                    <Button Content="出" FontSize="10" Padding="2"
+                                <WrapPanel HorizontalAlignment="Center">
+                                    <Button Content="出" FontSize="10" Padding="2" Margin="1"
                                             Command="{Binding RecordCommand}"
                                             CommandParameter="{x:Static enums:Attendance.Present}" />
-                                    <Button Content="取" FontSize="10" Padding="2"
+                                    <Button Content="欠" FontSize="10" Padding="2" Margin="1"
+                                            Command="{Binding RecordCommand}"
+                                            CommandParameter="{x:Static enums:Attendance.Absent}" />
+                                    <Button Content="対" FontSize="10" Padding="2" Margin="1"
+                                            Command="{Binding RecordCommand}"
+                                            CommandParameter="{x:Static enums:Attendance.AbsenceSupport}" />
+                                    <Button Content="取" FontSize="10" Padding="2" Margin="1"
                                             Command="{Binding CancelCommand}" />
-                                </StackPanel>
+                                </WrapPanel>
                             </StackPanel>
                         </Border>
                     </DataTemplate>
