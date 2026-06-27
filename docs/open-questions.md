@@ -13,6 +13,10 @@
 
 ## Phase 1 → Phase 2/3 引継ぎ
 
-- [ ] **DailyRecord 多重 New 重複の検知**: 同一 (RecipientId, ServiceDate) に複数の `RecordKind.New` が登録された場合、`DailyRecordPolicy.Effective` は `CreatedAt` 最早を選択する（決定論的）。永続化レベルでの一意制約は未実装。Phase 2 で `RecordDailyRecordUseCase` に Application 層の重複チェックを追加するか、DB に partial unique index を追加するか検討。
+- [ ] **DailyRecord 多重 New 重複の検知**: 同一 (RecipientId, ServiceDate) に複数の `RecordKind.New` が登録された場合、`DailyRecordPolicy.Effective` は `CreatedAt` 最早を選択する（決定論的）。`RecordDailyRecordUseCase` は同日 New が既存ならエラーで拒否するが、レース条件下では二重新規が物理的に格納され得る。Phase 2 で DB に partial unique index を追加するか、SqliteEventBus 経由のロックを検討。
 - [ ] **AppendOnlyGuard と EF Core bulk operations**: `AppendOnlyGuard.Inspect` は ChangeTracker 経由の `Modified`/`Deleted` のみ検出。`ExecuteUpdateAsync`/`ExecuteDeleteAsync` は ChangeTracker を経由しないため検出できない。現在の Repository 実装に bulk 呼び出しはないが、将来追加する際は別途ガードが必要。`ArchitectureTests` で append-only 型に対する bulk 呼び出しを禁止する案あり。
 - [ ] **報酬・CSV ハードコード機械判定 (CLAUDE.md §ハード制約 3)**: Phase 1 には報酬算定・CSV 生成のサーフェスが存在しないため、現時点で「単位数/加算/CSV フィールド literal が混入していないこと」を機械判定するテストはエントリポイントを持たない。Phase 3 で報酬テーブル・CSV 生成器を導入する際に以下を同時に追加する: (a) Domain/Application のソース文字列スキャナで `単位数` `加算` `区分単価` 等の語彙が seed JSON 以外に現れたら失敗するテスト、(b) CSV カラム名 literal が `Tsumugi.Infrastructure.Csv` 名前空間以外に現れたら失敗するテスト、(c) 整数 literal の上限ガード（例: 1000 を超える decimal/int literal を Domain 内で禁止）。本項目は Phase 3 着手前のチェックリスト。
+- [ ] **Avalonia GUI 目視確認 (AC1-8 補完)**: Phase 1 では `AccessibilityDefaults` の値・適用・XAML 配線を全て CI テストで担保したが、実機起動でのフォント拡大追従、Reduce Motion の Transition 抑止、各 View のタブ順とフォーカス移動は手動 QA でしか確認できない。Phase 2 着手前に macOS/Windows 双方で 1 回ずつ目視チェックする。
+- [ ] **OfficeCapability の正式コード集合**: ADR 0006 の通り Phase 1 は `mealProvision` / `transportSupport` のみの暫定キーで運用。Phase 3 で報酬告示と突合して正式コード（食事提供体制加算 I/II、送迎加算 I/II 等）を確定する。
+- [ ] **`UpdateOffice` / `UpdateRecipient` の actor 監査ログ**: 引数で `actor` を受けているが Phase 1 では未使用（`_ = actor`）。Phase 2 で監査ログテーブルへ「いつ誰が何を更新したか」を追記する設計を入れる。
+- [ ] **性別など利用者属性の拡張**: 国保連請求 CSV では性別が必須項目の可能性が高い。Phase 1 の `Recipient` は漢字氏名 / カナ氏名 / 生年月日のみ。Phase 3 着手前に CSV インターフェース仕様書で必須項目を洗い出し、enum + migration を発行する。

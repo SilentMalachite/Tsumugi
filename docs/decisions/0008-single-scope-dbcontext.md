@@ -1,0 +1,21 @@
+# ADR 0008: 単一スコープ DbContext + UoW で ChangeTracker.Clear を回す
+
+- 結論: Avalonia デスクトップアプリの寿命中、DI スコープを 1 つだけ作って維持し、`Scoped` 登録の `TsumugiDbContext` をアプリ全体で共有する。各 UseCase 終了時に `EfUnitOfWork.SaveChangesAsync` 内で `db.ChangeTracker.Clear()` を呼び、UseCase をトランザクション境界として明示する。
+- 背景:
+  - `App.OnFrameworkInitializationCompleted` で `_appScope = _services.CreateScope()` を作り、全 ViewModel が同じ Scoped DbContext を見る構成（CompositionRoot）。
+  - Scoped DbContext を使い回したまま `repo.UpdateAsync(entity)` → `db.Set<T>().Update(...)` を別インスタンスで何度も呼ぶと、初回 Save 後に `Unchanged` で残っている tracked entity と同じキーの新インスタンスを Attach しようとして `InvalidOperationException: The instance of entity type 'X' cannot be tracked because another instance with the same key value is already being tracked` が出る（Codex Round 4 H-1）。
+- 選択肢:
+  - (a) **採用**: `EfUnitOfWork.SaveChangesAsync` で `ChangeTracker.Clear()` を呼び、UseCase 単位の境界を作る。
+  - (b) `IDbContextFactory<TsumugiDbContext>` を導入し、Repository が `CreateDbContext()` で都度生成。UoW を context-per-scope に再設計。
+  - (c) Repository の Update 実装で「同一キーの既存 tracked entry を Detach してから Update」する。
+- 決定: (a)。理由:
+  - 単一ファイル変更で済み、Repository / UoW / Application / UI に波及しない（最小変更）。
+  - EF Core 公式の「長寿命 DbContext」用パターンとしてドキュメント化されている方法（`Clear()` は 6.0+ で追加された専用 API）。
+  - (b) は構造改革が大きく、UoW のセマンティクス（複数 Repo 呼び出しを 1 Save に集約）を維持するためにスコープ管理を別途設計する必要がある。フェーズ 1 のスコープ外。
+  - (c) は対症療法で、Add / Update / Delete それぞれに同じガードが必要になる。
+- 影響:
+  - `EfUnitOfWork.SaveChangesAsync` が 1 行増えて `ChangeTracker.Clear()` を呼ぶ。
+  - UseCase 内では同一 context 内のトランザクションとして振る舞い、UseCase 完了後はトラッキングが解放される。後続 UseCase は `AsNoTracking` 読込からスタートでき、再 Update が衝突しない。
+  - 注意: UseCase が `IUnitOfWork.SaveChangesAsync` を **複数回** 呼ぶと、それぞれの境界後に追跡が消える。現在の Phase 1 では各 UseCase が 1 回しか呼ばないため問題なし。複数 Save が必要になれば本 ADR を見直す。
+  - 注意: DbContext を Application 層から触らない方針（CLAUDE.md）は維持。`ChangeTracker.Clear()` は Infrastructure の実装詳細として閉じる。
+- 関連: Codex Round 4 H-1 指摘、`EfUnitOfWork.cs`、`RepositoryTrackingTests.cs`、`App.axaml.cs`、`CompositionRoot.cs`。

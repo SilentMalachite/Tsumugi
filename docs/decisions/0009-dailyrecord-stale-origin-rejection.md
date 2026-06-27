@@ -1,0 +1,21 @@
+# ADR 0009: 日次記録の訂正/取消は「現行実効レコード」しか origin にできない
+
+- 結論: `CorrectDailyRecordUseCase` / `CancelDailyRecordUseCase` は同日全レコードを取得して `DailyRecordPolicy.Effective` を計算し、`originId` が現行実効レコードでない場合は `InvalidOperationException` で拒否する。
+- 背景:
+  - `DailyRecordPolicy.Effective` は同一 `OriginId` の最新子 (`OrderByDescending(CreatedAt)`) を採る（ADR-relevant: 兄弟訂正の race 解消、Codex Round 1 H-2）。
+  - しかしこれだけでは、取消 `x`（OriginId=`n.Id`）が入った後に、UI が古い `n.Id` を見ているまま訂正 `c`（OriginId=`n.Id`）を後から追加できてしまい、Policy が最新の `c` を採用して取消が「上書き」される（Codex Round 3 H-1）。
+  - 鏡像の問題: `n` の後に訂正 `c1` が入って実効が `c1` になっている状態で、UI が古い `n.Id` を見ているまま取消を出すと、`cancel` が `c1` を sibling 扱いで上書きする。
+- 選択肢:
+  - (a) **採用**: Application 層で `Effective` を再計算し、`originId == Effective.Id` でなければ拒否する。利用者にはエラーで「現行の実効状態ではありません。最新状態を再読込してください」と返す。
+  - (b) Policy 側で sibling cancel を強制的に勝たせる（取消は terminal）。
+  - (c) UI 側で「最新の effectiveId だけを操作可能にする」よう Cell をロックする。
+- 決定: (a)。理由:
+  - 純粋関数 Policy のセマンティクスを変えない（テストが安定）。
+  - 楽観的同時実行と同じ思想で UseCase 層が「画面の前提」を再検証する。複数ユーザの race も自然に防げる。
+  - (b) は「取消後に意図的に再開する」業務シナリオ（誤取消の取り消し）を将来扱えなくなる。
+  - (c) は同時編集を防げない。
+- 影響:
+  - `CorrectDailyRecordUseCase` と `CancelDailyRecordUseCase` がそれぞれ `IDailyRecordRepository.ListByRecipientAndDateAsync` を 1 回追加で呼ぶ（同日レコード数は通常 1〜10 件で N+1 にはならない）。
+  - 利用者は stale な画面状態で操作すると失敗するが、エラーメッセージで再読込を促す。
+  - 同期されたシングルユーザ環境では発火しない。
+- 関連: Codex Round 3 H-1（取消後 stale 訂正で実効状態が崩れる）、`CorrectDailyRecordUseCase.cs`、`CancelDailyRecordUseCase.cs`、`DailyRecordUseCaseTests.cs` の 3 件の TDD テスト。

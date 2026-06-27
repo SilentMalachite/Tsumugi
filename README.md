@@ -84,11 +84,11 @@ src/
 ## ロードマップ
 
 - [x] **フェーズ 0** — プロジェクト基盤・DI 合成ルート・EF Core 往復・VACUUM INTO バックアップ・品質ゲート・オフライン検査・SQLite 権限ポリシー（AC0-1 〜 AC0-6 完了）
-- [ ] **フェーズ 1** — マスタ + 記録（利用者・受給者証・サービス提供実績・出欠）
+- [x] **フェーズ 1** — マスタ + 記録（利用者 / 受給者証 / 契約 / 事業所 / 事業所体制 / 日次記録の CRUD、追記型・楽観的同時実行・期限アラート、AC1-1 〜 AC1-9 完了）
 - [ ] **フェーズ 2** — 工賃計算
 - [ ] **フェーズ 3** — 国保連 請求データ（CSV）生成
 
-各フェーズの受け入れ基準は [`01_ClaudeCode_実装指示書_Tsumugi.md`](01_ClaudeCode_実装指示書_Tsumugi.md) §7 を参照。
+各フェーズの受け入れ基準は [`01_ClaudeCode_実装指示書_Tsumugi.md`](01_ClaudeCode_実装指示書_Tsumugi.md) §7 を参照。フェーズ 1 実装指示は [`04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md`](04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md)。
 
 ## データ保護とセキュリティ
 
@@ -117,6 +117,7 @@ src/
 | [CLAUDE.md](CLAUDE.md) | プロジェクト常設指示（依存方向・ドメイン用語・ハード制約） |
 | [01_ClaudeCode_実装指示書_Tsumugi.md](01_ClaudeCode_実装指示書_Tsumugi.md) | 全体仕様・フェーズ別受け入れ基準 |
 | [03_ClaudeCode_Phase0修正指示_Tsumugi.md](03_ClaudeCode_Phase0修正指示_Tsumugi.md) | フェーズ0 Codex レビュー対応指示 |
+| [04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md](04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md) | フェーズ1（マスタ・記録）実装指示と受け入れ基準 |
 | [docs/decisions/](docs/decisions/) | Architecture Decision Records（ADR） |
 | [docs/open-questions.md](docs/open-questions.md) | 仕様未確定事項の起票簿 |
 | [CHANGELOG.md](CHANGELOG.md) | リリース履歴 |

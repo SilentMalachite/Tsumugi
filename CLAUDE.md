@@ -31,7 +31,7 @@ src/
   Tsumugi.Infrastructure/  EF Core DbContext・SQLite・リポジトリ実装・バックアップ・CSV出力・DB保存先サービス。
   Tsumugi.App/             Avalonia UI(MVVM)。合成ルート(DI構成)はここだけ。
 tests/
-  Tsumugi.Domain.Tests/  Tsumugi.Application.Tests/  Tsumugi.Infrastructure.Tests/
+  Tsumugi.Domain.Tests/  Tsumugi.Application.Tests/  Tsumugi.Infrastructure.Tests/  Tsumugi.App.Tests/
 ```
 - 依存方向: `App → Application → Domain`、`Infrastructure → Application/Domain`。**DomainはInfrastructure/UI/EF/Avaloniaを一切知らない**。
 - **UIから `DbContext` を直接触らない**。必ずApplication層のユースケース経由。
@@ -44,7 +44,7 @@ tests/
 dotnet tool restore                         # dotnet-ef 等のローカルツール復元
 dotnet build                                # 警告ゼロが前提
 dotnet test                                 # 全緑が前提
-dotnet test --collect:"XPlat Code Coverage" # カバレッジ（報酬算定は100%目標）
+dotnet test --collect:"XPlat Code Coverage" # カバレッジ（Domain ≧ 95% 目標、Phase3 報酬算定は 100% 目標）
 dotnet format --verify-no-changes           # 整形チェック
 ./build/ci.sh                               # 品質ゲート一括（push前に必ず緑）
 dotnet run --project src/Tsumugi.App        # アプリ起動
