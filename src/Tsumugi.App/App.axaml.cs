@@ -3,6 +3,7 @@ using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tsumugi.App.Settings;
 using Tsumugi.App.ViewModels;
@@ -36,6 +37,9 @@ public partial class App : AvaloniaApplication
 
         // アプリ全体で一つのスコープを維持する（ScopedサービスをTransient VMが参照できるよう）
         _appScope = _services.CreateScope();
+
+        // 起動時に EF Core マイグレーションを適用（未適用分のみ実行）
+        _appScope.ServiceProvider.GetRequiredService<TsumugiDbContext>().Database.Migrate();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
