@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Text;
 
 namespace Tsumugi.Infrastructure.Tests;
 
@@ -18,13 +20,7 @@ internal static class AssemblyMetadataScanner
     /// </summary>
     public static IReadOnlyList<string> ScanReferencedTypeFullNames(string dllPath)
     {
-        if (!File.Exists(dllPath))
-        {
-            throw new FileNotFoundException(
-                $"対象アセンブリが見つからない: {Path.GetFileName(dllPath)}. " +
-                "事前に `dotnet build` 済みであることを確認。",
-                dllPath);
-        }
+        EnsureExists(dllPath);
 
         using var stream = File.OpenRead(dllPath);
         using var pe = new PEReader(stream);
@@ -53,5 +49,77 @@ internal static class AssemblyMetadataScanner
         var list = new List<string>(results);
         list.Sort(StringComparer.Ordinal);
         return list;
+    }
+
+    /// <summary>
+    /// dllPath が静的に宣言している P/Invoke (DllImport) を全件返す。
+    /// 通信ライブラリ (ws2_32 / wininet / libcurl 等) への P/Invoke 混入を捕まえるための補助。
+    /// </summary>
+    public static IReadOnlyList<PInvokeImport> ScanPInvokeImports(string dllPath)
+    {
+        EnsureExists(dllPath);
+        using var stream = File.OpenRead(dllPath);
+        using var pe = new PEReader(stream);
+        var md = pe.GetMetadataReader();
+
+        var hits = new List<PInvokeImport>();
+        foreach (var handle in md.MethodDefinitions)
+        {
+            var def = md.GetMethodDefinition(handle);
+            if (!def.Attributes.HasFlag(MethodAttributes.PinvokeImpl)) continue;
+            var import = def.GetImport();
+            if (import.Module.IsNil) continue;
+            var module = md.GetModuleReference(import.Module);
+            hits.Add(new PInvokeImport(md.GetString(module.Name), md.GetString(def.Name)));
+        }
+        hits.Sort(static (a, b) =>
+        {
+            var c = StringComparer.Ordinal.Compare(a.DllName, b.DllName);
+            return c != 0 ? c : StringComparer.Ordinal.Compare(a.MethodName, b.MethodName);
+        });
+        return hits;
+    }
+
+    /// <summary>
+    /// dll の生バイト列に対し、UTF-16 LE エンコードした needle が含まれるかを検査する。
+    /// UserString ヒープ反復は MetadataReader の公開 API では難しいため、ヒープ実体である
+    /// バイト列を直接走査するこの実装で代替する（ASCII の URL/語彙には十分実用的）。
+    /// </summary>
+    public static bool ContainsRawUtf16Substring(string dllPath, string needle)
+    {
+        EnsureExists(dllPath);
+        ArgumentException.ThrowIfNullOrEmpty(needle);
+        var encoded = Encoding.Unicode.GetBytes(needle);
+        var allBytes = File.ReadAllBytes(dllPath);
+        return IndexOf(allBytes, encoded) >= 0;
+    }
+
+    public readonly record struct PInvokeImport(string DllName, string MethodName);
+
+    private static int IndexOf(byte[] hay, byte[] needle)
+    {
+        if (needle.Length == 0 || hay.Length < needle.Length) return -1;
+        var limit = hay.Length - needle.Length;
+        for (var i = 0; i <= limit; i++)
+        {
+            var match = true;
+            for (var j = 0; j < needle.Length; j++)
+            {
+                if (hay[i + j] != needle[j]) { match = false; break; }
+            }
+            if (match) return i;
+        }
+        return -1;
+    }
+
+    private static void EnsureExists(string dllPath)
+    {
+        if (!File.Exists(dllPath))
+        {
+            throw new FileNotFoundException(
+                $"対象アセンブリが見つからない: {Path.GetFileName(dllPath)}. " +
+                "事前に `dotnet build` 済みであることを確認。",
+                dllPath);
+        }
     }
 }

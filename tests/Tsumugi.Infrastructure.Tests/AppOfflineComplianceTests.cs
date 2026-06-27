@@ -49,7 +49,7 @@ public sealed class AppOfflineComplianceTests
     [Fact]
     public void TsumugiApp_dll_does_not_directly_reference_network_apis()
     {
-        var appDllPath = AppAssemblyLocator.LocateTsumugiAppDll();
+        var appDllPath = TsumugiAssemblyLocator.LocateProductionDll("Tsumugi.App");
         var referenced = AssemblyMetadataScanner.ScanReferencedTypeFullNames(appDllPath);
 
         // 空 Reason の allowlist 追加を CI で失格させる（OfflineComplianceTests の AssemblyAllowlist と方針統一）。
@@ -77,29 +77,99 @@ public sealed class AppOfflineComplianceTests
                      Environment.NewLine +
                      "違反: " + string.Join(", ", hits));
     }
+
+    // P/Invoke 経由のネットワーク呼び出しも禁止（CLR の TypeRef を介さずに通信できる経路）。
+    // 既定の allowlist は空。やむを得ない場合のみ、(DllName, Reason) を埋めて明示する。
+    private static readonly (string DllName, string Reason)[] PInvokeAllowlist =
+        Array.Empty<(string, string)>();
+
+    [Theory]
+    [InlineData("Tsumugi.App")]
+    [InlineData("Tsumugi.Domain")]
+    [InlineData("Tsumugi.Application")]
+    [InlineData("Tsumugi.Infrastructure")]
+    public void Tsumugi_assemblies_do_not_pinvoke_into_network_native_libraries(string assemblyName)
+    {
+        var dll = TsumugiAssemblyLocator.LocateProductionDll(assemblyName);
+        var imports = AssemblyMetadataScanner.ScanPInvokeImports(dll);
+
+        var allowed = PInvokeAllowlist
+            .Where(e => !string.IsNullOrWhiteSpace(e.Reason))
+            .Select(e => e.DllName)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var violations = imports
+            .Where(i => NetworkArtifactRules.IsForbiddenPInvoke(i.DllName))
+            .Where(i => !allowed.Contains(i.DllName))
+            .ToArray();
+
+        violations.Should().BeEmpty(
+            because: $"{assemblyName} は通信系ネイティブライブラリへ P/Invoke してはならない。" +
+                     Environment.NewLine +
+                     "違反: " + string.Join(", ", violations.Select(v => $"{v.DllName}!{v.MethodName}")));
+    }
+
+    // URL リテラル混入（http:// / https:// / ftp:// 等）も禁止。
+    // ヒット時はソースを修正するか、本配列に (UrlPrefix, Reason) を追加すること。
+    private static readonly (string UrlPrefix, string Reason)[] UrlLiteralAllowlist =
+        Array.Empty<(string, string)>();
+
+    [Theory]
+    [InlineData("Tsumugi.App")]
+    [InlineData("Tsumugi.Domain")]
+    [InlineData("Tsumugi.Application")]
+    [InlineData("Tsumugi.Infrastructure")]
+    public void Tsumugi_assemblies_do_not_embed_external_url_literals(string assemblyName)
+    {
+        var dll = TsumugiAssemblyLocator.LocateProductionDll(assemblyName);
+
+        var allowed = UrlLiteralAllowlist
+            .Where(e => !string.IsNullOrWhiteSpace(e.Reason))
+            .Select(e => e.UrlPrefix.ToLowerInvariant())
+            .ToHashSet(StringComparer.Ordinal);
+
+        // すべての禁止スキームを大文字/小文字両方で検査する（DLL バイナリ内のリテラルは原文のまま）。
+        var schemes = new[] { "http://", "https://", "ftp://", "ftps://", "ws://", "wss://", "smtp://" };
+        var hits = new List<string>();
+        foreach (var s in schemes)
+        {
+            foreach (var variant in new[] { s, s.ToUpperInvariant() })
+            {
+                if (allowed.Contains(variant.ToLowerInvariant())) continue;
+                if (AssemblyMetadataScanner.ContainsRawUtf16Substring(dll, variant))
+                {
+                    hits.Add(variant);
+                }
+            }
+        }
+
+        hits.Should().BeEmpty(
+            because: $"{assemblyName} に外部通信 URL リテラルが埋め込まれている可能性。" +
+                     "ソースから除去するか、UrlLiteralAllowlist に理由付きで明示すること。" +
+                     Environment.NewLine +
+                     "検出: " + string.Join(", ", hits));
+    }
 }
 
-internal static class AppAssemblyLocator
+internal static class TsumugiAssemblyLocator
 {
     /// <summary>
     /// テスト bin の AppContext.BaseDirectory から Tsumugi.sln を上向き探索し、
-    /// src/Tsumugi.App/bin/{Configuration}/net10.0/Tsumugi.App.dll を組み立てる。
+    /// src/{assemblyName}/bin/{Configuration}/net10.0/{assemblyName}.dll を組み立てる。
     /// Configuration は test の bin パスから推定（Debug/Release）。
     /// </summary>
-    public static string LocateTsumugiAppDll()
+    public static string LocateProductionDll(string assemblyName)
     {
+        ArgumentException.ThrowIfNullOrEmpty(assemblyName);
         var baseDir = AppContext.BaseDirectory;
-
-        // Configuration を bin パスから抽出（.../bin/Debug/net10.0/ → "Debug"）
         var configuration = ExtractConfigurationFromPath(baseDir);
-
-        // sln ファイルを上向き探索
         var solutionRoot = FindSolutionRoot(baseDir);
 
         return Path.Combine(
-            solutionRoot,
-            "src", "Tsumugi.App", "bin", configuration, "net10.0", "Tsumugi.App.dll");
+            solutionRoot, "src", assemblyName, "bin", configuration, "net10.0", $"{assemblyName}.dll");
     }
+
+    public static string FindSolutionRoot() => FindSolutionRoot(AppContext.BaseDirectory);
 
     private static string ExtractConfigurationFromPath(string path)
     {
