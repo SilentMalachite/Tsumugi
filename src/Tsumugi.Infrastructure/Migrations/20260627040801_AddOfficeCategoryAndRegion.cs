@@ -22,7 +22,7 @@ namespace Tsumugi.Infrastructure.Migrations
                 table: "Offices",
                 type: "INTEGER",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 1); // ServiceCategory.TypeB
         }
 
         /// <inheritdoc />
