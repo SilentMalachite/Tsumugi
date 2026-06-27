@@ -5,6 +5,7 @@ using FluentAssertions;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.UseCases;
 using Tsumugi.Domain.Entities;
+using Tsumugi.Domain.Enums;
 using Xunit;
 
 namespace Tsumugi.Application.Tests;
@@ -53,7 +54,7 @@ public sealed class RegisterOfficeUseCaseTests
     [Fact]
     public async Task Execute_rejects_duplicate_office_number()
     {
-        var existing = Office.Create(Guid.NewGuid(), "1234567890", "既存", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var existing = Office.Create(Guid.NewGuid(), "1234567890", "既存", ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
         var repo = new FakeOfficeRepository { Existing = existing };
         var sut = new RegisterOfficeUseCase(repo, new FakeUnitOfWork(), Clock);
 

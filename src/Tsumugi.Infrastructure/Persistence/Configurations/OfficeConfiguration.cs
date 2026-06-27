@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Tsumugi.Domain.Entities;
+using Tsumugi.Domain.Enums;
 
 namespace Tsumugi.Infrastructure.Persistence.Configurations;
 
@@ -14,6 +15,10 @@ public sealed class OfficeConfiguration : IEntityTypeConfiguration<Office>
         builder.Property(o => o.OfficeNumber).IsRequired().HasMaxLength(32);
         builder.HasIndex(o => o.OfficeNumber).IsUnique();
         builder.Property(o => o.Name).IsRequired().HasMaxLength(128);
+        builder.Property(o => o.ServiceCategory).IsRequired()
+            .HasConversion<int>();
+        builder.Property(o => o.RegionGrade).IsRequired()
+            .HasConversion<int>();
         builder.Property(o => o.CreatedBy).IsRequired().HasMaxLength(64);
         builder.Property(o => o.CreatedAt).IsRequired();
         builder.Property(o => o.ConcurrencyToken).IsConcurrencyToken();

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Tsumugi.Domain.Entities;
+using Tsumugi.Domain.Enums;
 using Tsumugi.Infrastructure.Persistence;
 using Xunit;
 
@@ -21,7 +22,7 @@ public sealed class BackupServiceTests : IClassFixture<SqliteFixture>
         var id = Guid.NewGuid();
         await using (var ctx = _fixture.NewContext())
         {
-            ctx.Offices.Add(Office.Create(id, "1111111111", "元DB", "u",
+            ctx.Offices.Add(Office.Create(id, "1111111111", "元DB", ServiceCategory.TypeB, RegionGrade.None, "u",
                 DateTimeOffset.UnixEpoch, Guid.NewGuid()));
             await ctx.SaveChangesAsync(CancellationToken.None);
 

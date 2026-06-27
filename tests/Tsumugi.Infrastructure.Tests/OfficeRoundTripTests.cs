@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Tsumugi.Domain.Entities;
+using Tsumugi.Domain.Enums;
 using Xunit;
 
 namespace Tsumugi.Infrastructure.Tests;
@@ -19,7 +20,7 @@ public sealed class OfficeRoundTripTests : IClassFixture<SqliteFixture>
         var id = Guid.NewGuid();
         await using (var ctx = _fixture.NewContext())
         {
-            ctx.Offices.Add(Office.Create(id, "1234567890", "つむぎ", "tester",
+            ctx.Offices.Add(Office.Create(id, "1234567890", "つむぎ", ServiceCategory.TypeB, RegionGrade.None, "tester",
                 DateTimeOffset.UnixEpoch, Guid.NewGuid()));
             await ctx.SaveChangesAsync(CancellationToken.None);
         }
@@ -38,7 +39,7 @@ public sealed class OfficeRoundTripTests : IClassFixture<SqliteFixture>
         var id = Guid.NewGuid();
         await using (var seed = _fixture.NewContext())
         {
-            seed.Offices.Add(Office.Create(id, "9000000000", "種", "u",
+            seed.Offices.Add(Office.Create(id, "9000000000", "種", ServiceCategory.TypeB, RegionGrade.None, "u",
                 DateTimeOffset.UnixEpoch, Guid.NewGuid()));
             await seed.SaveChangesAsync(CancellationToken.None);
         }
