@@ -18,7 +18,14 @@ public static class AppendOnlyGuard
         typeof(OfficeCapability),
         typeof(DisabilityCertificate),
         typeof(FaceSheet),
+        typeof(WorkRecord),
+        typeof(WageFund),
+        typeof(WageSettings),
+        typeof(WageStatement),
+        typeof(AuditEntry),
     };
+
+    internal static IReadOnlySet<Type> GetAppendOnlyTypesForTests() => AppendOnlyTypes;
 
     public static void Inspect(ChangeTracker tracker)
     {
