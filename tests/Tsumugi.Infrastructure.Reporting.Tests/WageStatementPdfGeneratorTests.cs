@@ -37,7 +37,7 @@ public sealed class WageStatementPdfGeneratorTests
             stmt.OfficeId, "1234567890", "テスト事業所",
             ServiceCategory.TypeB, RegionGrade.None, Guid.NewGuid());
 
-        var bytes = new WageStatementPdfGenerator().GenerateStatement(stmt, recipient, office);
+        var bytes = new WageStatementPdfGenerator(TimeProvider.System).GenerateStatement(stmt, recipient, office);
         bytes.Should().NotBeNullOrEmpty();
 
         var text = ExtractText(bytes);
@@ -52,7 +52,7 @@ public sealed class WageStatementPdfGeneratorTests
     [Fact]
     public void Generate_rejects_null_arguments()
     {
-        var gen = new WageStatementPdfGenerator();
+        var gen = new WageStatementPdfGenerator(TimeProvider.System);
         var stmt = new WageStatementDto(Guid.NewGuid(), Guid.NewGuid(), 2026, 7, Guid.NewGuid(),
             1000, "x", RecordKind.New, null);
         var r = new RecipientDto(stmt.RecipientId, "k", "K", new DateOnly(1990, 1, 1),
@@ -64,6 +64,31 @@ public sealed class WageStatementPdfGeneratorTests
         FluentActions.Invoking(() => gen.GenerateStatement(stmt, r, null!)).Should().Throw<ArgumentNullException>();
     }
 
+    [Fact]
+    public void Statement_pdf_is_deterministic_for_same_inputs_and_same_timeprovider()
+    {
+        var fixedTime = new DateTimeOffset(2026, 7, 15, 10, 0, 0, TimeSpan.Zero);
+        var tp = new FixedTimeProvider(fixedTime);
+        var gen = new WageStatementPdfGenerator(tp);
+
+        var recipientId = Guid.NewGuid();
+        var officeId = Guid.NewGuid();
+        var stmt = new WageStatementDto(
+            Guid.NewGuid(), officeId, 2026, 7, recipientId,
+            50_000, "時間割方式: 600分 / 原資100,000円", RecordKind.New, null);
+        var recipient = new RecipientDto(
+            recipientId, "氏名", "シメイ", new DateOnly(1990, 1, 1), Guid.NewGuid(), false,
+            default, null, null, null, null, null, null, null);
+        var office = new OfficeDto(
+            officeId, "1234567890", "事業所",
+            ServiceCategory.TypeB, RegionGrade.None, Guid.NewGuid());
+
+        var a = gen.GenerateStatement(stmt, recipient, office);
+        var b = gen.GenerateStatement(stmt, recipient, office);
+
+        a.Should().BeEquivalentTo(b, "同一入力＋同一 TimeProvider なら出力 PDF は決定論的に同一");
+    }
+
     private static string ExtractText(byte[] bytes)
     {
         using var stream = new MemoryStream(bytes);
@@ -72,5 +97,10 @@ public sealed class WageStatementPdfGeneratorTests
         foreach (var page in pdf.GetPages())
             sb.Append(page.Text);
         return sb.ToString();
+    }
+
+    private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
     }
 }

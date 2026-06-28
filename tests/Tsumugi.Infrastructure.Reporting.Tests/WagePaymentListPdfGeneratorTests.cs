@@ -35,7 +35,7 @@ public sealed class WagePaymentListPdfGeneratorTests
             [r2] = Rec(r2, "スズキハナコ"),
         };
 
-        var bytes = new WageStatementPdfGenerator().GeneratePaymentList(stmts, recipients, office, 2026, 7);
+        var bytes = new WageStatementPdfGenerator(TimeProvider.System).GeneratePaymentList(stmts, recipients, office, 2026, 7);
         bytes.Should().NotBeNullOrEmpty();
         var text = ExtractText(bytes);
 
@@ -51,7 +51,7 @@ public sealed class WagePaymentListPdfGeneratorTests
     public void Empty_statements_yields_zero_total_and_zero_average_no_crash()
     {
         var office = Office(Guid.NewGuid());
-        var bytes = new WageStatementPdfGenerator().GeneratePaymentList(
+        var bytes = new WageStatementPdfGenerator(TimeProvider.System).GeneratePaymentList(
             Array.Empty<WageStatementDto>(),
             new Dictionary<Guid, RecipientDto>(),
             office, 2026, 7);

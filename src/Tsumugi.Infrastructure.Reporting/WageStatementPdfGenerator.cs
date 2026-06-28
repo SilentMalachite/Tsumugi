@@ -11,7 +11,7 @@ namespace Tsumugi.Infrastructure.Reporting;
 /// ADR 0013 により QuestPDF Community ライセンスで動作する前提。
 /// テストは抽出テキストと合計金額の一致で検証する（バイト一致は環境差で揺れるため避ける）。
 /// </summary>
-public sealed class WageStatementPdfGenerator : IWageReportGenerator
+public sealed class WageStatementPdfGenerator(TimeProvider timeProvider) : IWageReportGenerator
 {
     public byte[] GenerateStatement(WageStatementDto statement, RecipientDto recipient, OfficeDto office)
     {
@@ -37,7 +37,7 @@ public sealed class WageStatementPdfGenerator : IWageReportGenerator
                 p.Footer().AlignCenter().Text(t =>
                 {
                     t.Span("発行日: ");
-                    t.Span(DateTime.UtcNow.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
+                    t.Span(timeProvider.GetUtcNow().UtcDateTime.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
                 });
             });
         });
@@ -97,7 +97,7 @@ public sealed class WageStatementPdfGenerator : IWageReportGenerator
                 p.Footer().AlignCenter().Text(t =>
                 {
                     t.Span("発行日: ");
-                    t.Span(DateTime.UtcNow.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
+                    t.Span(timeProvider.GetUtcNow().UtcDateTime.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
                 });
             });
         });
