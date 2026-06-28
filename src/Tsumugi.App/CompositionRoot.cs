@@ -93,6 +93,9 @@ public static class CompositionRoot
         // Phase 2: 帳票（E2/E3）
         services.AddScoped<IWageReportGenerator, WageStatementPdfGenerator>();
 
+        // Phase 2: PDF 保存ダイアログ抽象（M-2）
+        services.AddSingleton<Tsumugi.App.Services.IFileSaveService, Tsumugi.App.Services.AvaloniaFileSaveService>();
+
         // ViewModels
         services.AddTransient<RecipientListViewModel>();
         services.AddTransient<RecipientEditViewModel>();
