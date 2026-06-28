@@ -16,11 +16,13 @@ echo "==> coverage threshold gate (gate #3 enforcement — floor=70%, raise over
 # Separate invocations avoid coverlet.collector / coverlet.msbuild conflict in the same run.
 dotnet test tests/Tsumugi.Domain.Tests -c Release \
   -p:CollectCoverage=true \
+  -p:Include="[Tsumugi.Domain]*" \
   -p:Threshold=70 \
   -p:ThresholdType=line \
   -p:ThresholdStat=total
 dotnet test tests/Tsumugi.Application.Tests -c Release \
   -p:CollectCoverage=true \
+  -p:Include="[Tsumugi.Application]*" \
   -p:Threshold=70 \
   -p:ThresholdType=line \
   -p:ThresholdStat=total
