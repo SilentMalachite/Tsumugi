@@ -85,10 +85,10 @@ src/
 
 - [x] **フェーズ 0** — プロジェクト基盤・DI 合成ルート・EF Core 往復・VACUUM INTO バックアップ・品質ゲート・オフライン検査・SQLite 権限ポリシー（AC0-1 〜 AC0-6 完了）
 - [x] **フェーズ 1** — マスタ + 記録（利用者 / 受給者証 / 契約 / 事業所 / 事業所体制 / 日次記録の CRUD、追記型・楽観的同時実行・期限アラート、AC1-1 〜 AC1-9 完了）
-- [ ] **フェーズ 2** — 工賃計算
+- [x] **フェーズ 2** — 工賃計算（作業実績・WageFund / WageSettings 期間マスタ・4 方式（Piece/Hourly/Fixed/Equal）・Σ配分=原資 不変条件・WageStatement 確定スナップショット・PDF 帳票・AuditEntry、AC2-1 〜 AC2-10 完了。AC2-8 のみ正式定義未確定で暫定式）
 - [ ] **フェーズ 3** — 国保連 請求データ（CSV）生成
 
-各フェーズの受け入れ基準は [`01_ClaudeCode_実装指示書_Tsumugi.md`](01_ClaudeCode_実装指示書_Tsumugi.md) §7 を参照。フェーズ 1 実装指示は [`04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md`](04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md)。
+各フェーズの受け入れ基準は [`01_ClaudeCode_実装指示書_Tsumugi.md`](01_ClaudeCode_実装指示書_Tsumugi.md) §7 を参照。フェーズ 1 実装指示は [`04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md`](04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md)、フェーズ 2 実装指示は [`05_ClaudeCode_Phase2実装指示_工賃計算_Tsumugi.md`](05_ClaudeCode_Phase2実装指示_工賃計算_Tsumugi.md)。
 
 ## データ保護とセキュリティ
 
@@ -118,6 +118,8 @@ src/
 | [01_ClaudeCode_実装指示書_Tsumugi.md](01_ClaudeCode_実装指示書_Tsumugi.md) | 全体仕様・フェーズ別受け入れ基準 |
 | [03_ClaudeCode_Phase0修正指示_Tsumugi.md](03_ClaudeCode_Phase0修正指示_Tsumugi.md) | フェーズ0 Codex レビュー対応指示 |
 | [04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md](04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md) | フェーズ1（マスタ・記録）実装指示と受け入れ基準 |
+| [05_ClaudeCode_Phase2実装指示_工賃計算_Tsumugi.md](05_ClaudeCode_Phase2実装指示_工賃計算_Tsumugi.md) | フェーズ2（工賃計算）実装指示と受け入れ基準 |
+| [docs/phase2-acceptance.md](docs/phase2-acceptance.md) | フェーズ2 受け入れ基準セルフチェック |
 | [docs/decisions/](docs/decisions/) | Architecture Decision Records（ADR） |
 | [docs/open-questions.md](docs/open-questions.md) | 仕様未確定事項の起票簿 |
 | [CHANGELOG.md](CHANGELOG.md) | リリース履歴 |

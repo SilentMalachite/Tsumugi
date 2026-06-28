@@ -7,8 +7,106 @@
 ## [Unreleased]
 
 ### 計画
-- フェーズ 2（工賃計算）— 出来高/時間/固定の3方式、締め日・端数規則の確定後に着手。
 - フェーズ 3（国保連請求 CSV 生成）— 報酬告示・CSV インターフェース仕様の出典確定後に着手。
+
+### 本番投入前に必須の deferred
+- QuestPDF Community License の事業所年商閾値確認（ADR 0013 / `docs/open-questions.md`）。
+- PDF 帳票の日本語フォント埋込（Noto Sans CJK JP）。漢字抽出が CJK 互換ブロックに化けるため、運用投入前に `assets/fonts/` 追加 + `Settings.UseEnvironmentFonts = false` + `FontManager.RegisterFontFromEmbeddedResource` を実施。
+- KouchinModule.bas v5 の実挙動突合 → ADR 0012 暫定値の正式化。
+- 平均工賃月額（AC2-8）の厚労省告示/通知突合 → 正式定義確定。
+
+---
+
+## [0.2.0-phase2] - 2026-06-29
+
+フェーズ 2（工賃計算）完了。作業実績・WageFund / WageSettings の期間マスタ・4 方式（Piece/Hourly/Fixed/Equal）の素計算・按分 Σ=原資 不変条件・WageStatement 確定スナップショット・PDF 帳票（QuestPDF）・AuditEntry を画面まで通し、AC2-1 〜 AC2-10 のうち AC2-8（正式定義未確定）を除く 9 件を達成。Codex review 由来の HIGH 4 + MEDIUM 3 + LOW 1 + Minor 2 件もすべて解消。
+
+### 追加（Added）
+
+#### Domain（純粋ロジック）
+- 5 エンティティ（`record` ＋ 追記型）: `WageFund` / `WageSettings` / `WageStatement` / `WorkRecord` / `AuditEntry`、加えて Phase 1 carryover の `FaceSheet` / `DisabilityCertificate`
+- 純粋ロジック: `AllocationPolicy`（Σ=原資 不変条件・LargestRemainder/ReserveToOffice の決定的余り処理）、`WageBasisExtractor`（実効 `Present` のみ集計）、`WageCalculator`（戦略選択）、`WageSettingsPolicy` / `WageFundPolicy` / `WageStatementPolicy`（追記型実効状態導出）、`FiscalYearPolicy`、`AverageWageMetric`（暫定式）
+- 4 工賃方式戦略: `PieceWageStrategy` / `HourlyWageStrategy` / `FixedWageStrategy` / `EqualWageStrategy`（共通 `IWageMethodStrategy`）
+- 値オブジェクト: `YearMonth`（`YYYYMM` 整数双方向変換 / 演算子 / 月境界 / 年度境界）
+- 列挙: `WageMethod` / `RoundingRule` / `RemainderPolicy` / `AuditAction`
+
+#### Application（ユースケース）
+- 工賃: `SetWageFundUseCase` / `ConfigureWageSettingsUseCase` / `CalculateWagesUseCase` / `CloseWagesUseCase` / `QueryWageStatementUseCase`
+- 作業実績: `RecordWorkUseCase` / `CorrectWorkUseCase` / `CancelWorkUseCase` / `QueryMonthWorkUseCase`
+- DTO: `WageFundDto` / `WageSettingsDto` / `WagePreviewDto` / `WageStatementDto` / `WorkRecordDto`
+- リポジトリ抽象: `IWageFundRepository` / `IWageSettingsRepository` / `IWageStatementRepository` / `IWorkRecordRepository` / `IAuditEntryRepository`
+- PDF 抽象: `IWageReportGenerator`（明細 + 支払一覧）
+- 監査ログ抽象: `IAuditTrail`（`AppendAsync(AuditAction, Guid, string?)`）
+
+#### Infrastructure（EF Core / SQLite）
+- 4 リポジトリ実装: `WageFundRepository` / `WageSettingsRepository` / `WageStatementRepository` / `WorkRecordRepository`
+- 監査ログ: `AuditEntryRepository` / `AuditTrail`（ADR 0014: append-only 専用テーブル）
+- EF Core configuration: `WageFundConfiguration`（`(OfficeId, MonthKey) WHERE Kind=1` partial unique index, ADR 0017）/ `WageSettingsConfiguration` / `WageStatementConfiguration` / `WorkRecordConfiguration` / `AuditEntryConfiguration` / `DailyRecordConfiguration`（`(RecipientId, ServiceDate) WHERE Kind=1` partial unique index, ADR 0015）
+- マイグレーション: `20260628015004_DailyRecordDuplicateNewIndex` / `20260628045957_Phase2Wage` / `20260628204038_WageFundDuplicateNewIndex`
+- AppendOnlyGuard を Phase 2 エンティティ（WorkRecord / WageFund / WageSettings / WageStatement / AuditEntry）に拡張
+
+#### Infrastructure.Reporting（新規プロジェクト）
+- QuestPDF Community License 固定 (`QuestPdfLicenseConfigurator`, ADR 0013)
+- `WageStatementPdfGenerator`: 利用者明細 PDF + 事業所月次の工賃支払一覧 PDF
+- 発行日は注入された `TimeProvider` 経由（決定論的、L-1 対応）
+
+#### App（Avalonia UI / MVVM）
+- 4 ViewModel: `WorkRecordViewModel`（日次セル編集）/ `WageFundSettingsViewModel`（原資 + 設定）/ `WageCalculationViewModel`（プレビュー）/ `WageStatementViewModel`（確定 + PDF 保存）
+- `WorkCellViewModel`（日次セル単位の Hourly 入力）
+- 4 View: `WorkRecordView` / `WageFundSettingsView` / `WageCalculationView` / `WageStatementView`（事業所選択 ComboBox + 年月入力 + アクションボタン）
+- `MainViewModel` を Phase 2 タブで拡張（合成ルートに 4 VM 追加、F6 達成）
+- `YenFormatter`（`N0` + InvariantCulture 固定、AC2-10）
+- `IFileSaveService` + `AvaloniaFileSaveService`（M-2: AC2-7 PDF 保存ダイアログ抽象 + Avalonia `IStorageProvider` 実装）
+
+#### CI 機械判定の強化
+- `OfflineComplianceTests` の `[Theory]` に `Tsumugi.Infrastructure.Reporting` を追加（M-1）
+- `AppOfflineComplianceTests` の P/Invoke + URL 検査に `Tsumugi.Infrastructure.Reporting` を追加（Phase 2 初期）
+- `build/ci.sh` の Domain カバレッジ閾値を **70 → 95** に昇格（H-4）
+- `ArchitectureTests` を Domain / Application / Infrastructure / Infrastructure.Reporting の 4 層で依存方向検証
+- `AppendOnlyGuardPhase2Tests` で Phase 2 エンティティ群の追記型違反検出
+
+#### ADR
+- [0010 Certificate MHLW form shape](docs/decisions/0010-certificate-mhlw-form-shape.md)（Phase 1 carryover）
+- [0011 DisabilityCertificate and FaceSheet](docs/decisions/0011-disability-certificate-and-face-sheet.md)（Phase 1 carryover）
+- [0012 工賃計算の方式戦略・端数・年度起点](docs/decisions/0012-wage-calculation-strategy.md)
+- [0013 PDF 生成エンジン (QuestPDF) の採否](docs/decisions/0013-pdf-engine-questpdf.md)
+- [0014 監査ログ (AuditEntry) を append-only で導入](docs/decisions/0014-audit-trail-append-only.md)
+- [0015 DailyRecord 重複 New を SQLite partial unique index で防止](docs/decisions/0015-dailyrecord-duplicate-new-index.md)
+- [0016 ゼロ重み時の按分挙動](docs/decisions/0016-zero-weight-allocation.md)（Codex H-2 対応）
+- [0017 WageFund 重複 New を SQLite partial unique index で防止](docs/decisions/0017-wagefund-duplicate-new-index.md)（Codex M-3 対応）
+
+### 修正（Fixed）— Codex review 後の改修
+
+#### HIGH
+- **H-1**: `WageBasisExtractor` が非 `Present` 日の `WorkRecord` も合算していた（AC2-5 違反）。recipient×date の実効 `Present` セットで `WorkRecord` をフィルタするよう修正。Absent / AbsenceSupport / DailyRecord なし / Cancellation 後の WorkRecord がすべて除外されることをテストで検証。
+- **H-2**: `AllocationPolicy.Allocate` が `totalWeight=0 && totalYen>0` で Σ ≠ 原資 を返していた（AC2-4 違反）。ADR 0016 採用、`RemainderPolicy` 別に分岐（`LargestRemainder` は `InvalidOperationException`、`ReserveToOffice` は全額留保）。
+- **H-3**: 工賃 3 VM (`WageFundSettings` / `WageCalculation` / `WageStatement`) に事業所選択 UI が無く、実 UI から `OfficeId` を入れられなかった。`OfficeCapabilityViewModel` パターンで `ListOfficesUseCase` 注入 + `SelectedOffice` バインド + ComboBox 配線を 3 VM/View に適用。`WageStatement` では `Office` (PDF 生成必須) も同時更新。
+- **H-4**: Domain ≥95% カバレッジ条件未達 (88.15%) + CI 閾値が 70% のまま。`WageStatementPolicyTests` (0→100%) / `FaceSheetTests` (0→100%) / `WageStatement.NewRecord/Correction validation` (59→100%) / `YearMonth` boundaries/operators/roundtrip (70→100%) を追加し Domain line coverage を **85.83% → 98.03%** に。CI 閾値を **70 → 95** に昇格。
+
+#### MEDIUM
+- **M-1**: `Tsumugi.Infrastructure.Reporting` がオフライン直接参照スキャン対象外だった。`OfflineComplianceTests.Tsumugi_assemblies_do_not_reference_network_libraries` の `[Theory]` に `Tsumugi.Infrastructure.Reporting` を追加。
+- **M-2**: AC2-7 PDF 生成が UI から到達不可（VM メソッドが `RelayCommand` ではなく View にもボタン無し）。`IFileSaveService` 抽象 + `AvaloniaFileSaveService` を新設、`WageStatementViewModel` に `SelectedStatement` + `SaveSelectedStatementPdfCommand` / `SavePaymentListPdfCommand` を追加、View に保存ボタン 2 つを配線。`FakeFileSaveService` で VM テストを担保。
+- **M-3**: `WageFund` の月次 New 重複が DB で防げず、レース条件下で `WageFundPolicy.Effective` の解釈が壊れる可能性があった。ADR 0017 採用、`WageFundConfiguration` に `(OfficeId, MonthKey) WHERE Kind=1` の partial unique index を追加 (migration `20260628204038_WageFundDuplicateNewIndex`)。
+
+#### LOW
+- **L-1**: `WageStatementPdfGenerator` が `DateTime.UtcNow` を直接参照しており、同一入力でも帳票が日付依存だった。`TimeProvider` 注入に置換し、`Statement_pdf_is_deterministic_for_same_inputs_and_same_timeprovider` で同値性を固定。`CompositionRoot` は変更不要（`TimeProvider.System` 既登録）。
+
+#### Minor
+- `YearMonthTests.Comparison_operators_match_chronological_order` に `<=`/`>=` 等号アサート 2 件追加（CS1718 を別インスタンス比較で回避）。
+- `WageStatementTests` から重複していた旧 `Negative_amount_throws` を削除（H-4 で追加した `NewRecord_throws_when_amount_is_negative` が `WithParameterName` を含む厳密な superset）。
+
+### 受け入れ基準達成（AC2-1〜AC2-10）
+9/10 達成。AC2-8（平均工賃月額）のみ正式定義未確定で暫定式実装。詳細は [`docs/phase2-acceptance.md`](docs/phase2-acceptance.md) 参照。
+
+### テスト
+469 件（Domain 146 / Application 96 / Infrastructure 119 / Reporting 5 / App 103）、Domain 行カバレッジ **98.03%**（CI gate **≥95%**）。
+
+### 既知の制約
+- AC2-8 平均工賃月額の正式定義は厚労省告示/通知突合まで暫定（`AverageWageMetric` テストで分母切替に強い構造を固定）。
+- ADR 0012 の方式・端数・年度起点・余り処理の暫定既定値は KouchinModule.bas v5 突合まで暫定。
+- PDF 帳票の日本語フォント未埋込（運用投入前に追加必須、`docs/open-questions.md` 参照）。
+- QuestPDF Community License の事業所年商閾値確認は運用投入前。
+- Avalonia GUI の見た目（フォント拡大追従・Reduce Motion・タブ順）は手動 QA（`docs/open-questions.md` Phase 1 持ち越し）。
 
 ---
 
@@ -131,6 +229,7 @@ Codex レビュー Round 1〜6 で挙がった全 14 件（H 8 + M 4 + L 2）を
 
 ---
 
-[Unreleased]: https://github.com/SilentMalachite/Tsumugi/compare/v0.1.0-phase1...HEAD
+[Unreleased]: https://github.com/SilentMalachite/Tsumugi/compare/v0.2.0-phase2...HEAD
+[0.2.0-phase2]: https://github.com/SilentMalachite/Tsumugi/compare/v0.1.0-phase1...v0.2.0-phase2
 [0.1.0-phase1]: https://github.com/SilentMalachite/Tsumugi/compare/v0.0.1-phase0...v0.1.0-phase1
 [0.0.1-phase0]: https://github.com/SilentMalachite/Tsumugi/releases/tag/v0.0.1-phase0

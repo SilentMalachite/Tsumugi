@@ -12,7 +12,7 @@
 
 ## Phase 1 → Phase 2/3 引継ぎ
 
-- [ ] **DailyRecord 多重 New 重複の検知**: 同一 (RecipientId, ServiceDate) に複数の `RecordKind.New` が登録された場合、`DailyRecordPolicy.Effective` は `CreatedAt` 最早を選択する（決定論的）。`RecordDailyRecordUseCase` は同日 New が既存ならエラーで拒否するが、レース条件下では二重新規が物理的に格納され得る。Phase 2 で DB に partial unique index を追加するか、SqliteEventBus 経由のロックを検討。
+- [x] **DailyRecord 多重 New 重複の検知（2026-06-28 クローズ / ADR 0015）**: `DailyRecordConfiguration` に `(RecipientId, ServiceDate) WHERE Kind=1` の partial unique index を追加 (migration `20260628015004_DailyRecordDuplicateNewIndex`)。`DailyRecordDuplicateNewIndexTests` でレース条件下の二重 New 挿入が `DbUpdateException` で拒否されることを検証済。
 - [ ] **AppendOnlyGuard と EF Core bulk operations**: `AppendOnlyGuard.Inspect` は ChangeTracker 経由の `Modified`/`Deleted` のみ検出。`ExecuteUpdateAsync`/`ExecuteDeleteAsync` は ChangeTracker を経由しないため検出できない。現在の Repository 実装に bulk 呼び出しはないが、将来追加する際は別途ガードが必要。`ArchitectureTests` で append-only 型に対する bulk 呼び出しを禁止する案あり。
 - [ ] **報酬・CSV ハードコード機械判定 (CLAUDE.md §ハード制約 3)**: Phase 1 には報酬算定・CSV 生成のサーフェスが存在しないため、現時点で「単位数/加算/CSV フィールド literal が混入していないこと」を機械判定するテストはエントリポイントを持たない。Phase 3 で報酬テーブル・CSV 生成器を導入する際に以下を同時に追加する: (a) Domain/Application のソース文字列スキャナで `単位数` `加算` `区分単価` 等の語彙が seed JSON 以外に現れたら失敗するテスト、(b) CSV カラム名 literal が `Tsumugi.Infrastructure.Csv` 名前空間以外に現れたら失敗するテスト、(c) 整数 literal の上限ガード（例: 1000 を超える decimal/int literal を Domain 内で禁止）。本項目は Phase 3 着手前のチェックリスト。
 - [ ] **Avalonia GUI 目視確認 (AC1-8 補完)**: Phase 1 では `AccessibilityDefaults` の値・適用・XAML 配線を全て CI テストで担保したが、実機起動でのフォント拡大追従、Reduce Motion の Transition 抑止、各 View のタブ順とフォーカス移動は手動 QA でしか確認できない。Phase 2 着手前に macOS/Windows 双方で 1 回ずつ目視チェックする。
@@ -43,3 +43,14 @@
 - [ ] **QuestPDF ライセンス**: Community License の収益閾値・帰属表示要件を確認し、ADR 0013 で採否を確定。社会福祉事業の収益閾値超過リスクが大きい場合は Avalonia 印刷経路（PrintDialog → 視覚 Print）にフォールバックする判断を ADR に書く。
 - [ ] **工賃確定後の下層訂正方針**: 自動再計算しない（Correction で履歴に残す）方針を ADR 0012 に併記済。次月調整 or 再確定の手順は運用ガイドへ。
 - [ ] **PDF 帳票の日本語フォント埋込**: Phase 2 / Task E2 で QuestPDF による工賃明細 PDF を実装したが、日本語埋込フォントを構成していないためシステムフォントへフォールバックする。漢字は CJK 互換ブロック (U+2F00 帯) に化けて抽出される (カナ・ASCII は正常)。**運用投入前に Noto Sans CJK JP 等の日本語フォントを `assets/fonts/` に追加し `QuestPdfLicenseConfigurator` で `Settings.UseEnvironmentFonts = false` + `FontManager.RegisterFontFromEmbeddedResource` を行うこと**。ライセンス確認 (Noto は SIL OFL 1.1) も同時に実施。テスト側で漢字 substring の assertion はフォント埋込完了後に追加する。
+
+## Phase 2 Codex review 由来クローズ（2026-06-29 追加）
+
+- [x] **WageFund 重複 New 検知（2026-06-29 クローズ / ADR 0017）**: `WageFundConfiguration` に `(OfficeId, MonthKey) WHERE Kind=1` の partial unique index を追加 (migration `20260628204038_WageFundDuplicateNewIndex`)。`WageFundDuplicateNewIndexTests` でレース条件下の二重 New 挿入が拒否され、`Correction` は許容されることを検証済。
+- [x] **工賃計算 工賃基礎の Present 限定（2026-06-29 クローズ / AC2-5）**: `WageBasisExtractor` を recipient×date の実効 `Attendance=Present` セットでフィルタするよう修正。Absent / AbsenceSupport / DailyRecord なし / Cancellation 後の WorkRecord がいずれも除外されることを `WageBasisExtractorTests` で検証。
+- [x] **按分 Σ=原資 不変条件のゼロ重み対応（2026-06-29 クローズ / ADR 0016 / AC2-4）**: `AllocationPolicy.Allocate` の `totalWeight=0 && totalYen>0` 分岐を `RemainderPolicy` 別に決定論で実装（`LargestRemainder` は throw、`ReserveToOffice` は全額留保）。
+- [x] **工賃 VM の事業所選択 UI 配線（2026-06-29 クローズ）**: `WageFundSettingsViewModel` / `WageCalculationViewModel` / `WageStatementViewModel` の 3 工賃 VM に `OfficeCapabilityViewModel` パターンで `ListOfficesUseCase` 注入 + `SelectedOffice` バインド + View ComboBox を追加。実 UI から `OfficeId`（および `WageStatement` では `Office`）が設定可能に。
+- [x] **PDF 保存ダイアログの UI 配線（2026-06-29 クローズ）**: `IFileSaveService` 抽象 + Avalonia `IStorageProvider` 実装 (`AvaloniaFileSaveService`) を導入し、`WageStatementViewModel` に `SaveSelectedStatementPdfCommand` / `SavePaymentListPdfCommand` を配線、View に保存ボタン 2 つを追加。AC2-7 が VM/View/Service の 3 層で疎通。
+- [x] **PDF 出力の決定論化（2026-06-29 クローズ）**: `WageStatementPdfGenerator` の `DateTime.UtcNow` を `TimeProvider` 注入に置換。同一入力＋同一 TimeProvider で同一バイト列を返すことを `Statement_pdf_is_deterministic_for_same_inputs_and_same_timeprovider` で固定。
+- [x] **Reporting アセンブリのオフライン直接参照スキャン対象化（2026-06-29 クローズ）**: `OfflineComplianceTests.Tsumugi_assemblies_do_not_reference_network_libraries` の `[Theory]` に `Tsumugi.Infrastructure.Reporting` を追加。
+- [x] **Domain ≥95% カバレッジ到達 + CI 強制（2026-06-29 クローズ）**: `WageStatementPolicyTests` / `FaceSheetTests` / `WageStatement.NewRecord/Correction validation` / `YearMonth` boundaries 等を追加し Domain line coverage を 85.83% → **98.03%** に。`build/ci.sh` の Domain 閾値を 70 → **95** に昇格。
