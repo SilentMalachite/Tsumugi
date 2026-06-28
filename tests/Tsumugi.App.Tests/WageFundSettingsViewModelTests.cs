@@ -1,6 +1,8 @@
 using FluentAssertions;
 using Tsumugi.App.ViewModels;
 using Tsumugi.Application.Abstractions;
+using Tsumugi.Application.Dtos;
+using Tsumugi.Application.UseCases.Office;
 using Tsumugi.Application.UseCases.Wage;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
@@ -13,12 +15,14 @@ public sealed class WageFundSettingsViewModelTests
 {
     private readonly InMemoryFundRepo _funds = new();
     private readonly InMemorySettingsRepo _settings = new();
+    private readonly InMemoryOfficeRepo _offices = new();
     private readonly InMemoryUow _uow = new();
     private readonly FixedClock _clock = new(DateTimeOffset.UnixEpoch);
 
     private WageFundSettingsViewModel NewVm() => new(
         new SetWageFundUseCase(_funds, _uow, _clock),
-        new ConfigureWageSettingsUseCase(_settings, _uow, _clock));
+        new ConfigureWageSettingsUseCase(_settings, _uow, _clock),
+        new ListOfficesUseCase(_offices));
 
     [Fact]
     public async Task SaveFundAsync_persists_with_valid_input()
@@ -82,6 +86,39 @@ public sealed class WageFundSettingsViewModelTests
 
         vm.ErrorMessage.Should().BeNull();
         _settings.Items.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task InitializeAsync_loads_offices_for_selection()
+    {
+        var o = Office.Create(Guid.NewGuid(), "1234567890", "事業所",
+            Tsumugi.Domain.Enums.ServiceCategory.TypeB, Tsumugi.Domain.Enums.RegionGrade.None,
+            "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _offices.Add(o);
+
+        var vm = NewVm();
+        await vm.InitializeAsync();
+
+        vm.Offices.Should().ContainSingle(x => x.Id == o.Id);
+    }
+
+    [Fact]
+    public void Setting_SelectedOffice_updates_OfficeId()
+    {
+        var vm = NewVm();
+        var oid = Guid.NewGuid();
+        var dto = new OfficeDto(
+            oid, "1234567890", "事業所",
+            Tsumugi.Domain.Enums.ServiceCategory.TypeB,
+            Tsumugi.Domain.Enums.RegionGrade.None,
+            Guid.NewGuid());
+
+        vm.SelectedOffice = dto;
+
+        vm.OfficeId.Should().Be(oid);
+
+        vm.SelectedOffice = null;
+        vm.OfficeId.Should().Be(Guid.Empty);
     }
 }
 

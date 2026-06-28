@@ -9,6 +9,20 @@
             <TextBlock Text="工賃原資と設定"
                        FontSize="{DynamicResource HeadingFontSize}" />
 
+            <StackPanel Spacing="4">
+                <TextBlock Text="事業所（必須）" />
+                <ComboBox ItemsSource="{Binding Offices}"
+                          SelectedItem="{Binding SelectedOffice}"
+                          PlaceholderText="事業所を選択"
+                          HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
             <TextBlock Text="月次原資（WageFund）"
                        FontSize="{DynamicResource BaseFontSize}" FontWeight="Bold" Margin="0,8,0,0" />
             <StackPanel Orientation="Horizontal" Spacing="8">

@@ -1,6 +1,11 @@
+using System.Collections.ObjectModel;
+using System.Threading;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Tsumugi.App.Formatting;
+using Tsumugi.Application.Dtos;
+using Tsumugi.Application.UseCases.Office;
 using Tsumugi.Application.UseCases.Wage;
 using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.ValueObjects;
@@ -13,8 +18,10 @@ namespace Tsumugi.App.ViewModels;
 /// </summary>
 public sealed partial class WageFundSettingsViewModel(
     SetWageFundUseCase setFund,
-    ConfigureWageSettingsUseCase configureSettings) : ViewModelBase
+    ConfigureWageSettingsUseCase configureSettings,
+    ListOfficesUseCase listOfficesUseCase) : ViewModelBase
 {
+    [ObservableProperty] private OfficeDto? _selectedOffice;
     [ObservableProperty] private Guid _officeId;
     [ObservableProperty] private int _year = DateTime.UtcNow.Year;
     [ObservableProperty] private int _month = DateTime.UtcNow.Month;
@@ -62,5 +69,20 @@ public sealed partial class WageFundSettingsViewModel(
         }
         catch (ArgumentException ex) { ErrorMessage = ex.Message; }
         catch (InvalidOperationException ex) { ErrorMessage = ex.Message; }
+    }
+
+    public ObservableCollection<OfficeDto> Offices { get; } = new();
+
+    partial void OnSelectedOfficeChanged(OfficeDto? value)
+        => OfficeId = value?.Id ?? Guid.Empty;
+
+    /// <summary>View の Loaded から呼ばれる初期化フック。事業所一覧を読み込む。</summary>
+    public Task InitializeAsync(CancellationToken ct = default) => LoadOfficesAsync(ct);
+
+    public async Task LoadOfficesAsync(CancellationToken ct = default)
+    {
+        var list = await listOfficesUseCase.ExecuteAsync(ct);
+        Offices.Clear();
+        foreach (var o in list) Offices.Add(o);
     }
 }
