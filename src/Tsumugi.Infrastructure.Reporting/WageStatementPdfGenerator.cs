@@ -37,7 +37,7 @@ public sealed class WageStatementPdfGenerator : IWageReportGenerator
                 p.Footer().AlignCenter().Text(t =>
                 {
                     t.Span("発行日: ");
-                    t.Span(DateTime.UtcNow.ToString("yyyy-MM-dd"));
+                    t.Span(DateTime.UtcNow.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
                 });
             });
         });
@@ -49,5 +49,58 @@ public sealed class WageStatementPdfGenerator : IWageReportGenerator
         IReadOnlyDictionary<Guid, RecipientDto> recipients,
         OfficeDto office,
         int year,
-        int month) => throw new NotImplementedException("Task E3 で実装する。");
+        int month)
+    {
+        ArgumentNullException.ThrowIfNull(statements);
+        ArgumentNullException.ThrowIfNull(recipients);
+        ArgumentNullException.ThrowIfNull(office);
+
+        var total = statements.Sum(s => s.AmountYen);
+        var count = statements.Count;
+        var average = count == 0 ? 0 : total / count;
+
+        var doc = Document.Create(c =>
+        {
+            c.Page(p =>
+            {
+                p.Size(PageSizes.A4);
+                p.Margin(2, Unit.Centimetre);
+                p.Header().Text($"{office.Name}　{year}年{month}月分 工賃支払一覧")
+                    .FontSize(14).Bold();
+                p.Content().Column(col =>
+                {
+                    col.Spacing(8);
+                    col.Item().Table(t =>
+                    {
+                        t.ColumnsDefinition(cd =>
+                        {
+                            cd.RelativeColumn(3);
+                            cd.RelativeColumn(2);
+                        });
+                        t.Header(h =>
+                        {
+                            h.Cell().Text("利用者").Bold();
+                            h.Cell().AlignRight().Text("金額（円）").Bold();
+                        });
+                        foreach (var s in statements)
+                        {
+                            var name = recipients.TryGetValue(s.RecipientId, out var r)
+                                ? $"{r.KanjiName}（{r.KanaName}）"
+                                : s.RecipientId.ToString();
+                            t.Cell().Text(name);
+                            t.Cell().AlignRight().Text($"{s.AmountYen:N0}");
+                        }
+                    });
+                    col.Item().AlignRight().Text($"合計: {total:N0} 円　/　利用者数: {count}　/　平均: {average:N0} 円")
+                        .Bold();
+                });
+                p.Footer().AlignCenter().Text(t =>
+                {
+                    t.Span("発行日: ");
+                    t.Span(DateTime.UtcNow.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
+                });
+            });
+        });
+        return doc.GeneratePdf();
+    }
 }
