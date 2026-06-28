@@ -2,6 +2,7 @@ using FluentAssertions;
 using Tsumugi.App.ViewModels;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Dtos;
+using Tsumugi.Application.UseCases.Office;
 using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Application.UseCases.Wage;
 using Tsumugi.Domain.Entities;
@@ -45,39 +46,47 @@ public sealed class WageStatementViewModelTests
     }
 
     private static WageStatementViewModel Build(
-        IWageStatementRepository stmtRepo,
-        IRecipientRepository recipientRepo,
-        params (Tsumugi.Domain.Entities.WorkRecord w, Tsumugi.Domain.Entities.DailyRecord d, Contract c)[] datasets)
+        IWageStatementRepository? stmtRepo = null,
+        IRecipientRepository? recipientRepo = null,
+        (Tsumugi.Domain.Entities.WorkRecord w, Tsumugi.Domain.Entities.DailyRecord d, Contract c)[]? datasets = null,
+        Tsumugi.Domain.Entities.Office[]? offices = null)
     {
-        var dailies = datasets.Select(t => t.d).ToArray();
-        var works = datasets.Select(t => t.w).ToArray();
-        var contracts = datasets.Select(t => t.c).ToArray();
+        var ds = datasets ?? Array.Empty<(Tsumugi.Domain.Entities.WorkRecord, Tsumugi.Domain.Entities.DailyRecord, Contract)>();
+        var dailies = ds.Select(t => t.d).ToArray();
+        var works = ds.Select(t => t.w).ToArray();
+        var contracts = ds.Select(t => t.c).ToArray();
         var settings = WageSettings.Create(Guid.NewGuid(), Office,
             new DateRange(new DateOnly(2026, 4, 1), null),
             WageMethod.Hourly, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, null, "u", T0);
         var fund = WageFund.NewRecord(Guid.NewGuid(), Office, new YearMonth(2026, 7), 100_000, null, "u", T0);
 
+        var recipientRepoSafe = recipientRepo ?? new InMemoryRecipientRepoForWork();
         var calc = new CalculateWagesUseCase(
             new WageCalculationViewModelTests_DailyRepoLocal(dailies),
             new WageCalculationViewModelTests_WorkRepoLocal(works),
             new WageCalculationViewModelTests_FundRepoLocal(fund),
             new WageCalculationViewModelTests_SettingsRepoLocal(settings),
             new WageCalculationViewModelTests_ContractRepoLocal(contracts),
-            recipientRepo,
+            recipientRepoSafe,
             AllStrategies);
 
-        var close = new CloseWagesUseCase(calc, stmtRepo, new InMemoryUow(),
+        var stmtRepoSafe = stmtRepo ?? new InMemoryStatementRepo();
+        var close = new CloseWagesUseCase(calc, stmtRepoSafe, new InMemoryUow(),
             new FixedClock(T0), new ViewModelNoopAuditTrail());
-        var query = new QueryWageStatementUseCase(stmtRepo);
-        var listRecipients = new ListRecipientsUseCase(recipientRepo);
-        return new WageStatementViewModel(close, query, listRecipients, new StubReportGenerator());
+        var query = new QueryWageStatementUseCase(stmtRepoSafe);
+        var listRecipients = new ListRecipientsUseCase(recipientRepoSafe);
+        var officeRepo = new InMemoryOfficeRepo();
+        foreach (var o in offices ?? Array.Empty<Tsumugi.Domain.Entities.Office>()) officeRepo.Add(o);
+        return new WageStatementViewModel(close, query, listRecipients, new StubReportGenerator(),
+            new ListOfficesUseCase(officeRepo));
     }
 
     [Fact]
     public async Task RefreshAsync_with_empty_office_id_sets_error()
     {
         var vm = new WageStatementViewModel(
-            null!, null!, null!, new StubReportGenerator());
+            null!, null!, null!, new StubReportGenerator(),
+            new ListOfficesUseCase(new InMemoryOfficeRepo()));
         vm.OfficeId = Guid.Empty;
         await vm.RefreshCommand.ExecuteAsync(null);
         vm.ErrorMessage.Should().NotBeNullOrEmpty();
@@ -150,9 +159,57 @@ public sealed class WageStatementViewModelTests
     [Fact]
     public void GenerateStatementPdf_without_office_sets_error()
     {
-        var vm = new WageStatementViewModel(null!, null!, null!, new StubReportGenerator());
+        var vm = new WageStatementViewModel(null!, null!, null!, new StubReportGenerator(),
+            new ListOfficesUseCase(new InMemoryOfficeRepo()));
         vm.GenerateStatementPdf(Guid.NewGuid()).Should().BeNull();
         vm.ErrorMessage.Should().Contain("事業所");
+    }
+
+    [Fact]
+    public async Task InitializeAsync_loads_offices_for_selection()
+    {
+        var o = Tsumugi.Domain.Entities.Office.Create(Guid.NewGuid(), "1234567890", "事業所",
+            Tsumugi.Domain.Enums.ServiceCategory.TypeB, Tsumugi.Domain.Enums.RegionGrade.None,
+            "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var vm = Build(offices: new[] { o });
+
+        await vm.InitializeAsync();
+
+        vm.Offices.Should().ContainSingle(x => x.Id == o.Id);
+    }
+
+    [Fact]
+    public void Setting_SelectedOffice_updates_OfficeId_and_Office()
+    {
+        var vm = Build();
+        var oid = Guid.NewGuid();
+        var dto = new Tsumugi.Application.Dtos.OfficeDto(
+            oid, "1234567890", "事業所",
+            Tsumugi.Domain.Enums.ServiceCategory.TypeB,
+            Tsumugi.Domain.Enums.RegionGrade.None,
+            Guid.NewGuid());
+
+        vm.SelectedOffice = dto;
+
+        vm.OfficeId.Should().Be(oid);
+        vm.Office.Should().Be(dto);
+    }
+
+    [Fact]
+    public void Clearing_SelectedOffice_resets_OfficeId_and_Office()
+    {
+        var vm = Build();
+        var dto = new Tsumugi.Application.Dtos.OfficeDto(
+            Guid.NewGuid(), "1234567890", "事業所",
+            Tsumugi.Domain.Enums.ServiceCategory.TypeB,
+            Tsumugi.Domain.Enums.RegionGrade.None,
+            Guid.NewGuid());
+        vm.SelectedOffice = dto;
+
+        vm.SelectedOffice = null;
+
+        vm.OfficeId.Should().Be(Guid.Empty);
+        vm.Office.Should().BeNull();
     }
 }
 

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Dtos;
+using Tsumugi.Application.UseCases.Office;
 using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Application.UseCases.Wage;
 using Tsumugi.Domain.Enums;
@@ -18,8 +19,10 @@ public sealed partial class WageStatementViewModel(
     CloseWagesUseCase close,
     QueryWageStatementUseCase query,
     ListRecipientsUseCase listRecipients,
-    IWageReportGenerator reportGenerator) : ViewModelBase
+    IWageReportGenerator reportGenerator,
+    ListOfficesUseCase listOfficesUseCase) : ViewModelBase
 {
+    [ObservableProperty] private OfficeDto? _selectedOffice;
     [ObservableProperty] private Guid _officeId;
     [ObservableProperty] private OfficeDto? _office;
     [ObservableProperty] private int _year = DateTime.UtcNow.Year;
@@ -91,5 +94,22 @@ public sealed partial class WageStatementViewModel(
         if (Office is null) { ErrorMessage = "事業所情報が設定されていません。"; return null; }
         return reportGenerator.GeneratePaymentList(
             Statements.ToArray(), _recipientCache, Office, Year, Month);
+    }
+
+    public ObservableCollection<OfficeDto> Offices { get; } = new();
+
+    partial void OnSelectedOfficeChanged(OfficeDto? value)
+    {
+        OfficeId = value?.Id ?? Guid.Empty;
+        Office = value;
+    }
+
+    public Task InitializeAsync(CancellationToken ct = default) => LoadOfficesAsync(ct);
+
+    public async Task LoadOfficesAsync(CancellationToken ct = default)
+    {
+        var list = await listOfficesUseCase.ExecuteAsync(ct);
+        Offices.Clear();
+        foreach (var o in list) Offices.Add(o);
     }
 }
