@@ -26,15 +26,6 @@ public sealed class WageStatementTests
     }
 
     [Fact]
-    public void Negative_amount_throws()
-    {
-        FluentActions.Invoking(() => WageStatement.NewRecord(
-            Guid.NewGuid(), Guid.NewGuid(), new YearMonth(2026, 7), Guid.NewGuid(),
-            -1, "x", "t", DateTimeOffset.UtcNow))
-            .Should().Throw<ArgumentOutOfRangeException>();
-    }
-
-    [Fact]
     public void NewRecord_throws_when_amount_is_negative()
     {
         var act = () => WageStatement.NewRecord(

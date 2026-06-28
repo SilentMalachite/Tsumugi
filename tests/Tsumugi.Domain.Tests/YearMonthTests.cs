@@ -73,6 +73,9 @@ public sealed class YearMonthTests
         (a < b).Should().BeTrue();
         (b < c).Should().BeTrue();
         (a <= b).Should().BeTrue();
+        var a2 = new YearMonth(2026, 7); // 同値の別インスタンス: 等号分岐を直接覆う
+        (a <= a2).Should().BeTrue();   // 等号: <= の 0-equality 分岐
+        (a >= a2).Should().BeTrue();   // 等号: >= の 0-equality 分岐
         (c > a).Should().BeTrue();
         (b >= a).Should().BeTrue();
     }
