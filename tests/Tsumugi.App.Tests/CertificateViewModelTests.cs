@@ -58,7 +58,7 @@ public sealed class CertificateViewModelTests
     {
         var rid = Guid.NewGuid();
         var vm = NewVm();
-vm.SelectedRecipient = TestRecipients.Make(rid, "氏名", "シメイ");
+        vm.SelectedRecipient = TestRecipients.Make(rid, "氏名", "シメイ");
         vm.CertificateNumber = "1234567890";
         vm.ValidityStart = new DateOnly(2026, 4, 1);
         vm.ValidityEnd = new DateOnly(2027, 3, 31);
