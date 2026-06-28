@@ -12,7 +12,11 @@ public sealed class DailyRecordConfiguration : IEntityTypeConfiguration<DailyRec
         builder.ToTable("DailyRecords");
         builder.HasKey(r => r.Id);
         builder.Property(r => r.RecipientId).IsRequired();
-        builder.HasIndex(r => new { r.RecipientId, r.ServiceDate });
+        // partial unique index: 同一 (RecipientId, ServiceDate) の Kind=New（=1）を DB レベルで一意化する（ADR 0015）
+        builder.HasIndex(r => new { r.RecipientId, r.ServiceDate })
+            .HasFilter("\"Kind\" = 1")
+            .IsUnique()
+            .HasDatabaseName("UX_DailyRecords_RecipientId_ServiceDate_NewOnly");
         builder.HasIndex(r => r.OriginId);
         builder.Property(r => r.ServiceDate).IsRequired();
         builder.Property(r => r.Kind).HasConversion<int>().IsRequired();
