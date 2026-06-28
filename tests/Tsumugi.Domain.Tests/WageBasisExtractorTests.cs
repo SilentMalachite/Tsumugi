@@ -61,9 +61,9 @@ public sealed class WageBasisExtractorTests
     public void Excludes_work_records_on_absent_days()
     {
         var dPresent = DailyRecord.NewRecord(Guid.NewGuid(), R1, new DateOnly(2026, 7, 1), Attendance.Present, TransportKind.None, false, null, "t", T);
-        var dAbsent  = DailyRecord.NewRecord(Guid.NewGuid(), R1, new DateOnly(2026, 7, 2), Attendance.Absent,  TransportKind.None, false, null, "t", T);
-        var wPresent = WorkRecord.NewRecord(Guid.NewGuid(),  R1, new DateOnly(2026, 7, 1), workedMinutes: 120, pieceCount: 0, pieceUnitYen: 0, points: 10, note: null, "t", T);
-        var wAbsent  = WorkRecord.NewRecord(Guid.NewGuid(),  R1, new DateOnly(2026, 7, 2), workedMinutes: 999, pieceCount: 9, pieceUnitYen: 99, points: 99, note: null, "t", T);
+        var dAbsent = DailyRecord.NewRecord(Guid.NewGuid(), R1, new DateOnly(2026, 7, 2), Attendance.Absent, TransportKind.None, false, null, "t", T);
+        var wPresent = WorkRecord.NewRecord(Guid.NewGuid(), R1, new DateOnly(2026, 7, 1), workedMinutes: 120, pieceCount: 0, pieceUnitYen: 0, points: 10, note: null, "t", T);
+        var wAbsent = WorkRecord.NewRecord(Guid.NewGuid(), R1, new DateOnly(2026, 7, 2), workedMinutes: 999, pieceCount: 9, pieceUnitYen: 99, points: 99, note: null, "t", T);
 
         var inputs = WageBasisExtractor.Build(new[] { dPresent, dAbsent }, new[] { wPresent, wAbsent }, Month);
 
@@ -79,7 +79,7 @@ public sealed class WageBasisExtractorTests
     public void Excludes_work_records_on_absence_support_days()
     {
         var dSupport = DailyRecord.NewRecord(Guid.NewGuid(), R1, new DateOnly(2026, 7, 1), Attendance.AbsenceSupport, TransportKind.None, false, null, "t", T);
-        var w        = WorkRecord.NewRecord(Guid.NewGuid(),  R1, new DateOnly(2026, 7, 1), workedMinutes: 60, pieceCount: 1, pieceUnitYen: 50, points: 5, note: null, "t", T);
+        var w = WorkRecord.NewRecord(Guid.NewGuid(), R1, new DateOnly(2026, 7, 1), workedMinutes: 60, pieceCount: 1, pieceUnitYen: 50, points: 5, note: null, "t", T);
 
         var inputs = WageBasisExtractor.Build(new[] { dSupport }, new[] { w }, Month);
 
@@ -109,9 +109,9 @@ public sealed class WageBasisExtractorTests
     public void Excludes_work_records_on_days_whose_daily_record_was_cancelled()
     {
         var originalDailyId = Guid.NewGuid();
-        var dNew    = DailyRecord.NewRecord(originalDailyId, R1, new DateOnly(2026, 7, 1), Attendance.Present, TransportKind.None, false, null, "t", T);
+        var dNew = DailyRecord.NewRecord(originalDailyId, R1, new DateOnly(2026, 7, 1), Attendance.Present, TransportKind.None, false, null, "t", T);
         var dCancel = DailyRecord.Cancellation(Guid.NewGuid(), R1, new DateOnly(2026, 7, 1), originalDailyId, "t", T.AddMinutes(1));
-        var w       = WorkRecord.NewRecord(Guid.NewGuid(), R1, new DateOnly(2026, 7, 1), workedMinutes: 200, pieceCount: 0, pieceUnitYen: 0, points: 0, note: null, "t", T);
+        var w = WorkRecord.NewRecord(Guid.NewGuid(), R1, new DateOnly(2026, 7, 1), workedMinutes: 200, pieceCount: 0, pieceUnitYen: 0, points: 0, note: null, "t", T);
 
         var inputs = WageBasisExtractor.Build(new[] { dNew, dCancel }, new[] { w }, Month);
 
