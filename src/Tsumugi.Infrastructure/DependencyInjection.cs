@@ -20,6 +20,11 @@ public static class DependencyInjection
         services.AddScoped<IContractRepository, ContractRepository>();
         services.AddScoped<IOfficeCapabilityRepository, OfficeCapabilityRepository>();
         services.AddScoped<IDailyRecordRepository, DailyRecordRepository>();
+        services.AddScoped<IWorkRecordRepository, WorkRecordRepository>();
+        services.AddScoped<IWageFundRepository, WageFundRepository>();
+        services.AddScoped<IWageSettingsRepository, WageSettingsRepository>();
+        services.AddScoped<IWageStatementRepository, WageStatementRepository>();
+        services.AddScoped<IAuditEntryRepository, AuditEntryRepository>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<IBackupService, SqliteBackupService>();
         return services;
