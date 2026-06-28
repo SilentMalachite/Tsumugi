@@ -53,4 +53,34 @@ public sealed class YearMonthTests
         b.CompareTo(a).Should().BePositive();
         a.CompareTo(a).Should().Be(0);
     }
+
+    [Fact]
+    public void ToInt_FromInt_roundtrip_preserves_value()
+    {
+        var ym = new YearMonth(2026, 7);
+        var i = ym.ToInt();
+        i.Should().Be(202607);
+        YearMonth.FromInt(i).Should().Be(ym);
+    }
+
+    [Fact]
+    public void Comparison_operators_match_chronological_order()
+    {
+        var a = new YearMonth(2026, 7);
+        var b = new YearMonth(2026, 8);
+        var c = new YearMonth(2027, 1);
+
+        (a < b).Should().BeTrue();
+        (b < c).Should().BeTrue();
+        (a <= b).Should().BeTrue();
+        (c > a).Should().BeTrue();
+        (b >= a).Should().BeTrue();
+    }
+
+    [Fact]
+    public void ToString_returns_zero_padded_yyyy_mm()
+    {
+        new YearMonth(2026, 7).ToString().Should().Be("2026-07");
+        new YearMonth(2026, 12).ToString().Should().Be("2026-12");
+    }
 }
