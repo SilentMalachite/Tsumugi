@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Tsumugi.App.Settings;
 using Tsumugi.App.ViewModels;
 using Tsumugi.Infrastructure.Persistence;
+using Tsumugi.Infrastructure.Reporting;
 using AvaloniaApplication = Avalonia.Application;
 
 namespace Tsumugi.App;
@@ -26,6 +27,9 @@ public partial class App : AvaloniaApplication
 
     public override void OnFrameworkInitializationCompleted()
     {
+        // ADR 0013: QuestPDF Community ライセンスをコードで固定する（オフライン保証）。
+        QuestPdfLicenseConfigurator.ApplyCommunityLicense();
+
         var appDataRoot = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "Tsumugi");

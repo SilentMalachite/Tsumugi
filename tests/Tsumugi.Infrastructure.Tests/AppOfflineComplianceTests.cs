@@ -88,6 +88,7 @@ public sealed class AppOfflineComplianceTests
     [InlineData("Tsumugi.Domain")]
     [InlineData("Tsumugi.Application")]
     [InlineData("Tsumugi.Infrastructure")]
+    [InlineData("Tsumugi.Infrastructure.Reporting")]
     public void Tsumugi_assemblies_do_not_pinvoke_into_network_native_libraries(string assemblyName)
     {
         var dll = TsumugiAssemblyLocator.LocateProductionDll(assemblyName);
@@ -119,6 +120,7 @@ public sealed class AppOfflineComplianceTests
     [InlineData("Tsumugi.Domain")]
     [InlineData("Tsumugi.Application")]
     [InlineData("Tsumugi.Infrastructure")]
+    [InlineData("Tsumugi.Infrastructure.Reporting")]
     public void Tsumugi_assemblies_do_not_embed_external_url_literals(string assemblyName)
     {
         var dll = TsumugiAssemblyLocator.LocateProductionDll(assemblyName);

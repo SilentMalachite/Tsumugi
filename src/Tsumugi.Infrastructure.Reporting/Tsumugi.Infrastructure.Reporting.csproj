@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Tsumugi.Infrastructure.Reporting</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="QuestPDF" Version="2025.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Tsumugi.Application\Tsumugi.Application.csproj" />
+  </ItemGroup>
+</Project>
