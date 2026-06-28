@@ -76,8 +76,7 @@ public sealed class DailyRecordViewModelTests
     {
         var vm = NewVm();
         vm.SetMonth(2026, 6);
-        var dto = new Tsumugi.Application.Dtos.RecipientDto(
-            Guid.NewGuid(), "氏名", "シメイ", new DateOnly(1990, 1, 1), Guid.NewGuid(), IsArchived: false);
+        var dto = TestRecipients.Make(Guid.NewGuid(), "氏名", "シメイ");
 
         vm.SelectedRecipient = dto;
 

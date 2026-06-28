@@ -8,24 +8,92 @@
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding DiscardCommand}" />
     </UserControl.KeyBindings>
-    <StackPanel Spacing="12" Margin="16">
-        <TextBlock Text="利用者登録・編集" FontSize="{DynamicResource HeadingFontSize}" />
-        <StackPanel Spacing="4">
-            <TextBlock Text="氏名（漢字）" />
-            <TextBox Text="{Binding KanjiName}" Watermark="例：山田 太郎" />
+    <ScrollViewer>
+        <StackPanel Spacing="12" Margin="16">
+            <TextBlock Text="利用者登録・編集" FontSize="{DynamicResource HeadingFontSize}" />
+
+            <!-- 基本情報 -->
+            <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="基本情報" FontWeight="Bold" />
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="氏名（漢字）" />
+                        <TextBox Text="{Binding KanjiName}" Watermark="例：山田 太郎" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="氏名（カナ）" />
+                        <TextBox Text="{Binding KanaName}" Watermark="例：ヤマダ タロウ" />
+                    </StackPanel>
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="生年月日（yyyy-MM-dd）" />
+                        <TextBox Text="{Binding DateOfBirth, Converter={x:Static conv:DateOnlyConverter.Instance}}"
+                                 Watermark="例：1990-01-01" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- 障害種別 -->
+            <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="障害種別（複数選択可）" FontWeight="Bold" />
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <CheckBox Content="身体障害" IsChecked="{Binding DisabilityPhysical}" />
+                        <CheckBox Content="知的障害" IsChecked="{Binding DisabilityIntellectual}" />
+                        <CheckBox Content="精神障害" IsChecked="{Binding DisabilityMental}" />
+                        <CheckBox Content="難病等" IsChecked="{Binding DisabilityIntractable}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- 連絡先 -->
+            <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="連絡先" FontWeight="Bold" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <StackPanel Spacing="2" Width="140">
+                            <TextBlock Text="郵便番号" />
+                            <TextBox Text="{Binding PostalCode}" Watermark="000-0000" />
+                        </StackPanel>
+                        <StackPanel Spacing="2" Width="400">
+                            <TextBlock Text="住所" />
+                            <TextBox Text="{Binding Address}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <StackPanel Spacing="2" Width="200">
+                            <TextBlock Text="電話" />
+                            <TextBox Text="{Binding PhoneNumber}" />
+                        </StackPanel>
+                        <StackPanel Spacing="2" Width="280">
+                            <TextBlock Text="メール" />
+                            <TextBox Text="{Binding EmailAddress}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <TextBlock Text="緊急連絡先" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <StackPanel Spacing="2" Width="200">
+                            <TextBlock Text="氏名" />
+                            <TextBox Text="{Binding EmergencyContactName}" />
+                        </StackPanel>
+                        <StackPanel Spacing="2" Width="140">
+                            <TextBlock Text="続柄" />
+                            <TextBox Text="{Binding EmergencyContactRelationship}" Watermark="父/母 等" />
+                        </StackPanel>
+                        <StackPanel Spacing="2" Width="200">
+                            <TextBlock Text="電話" />
+                            <TextBox Text="{Binding EmergencyContactPhone}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="{Binding SaveErrorMessage}"
+                       Foreground="#FF4444"
+                       IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="保存 (Ctrl+S)" Command="{Binding SaveCommand}" />
+                <Button Content="入力を破棄 (Esc)" Command="{Binding DiscardCommand}" />
+            </StackPanel>
         </StackPanel>
-        <StackPanel Spacing="4">
-            <TextBlock Text="氏名（カナ）" />
-            <TextBox Text="{Binding KanaName}" Watermark="例：ヤマダ タロウ" />
-        </StackPanel>
-        <StackPanel Spacing="4">
-            <TextBlock Text="生年月日（yyyy-MM-dd）" />
-            <TextBox Text="{Binding DateOfBirth, Converter={x:Static conv:DateOnlyConverter.Instance}}"
-                     Watermark="例：1990-01-01" />
-        </StackPanel>
-        <TextBlock Text="{Binding SaveErrorMessage}"
-                   Foreground="#FF4444"
-                   IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
-        <Button Content="保存 (Ctrl+S)" Command="{Binding SaveCommand}" />
-    </StackPanel>
+    </ScrollViewer>
 </UserControl>

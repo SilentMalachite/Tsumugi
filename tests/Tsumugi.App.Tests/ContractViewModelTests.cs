@@ -115,8 +115,7 @@ public sealed class ContractViewModelTests
     public void SelectedRecipient_synchronises_RecipientId()
     {
         var vm = NewVm();
-        var dto = new Tsumugi.Application.Dtos.RecipientDto(
-            Guid.NewGuid(), "氏名二", "シメイニ", new DateOnly(1990, 1, 1), Guid.NewGuid(), IsArchived: false);
+        var dto = TestRecipients.Make(Guid.NewGuid(), "氏名二", "シメイニ");
 
         vm.SelectedRecipient = dto;
 

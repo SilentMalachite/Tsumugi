@@ -17,9 +17,8 @@ public sealed class RegisterRecipientUseCaseTests
         var tp = new FixedTimeProvider(new DateTimeOffset(2026, 6, 27, 0, 0, 0, TimeSpan.Zero));
         var sut = new RegisterRecipientUseCase(repo, uow, tp);
 
-        var dto = await sut.ExecuteAsync(
-            kanjiName: "山田太郎", kanaName: "ヤマダタロウ",
-            dateOfBirth: new DateOnly(1990, 1, 1), actor: "tester", default);
+        var input = new RegisterRecipientInput("山田太郎", "ヤマダタロウ", new DateOnly(1990, 1, 1));
+        var dto = await sut.ExecuteAsync(input, "tester", default);
 
         repo.Added.Should().ContainSingle();
         dto.KanjiName.Should().Be("山田太郎");
@@ -32,7 +31,8 @@ public sealed class RegisterRecipientUseCaseTests
         var sut = new RegisterRecipientUseCase(
             new FakeRecipientRepository(), new FakeUnitOfWork(),
             new FixedTimeProvider(DateTimeOffset.UnixEpoch));
-        Func<Task> act = () => sut.ExecuteAsync(" ", "x", new DateOnly(1990, 1, 1), "u", default);
+        Func<Task> act = () => sut.ExecuteAsync(
+            new RegisterRecipientInput(" ", "x", new DateOnly(1990, 1, 1)), "u", default);
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
@@ -42,8 +42,41 @@ public sealed class RegisterRecipientUseCaseTests
         var sut = new RegisterRecipientUseCase(
             new FakeRecipientRepository(), new FakeUnitOfWork(),
             new FixedTimeProvider(DateTimeOffset.UnixEpoch));
-        Func<Task> act = () => sut.ExecuteAsync("山田", "ヤマダ", DateOnly.MinValue, "u", default);
+        Func<Task> act = () => sut.ExecuteAsync(
+            new RegisterRecipientInput("山田", "ヤマダ", DateOnly.MinValue), "u", default);
         await act.Should().ThrowAsync<DateValidationException>();
+    }
+
+    [Fact]
+    public async Task Persists_disability_and_contact_fields()
+    {
+        var repo = new FakeRecipientRepository();
+        var sut = new RegisterRecipientUseCase(repo, new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch));
+        var input = new RegisterRecipientInput("田中", "タナカ", new DateOnly(1990, 1, 1))
+        {
+            Disabilities = new Tsumugi.Domain.ValueObjects.DisabilityCategories(true, false, true, false),
+            PostalCode = "100-0001",
+            Address = "東京都千代田区...",
+            PhoneNumber = "03-0000-0000",
+            EmailAddress = "tanaka@example.com",
+            EmergencyContactName = "緊急一郎",
+            EmergencyContactRelationship = "兄",
+            EmergencyContactPhone = "090-0000-0000",
+        };
+        var dto = await sut.ExecuteAsync(input, "u", default);
+
+        dto.Disabilities.Physical.Should().BeTrue();
+        dto.Disabilities.Mental.Should().BeTrue();
+        dto.Disabilities.Intellectual.Should().BeFalse();
+        dto.PhoneNumber.Should().Be("03-0000-0000");
+        dto.Address.Should().Be("東京都千代田区...");
+        dto.EmergencyContactName.Should().Be("緊急一郎");
+
+        var stored = repo.Added.Single();
+        stored.PostalCode.Should().Be("100-0001");
+        stored.EmailAddress.Should().Be("tanaka@example.com");
+        stored.EmergencyContactPhone.Should().Be("090-0000-0000");
     }
 }
 

@@ -58,8 +58,7 @@ public sealed class CertificateViewModelTests
     {
         var rid = Guid.NewGuid();
         var vm = NewVm();
-        vm.SelectedRecipient = new Tsumugi.Application.Dtos.RecipientDto(
-            rid, "氏名", "シメイ", new DateOnly(1990, 1, 1), Guid.NewGuid(), IsArchived: false);
+vm.SelectedRecipient = TestRecipients.Make(rid, "氏名", "シメイ");
         vm.CertificateNumber = "1234567890";
         vm.ValidityStart = new DateOnly(2026, 4, 1);
         vm.ValidityEnd = new DateOnly(2027, 3, 31);
@@ -118,8 +117,7 @@ public sealed class CertificateViewModelTests
         _certs.Add(cert);
 
         var vm = NewVm();
-        vm.SelectedRecipient = new Tsumugi.Application.Dtos.RecipientDto(
-            rid, "氏名", "シメイ", new DateOnly(1990, 1, 1), Guid.NewGuid(), IsArchived: false);
+        vm.SelectedRecipient = TestRecipients.Make(rid, "氏名", "シメイ");
         await Task.Yield();
         // SelectedCertificate は OnSelectedRecipientChanged → ReloadCertificatesAsync 経由で読まれる。
         // 明示的に reload を待ち、先頭をセット。

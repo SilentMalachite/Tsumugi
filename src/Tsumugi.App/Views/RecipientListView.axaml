@@ -34,6 +34,12 @@
                 <DataGridTextColumn Header="氏名（漢字）" Binding="{Binding KanjiName}" Width="*" />
                 <DataGridTextColumn Header="氏名（カナ）" Binding="{Binding KanaName}" Width="*" />
                 <DataGridTextColumn Header="生年月日" Binding="{Binding DateOfBirth}" Width="Auto" />
+                <DataGridTextColumn Header="障害種別"
+                                    Binding="{Binding Disabilities, Converter={x:Static conv:DisabilityCategoriesLabelConverter.Instance}}"
+                                    Width="Auto" />
+                <DataGridTextColumn Header="電話" Binding="{Binding PhoneNumber}" Width="Auto" />
+                <DataGridTextColumn Header="住所" Binding="{Binding Address}" Width="*" />
+                <DataGridTextColumn Header="緊急連絡先" Binding="{Binding EmergencyContactName}" Width="Auto" />
                 <DataGridTextColumn Header="状態"
                                     Binding="{Binding IsArchived, Converter={x:Static vm:ArchivedStatusConverter.Instance}}"
                                     Width="Auto" />
