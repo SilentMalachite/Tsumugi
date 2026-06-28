@@ -24,6 +24,12 @@ public readonly record struct YearMonth : IComparable<YearMonth>
 
     public static YearMonth FromDate(DateOnly date) => new(date.Year, date.Month);
 
+    /// <summary>整数化（YYYYMM 形式）。SQLite 列への永続化と整列に使う。</summary>
+    public int ToInt() => Year * 100 + Month;
+
+    /// <summary>YYYYMM 形式の整数から復元。</summary>
+    public static YearMonth FromInt(int value) => new(value / 100, value % 100);
+
     public int CompareTo(YearMonth other)
     {
         var byYear = Year.CompareTo(other.Year);

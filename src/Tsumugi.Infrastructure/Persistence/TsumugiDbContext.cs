@@ -15,6 +15,13 @@ public sealed class TsumugiDbContext(DbContextOptions<TsumugiDbContext> options)
     public DbSet<OfficeCapability> OfficeCapabilities => Set<OfficeCapability>();
     public DbSet<DailyRecord> DailyRecords => Set<DailyRecord>();
 
+    // Phase 2 - Wage calculation
+    public DbSet<WorkRecord> WorkRecords => Set<WorkRecord>();
+    public DbSet<WageFund> WageFunds => Set<WageFund>();
+    public DbSet<WageSettings> WageSettings => Set<WageSettings>();
+    public DbSet<WageStatement> WageStatements => Set<WageStatement>();
+    public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
