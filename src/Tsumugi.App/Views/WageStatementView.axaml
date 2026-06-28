@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             x:Class="Tsumugi.App.Views.WageStatementView"
+             x:DataType="vm:WageStatementViewModel">
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="工賃確定"
+                   FontSize="{DynamicResource HeadingFontSize}" Margin="8,8,8,4" />
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8,0,8,8">
+            <TextBlock Text="年" VerticalAlignment="Center" />
+            <NumericUpDown Value="{Binding Year}" Minimum="1900" Maximum="9999" Width="100" FormatString="0" />
+            <TextBlock Text="月" VerticalAlignment="Center" />
+            <NumericUpDown Value="{Binding Month}" Minimum="1" Maximum="12" Width="80" FormatString="0" />
+            <Button Content="再読込" Command="{Binding RefreshCommand}" />
+            <Button Content="確定" Command="{Binding CloseCommand}" />
+        </StackPanel>
+        <TextBlock DockPanel.Dock="Top" Text="{Binding StatusMessage}" Foreground="LightGreen" Margin="8,0" />
+        <TextBlock DockPanel.Dock="Top" Text="{Binding ErrorMessage}" Foreground="Red" Margin="8,0" />
+        <Border DockPanel.Dock="Top" Background="#553300" Padding="8" Margin="8,0"
+                IsVisible="{Binding HasCorrectionHistory}">
+            <TextBlock Text="この月には訂正履歴があります（再確定済み）" Foreground="White" />
+        </Border>
+        <DataGrid ItemsSource="{Binding Statements}" Margin="8" AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="利用者 ID" Binding="{Binding RecipientId}" Width="*" />
+                <DataGridTextColumn Header="金額（円）" Binding="{Binding AmountYen}" Width="120" />
+                <DataGridTextColumn Header="区分" Binding="{Binding Kind}" Width="100" />
+                <DataGridTextColumn Header="根拠" Binding="{Binding BasisSummary}" Width="2*" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

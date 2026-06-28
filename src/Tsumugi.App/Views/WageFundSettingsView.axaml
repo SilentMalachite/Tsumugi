@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             xmlns:enums="using:Tsumugi.Domain.Enums"
+             x:Class="Tsumugi.App.Views.WageFundSettingsView"
+             x:DataType="vm:WageFundSettingsViewModel">
+    <ScrollViewer>
+        <StackPanel Margin="8" Spacing="8">
+            <TextBlock Text="工賃原資と設定"
+                       FontSize="{DynamicResource HeadingFontSize}" />
+
+            <TextBlock Text="月次原資（WageFund）"
+                       FontSize="{DynamicResource BaseFontSize}" FontWeight="Bold" Margin="0,8,0,0" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="年" VerticalAlignment="Center" />
+                <NumericUpDown Value="{Binding Year}" Minimum="1900" Maximum="9999" Width="100" FormatString="0" />
+                <TextBlock Text="月" VerticalAlignment="Center" />
+                <NumericUpDown Value="{Binding Month}" Minimum="1" Maximum="12" Width="80" FormatString="0" />
+                <TextBlock Text="原資（円）" VerticalAlignment="Center" />
+                <NumericUpDown Value="{Binding TotalYen}" Minimum="0" Maximum="100000000" Width="160" FormatString="0" />
+                <TextBlock Text="{Binding FormattedTotalYen}" VerticalAlignment="Center" />
+                <Button Content="保存" Command="{Binding SaveFundCommand}" />
+            </StackPanel>
+            <TextBox Text="{Binding FundNote}" Watermark="メモ（任意）" />
+
+            <TextBlock Text="設定（WageSettings）"
+                       FontSize="{DynamicResource BaseFontSize}" FontWeight="Bold" Margin="0,16,0,0" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="開始日" VerticalAlignment="Center" />
+                <DatePicker SelectedDate="{Binding PeriodStart}" />
+                <TextBlock Text="方式" VerticalAlignment="Center" />
+                <ComboBox SelectedItem="{Binding Method}">
+                    <enums:WageMethod>Piece</enums:WageMethod>
+                    <enums:WageMethod>Hourly</enums:WageMethod>
+                    <enums:WageMethod>Fixed</enums:WageMethod>
+                    <enums:WageMethod>Equal</enums:WageMethod>
+                </ComboBox>
+                <TextBlock Text="固定日額（円）" VerticalAlignment="Center" />
+                <NumericUpDown Value="{Binding FixedDailyYen}" Minimum="0" Maximum="1000000" Width="120" FormatString="0" />
+                <Button Content="保存" Command="{Binding SaveSettingsCommand}" />
+            </StackPanel>
+
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,10 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Tsumugi.App;
+using Tsumugi.App.ViewModels;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.UseCases;
+using Tsumugi.Application.UseCases.Wage;
+using Tsumugi.Application.UseCases.WorkRecord;
+using Tsumugi.Domain.Logic.Wage;
 using Xunit;
 
 namespace Tsumugi.App.Tests;
@@ -22,6 +27,26 @@ public sealed class CompositionRootTests
 
             scope.ServiceProvider.GetRequiredService<RegisterOfficeUseCase>().Should().NotBeNull();
             scope.ServiceProvider.GetRequiredService<BackupDatabaseUseCase>().Should().NotBeNull();
+
+            // Phase 2 D-group use cases resolve
+            scope.ServiceProvider.GetRequiredService<RecordWorkUseCase>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<SetWageFundUseCase>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<CalculateWagesUseCase>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<CloseWagesUseCase>().Should().NotBeNull();
+
+            // Phase 2 strategies registered as IReadOnlyList<IWageMethodStrategy> (4 instances)
+            var strategies = scope.ServiceProvider.GetRequiredService<IReadOnlyList<IWageMethodStrategy>>();
+            strategies.Should().HaveCount(4);
+
+            // Phase 2 report generator
+            scope.ServiceProvider.GetRequiredService<IWageReportGenerator>().Should().NotBeNull();
+
+            // Phase 2 ViewModels resolve
+            scope.ServiceProvider.GetRequiredService<WorkRecordViewModel>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<WageFundSettingsViewModel>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<WageCalculationViewModel>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<WageStatementViewModel>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<MainViewModel>().Should().NotBeNull();
         }
         finally
         {

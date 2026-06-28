@@ -36,5 +36,18 @@
         <TabItem Header="事業所体制(_9)">
             <views:OfficeCapabilityView DataContext="{Binding OfficeCapability}" />
         </TabItem>
+        <!-- Phase 2 tabs. Alt+1..9 は Phase 1 で消費済みのため、文字キーで割り当てる。 -->
+        <TabItem Header="作業実績(_A)">
+            <views:WorkRecordView DataContext="{Binding WorkRecord}" />
+        </TabItem>
+        <TabItem Header="工賃原資・設定(_B)">
+            <views:WageFundSettingsView DataContext="{Binding WageFundSettings}" />
+        </TabItem>
+        <TabItem Header="工賃計算(_C)">
+            <views:WageCalculationView DataContext="{Binding WageCalculation}" />
+        </TabItem>
+        <TabItem Header="工賃確定(_D)">
+            <views:WageStatementView DataContext="{Binding WageStatement}" />
+        </TabItem>
     </TabControl>
 </Window>

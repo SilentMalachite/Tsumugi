@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Tsumugi.App.ViewModels;
+using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.UseCases;
 using Tsumugi.Application.UseCases.Certificate;
 using Tsumugi.Application.UseCases.Contract;
@@ -7,7 +8,11 @@ using Tsumugi.Application.UseCases.DailyRecord;
 using Tsumugi.Application.UseCases.Office;
 using Tsumugi.Application.UseCases.OfficeCapability;
 using Tsumugi.Application.UseCases.Recipient;
+using Tsumugi.Application.UseCases.Wage;
+using Tsumugi.Application.UseCases.WorkRecord;
+using Tsumugi.Domain.Logic.Wage;
 using Tsumugi.Infrastructure;
+using Tsumugi.Infrastructure.Reporting;
 
 namespace Tsumugi.App;
 
@@ -63,6 +68,31 @@ public static class CompositionRoot
         services.AddScoped<CancelDailyRecordUseCase>();
         services.AddScoped<QueryMonthDailyRecordsUseCase>();
 
+        // Phase 2: 工賃計算戦略（4 方式並存; D3 CalculateWagesUseCase が IReadOnlyList<IWageMethodStrategy> を要求）
+        services.AddSingleton<IReadOnlyList<IWageMethodStrategy>>(_ => new IWageMethodStrategy[]
+        {
+            new PieceWageStrategy(),
+            new HourlyWageStrategy(),
+            new FixedWageStrategy(),
+            new EqualWageStrategy(),
+        });
+
+        // Phase 2: 作業実績
+        services.AddScoped<RecordWorkUseCase>();
+        services.AddScoped<CorrectWorkUseCase>();
+        services.AddScoped<CancelWorkUseCase>();
+        services.AddScoped<QueryMonthWorkUseCase>();
+
+        // Phase 2: 工賃原資・設定・計算・確定
+        services.AddScoped<SetWageFundUseCase>();
+        services.AddScoped<ConfigureWageSettingsUseCase>();
+        services.AddScoped<CalculateWagesUseCase>();
+        services.AddScoped<CloseWagesUseCase>();
+        services.AddScoped<QueryWageStatementUseCase>();
+
+        // Phase 2: 帳票（E2/E3）
+        services.AddScoped<IWageReportGenerator, WageStatementPdfGenerator>();
+
         // ViewModels
         services.AddTransient<RecipientListViewModel>();
         services.AddTransient<RecipientEditViewModel>();
@@ -73,6 +103,11 @@ public static class CompositionRoot
         services.AddTransient<OfficeViewModel>();
         services.AddTransient<OfficeCapabilityViewModel>();
         services.AddTransient<DailyRecordViewModel>();
+        // Phase 2 ViewModels
+        services.AddTransient<WorkRecordViewModel>();
+        services.AddTransient<WageFundSettingsViewModel>();
+        services.AddTransient<WageCalculationViewModel>();
+        services.AddTransient<WageStatementViewModel>();
         services.AddTransient<MainViewModel>();
 
         return services;

@@ -10,7 +10,11 @@ public sealed class MainViewModel(
     ContractViewModel contract,
     OfficeViewModel office,
     OfficeCapabilityViewModel officeCapability,
-    DailyRecordViewModel dailyRecord) : ViewModelBase
+    DailyRecordViewModel dailyRecord,
+    WorkRecordViewModel workRecord,
+    WageFundSettingsViewModel wageFundSettings,
+    WageCalculationViewModel wageCalculation,
+    WageStatementViewModel wageStatement) : ViewModelBase
 {
     public RecipientListViewModel RecipientList { get; } = recipientList;
     public RecipientEditViewModel RecipientEdit { get; } = recipientEdit;
@@ -21,4 +25,10 @@ public sealed class MainViewModel(
     public OfficeViewModel Office { get; } = office;
     public OfficeCapabilityViewModel OfficeCapability { get; } = officeCapability;
     public DailyRecordViewModel DailyRecord { get; } = dailyRecord;
+
+    // Phase 2 tabs
+    public WorkRecordViewModel WorkRecord { get; } = workRecord;
+    public WageFundSettingsViewModel WageFundSettings { get; } = wageFundSettings;
+    public WageCalculationViewModel WageCalculation { get; } = wageCalculation;
+    public WageStatementViewModel WageStatement { get; } = wageStatement;
 }
