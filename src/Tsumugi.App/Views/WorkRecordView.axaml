@@ -1,0 +1,66 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             x:Class="Tsumugi.App.Views.WorkRecordView"
+             x:DataType="vm:WorkRecordViewModel">
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="F5" Command="{Binding LoadCommand}" />
+    </UserControl.KeyBindings>
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="作業実績"
+                   FontSize="{DynamicResource HeadingFontSize}" Margin="8,8,8,4" />
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8,0,8,8">
+            <TextBlock Text="利用者" VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding Recipients}"
+                      SelectedItem="{Binding SelectedRecipient}"
+                      PlaceholderText="選択してください"
+                      MinWidth="180">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding KanjiName}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="年" VerticalAlignment="Center" Margin="8,0,0,0" />
+            <NumericUpDown Value="{Binding Year}" Minimum="1900" Maximum="9999" FormatString="0" Width="100" />
+            <TextBlock Text="月" VerticalAlignment="Center" />
+            <NumericUpDown Value="{Binding Month}" Minimum="1" Maximum="12" FormatString="0" Width="80" />
+            <Button Content="表示 (F5)" Command="{Binding LoadCommand}" />
+        </StackPanel>
+        <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding Cells}" Margin="8">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="vm:WorkCellViewModel">
+                        <Border BorderBrush="#444" BorderThickness="1" Margin="2"
+                                MinWidth="{DynamicResource DailyCellSize}"
+                                MinHeight="{DynamicResource DailyCellSize}">
+                            <StackPanel Spacing="2" Margin="4">
+                                <TextBlock Text="{Binding Date.Day}"
+                                           FontWeight="Bold"
+                                           FontSize="{DynamicResource BaseFontSize}"
+                                           HorizontalAlignment="Center" />
+                                <NumericUpDown Value="{Binding WorkedMinutes}"
+                                               Minimum="0" Maximum="1440" Width="80"
+                                               FormatString="0" />
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="保存" Padding="4,2" Margin="1"
+                                            FontSize="{DynamicResource BaseFontSize}"
+                                            Command="{Binding SaveWorkedMinutesCommand}"
+                                            CommandParameter="{Binding WorkedMinutes}" />
+                                    <Button Content="取消" Padding="4,2" Margin="1"
+                                            FontSize="{DynamicResource BaseFontSize}"
+                                            Command="{Binding CancelCommand}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>
