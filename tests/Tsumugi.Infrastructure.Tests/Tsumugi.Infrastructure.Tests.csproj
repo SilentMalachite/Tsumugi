@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Tsumugi.Infrastructure\Tsumugi.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Tsumugi.Infrastructure.Reporting\Tsumugi.Infrastructure.Reporting.csproj" />
   </ItemGroup>
 
 </Project>

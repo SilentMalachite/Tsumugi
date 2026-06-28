@@ -28,6 +28,7 @@ public sealed class OfflineComplianceTests
     [InlineData("Tsumugi.Domain")]
     [InlineData("Tsumugi.Application")]
     [InlineData("Tsumugi.Infrastructure")]
+    [InlineData("Tsumugi.Infrastructure.Reporting")]
     public void Tsumugi_assemblies_do_not_reference_network_libraries(string assemblyName)
     {
         // NOTE: GetReferencedAssemblies() returns DIRECT references only; transitive references are not walked (tracked in docs/open-questions.md).
