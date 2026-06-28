@@ -25,6 +25,11 @@ public sealed class WageFundConfiguration : IEntityTypeConfiguration<WageFund>
         builder.Property(r => r.CreatedAt).IsRequired();
         builder.Property(r => r.ConcurrencyToken);
         builder.HasIndex(r => r.OfficeId);
+        // partial unique index: 同一 (OfficeId, Month) の Kind=New（=1）を DB レベルで一意化する（ADR 0017）
+        builder.HasIndex(r => new { r.OfficeId, r.Month })
+            .HasFilter("\"Kind\" = 1")
+            .IsUnique()
+            .HasDatabaseName("UX_WageFunds_OfficeId_MonthKey_NewOnly");
         builder.HasIndex(r => r.OriginId);
     }
 }
