@@ -6,6 +6,19 @@
     <DockPanel>
         <TextBlock DockPanel.Dock="Top" Text="工賃計算（プレビュー）"
                    FontSize="{DynamicResource HeadingFontSize}" Margin="8,8,8,4" />
+        <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="8,0,8,8">
+            <TextBlock Text="事業所（必須）" />
+            <ComboBox ItemsSource="{Binding Offices}"
+                      SelectedItem="{Binding SelectedOffice}"
+                      PlaceholderText="事業所を選択"
+                      HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8,0,8,8">
             <TextBlock Text="年" VerticalAlignment="Center" />
             <NumericUpDown Value="{Binding Year}" Minimum="1900" Maximum="9999" Width="100" FormatString="0" />
