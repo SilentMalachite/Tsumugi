@@ -36,7 +36,6 @@
 | **Font** | PDF 帳票の日本語フォント埋込 (Noto Sans CJK JP) | `docs/open-questions.md` |
 | **Spec** | KouchinModule.bas v5 の実挙動突合 → ADR 0012 暫定値の正式化 | `docs/open-questions.md` |
 | **Spec** | 平均工賃月額 (AC2-8) の厚労省告示/通知突合 → 正式定義確定 | `docs/open-questions.md` |
-| **UI** | WageStatementView の SaveFileDialog 配線 (ViewModel は byte[] を返すまで実装済) | progress.md F6 deferred |
 
 ## Phase 1 final review からの繰越 deferred (Phase 2 では未対応)
 - RecipientEditView 到達性 (Enter binding / タブ追加 / UpdateRecipient 配線)

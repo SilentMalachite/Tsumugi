@@ -26,6 +26,8 @@
             <NumericUpDown Value="{Binding Month}" Minimum="1" Maximum="12" Width="80" FormatString="0" />
             <Button Content="再読込" Command="{Binding RefreshCommand}" />
             <Button Content="確定" Command="{Binding CloseCommand}" />
+            <Button Content="選択明細を PDF 保存" Command="{Binding SaveSelectedStatementPdfCommand}" />
+            <Button Content="支払一覧を PDF 保存" Command="{Binding SavePaymentListPdfCommand}" />
         </StackPanel>
         <TextBlock DockPanel.Dock="Top" Text="{Binding StatusMessage}" Foreground="LightGreen" Margin="8,0" />
         <TextBlock DockPanel.Dock="Top" Text="{Binding ErrorMessage}" Foreground="Red" Margin="8,0" />
@@ -33,7 +35,9 @@
                 IsVisible="{Binding HasCorrectionHistory}">
             <TextBlock Text="この月には訂正履歴があります（再確定済み）" Foreground="White" />
         </Border>
-        <DataGrid ItemsSource="{Binding Statements}" Margin="8" AutoGenerateColumns="False" IsReadOnly="True">
+        <DataGrid ItemsSource="{Binding Statements}"
+                  SelectedItem="{Binding SelectedStatement, Mode=TwoWay}"
+                  Margin="8" AutoGenerateColumns="False" IsReadOnly="True">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="利用者 ID" Binding="{Binding RecipientId}" Width="*" />
                 <DataGridTextColumn Header="金額（円）" Binding="{Binding AmountYen}" Width="120" />
