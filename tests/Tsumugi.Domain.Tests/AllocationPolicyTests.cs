@@ -53,6 +53,19 @@ public sealed class AllocationPolicyTests
     }
 
     [Fact]
+    public void Zero_weights_with_positive_total_and_reserve_to_office_present_in_shares_writes_to_existing_office_entry()
+    {
+        var officeKey = new Guid("00000000-0000-0000-0000-000099999999");
+        var r = AllocationPolicy.Allocate(
+            new[] { S(1, 0m), (officeKey, 0m), S(2, 0m) }, 1000,
+            RoundingRule.FloorYen, RemainderPolicy.ReserveToOffice, officeKey);
+        r.Should().HaveCount(3);
+        r.First(t => t.Key == officeKey).AmountYen.Should().Be(1000);
+        r.Where(t => t.Key != officeKey).Sum(t => t.AmountYen).Should().Be(0);
+        r.Sum(t => t.AmountYen).Should().Be(1000);
+    }
+
+    [Fact]
     public void Even_split_when_weights_equal()
     {
         var r = AllocationPolicy.Allocate(
