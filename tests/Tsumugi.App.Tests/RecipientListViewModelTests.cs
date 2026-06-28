@@ -14,8 +14,8 @@ public sealed class RecipientListViewModelTests
         var clock = new FixedClock(new DateTimeOffset(2026, 6, 28, 0, 0, 0, TimeSpan.Zero));
         return new RecipientListViewModel(
             new ListRecipientsUseCase(repo),
-            new ArchiveRecipientUseCase(repo, uow, clock),
-            new RestoreRecipientUseCase(repo, uow));
+            new ArchiveRecipientUseCase(repo, uow, clock, new NoopAuditTrail()),
+            new RestoreRecipientUseCase(repo, uow, clock, new NoopAuditTrail()));
     }
 
     [Fact]

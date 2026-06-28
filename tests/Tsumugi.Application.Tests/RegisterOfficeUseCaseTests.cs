@@ -85,10 +85,11 @@ public sealed class RegisterOfficeUseCaseTests
     [Fact]
     public async Task Update_rejects_empty_id_before_db_lookup()
     {
-        var sut = new UpdateOfficeUseCase(new FakeOfficeRepository(), new FakeUnitOfWork());
+        var sut = new UpdateOfficeUseCase(new FakeOfficeRepository(), new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
         Func<Task> act = () => sut.ExecuteAsync(
             Guid.Empty, expectedConcurrencyToken: Guid.NewGuid(),
-            "名前", ServiceCategory.TypeB, RegionGrade.None, CancellationToken.None);
+            "名前", ServiceCategory.TypeB, RegionGrade.None, "tester", CancellationToken.None);
         await act.Should().ThrowAsync<ArgumentException>()
             .Where(e => e.ParamName == "id");
     }
@@ -100,13 +101,14 @@ public sealed class RegisterOfficeUseCaseTests
         var existing = Office.Create(Guid.NewGuid(), "1234567890", "名前",
             ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, currentToken);
         var repo = new FakeOfficeRepository { Existing = existing };
-        var sut = new UpdateOfficeUseCase(repo, new FakeUnitOfWork());
+        var sut = new UpdateOfficeUseCase(repo, new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
 
         // 画面が開いた時点の古いトークン（別ユーザが先に保存して回転している想定）。
         var staleToken = Guid.NewGuid();
         Func<Task> act = () => sut.ExecuteAsync(
             existing.Id, expectedConcurrencyToken: staleToken,
-            "新名", ServiceCategory.TypeB, RegionGrade.Grade2, CancellationToken.None);
+            "新名", ServiceCategory.TypeB, RegionGrade.Grade2, "tester", CancellationToken.None);
 
         await act.Should().ThrowAsync<Tsumugi.Application.OptimisticConcurrencyException>();
     }
@@ -118,11 +120,12 @@ public sealed class RegisterOfficeUseCaseTests
         var existing = Office.Create(Guid.NewGuid(), "1234567890", "旧名",
             ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, token);
         var repo = new FakeOfficeRepository { Existing = existing };
-        var sut = new UpdateOfficeUseCase(repo, new FakeUnitOfWork());
+        var sut = new UpdateOfficeUseCase(repo, new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
 
         await sut.ExecuteAsync(
             existing.Id, expectedConcurrencyToken: token,
-            "新名", ServiceCategory.TypeB, RegionGrade.Grade3, CancellationToken.None);
+            "新名", ServiceCategory.TypeB, RegionGrade.Grade3, "tester", CancellationToken.None);
 
         // Update が呼ばれていれば fake が保持する Updated 値が変わる。
         repo.Updated.Should().NotBeNull();

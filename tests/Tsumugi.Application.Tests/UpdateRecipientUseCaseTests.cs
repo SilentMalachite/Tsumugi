@@ -29,7 +29,8 @@ public sealed class UpdateRecipientUseCaseTests
     {
         var repo = new FakeRecipientRepository();
         var uow = new FakeUnitOfWork();
-        var sut = new UpdateRecipientUseCase(repo, uow);
+        var sut = new UpdateRecipientUseCase(repo, uow,
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
         var original = SeedRecipient(repo);
 
         await sut.ExecuteAsync(Input(original.Id, original.ConcurrencyToken), "editor", default);
@@ -46,7 +47,8 @@ public sealed class UpdateRecipientUseCaseTests
     public async Task Throws_when_recipient_not_found()
     {
         var sut = new UpdateRecipientUseCase(
-            new FakeRecipientRepository(), new FakeUnitOfWork());
+            new FakeRecipientRepository(), new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
         Func<Task> act = () => sut.ExecuteAsync(
             Input(Guid.NewGuid(), Guid.NewGuid()), "editor", default);
         await act.Should().ThrowAsync<InvalidOperationException>();
@@ -56,7 +58,8 @@ public sealed class UpdateRecipientUseCaseTests
     public async Task Rejects_empty_id_before_db_lookup()
     {
         var sut = new UpdateRecipientUseCase(
-            new FakeRecipientRepository(), new FakeUnitOfWork());
+            new FakeRecipientRepository(), new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
         Func<Task> act = () => sut.ExecuteAsync(
             Input(Guid.Empty, Guid.NewGuid()), "editor", default);
         await act.Should().ThrowAsync<ArgumentException>();
@@ -67,7 +70,8 @@ public sealed class UpdateRecipientUseCaseTests
     {
         var repo = new FakeRecipientRepository();
         var uow = new FakeUnitOfWork();
-        var sut = new UpdateRecipientUseCase(repo, uow);
+        var sut = new UpdateRecipientUseCase(repo, uow,
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
         var original = SeedRecipient(repo);
 
         var staleToken = Guid.NewGuid();
@@ -82,7 +86,8 @@ public sealed class UpdateRecipientUseCaseTests
     {
         var repo = new FakeRecipientRepository();
         var uow = new FakeUnitOfWork();
-        var sut = new UpdateRecipientUseCase(repo, uow);
+        var sut = new UpdateRecipientUseCase(repo, uow,
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
         var original = SeedRecipient(repo);
 
         await sut.ExecuteAsync(Input(original.Id, original.ConcurrencyToken), "editor", default);
@@ -95,7 +100,8 @@ public sealed class UpdateRecipientUseCaseTests
     {
         var repo = new FakeRecipientRepository();
         var original = SeedRecipient(repo);
-        var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork());
+        var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
         Func<Task> act = () => sut.ExecuteAsync(
             Input(original.Id, original.ConcurrencyToken, kanji: " "), "editor", default);
         await act.Should().ThrowAsync<ArgumentException>();
@@ -106,7 +112,8 @@ public sealed class UpdateRecipientUseCaseTests
     {
         var repo = new FakeRecipientRepository();
         var original = SeedRecipient(repo);
-        var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork());
+        var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
         Func<Task> act = () => sut.ExecuteAsync(
             Input(original.Id, original.ConcurrencyToken, kana: " "), "editor", default);
         await act.Should().ThrowAsync<ArgumentException>();
@@ -117,7 +124,8 @@ public sealed class UpdateRecipientUseCaseTests
     {
         var repo = new FakeRecipientRepository();
         var original = SeedRecipient(repo);
-        var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork());
+        var sut = new UpdateRecipientUseCase(repo, new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
         Func<Task> act = () => sut.ExecuteAsync(
             Input(original.Id, original.ConcurrencyToken, dob: DateOnly.MinValue), "editor", default);
         await act.Should().ThrowAsync<DateValidationException>();

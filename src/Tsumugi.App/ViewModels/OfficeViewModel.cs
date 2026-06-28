@@ -83,7 +83,7 @@ public sealed partial class OfficeViewModel(
         {
             await updateUseCase.ExecuteAsync(
                 EditingId.Value, _editingConcurrencyToken,
-                Name, Category, Region, default);
+                Name, Category, Region, Environment.UserName, default);
             SaveErrorMessage = null;
             IsSaved = true;
             await LoadAsync();

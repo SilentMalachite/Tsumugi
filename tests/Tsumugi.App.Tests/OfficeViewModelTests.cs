@@ -18,7 +18,7 @@ public sealed class OfficeViewModelTests
     private OfficeViewModel NewVm() => new(
         new RegisterOfficeUseCase(_repo, _uow, _clock),
         new ListOfficesUseCase(_repo),
-        new UpdateOfficeUseCase(_repo, _uow));
+        new UpdateOfficeUseCase(_repo, _uow, _clock, new NoopAuditTrail()));
 
     [Fact]
     public async Task LoadAsync_populates_items()

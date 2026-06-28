@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tsumugi.Application.Abstractions;
+using Tsumugi.Application.Audit;
 using Tsumugi.Infrastructure.Persistence;
 
 namespace Tsumugi.Infrastructure;
@@ -25,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<IWageSettingsRepository, WageSettingsRepository>();
         services.AddScoped<IWageStatementRepository, WageStatementRepository>();
         services.AddScoped<IAuditEntryRepository, AuditEntryRepository>();
+        services.AddScoped<IAuditTrail, AuditTrail>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<IBackupService, SqliteBackupService>();
         return services;

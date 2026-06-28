@@ -14,7 +14,7 @@ public sealed class RecipientEditViewModelTests
         var sut = new RecipientEditViewModel(
             new RegisterRecipientUseCase(repo, uow,
                 new FixedClock(DateTimeOffset.UnixEpoch)),
-            new UpdateRecipientUseCase(repo, uow))
+            new UpdateRecipientUseCase(repo, uow, new FixedClock(DateTimeOffset.UnixEpoch), new NoopAuditTrail()))
         {
             KanjiName = "山田太郎",
             KanaName = "ヤマダタロウ",
@@ -38,7 +38,7 @@ public sealed class RecipientEditViewModelTests
         var uow = new InMemoryUow();
         var sut = new RecipientEditViewModel(
             new RegisterRecipientUseCase(repo, uow, new FixedClock(DateTimeOffset.UnixEpoch)),
-            new UpdateRecipientUseCase(repo, uow));
+            new UpdateRecipientUseCase(repo, uow, new FixedClock(DateTimeOffset.UnixEpoch), new NoopAuditTrail()));
 
         sut.LoadForEdit(TestRecipients.Make(
             existing.Id, existing.KanjiName, existing.KanaName,
@@ -59,7 +59,7 @@ public sealed class RecipientEditViewModelTests
         var uow = new InMemoryUow();
         var sut = new RecipientEditViewModel(
             new RegisterRecipientUseCase(repo, uow, new FixedClock(DateTimeOffset.UnixEpoch)),
-            new UpdateRecipientUseCase(repo, uow));
+            new UpdateRecipientUseCase(repo, uow, new FixedClock(DateTimeOffset.UnixEpoch), new NoopAuditTrail()));
         sut.LoadForEdit(TestRecipients.Make(
             existing.Id, existing.KanjiName, existing.KanaName,
             existing.DateOfBirth, existing.ConcurrencyToken));
@@ -78,7 +78,7 @@ public sealed class RecipientEditViewModelTests
         var uow = new InMemoryUow();
         var sut = new RecipientEditViewModel(
             new RegisterRecipientUseCase(repo, uow, new FixedClock(DateTimeOffset.UnixEpoch)),
-            new UpdateRecipientUseCase(repo, uow))
+            new UpdateRecipientUseCase(repo, uow, new FixedClock(DateTimeOffset.UnixEpoch), new NoopAuditTrail()))
         {
             KanjiName = "",
             KanaName = "ヤマダ",

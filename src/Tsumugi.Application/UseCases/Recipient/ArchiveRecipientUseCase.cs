@@ -1,4 +1,6 @@
 using Tsumugi.Application.Abstractions;
+using Tsumugi.Application.Audit;
+using Tsumugi.Domain.Enums;
 
 namespace Tsumugi.Application.UseCases.Recipient;
 
@@ -7,7 +9,7 @@ namespace Tsumugi.Application.UseCases.Recipient;
 /// 既にアーカイブ済みの場合は冪等に成功する。
 /// </summary>
 public sealed class ArchiveRecipientUseCase(
-    IRecipientRepository repo, IUnitOfWork uow, TimeProvider clock)
+    IRecipientRepository repo, IUnitOfWork uow, TimeProvider clock, IAuditTrail audit)
 {
     public async Task ExecuteAsync(
         Guid id, Guid expectedConcurrencyToken, string actor, CancellationToken ct)
@@ -24,12 +26,14 @@ public sealed class ArchiveRecipientUseCase(
 
         if (existing.IsArchived)
         {
-            // 冪等: 何もしない。
             return;
         }
 
-        var archived = existing.Archive(actor, clock.GetUtcNow());
+        var now = clock.GetUtcNow();
+        var archived = existing.Archive(actor, now);
         await repo.UpdateAsync(archived, ct);
+        await audit.RecordAsync(actor, AuditAction.Archive, nameof(Tsumugi.Domain.Entities.Recipient),
+            id, now, summary: null, ct);
         await uow.SaveChangesAsync(ct);
     }
 }

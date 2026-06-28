@@ -24,7 +24,7 @@ public sealed class ArchiveRecipientUseCaseTests
             new DateOnly(1980, 5, 5), "u", DateTimeOffset.UnixEpoch, token);
         repo.Added.Add(r);
 
-        var sut = new ArchiveRecipientUseCase(repo, uow, new FixedClock());
+        var sut = new ArchiveRecipientUseCase(repo, uow, new FixedClock(), new NoopAuditTrail());
 
         await sut.ExecuteAsync(r.Id, token, "operator", default);
 
@@ -48,7 +48,7 @@ public sealed class ArchiveRecipientUseCaseTests
             new DateOnly(1980, 5, 5), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
         repo.Added.Add(r);
 
-        var sut = new ArchiveRecipientUseCase(repo, uow, new FixedClock());
+        var sut = new ArchiveRecipientUseCase(repo, uow, new FixedClock(), new NoopAuditTrail());
 
         var act = () => sut.ExecuteAsync(r.Id, Guid.NewGuid(), "operator", default);
         await act.Should().ThrowAsync<OptimisticConcurrencyException>();
@@ -66,7 +66,7 @@ public sealed class ArchiveRecipientUseCaseTests
         repo.Added.Add(r);
         var originalArchivedAt = r.ArchivedAt;
 
-        var sut = new ArchiveRecipientUseCase(repo, uow, new FixedClock());
+        var sut = new ArchiveRecipientUseCase(repo, uow, new FixedClock(), new NoopAuditTrail());
         await sut.ExecuteAsync(r.Id, token, "second", default);
 
         repo.Added.Single().ArchivedAt.Should().Be(originalArchivedAt);
@@ -77,7 +77,7 @@ public sealed class ArchiveRecipientUseCaseTests
     public async Task Rejects_empty_id_and_blank_actor()
     {
         var sut = new ArchiveRecipientUseCase(
-            new FakeRecipientRepository(), new FakeUnitOfWork(), new FixedClock());
+            new FakeRecipientRepository(), new FakeUnitOfWork(), new FixedClock(), new NoopAuditTrail());
 
         await sut.Invoking(s => s.ExecuteAsync(Guid.Empty, Guid.NewGuid(), "u", default))
             .Should().ThrowAsync<ArgumentException>();
@@ -99,7 +99,8 @@ public sealed class RestoreRecipientUseCaseTests
             .Archive("u", DateTimeOffset.UnixEpoch.AddDays(1));
         repo.Added.Add(r);
 
-        var sut = new RestoreRecipientUseCase(repo, uow);
+        var sut = new RestoreRecipientUseCase(repo, uow,
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
         await sut.ExecuteAsync(r.Id, token, "operator", default);
 
         var stored = repo.Added.Single();
@@ -120,7 +121,8 @@ public sealed class RestoreRecipientUseCaseTests
             .Archive("u", DateTimeOffset.UnixEpoch.AddDays(1));
         repo.Added.Add(r);
 
-        var sut = new RestoreRecipientUseCase(repo, new FakeUnitOfWork());
+        var sut = new RestoreRecipientUseCase(repo, new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
         var act = () => sut.ExecuteAsync(r.Id, Guid.NewGuid(), "operator", default);
         await act.Should().ThrowAsync<OptimisticConcurrencyException>();
     }
@@ -134,7 +136,8 @@ public sealed class RestoreRecipientUseCaseTests
             new DateOnly(1980, 5, 5), "u", DateTimeOffset.UnixEpoch, token);
         repo.Added.Add(r);
 
-        var sut = new RestoreRecipientUseCase(repo, new FakeUnitOfWork());
+        var sut = new RestoreRecipientUseCase(repo, new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
         await sut.ExecuteAsync(r.Id, token, "operator", default);
 
         repo.Added.Single().IsArchived.Should().BeFalse();

@@ -1,5 +1,7 @@
 using Tsumugi.Application.Abstractions;
+using Tsumugi.Application.Audit;
 using Tsumugi.Application.Validation;
+using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.Application.UseCases.Recipient;
@@ -24,7 +26,8 @@ public sealed record UpdateRecipientInput(
     public string? EmergencyContactPhone { get; init; }
 }
 
-public sealed class UpdateRecipientUseCase(IRecipientRepository repo, IUnitOfWork uow)
+public sealed class UpdateRecipientUseCase(
+    IRecipientRepository repo, IUnitOfWork uow, TimeProvider clock, IAuditTrail audit)
 {
     public async Task ExecuteAsync(
         UpdateRecipientInput input, string actor, CancellationToken ct)
@@ -32,6 +35,8 @@ public sealed class UpdateRecipientUseCase(IRecipientRepository repo, IUnitOfWor
         ArgumentNullException.ThrowIfNull(input);
         if (input.Id == Guid.Empty)
             throw new ArgumentException("利用者IDが指定されていません。", nameof(input));
+        if (string.IsNullOrWhiteSpace(actor))
+            throw new ArgumentException("操作者は必須です。", nameof(actor));
         var existing = await repo.FindByIdAsync(input.Id, ct)
             ?? throw new InvalidOperationException("利用者が見つかりません。");
         if (existing.ConcurrencyToken != input.ExpectedConcurrencyToken)
@@ -58,7 +63,9 @@ public sealed class UpdateRecipientUseCase(IRecipientRepository repo, IUnitOfWor
             EmergencyContactPhone = input.EmergencyContactPhone,
         };
         await repo.UpdateAsync(updated, ct);
+        await audit.RecordAsync(actor, AuditAction.Update, nameof(Tsumugi.Domain.Entities.Recipient),
+            input.Id, clock.GetUtcNow(),
+            summary: $"kanji={input.KanjiName}", ct);
         await uow.SaveChangesAsync(ct);
-        _ = actor;  // 監査ログ拡張用フック（フェーズ1では使用しない）
     }
 }
