@@ -20,7 +20,8 @@ public sealed partial class WageStatementViewModel(
     QueryWageStatementUseCase query,
     ListRecipientsUseCase listRecipients,
     IWageReportGenerator reportGenerator,
-    ListOfficesUseCase listOfficesUseCase) : ViewModelBase
+    ListOfficesUseCase listOfficesUseCase,
+    Tsumugi.App.Services.IFileSaveService fileSaveService) : ViewModelBase
 {
     [ObservableProperty] private OfficeDto? _selectedOffice;
     [ObservableProperty] private Guid _officeId;
@@ -31,6 +32,7 @@ public sealed partial class WageStatementViewModel(
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private string? _statusMessage;
     [ObservableProperty] private bool _hasCorrectionHistory;
+    [ObservableProperty] private WageStatementDto? _selectedStatement;
 
     public ObservableCollection<WageStatementDto> Statements { get; } = new();
     private readonly Dictionary<Guid, RecipientDto> _recipientCache = new();
@@ -111,5 +113,51 @@ public sealed partial class WageStatementViewModel(
         var list = await listOfficesUseCase.ExecuteAsync(ct);
         Offices.Clear();
         foreach (var o in list) Offices.Add(o);
+    }
+
+    [RelayCommand]
+    public async Task SaveSelectedStatementPdfAsync(CancellationToken ct = default)
+    {
+        ErrorMessage = null;
+        StatusMessage = null;
+        if (SelectedStatement is null)
+        {
+            ErrorMessage = "保存する明細を選択してください。";
+            return;
+        }
+        var bytes = GenerateStatementPdf(SelectedStatement.RecipientId);
+        if (bytes is null) return;  // GenerateStatementPdf 内で ErrorMessage 設定済み
+
+        var suggested = $"工賃明細_{Year:D4}-{Month:D2}_{SelectedStatement.RecipientId:N}.pdf";
+        try
+        {
+            var saved = await fileSaveService.SaveAsync(bytes, suggested, "PDF", ".pdf", ct);
+            StatusMessage = saved ? $"明細 PDF を保存しました（{suggested}）。" : null;
+        }
+        catch (InvalidOperationException ex) { ErrorMessage = ex.Message; }
+        catch (System.IO.IOException ex) { ErrorMessage = $"ファイル書き込みに失敗しました: {ex.Message}"; }
+    }
+
+    [RelayCommand]
+    public async Task SavePaymentListPdfAsync(CancellationToken ct = default)
+    {
+        ErrorMessage = null;
+        StatusMessage = null;
+        if (Statements.Count == 0)
+        {
+            ErrorMessage = "対象月の確定明細がありません。";
+            return;
+        }
+        var bytes = GeneratePaymentListPdf();
+        if (bytes is null) return;
+
+        var suggested = $"工賃支払一覧_{Year:D4}-{Month:D2}.pdf";
+        try
+        {
+            var saved = await fileSaveService.SaveAsync(bytes, suggested, "PDF", ".pdf", ct);
+            StatusMessage = saved ? $"支払一覧 PDF を保存しました（{suggested}）。" : null;
+        }
+        catch (InvalidOperationException ex) { ErrorMessage = ex.Message; }
+        catch (System.IO.IOException ex) { ErrorMessage = $"ファイル書き込みに失敗しました: {ex.Message}"; }
     }
 }

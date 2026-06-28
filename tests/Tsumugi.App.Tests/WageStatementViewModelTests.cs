@@ -45,11 +45,32 @@ public sealed class WageStatementViewModelTests
             => LastPaymentList = System.Text.Encoding.UTF8.GetBytes($"LIST:{o.Name}:{ss.Count}:{ss.Sum(s => s.AmountYen)}");
     }
 
+    private sealed class FakeFileSaveService : Tsumugi.App.Services.IFileSaveService
+    {
+        public byte[]? LastSavedBytes { get; private set; }
+        public string? LastSuggestedFileName { get; private set; }
+        public string? LastFileTypeName { get; private set; }
+        public string? LastExtension { get; private set; }
+        public bool ReturnValue { get; init; } = true;
+        public Exception? ThrowOnSave { get; init; }
+
+        public Task<bool> SaveAsync(byte[] bytes, string suggestedFileName, string fileTypeName, string extension, CancellationToken ct = default)
+        {
+            if (ThrowOnSave is not null) throw ThrowOnSave;
+            LastSavedBytes = bytes;
+            LastSuggestedFileName = suggestedFileName;
+            LastFileTypeName = fileTypeName;
+            LastExtension = extension;
+            return Task.FromResult(ReturnValue);
+        }
+    }
+
     private static WageStatementViewModel Build(
         IWageStatementRepository? stmtRepo = null,
         IRecipientRepository? recipientRepo = null,
         (Tsumugi.Domain.Entities.WorkRecord w, Tsumugi.Domain.Entities.DailyRecord d, Contract c)[]? datasets = null,
-        Tsumugi.Domain.Entities.Office[]? offices = null)
+        Tsumugi.Domain.Entities.Office[]? offices = null,
+        Tsumugi.App.Services.IFileSaveService? fileSaveService = null)
     {
         var ds = datasets ?? Array.Empty<(Tsumugi.Domain.Entities.WorkRecord, Tsumugi.Domain.Entities.DailyRecord, Contract)>();
         var dailies = ds.Select(t => t.d).ToArray();
@@ -78,7 +99,8 @@ public sealed class WageStatementViewModelTests
         var officeRepo = new InMemoryOfficeRepo();
         foreach (var o in offices ?? Array.Empty<Tsumugi.Domain.Entities.Office>()) officeRepo.Add(o);
         return new WageStatementViewModel(close, query, listRecipients, new StubReportGenerator(),
-            new ListOfficesUseCase(officeRepo));
+            new ListOfficesUseCase(officeRepo),
+            fileSaveService ?? new FakeFileSaveService());
     }
 
     [Fact]
@@ -86,7 +108,8 @@ public sealed class WageStatementViewModelTests
     {
         var vm = new WageStatementViewModel(
             null!, null!, null!, new StubReportGenerator(),
-            new ListOfficesUseCase(new InMemoryOfficeRepo()));
+            new ListOfficesUseCase(new InMemoryOfficeRepo()),
+            new FakeFileSaveService());
         vm.OfficeId = Guid.Empty;
         await vm.RefreshCommand.ExecuteAsync(null);
         vm.ErrorMessage.Should().NotBeNullOrEmpty();
@@ -160,7 +183,8 @@ public sealed class WageStatementViewModelTests
     public void GenerateStatementPdf_without_office_sets_error()
     {
         var vm = new WageStatementViewModel(null!, null!, null!, new StubReportGenerator(),
-            new ListOfficesUseCase(new InMemoryOfficeRepo()));
+            new ListOfficesUseCase(new InMemoryOfficeRepo()),
+            new FakeFileSaveService());
         vm.GenerateStatementPdf(Guid.NewGuid()).Should().BeNull();
         vm.ErrorMessage.Should().Contain("事業所");
     }
@@ -210,6 +234,90 @@ public sealed class WageStatementViewModelTests
 
         vm.OfficeId.Should().Be(Guid.Empty);
         vm.Office.Should().BeNull();
+    }
+
+    private static async Task<(WageStatementViewModel vm, FakeFileSaveService fake, Guid stmtId)> BuildWithClosedStatementAsync()
+    {
+        var rid = Guid.NewGuid();
+        var r = Recipient.Create(rid, "氏名", "シメイ", new DateOnly(1990, 1, 1), "u", T0, Guid.NewGuid());
+        var period = new DateRange(new DateOnly(2026, 4, 1), null);
+        var datasets = new[]
+        {
+            (
+                Tsumugi.Domain.Entities.WorkRecord.NewRecord(Guid.NewGuid(), rid, new DateOnly(2026, 7, 1),
+                    600, null, null, null, null, "u", T0),
+                Tsumugi.Domain.Entities.DailyRecord.NewRecord(Guid.NewGuid(), rid, new DateOnly(2026, 7, 1),
+                    Attendance.Present, TransportKind.None, false, null, "u", T0),
+                Contract.Create(Guid.NewGuid(), rid, period, 22, "u", T0, Guid.NewGuid())
+            )
+        };
+        var stmtRepo = new InMemoryStatementRepo();
+        var recipientRepo = new InMemoryRecipientRepoForWork();
+        recipientRepo.Add(r);
+
+        var fake = new FakeFileSaveService();
+        var vm = Build(stmtRepo, recipientRepo, datasets, fileSaveService: fake);
+        vm.OfficeId = Office;
+        vm.Office = new OfficeDto(Office, "0000000001", "テスト事業所",
+            ServiceCategory.TypeB, RegionGrade.None, Guid.NewGuid());
+        vm.Year = 2026; vm.Month = 7;
+
+        await vm.CloseCommand.ExecuteAsync(null);
+
+        return (vm, fake, rid);
+    }
+
+    [Fact]
+    public async Task SaveSelectedStatementPdf_without_selection_sets_error()
+    {
+        var fake = new FakeFileSaveService();
+        var vm = Build(fileSaveService: fake);
+
+        await vm.SaveSelectedStatementPdfCommand.ExecuteAsync(null);
+
+        vm.ErrorMessage.Should().NotBeNullOrEmpty();
+        fake.LastSavedBytes.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SaveSelectedStatementPdf_invokes_service_with_pdf_bytes_when_statement_selected()
+    {
+        var (vm, fake, _) = await BuildWithClosedStatementAsync();
+        vm.SelectedStatement = vm.Statements.First();
+
+        await vm.SaveSelectedStatementPdfCommand.ExecuteAsync(null);
+
+        vm.ErrorMessage.Should().BeNull();
+        fake.LastSavedBytes.Should().NotBeNullOrEmpty();
+        fake.LastSuggestedFileName.Should().StartWith("工賃明細_");
+        fake.LastFileTypeName.Should().Be("PDF");
+        fake.LastExtension.Should().Be(".pdf");
+        vm.StatusMessage.Should().Contain("保存しました");
+    }
+
+    [Fact]
+    public async Task SavePaymentListPdf_without_statements_sets_error()
+    {
+        var fake = new FakeFileSaveService();
+        var vm = Build(fileSaveService: fake);
+
+        await vm.SavePaymentListPdfCommand.ExecuteAsync(null);
+
+        vm.ErrorMessage.Should().NotBeNullOrEmpty();
+        fake.LastSavedBytes.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SavePaymentListPdf_invokes_service_with_pdf_bytes()
+    {
+        var (vm, fake, _) = await BuildWithClosedStatementAsync();
+
+        await vm.SavePaymentListPdfCommand.ExecuteAsync(null);
+
+        vm.ErrorMessage.Should().BeNull();
+        fake.LastSavedBytes.Should().NotBeNullOrEmpty();
+        fake.LastSuggestedFileName.Should().StartWith("工賃支払一覧_");
+        fake.LastSuggestedFileName.Should().EndWith(".pdf");
     }
 }
 
