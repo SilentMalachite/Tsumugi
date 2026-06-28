@@ -41,16 +41,21 @@ public static class WageBasisExtractor
                 var effDaily = dailyByRecipient.TryGetValue(rid, out var dd)
                     ? DailyRecordPolicy.EffectiveByDate(dd).Values
                     : Enumerable.Empty<DailyRecord>();
-                var presentDays = effDaily.Count(r => r.Attendance == Attendance.Present);
+                var presentDates = effDaily
+                    .Where(r => r.Attendance == Attendance.Present)
+                    .Select(r => r.ServiceDate)
+                    .ToHashSet();
 
                 var effWork = workByRecipient.TryGetValue(rid, out var ww)
                     ? WorkRecordPolicy.EffectiveByDate(ww).Values
                     : Enumerable.Empty<WorkRecord>();
-                var totalMinutes = effWork.Sum(w => w.WorkedMinutes ?? 0);
-                var totalPiece = effWork.Sum(w => (w.PieceCount ?? 0) * (w.PieceUnitYen ?? 0));
-                var totalPoints = effWork.Sum(w => w.Points ?? 0);
+                var presentWork = effWork.Where(w => presentDates.Contains(w.WorkDate)).ToArray();
 
-                return new WageInputs(rid, presentDays, totalMinutes, totalPiece, totalPoints);
+                var totalMinutes = presentWork.Sum(w => w.WorkedMinutes ?? 0);
+                var totalPiece = presentWork.Sum(w => (w.PieceCount ?? 0) * (w.PieceUnitYen ?? 0));
+                var totalPoints = presentWork.Sum(w => w.Points ?? 0);
+
+                return new WageInputs(rid, presentDates.Count, totalMinutes, totalPiece, totalPoints);
             })
             .ToArray();
     }
