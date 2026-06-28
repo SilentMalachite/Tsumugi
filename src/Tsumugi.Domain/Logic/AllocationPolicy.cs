@@ -20,7 +20,24 @@ public static class AllocationPolicy
 
         var totalWeight = shares.Sum(s => s.Weight);
         if (totalWeight <= 0m)
-            return shares.Select(s => (s.Key, 0)).ToArray();
+        {
+            if (totalYen == 0)
+                return shares.Select(s => (s.Key, 0)).ToArray();
+
+            if (remainder == RemainderPolicy.ReserveToOffice)
+            {
+                var result = shares.Select(s => (s.Key, AmountYen: 0)).ToList();
+                var officeIndex = result.FindIndex(t => t.Key == officeReserveKey!.Value);
+                if (officeIndex < 0)
+                    result.Add((officeReserveKey!.Value, totalYen));
+                else
+                    result[officeIndex] = (result[officeIndex].Key, totalYen);
+                return result;
+            }
+
+            throw new InvalidOperationException(
+                $"配分対象の総重みが 0 のため、原資 {totalYen:N0} 円を最大剰余法で配分できません。事業所留保へ切り替えるか、原資を 0 円に設定してください。");
+        }
 
         var raw = shares
             .Select(s => (s.Key, Exact: (decimal)totalYen * s.Weight / totalWeight))
