@@ -42,3 +42,4 @@
 - [ ] **平均工賃月額の正式定義**: 厚労省告示/通知の定義（分母＝延べ利用者 or 実利用者、基準期間、控除項目）を一次情報で確認。確定までは `AverageWageMetric` の暫定式を `[Obsolete("要・通知突合（暫定）")]` 相当のコメントで明示し、テストで形を固定（分母切替に強い構造）する。
 - [ ] **QuestPDF ライセンス**: Community License の収益閾値・帰属表示要件を確認し、ADR 0013 で採否を確定。社会福祉事業の収益閾値超過リスクが大きい場合は Avalonia 印刷経路（PrintDialog → 視覚 Print）にフォールバックする判断を ADR に書く。
 - [ ] **工賃確定後の下層訂正方針**: 自動再計算しない（Correction で履歴に残す）方針を ADR 0012 に併記済。次月調整 or 再確定の手順は運用ガイドへ。
+- [ ] **PDF 帳票の日本語フォント埋込**: Phase 2 / Task E2 で QuestPDF による工賃明細 PDF を実装したが、日本語埋込フォントを構成していないためシステムフォントへフォールバックする。漢字は CJK 互換ブロック (U+2F00 帯) に化けて抽出される (カナ・ASCII は正常)。**運用投入前に Noto Sans CJK JP 等の日本語フォントを `assets/fonts/` に追加し `QuestPdfLicenseConfigurator` で `Settings.UseEnvironmentFonts = false` + `FontManager.RegisterFontFromEmbeddedResource` を行うこと**。ライセンス確認 (Noto は SIL OFL 1.1) も同時に実施。テスト側で漢字 substring の assertion はフォント埋込完了後に追加する。
