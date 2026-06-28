@@ -225,4 +225,29 @@ public sealed class CalculateWagesUseCaseTests
         preview.Lines[0].RecipientId.Should().Be(r1.Id);
         preview.Lines[0].AmountYen.Should().Be(100_000);
     }
+
+    [Fact]
+    public async Task Hourly_with_all_zero_minutes_and_positive_fund_throws_to_preserve_sigma_invariant()
+    {
+        var r1 = Rec(Guid.NewGuid());
+        var r2 = Rec(Guid.NewGuid());
+        var period = new DateRange(new DateOnly(2026, 4, 1), null);
+
+        var u = new CalculateWagesUseCase(
+            new FakeDailyRepo(new[] { Present(r1.Id, new DateOnly(2026, 7, 1)), Present(r2.Id, new DateOnly(2026, 7, 1)) }),
+            new FakeWorkRepo(new[]
+            {
+                Work(r1.Id, new DateOnly(2026, 7, 1), 0),
+                Work(r2.Id, new DateOnly(2026, 7, 1), 0),
+            }),
+            new FakeFundRepo(new[] { Fund(100_000) }),
+            new FakeSettingsRepo(new[] { Settings(WageMethod.Hourly) }),
+            new FakeContractRepo(new[] { ContractFor(r1.Id, period), ContractFor(r2.Id, period) }),
+            new FakeRecipientRepo(new[] { r1, r2 }),
+            AllStrategies);
+
+        var act = async () => await u.ExecuteAsync(Office, 2026, 7, default);
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("配分対象の総重みが 0 のため、原資 100,000 円を最大剰余法で配分できません。事業所留保へ切り替えるか、原資を 0 円に設定してください。");
+    }
 }

@@ -40,12 +40,23 @@ public sealed class HourlyWageStrategyTests
     }
 
     [Fact]
-    public void All_zero_minutes_yields_all_zero()
+    public void All_zero_minutes_with_zero_fund_yields_all_zero()
     {
         var a = new WageInputs(Guid.NewGuid(), 0, 0, 0, 0);
         var b = new WageInputs(Guid.NewGuid(), 0, 0, 0, 0);
-        var lines = new HourlyWageStrategy().Calculate(new[] { a, b }, Fund(100_000), Settings());
+        var lines = new HourlyWageStrategy().Calculate(new[] { a, b }, Fund(0), Settings());
+        lines.Sum(l => l.AmountYen).Should().Be(0);
         lines.Should().AllSatisfy(l => l.AmountYen.Should().Be(0));
+    }
+
+    [Fact]
+    public void All_zero_minutes_with_positive_fund_throws_to_preserve_sigma_invariant()
+    {
+        var a = new WageInputs(Guid.NewGuid(), 0, 0, 0, 0);
+        var b = new WageInputs(Guid.NewGuid(), 0, 0, 0, 0);
+        var act = () => new HourlyWageStrategy().Calculate(new[] { a, b }, Fund(100_000), Settings());
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("配分対象の総重みが 0 のため、原資 100,000 円を最大剰余法で配分できません。事業所留保へ切り替えるか、原資を 0 円に設定してください。");
     }
 
     [Fact]

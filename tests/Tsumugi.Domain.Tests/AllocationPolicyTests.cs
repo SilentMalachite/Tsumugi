@@ -21,12 +21,35 @@ public sealed class AllocationPolicyTests
     }
 
     [Fact]
-    public void All_zero_weights_yield_zero_amounts()
+    public void Zero_weights_with_zero_total_yields_all_zero()
     {
         var r = AllocationPolicy.Allocate(
+            new[] { S(1, 0m), S(2, 0m) }, 0,
+            RoundingRule.FloorYen, RemainderPolicy.LargestRemainder);
+        r.Should().HaveCount(2);
+        r.Should().AllSatisfy(t => t.AmountYen.Should().Be(0));
+    }
+
+    [Fact]
+    public void Zero_weights_with_positive_total_and_largest_remainder_throws()
+    {
+        var act = () => AllocationPolicy.Allocate(
             new[] { S(1, 0m), S(2, 0m) }, 1000,
             RoundingRule.FloorYen, RemainderPolicy.LargestRemainder);
-        r.Should().AllSatisfy(t => t.AmountYen.Should().Be(0));
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("配分対象の総重みが 0 のため、原資 1,000 円を最大剰余法で配分できません。事業所留保へ切り替えるか、原資を 0 円に設定してください。");
+    }
+
+    [Fact]
+    public void Zero_weights_with_positive_total_and_reserve_to_office_dumps_all_to_office()
+    {
+        var officeKey = new Guid("00000000-0000-0000-0000-000099999999");
+        var r = AllocationPolicy.Allocate(
+            new[] { S(1, 0m), S(2, 0m) }, 1000,
+            RoundingRule.FloorYen, RemainderPolicy.ReserveToOffice, officeKey);
+        r.Should().Contain(t => t.Key == officeKey && t.AmountYen == 1000);
+        r.Where(t => t.Key != officeKey).Sum(t => t.AmountYen).Should().Be(0);
+        r.Sum(t => t.AmountYen).Should().Be(1000);
     }
 
     [Fact]

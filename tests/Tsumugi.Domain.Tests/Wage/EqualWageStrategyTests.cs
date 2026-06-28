@@ -34,4 +34,30 @@ public sealed class EqualWageStrategyTests
         lines.Where(l => l.AmountYen > 0).Select(l => l.AmountYen).Should().AllBeEquivalentTo(50);
         lines.First(l => l.RecipientId == inputs[2].RecipientId).AmountYen.Should().Be(0);
     }
+
+    [Fact]
+    public void All_absent_with_zero_fund_yields_all_zero()
+    {
+        var inputs = new[]
+        {
+            new WageInputs(Guid.NewGuid(), 0, 0, 0, 0),
+            new WageInputs(Guid.NewGuid(), 0, 0, 0, 0),
+        };
+        var lines = new EqualWageStrategy().Calculate(inputs, Fund(0), Settings());
+        lines.Sum(l => l.AmountYen).Should().Be(0);
+        lines.Should().AllSatisfy(l => l.AmountYen.Should().Be(0));
+    }
+
+    [Fact]
+    public void All_absent_with_positive_fund_throws_to_preserve_sigma_invariant()
+    {
+        var inputs = new[]
+        {
+            new WageInputs(Guid.NewGuid(), 0, 0, 0, 0),
+            new WageInputs(Guid.NewGuid(), 0, 0, 0, 0),
+        };
+        var act = () => new EqualWageStrategy().Calculate(inputs, Fund(50_000), Settings());
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("配分対象の総重みが 0 のため、原資 50,000 円を最大剰余法で配分できません。事業所留保へ切り替えるか、原資を 0 円に設定してください。");
+    }
 }
