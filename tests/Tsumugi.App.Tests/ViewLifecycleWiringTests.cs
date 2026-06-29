@@ -7,7 +7,7 @@ using Xunit;
 namespace Tsumugi.App.Tests;
 
 /// <summary>
-/// 利用者選択を必要とする View が、画面ライフサイクル（Loaded）から
+/// 事業所選択や利用者選択を必要とする View が、画面ライフサイクル（Loaded）から
 /// ViewModel.InitializeAsync を呼ぶ配線になっていることをコードビハインドのテキストスキャンで担保する。
 /// 配線が消えると ComboBox が実画面で空のまま運用に出てしまう。
 /// </summary>
@@ -17,11 +17,17 @@ public sealed class ViewLifecycleWiringTests
     {
         "ContractView.axaml.cs",
         "DailyRecordView.axaml.cs",
+        "WageFundSettingsView.axaml.cs",
+        "WageCalculationView.axaml.cs",
+        "WageStatementView.axaml.cs",
     };
 
     [Theory]
     [InlineData("ContractView.axaml.cs")]
     [InlineData("DailyRecordView.axaml.cs")]
+    [InlineData("WageFundSettingsView.axaml.cs")]
+    [InlineData("WageCalculationView.axaml.cs")]
+    [InlineData("WageStatementView.axaml.cs")]
     public void View_code_behind_wires_InitializeAsync_to_Loaded(string viewFileName)
     {
         var path = LocateView(viewFileName);
@@ -35,7 +41,7 @@ public sealed class ViewLifecycleWiringTests
     public void All_views_requiring_recipient_load_are_covered()
     {
         // 万一スキャン対象配列を縮めて検査をすり抜けないよう、明示的に件数も pin。
-        ViewsRequiringInitialize.Should().HaveCount(2);
+        ViewsRequiringInitialize.Should().HaveCount(5);
     }
 
     private static string LocateView(string fileName)

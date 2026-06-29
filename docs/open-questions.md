@@ -17,7 +17,7 @@
 - [ ] **報酬・CSV ハードコード機械判定 (CLAUDE.md §ハード制約 3)**: Phase 1 には報酬算定・CSV 生成のサーフェスが存在しないため、現時点で「単位数/加算/CSV フィールド literal が混入していないこと」を機械判定するテストはエントリポイントを持たない。Phase 3 で報酬テーブル・CSV 生成器を導入する際に以下を同時に追加する: (a) Domain/Application のソース文字列スキャナで `単位数` `加算` `区分単価` 等の語彙が seed JSON 以外に現れたら失敗するテスト、(b) CSV カラム名 literal が `Tsumugi.Infrastructure.Csv` 名前空間以外に現れたら失敗するテスト、(c) 整数 literal の上限ガード（例: 1000 を超える decimal/int literal を Domain 内で禁止）。本項目は Phase 3 着手前のチェックリスト。
 - [ ] **Avalonia GUI 目視確認 (AC1-8 補完)**: Phase 1 では `AccessibilityDefaults` の値・適用・XAML 配線を全て CI テストで担保したが、実機起動でのフォント拡大追従、Reduce Motion の Transition 抑止、各 View のタブ順とフォーカス移動は手動 QA でしか確認できない。Phase 2 着手前に macOS/Windows 双方で 1 回ずつ目視チェックする。
 - [ ] **OfficeCapability の正式コード集合**: ADR 0006 の通り Phase 1 は `mealProvision` / `transportSupport` のみの暫定キーで運用。Phase 3 で報酬告示と突合して正式コード（食事提供体制加算 I/II、送迎加算 I/II 等）を確定する。
-- [ ] **`UpdateOffice` / `UpdateRecipient` の actor 監査ログ**: 引数で `actor` を受けているが Phase 1 では未使用（`_ = actor`）。Phase 2 で監査ログテーブルへ「いつ誰が何を更新したか」を追記する設計を入れる。
+- [x] **`UpdateOffice` / `UpdateRecipient` の actor 監査ログ（2026-06-29 クローズ / Phase 2）**: `UpdateOfficeUseCase` / `UpdateRecipientUseCase` で `IAuditTrail.RecordAsync` を呼び `actor` / `AuditAction.Update` / `TimeProvider` / 要約文字列を `AuditLog` に追記する実装に置換。空 actor は `ArgumentException` で弾く。各 UseCase テストで監査行が追記されることを検証済。
 - [ ] **性別など利用者属性の拡張**: 国保連請求 CSV では性別が必須項目の可能性が高い。Phase 1 の `Recipient` は漢字氏名 / カナ氏名 / 生年月日のみ。Phase 3 着手前に CSV インターフェース仕様書で必須項目を洗い出し、enum + migration を発行する。**進捗**: 2026-06-28 に `Certificate` 側に発行時点スナップショットとして `RecipientGender` 等を追加（ADR 0010）。`Recipient` マスタへの拡張は Phase 3 で CSV 仕様確認後に実施。
 
 ## Phase 1 受給者証 様式準拠（2026-06-28 追加）
