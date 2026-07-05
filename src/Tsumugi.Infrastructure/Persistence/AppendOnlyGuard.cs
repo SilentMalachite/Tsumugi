@@ -23,6 +23,7 @@ public static class AppendOnlyGuard
         typeof(WageSettings),
         typeof(WageStatement),
         typeof(AuditEntry),
+        typeof(WageAdjustment),
     };
 
     internal static IReadOnlySet<Type> GetAppendOnlyTypesForTests() => AppendOnlyTypes;
