@@ -82,8 +82,8 @@ public static class AllocationPolicy
     private static int Round(decimal exact, RoundingRule rule) => rule switch
     {
         RoundingRule.FloorYen => (int)Math.Floor(exact),
-        RoundingRule.CeilYen => (int)Math.Ceiling(exact),
-        RoundingRule.RoundHalfAwayFromZeroYen => (int)Math.Round(exact, MidpointRounding.AwayFromZero),
+        RoundingRule.Ceiling => (int)Math.Ceiling(exact),
+        RoundingRule.HalfUp => (int)Math.Round(exact, MidpointRounding.AwayFromZero),
         _ => throw new ArgumentOutOfRangeException(nameof(rule), rule, "未対応の RoundingRule"),
     };
 }
