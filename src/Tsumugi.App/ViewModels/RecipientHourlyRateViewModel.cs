@@ -33,10 +33,24 @@ public sealed partial class RecipientHourlyRateViewModel(
     public ObservableCollection<RecipientHourlyRateRowViewModel> Rates { get; } = new();
 
     partial void OnSelectedOfficeChanged(OfficeDto? value)
-        => SaveCommand.NotifyCanExecuteChanged();
+    {
+        SaveCommand.NotifyCanExecuteChanged();
+        if (SelectedOffice is not null && SelectedRecipient is not null)
+            _ = SafeRefreshRatesAsync();
+    }
 
     partial void OnSelectedRecipientChanged(RecipientDto? value)
-        => SaveCommand.NotifyCanExecuteChanged();
+    {
+        SaveCommand.NotifyCanExecuteChanged();
+        if (SelectedOffice is not null && SelectedRecipient is not null)
+            _ = SafeRefreshRatesAsync();
+    }
+
+    private async Task SafeRefreshRatesAsync()
+    {
+        try { await RefreshRatesAsync(); }
+        catch (Exception ex) { ErrorMessage = ex.Message; }
+    }
 
     private bool CanSave() => SelectedOffice is not null && SelectedRecipient is not null;
 

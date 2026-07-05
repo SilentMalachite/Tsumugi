@@ -134,6 +134,31 @@ public sealed class RecipientHourlyRateViewModelTests
     }
 
     [Fact]
+    public async Task When_both_office_and_recipient_selected_rates_auto_load()
+    {
+        var office = MakeOffice();
+        var recipient = MakeRecipient();
+
+        // 事前にリポジトリへ既存レートを注入
+        var period = new DateRange(new DateOnly(2025, 4, 1), null);
+        var preexisting = RecipientHourlyRate.NewRecord(
+            Guid.NewGuid(), office.Id, recipient.Id, period, 900, "u", DateTimeOffset.UnixEpoch);
+        _rates.Added.Add(preexisting);
+
+        var vm = NewVm();
+        await vm.LoadCommand.ExecuteAsync(null);
+
+        // 事業所→利用者の順に選択（fire-and-forget が走る）
+        vm.SelectedOffice = vm.Offices.Single();
+        vm.SelectedRecipient = vm.Recipients.Single();
+
+        // fire-and-forget タスクの完了を待つ
+        await Task.Delay(50);
+
+        vm.Rates.Should().ContainSingle(r => r.HourlyYen == 900);
+    }
+
+    [Fact]
     public async Task RefreshRates_populates_rate_list_for_selection()
     {
         var office = MakeOffice();
