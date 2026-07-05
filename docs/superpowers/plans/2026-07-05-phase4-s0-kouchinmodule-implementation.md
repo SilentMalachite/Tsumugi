@@ -497,9 +497,9 @@ public sealed record WageSettings : Entity
 
 - [ ] **Step 6: 既存の `WageSettings.Create` 呼出しを新シグネチャに追随**
 
-Run: `dotnet build src/Tsumugi.Application` で失敗箇所を洗い出す。既存の呼出しは `ConfigureWageSettingsUseCase` にあるので、そこは Task 8 で改修する（本タスクでは build エラーを避けるため、暫定的にオーバーロードを追加）。
+Run: `dotnet build src/Tsumugi.Application` で失敗箇所を洗い出す。既存の呼出しは `ConfigureWageSettingsUseCase` にあるので、そこは Task 7 で改修する（本タスクでは build エラーを避けるため、暫定的にオーバーロードを追加）。
 
-以下を `WageSettings` に追記（暫定・Task 8 で除去）:
+以下を `WageSettings` に追記（暫定・Task 7 で除去）:
 
 ```csharp
     // 暫定オーバーロード（Task 8 で除去）
@@ -790,7 +790,7 @@ public static class RecipientHourlyRatePolicy
         ArgumentNullException.ThrowIfNull(records);
         var groups = records
             .Where(r => r.RecipientId == recipientId)
-            .Where(r => r.Period.Includes(asOf))
+            .Where(r => r.Period.Contains(asOf))
             .GroupBy(r => r.Kind == RecordKind.New ? r.Id : r.OriginId ?? r.Id);
 
         int? latest = null;
@@ -812,7 +812,7 @@ public static class RecipientHourlyRatePolicy
 }
 ```
 
-（`DateRange.Includes(asOf)` が既存にあることを前提。もしなければ範囲判定を `r.Period.Start <= asOf && asOf <= r.Period.End` に置換する）
+（`DateRange.Contains(DateOnly)` は既存メソッド。`End` は nullable なので `Contains` 実装が open-ended 期間を受け付ける）
 
 - [ ] **Step 6: テスト緑化**
 
@@ -1587,10 +1587,11 @@ file sealed class FakeUnitOfWork : IUnitOfWork
 
 file sealed class FakeAuditTrail : IAuditTrail
 {
-    public List<(AuditAction, Guid, string?)> Entries { get; } = new();
-    public Task AppendAsync(string actor, AuditAction action, Guid targetId, string? summary,
-        CancellationToken ct)
-    { Entries.Add((action, targetId, summary)); return Task.CompletedTask; }
+    public List<(string Actor, AuditAction Action, string TargetType, Guid TargetId, string? Summary)> Entries { get; } = new();
+    public Task RecordAsync(
+        string actor, AuditAction action, string targetType, Guid targetId,
+        DateTimeOffset occurredAt, string? summary, CancellationToken ct)
+    { Entries.Add((actor, action, targetType, targetId, summary)); return Task.CompletedTask; }
 }
 ```
 
@@ -1627,7 +1628,8 @@ public sealed class RecordWageAdjustmentUseCase(
         var entity = WageAdjustment.NewRecord(Guid.NewGuid(), officeId, recipientId, yearMonth,
             type, amountYen, note, actor, clock.GetUtcNow());
         await repo.AddAsync(entity, ct);
-        await audit.AppendAsync(actor, AuditAction.Create, entity.Id,
+        await audit.RecordAsync(actor, AuditAction.Create, nameof(WageAdjustment),
+            entity.Id, clock.GetUtcNow(),
             $"WageAdjustment 追記 {type} {amountYen}円", ct);
         await uow.SaveChangesAsync(ct);
         return Map(entity);
