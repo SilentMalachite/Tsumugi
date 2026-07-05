@@ -31,7 +31,57 @@ public sealed class RecipientHourlyRateRepositoryTests : IClassFixture<SqliteFix
         await ctx.SaveChangesAsync();
 
         var list = await repo.ListByOfficeRecipientAsync(officeId, recipientId, default);
-        list.Should().ContainSingle().Which.HourlyYen.Should().Be(1200);
+        var loaded = list.Should().ContainSingle().Subject;
+        loaded.HourlyYen.Should().Be(1200);
+        loaded.Period.Start.Should().Be(new DateOnly(2026, 4, 1));
+        loaded.Period.End.Should().Be(new DateOnly(2026, 6, 30));
+    }
+
+    [Fact]
+    public async Task Add_open_ended_period_round_trips_null_end()
+    {
+        var officeId = Guid.NewGuid();
+        var recipientId = Guid.NewGuid();
+        var period = new DateRange(new DateOnly(2026, 7, 1), null);
+
+        await using var ctx = _fixture.NewContext();
+        var repo = new RecipientHourlyRateRepository(ctx);
+
+        var rate = RecipientHourlyRate.NewRecord(
+            Guid.NewGuid(), officeId, recipientId, period, 1500,
+            "u", DateTimeOffset.UtcNow);
+        await repo.AddAsync(rate, default);
+        await ctx.SaveChangesAsync();
+
+        var list = await repo.ListByOfficeRecipientAsync(officeId, recipientId, default);
+        var loaded = list.Should().ContainSingle().Subject;
+        loaded.Period.Start.Should().Be(new DateOnly(2026, 7, 1));
+        loaded.Period.End.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Two_new_records_with_different_period_starts_succeed()
+    {
+        var officeId = Guid.NewGuid();
+        var recipientId = Guid.NewGuid();
+        var period1 = new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2026, 4, 30));
+        var period2 = new DateRange(new DateOnly(2026, 5, 1), new DateOnly(2026, 5, 31));
+
+        await using var ctx = _fixture.NewContext();
+        var repo = new RecipientHourlyRateRepository(ctx);
+
+        var r1 = RecipientHourlyRate.NewRecord(
+            Guid.NewGuid(), officeId, recipientId, period1, 1000,
+            "u", DateTimeOffset.UtcNow);
+        var r2 = RecipientHourlyRate.NewRecord(
+            Guid.NewGuid(), officeId, recipientId, period2, 1200,
+            "u", DateTimeOffset.UtcNow);
+
+        await repo.AddAsync(r1, default);
+        await repo.AddAsync(r2, default);
+        var savedRows = await ctx.SaveChangesAsync();
+
+        savedRows.Should().Be(2);
     }
 
     [Fact]
