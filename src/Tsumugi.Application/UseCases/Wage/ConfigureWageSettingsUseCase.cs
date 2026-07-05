@@ -32,5 +32,6 @@ public sealed class ConfigureWageSettingsUseCase(
 
     internal static WageSettingsDto Map(WageSettings e) =>
         new(e.Id, e.OfficeId, e.Period, e.Method, e.Rounding, e.Remainder,
-            e.FiscalYearStartMonth, e.FixedDailyYen);
+            e.FiscalYearStartMonth, e.FixedDailyYen,
+            e.WorkAllowancePerDayYen, e.SkillAllowanceTiers, e.HourUnitMinutes);
 }
