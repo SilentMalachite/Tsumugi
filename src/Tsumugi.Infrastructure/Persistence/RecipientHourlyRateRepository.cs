@@ -22,4 +22,13 @@ public sealed class RecipientHourlyRateRepository(TsumugiDbContext db) : IRecipi
             .ToListAsync(ct);
         return rows.OrderBy(r => r.CreatedAt).ToArray();
     }
+
+    public async Task<IReadOnlyList<RecipientHourlyRate>> ListByOfficeAsync(
+        Guid officeId, CancellationToken ct)
+    {
+        var rows = await db.RecipientHourlyRates.AsNoTracking()
+            .Where(r => r.OfficeId == officeId)
+            .ToListAsync(ct);
+        return rows.OrderBy(r => r.CreatedAt).ToArray();
+    }
 }

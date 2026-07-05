@@ -61,4 +61,28 @@ public class WageAdjustmentPolicyTests
         var n = New(1000, At(1));
         WageAdjustmentPolicy.SumEffective(new[] { n }, A, Ym).Should().Be(1000);
     }
+
+    [Fact]
+    public void Effective_follows_correction_of_correction_chain()
+    {
+        var n = New(1000, At(1));
+        var c1 = WageAdjustment.Correction(Guid.NewGuid(), Office, A, Ym,
+            WageAdjustmentType.SpecialAllowance, n.Id, 1500, null, "u", At(2));
+        var c2 = WageAdjustment.Correction(Guid.NewGuid(), Office, A, Ym,
+            WageAdjustmentType.SpecialAllowance, c1.Id, 2000, null, "u", At(3));
+        WageAdjustmentPolicy.EffectiveYen(new[] { n, c1, c2 }, A, Ym,
+            WageAdjustmentType.SpecialAllowance).Should().Be(2000);
+    }
+
+    [Fact]
+    public void Effective_returns_zero_when_cancel_targets_correction()
+    {
+        var n = New(1000, At(1));
+        var c1 = WageAdjustment.Correction(Guid.NewGuid(), Office, A, Ym,
+            WageAdjustmentType.SpecialAllowance, n.Id, 1500, null, "u", At(2));
+        var x = WageAdjustment.Cancel(Guid.NewGuid(), Office, A, Ym,
+            WageAdjustmentType.SpecialAllowance, c1.Id, "u", At(3));
+        WageAdjustmentPolicy.EffectiveYen(new[] { n, c1, x }, A, Ym,
+            WageAdjustmentType.SpecialAllowance).Should().Be(0);
+    }
 }

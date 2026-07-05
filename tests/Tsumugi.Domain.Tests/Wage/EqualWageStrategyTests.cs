@@ -17,6 +17,13 @@ public sealed class EqualWageStrategyTests
         WageMethod.Equal, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, null,
         workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15, "t", T);
 
+    private static WageSettings SettingsWithAllowances() => WageSettings.Create(
+        Guid.NewGuid(), Office, new DateRange(new DateOnly(2026, 4, 1), null),
+        WageMethod.Equal, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, null,
+        workAllowancePerDayYen: 500,
+        skillAllowanceTiers: new[] { new SkillAllowanceTier(55, 2000) },
+        hourUnitMinutes: 15, "t", T);
+
     private static WageFund Fund(int yen) =>
         WageFund.NewRecord(Guid.NewGuid(), Office, new YearMonth(2026, 7), yen, null, "t", T);
 
@@ -47,6 +54,18 @@ public sealed class EqualWageStrategyTests
         var lines = new EqualWageStrategy().Calculate(inputs, Fund(0), Settings());
         lines.Sum(l => l.AmountYen).Should().Be(0);
         lines.Should().AllSatisfy(l => l.AmountYen.Should().Be(0));
+    }
+
+    [Fact]
+    public void Adds_work_and_skill_allowance_on_top_of_equal_split()
+    {
+        // 出席 20 日・60h(=3600分) の利用者: 均等割 100 + 作業手当 20*500=10000 + 職能手当 2000
+        var inputs = new[]
+        {
+            new WageInputs(Guid.NewGuid(), PresentDays: 20, TotalWorkedMinutes: 3600, 0, 0),
+        };
+        var lines = new EqualWageStrategy().Calculate(inputs, Fund(100), SettingsWithAllowances());
+        lines.Single().AmountYen.Should().Be(100 + 10_000 + 2_000);
     }
 
     [Fact]

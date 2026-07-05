@@ -16,18 +16,12 @@ public sealed class FixedWageStrategy : IWageMethodStrategy
         if (settings.FixedDailyYen is not { } daily)
             throw new InvalidOperationException("Fixed 方式では WageSettings.FixedDailyYen が必要です。");
 
-        var work = settings.WorkAllowancePerDayYen ?? 0;
-        var tiers = settings.SkillAllowanceTiers;
-
         return inputs
             .Select(i =>
             {
                 var baseYen = i.PresentDays * daily;
-                var workAllow = i.PresentDays * work;
-                var totalHours = i.TotalWorkedMinutes / 60;
-                var skillAllow = 0;
-                foreach (var t in tiers)
-                    if (totalHours >= t.MinHours) skillAllow = t.Yen;
+                var workAllow = AllowancePolicy.WorkAllowanceYen(settings, i.PresentDays);
+                var skillAllow = AllowancePolicy.SkillAllowanceYen(settings, i.TotalWorkedMinutes);
                 var total = baseYen + workAllow + skillAllow;
                 return new WageLineItem(i.RecipientId, total,
                     $"固定方式: {i.PresentDays}日×{daily:N0}円 + 作業手当{workAllow:N0}円 + 職能手当{skillAllow:N0}円");

@@ -11,25 +11,18 @@ public static class RecipientHourlyRatePolicy
         IEnumerable<RecipientHourlyRate> records, Guid recipientId, DateOnly asOf)
     {
         ArgumentNullException.ThrowIfNull(records);
-        var groups = records
+        var candidates = records
             .Where(r => r.RecipientId == recipientId)
-            .Where(r => r.Period.Contains(asOf))
-            .GroupBy(r => r.Kind == RecordKind.New ? r.Id : r.OriginId ?? r.Id);
+            .ToList();
 
-        int? latest = null;
-        DateTimeOffset latestAt = DateTimeOffset.MinValue;
-        foreach (var g in groups)
-        {
-            var ordered = g.OrderBy(r => r.CreatedAt).ThenBy(r => r.Id).ToList();
-            if (ordered.Count == 0) continue;
-            var last = ordered[^1];
-            if (last.Kind == RecordKind.Cancel) continue;
-            if (last.CreatedAt >= latestAt)
-            {
-                latestAt = last.CreatedAt;
-                latest = last.HourlyYen;
-            }
-        }
-        return latest;
+        // 連鎖を末端まで解決してから、末端レコードの期間で asOf を判定する
+        // （訂正で期間自体が変わった場合も末端の期間が実効）
+        var tip = AppendOnlyChainPolicy
+            .EffectiveTips(candidates, r => r.Kind, r => r.OriginId)
+            .Where(t => t.Period.Contains(asOf))
+            .OrderByDescending(t => t.CreatedAt)
+            .ThenBy(t => t.Id)
+            .FirstOrDefault();
+        return tip?.HourlyYen;
     }
 }

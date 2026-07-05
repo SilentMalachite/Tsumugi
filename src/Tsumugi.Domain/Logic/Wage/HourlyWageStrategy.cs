@@ -10,6 +10,8 @@ namespace Tsumugi.Domain.Logic.Wage;
 ///   ROUND(合計分/60 × 時給) を適用し、作業手当・職能手当を加算（KouchinModule v5 方式）。
 /// ② DailyBreakdown なし・fund あり: 従来の WageFund 比例配分（後方互換）。
 /// ③ DailyBreakdown なし・fund なし: 時給 0 ＋ 作業手当・職能手当のみ。
+/// なお ①③ の混在（就労実績があるのに DailyBreakdown が無い利用者が同一バッチに含まれる）は
+/// 過少支給防止のため ArgumentException で拒否する。
 /// </summary>
 public sealed class HourlyWageStrategy : IWageMethodStrategy
 {
@@ -21,8 +23,6 @@ public sealed class HourlyWageStrategy : IWageMethodStrategy
         ArgumentNullException.ThrowIfNull(inputs);
         ArgumentNullException.ThrowIfNull(settings);
 
-        var work = settings.WorkAllowancePerDayYen ?? 0;
-        var tiers = settings.SkillAllowanceTiers;
         var rule = settings.Rounding;
         var unit = settings.HourUnitMinutes;
 
@@ -50,6 +50,13 @@ public sealed class HourlyWageStrategy : IWageMethodStrategy
         var items = new List<WageLineItem>(inputs.Count);
         foreach (var input in inputs)
         {
+            // 混在バッチの防御: 一部の利用者にのみ DailyBreakdown がある状態で、
+            // 就労実績のある利用者の時給分を黙って 0 円にしない（過少支給の防止）
+            if (hasAnyBreakdown && input.DailyBreakdown is null && input.TotalWorkedMinutes > 0)
+                throw new ArgumentException(
+                    $"就労実績があるのに DailyBreakdown が未指定の利用者が含まれています（利用者ID: {input.RecipientId}）。" +
+                    "時給マスタの設定漏れがないか確認してください。", nameof(inputs));
+
             var hourlyYen = 0;
             if (input.DailyBreakdown is { } days)
             {
@@ -70,14 +77,8 @@ public sealed class HourlyWageStrategy : IWageMethodStrategy
                 }
             }
 
-            var workAllow = input.PresentDays * work;
-
-            var totalHours = input.TotalWorkedMinutes / 60;
-            var skillAllow = 0;
-            foreach (var t in tiers)
-            {
-                if (totalHours >= t.MinHours) skillAllow = t.Yen;
-            }
+            var workAllow = AllowancePolicy.WorkAllowanceYen(settings, input.PresentDays);
+            var skillAllow = AllowancePolicy.SkillAllowanceYen(settings, input.TotalWorkedMinutes);
 
             var total = hourlyYen + workAllow + skillAllow;
             var summary =

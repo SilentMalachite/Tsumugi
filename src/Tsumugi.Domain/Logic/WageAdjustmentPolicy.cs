@@ -7,20 +7,28 @@ namespace Tsumugi.Domain.Logic;
 
 public static class WageAdjustmentPolicy
 {
-    public static int EffectiveYen(
+    /// <summary>(recipientId, ym, type) の実効レコード（取消されていない連鎖の末端）を返す。</summary>
+    public static WageAdjustment? EffectiveRecord(
         IEnumerable<WageAdjustment> records,
         Guid recipientId, YearMonth ym, WageAdjustmentType type)
     {
         ArgumentNullException.ThrowIfNull(records);
-        var chain = records
+        var candidates = records
             .Where(r => r.RecipientId == recipientId && r.YearMonth == ym && r.Type == type)
-            .GroupBy(r => r.Kind == RecordKind.New ? r.Id : r.OriginId ?? r.Id)
-            .Select(g => g.OrderBy(r => r.CreatedAt).ThenBy(r => r.Id).ToList())
-            .Where(g => g.Count > 0 && g[^1].Kind != RecordKind.Cancel)
-            .OrderByDescending(g => g[^1].CreatedAt)
+            .ToList();
+
+        // 同一キーの New は partial unique index で一意だが、防御的に最新連鎖を採用する
+        return AppendOnlyChainPolicy
+            .EffectiveTips(candidates, r => r.Kind, r => r.OriginId)
+            .OrderByDescending(t => t.CreatedAt)
+            .ThenBy(t => t.Id)
             .FirstOrDefault();
-        return chain is null ? 0 : chain[^1].AmountYen;
     }
+
+    public static int EffectiveYen(
+        IEnumerable<WageAdjustment> records,
+        Guid recipientId, YearMonth ym, WageAdjustmentType type) =>
+        EffectiveRecord(records, recipientId, ym, type)?.AmountYen ?? 0;
 
     public static int SumEffective(
         IEnumerable<WageAdjustment> records, Guid recipientId, YearMonth ym)

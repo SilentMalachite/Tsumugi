@@ -14,13 +14,6 @@ public sealed partial class SkillAllowanceTierViewModel : ViewModelBase
     public SkillAllowanceTierViewModel(Action<SkillAllowanceTierViewModel> onRemove)
         => _onRemove = onRemove;
 
-    internal SkillAllowanceTierViewModel(int minHours, int yen, Action<SkillAllowanceTierViewModel> onRemove)
-    {
-        _minHours = minHours;
-        _yen = yen;
-        _onRemove = onRemove;
-    }
-
     /// <summary>行を削除する（DataTemplate 内ボタンから呼ばれる）。</summary>
     [RelayCommand]
     private void Remove() => _onRemove(this);

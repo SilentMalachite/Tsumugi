@@ -71,4 +71,8 @@ file sealed class FakeQueryHourlyRateRepo(IEnumerable<RecipientHourlyRate> seed)
         Guid officeId, Guid recipientId, CancellationToken ct) =>
         Task.FromResult<IReadOnlyList<RecipientHourlyRate>>(
             _items.Where(r => r.OfficeId == officeId && r.RecipientId == recipientId).ToArray());
+    public Task<IReadOnlyList<RecipientHourlyRate>> ListByOfficeAsync(
+        Guid officeId, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyList<RecipientHourlyRate>>(
+            _items.Where(r => r.OfficeId == officeId).ToArray());
 }

@@ -1,6 +1,7 @@
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Application.Validation;
+using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic;
 using Tsumugi.Domain.Logic.Wage;
@@ -63,11 +64,16 @@ public sealed class CalculateWagesUseCase(
         IReadOnlyList<WageInputs> inputs = baseInputs;
         if (settings.Method == WageMethod.Hourly && targetRecipients.Count > 0)
         {
+            // N+1 回避: 事業所分を一括取得して利用者ごとに引き当てる
+            var allRates = await hourlyRateRepo.ListByOfficeAsync(officeId, ct);
+            var ratesByRecipient = allRates
+                .GroupBy(r => r.RecipientId)
+                .ToDictionary(g => g.Key, g => (IReadOnlyList<RecipientHourlyRate>)g.ToArray());
+
             var updatedInputs = new List<WageInputs>(baseInputs.Count);
             foreach (var baseInput in baseInputs)
             {
-                var rates = await hourlyRateRepo.ListByOfficeRecipientAsync(officeId, baseInput.RecipientId, ct);
-                if (rates.Count == 0)
+                if (!ratesByRecipient.TryGetValue(baseInput.RecipientId, out var rates))
                 {
                     updatedInputs.Add(baseInput);
                     continue;
@@ -93,10 +99,16 @@ public sealed class CalculateWagesUseCase(
                     .ToHashSet();
 
                 var breakdown = new List<DailyHourlyBasis>();
-                foreach (var work in effectiveWork.Where(w => presentDates.Contains(w.WorkDate)))
+                // 就労時間 0（欠席時対応等で分数のみ 0 のケース）は賃金に寄与しないため、
+                // 時給期間の欠落チェック対象から除外する（HourlyWageStrategy の混在バッチ判定と同じ基準）
+                foreach (var work in effectiveWork.Where(w =>
+                    presentDates.Contains(w.WorkDate) && (w.WorkedMinutes ?? 0) > 0))
                 {
                     var hourlyYen = RecipientHourlyRatePolicy.EffectiveYen(rates, baseInput.RecipientId, work.WorkDate);
-                    if (hourlyYen is null) continue;
+                    if (hourlyYen is null)
+                        throw new InvalidOperationException(
+                            $"利用者 {baseInput.RecipientId} の {work.WorkDate:yyyy-MM-dd} に実効時給が見つかりません。" +
+                            "時給期間に欠落がないか確認してください。就労日を黙って計算から除外することはできません。");
                     breakdown.Add(new DailyHourlyBasis(work.WorkDate, work.WorkedMinutes ?? 0, hourlyYen.Value));
                 }
 
@@ -107,6 +119,20 @@ public sealed class CalculateWagesUseCase(
                 }
 
                 updatedInputs.Add(baseInput with { DailyBreakdown = breakdown });
+            }
+
+            // 混在バッチの防御: 一部の利用者だけ時給マスタがある状態で計算すると、
+            // 未設定者の時給分が黙って 0 円になるため、設定漏れとして明示的に失敗させる
+            if (updatedInputs.Any(i => i.DailyBreakdown is not null))
+            {
+                var uncovered = updatedInputs
+                    .Where(i => i.DailyBreakdown is null && i.TotalWorkedMinutes > 0)
+                    .Select(i => i.RecipientId)
+                    .ToArray();
+                if (uncovered.Length > 0)
+                    throw new InvalidOperationException(
+                        $"時給マスタが未設定のまま就労実績がある利用者がいます（利用者ID: {string.Join(", ", uncovered)}）。" +
+                        "全対象者の時給を設定してください。");
             }
             inputs = updatedInputs;
         }

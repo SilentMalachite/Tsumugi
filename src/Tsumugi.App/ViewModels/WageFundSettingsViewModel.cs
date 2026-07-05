@@ -52,10 +52,6 @@ public sealed partial class WageFundSettingsViewModel(
         => SkillAllowanceTiers.Add(new SkillAllowanceTierViewModel(t => SkillAllowanceTiers.Remove(t)));
 
     [RelayCommand]
-    private void RemoveSkillAllowanceTier(SkillAllowanceTierViewModel tier)
-        => SkillAllowanceTiers.Remove(tier);
-
-    [RelayCommand]
     public async Task SaveFundAsync()
     {
         try

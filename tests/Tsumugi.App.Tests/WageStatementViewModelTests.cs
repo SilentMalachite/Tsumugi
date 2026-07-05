@@ -395,6 +395,8 @@ internal sealed class WageStatementViewModelTests_EmptyHourlyRateRepo : IRecipie
     public Task AddAsync(Tsumugi.Domain.Entities.RecipientHourlyRate rate, CancellationToken ct) => Task.CompletedTask;
     public Task<IReadOnlyList<Tsumugi.Domain.Entities.RecipientHourlyRate>> ListByOfficeRecipientAsync(Guid officeId, Guid recipientId, CancellationToken ct)
         => Task.FromResult<IReadOnlyList<Tsumugi.Domain.Entities.RecipientHourlyRate>>(Array.Empty<Tsumugi.Domain.Entities.RecipientHourlyRate>());
+    public Task<IReadOnlyList<Tsumugi.Domain.Entities.RecipientHourlyRate>> ListByOfficeAsync(Guid officeId, CancellationToken ct)
+        => Task.FromResult<IReadOnlyList<Tsumugi.Domain.Entities.RecipientHourlyRate>>(Array.Empty<Tsumugi.Domain.Entities.RecipientHourlyRate>());
 }
 
 internal sealed class WageStatementViewModelTests_EmptyAdjustmentRepo : IWageAdjustmentRepository

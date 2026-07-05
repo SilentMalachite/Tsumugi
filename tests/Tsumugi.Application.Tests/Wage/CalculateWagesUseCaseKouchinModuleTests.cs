@@ -144,4 +144,115 @@ public sealed class CalculateWagesUseCaseKouchinModuleTests
             "ベースライン 16688 + 特別手当 1000 = 17688 円");
         line.BasisSummary.Should().Contain("1,000", "特別手当の内訳が BasisSummary に含まれる");
     }
+
+    // ============================================================
+    // 過少支給防止: 時給期間の欠落・時給マスタ未設定は黙って 0 円にせず失敗させる
+    // ============================================================
+
+    [Fact]
+    public async Task Calculate_throws_when_rate_period_has_gap_on_worked_day()
+    {
+        // 出勤 15 日（5/1〜5/15）に対し、時給期間が 5/1〜5/10 と 5/21〜 のみ → 5/11〜5/15 が欠落
+        var settings = BuildSettings();
+        var (recipient, contract) = BuildRecipient();
+        var (daily, work) = BuildRecords();
+        var rates = new[]
+        {
+            RecipientHourlyRate.NewRecord(Guid.NewGuid(), OfficeId, RecipientId,
+                new DateRange(new DateOnly(2026, 5, 1), new DateOnly(2026, 5, 10)),
+                hourlyYen: 350, createdBy: "tester", createdAt: T0),
+            RecipientHourlyRate.NewRecord(Guid.NewGuid(), OfficeId, RecipientId,
+                new DateRange(new DateOnly(2026, 5, 21), null),
+                hourlyYen: 350, createdBy: "tester", createdAt: T0),
+        };
+
+        var sut = new CalculateWagesUseCase(
+            new FakeDailyRecordRepoSeeded(daily),
+            new FakeWorkRecordRepoSeeded(work),
+            new FakeWageFundRepoSeeded(Array.Empty<WageFund>()),
+            new FakeWageSettingsRepoSeeded(new[] { settings }),
+            new FakeContractRepoSeeded(new[] { contract }),
+            new FakeRecipientRepoSeeded(new[] { recipient }),
+            new FakeRecipientHourlyRateRepoSeeded(rates),
+            new FakeWageAdjustmentRepoSeeded(Array.Empty<WageAdjustment>()),
+            AllStrategies);
+
+        var act = () => sut.ExecuteAsync(OfficeId, year: 2026, month: 5, ct: default);
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*実効時給が見つかりません*");
+    }
+
+    [Fact]
+    public async Task Calculate_does_not_throw_when_gap_day_has_zero_worked_minutes()
+    {
+        // 出勤日だが就労時間 0 分（欠席時対応等）の日が時給期間の欠落に落ちても、
+        // 賃金に寄与しない日なので時給欠落エラーの対象にしない
+        var settings = BuildSettings();
+        var (recipient, contract) = BuildRecipient();
+        var daily = AttendanceDates
+            .Select(d => DailyRecord.NewRecord(Guid.NewGuid(), RecipientId, d,
+                Attendance.Present, TransportKind.None, false, null, "tester", T0))
+            .ToArray();
+        var work = AttendanceDates
+            .Select(d => WorkRecord.NewRecord(Guid.NewGuid(), RecipientId, d,
+                workedMinutes: d == AttendanceDates[0] ? 0 : 105,
+                pieceCount: null, pieceUnitYen: null, points: null,
+                note: null, createdBy: "tester", createdAt: T0))
+            .ToArray();
+        // レート期間は先頭日（0分）を除いた残り14日分のみカバーする
+        var rate = RecipientHourlyRate.NewRecord(Guid.NewGuid(), OfficeId, RecipientId,
+            new DateRange(AttendanceDates[1], AttendanceDates[^1]),
+            hourlyYen: 350, createdBy: "tester", createdAt: T0);
+
+        var sut = new CalculateWagesUseCase(
+            new FakeDailyRecordRepoSeeded(daily),
+            new FakeWorkRecordRepoSeeded(work),
+            new FakeWageFundRepoSeeded(Array.Empty<WageFund>()),
+            new FakeWageSettingsRepoSeeded(new[] { settings }),
+            new FakeContractRepoSeeded(new[] { contract }),
+            new FakeRecipientRepoSeeded(new[] { recipient }),
+            new FakeRecipientHourlyRateRepoSeeded(new[] { rate }),
+            new FakeWageAdjustmentRepoSeeded(Array.Empty<WageAdjustment>()),
+            AllStrategies);
+
+        var preview = await sut.ExecuteAsync(OfficeId, year: 2026, month: 5, ct: default);
+        preview.Lines.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task Calculate_throws_when_some_recipient_lacks_hourly_rate()
+    {
+        // A は時給あり、B はレート未設定のまま就労実績あり → 混在は設定漏れとして失敗
+        var settings = BuildSettings();
+        var (recipientA, contractA) = BuildRecipient();
+        var (dailyA, workA) = BuildRecords();
+        var rateA = BuildHourlyRate();
+
+        var bId = Guid.Parse("20000000-0000-0000-0000-000000000003");
+        var recipientB = Recipient.Create(bId, "テスト次郎", "テストジロウ",
+            new DateOnly(1991, 1, 1), "tester", T0, Guid.NewGuid());
+        var contractB = Contract.Create(Guid.NewGuid(), bId,
+            new DateRange(new DateOnly(2026, 4, 1), null),
+            contractedSupplyDays: 22, createdBy: "tester", createdAt: T0, concurrencyToken: Guid.NewGuid());
+        var dailyB = DailyRecord.NewRecord(Guid.NewGuid(), bId, new DateOnly(2026, 5, 1),
+            Attendance.Present, TransportKind.None, false, null, "tester", T0);
+        var workB = WorkRecord.NewRecord(Guid.NewGuid(), bId, new DateOnly(2026, 5, 1),
+            workedMinutes: 105, pieceCount: null, pieceUnitYen: null, points: null,
+            note: null, createdBy: "tester", createdAt: T0);
+
+        var sut = new CalculateWagesUseCase(
+            new FakeDailyRecordRepoSeeded(dailyA.Append(dailyB)),
+            new FakeWorkRecordRepoSeeded(workA.Append(workB)),
+            new FakeWageFundRepoSeeded(Array.Empty<WageFund>()),
+            new FakeWageSettingsRepoSeeded(new[] { settings }),
+            new FakeContractRepoSeeded(new[] { contractA, contractB }),
+            new FakeRecipientRepoSeeded(new[] { recipientA, recipientB }),
+            new FakeRecipientHourlyRateRepoSeeded(new[] { rateA }),
+            new FakeWageAdjustmentRepoSeeded(Array.Empty<WageAdjustment>()),
+            AllStrategies);
+
+        var act = () => sut.ExecuteAsync(OfficeId, year: 2026, month: 5, ct: default);
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*時給マスタが未設定*");
+    }
 }

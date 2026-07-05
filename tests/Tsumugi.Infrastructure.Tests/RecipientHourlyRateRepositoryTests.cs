@@ -60,6 +60,32 @@ public sealed class RecipientHourlyRateRepositoryTests : IClassFixture<SqliteFix
     }
 
     [Fact]
+    public async Task ListByOffice_returns_all_recipients_of_office_only()
+    {
+        var officeId = Guid.NewGuid();
+        var otherOfficeId = Guid.NewGuid();
+        var recipientA = Guid.NewGuid();
+        var recipientB = Guid.NewGuid();
+        var period = new DateRange(new DateOnly(2026, 4, 1), null);
+
+        await using var ctx = _fixture.NewContext();
+        var repo = new RecipientHourlyRateRepository(ctx);
+
+        await repo.AddAsync(RecipientHourlyRate.NewRecord(
+            Guid.NewGuid(), officeId, recipientA, period, 1000, "u", DateTimeOffset.UtcNow), default);
+        await repo.AddAsync(RecipientHourlyRate.NewRecord(
+            Guid.NewGuid(), officeId, recipientB, period, 1200, "u", DateTimeOffset.UtcNow), default);
+        await repo.AddAsync(RecipientHourlyRate.NewRecord(
+            Guid.NewGuid(), otherOfficeId, recipientA, period, 1500, "u", DateTimeOffset.UtcNow), default);
+        await ctx.SaveChangesAsync();
+
+        var list = await repo.ListByOfficeAsync(officeId, default);
+        list.Should().HaveCount(2);
+        list.Select(r => r.RecipientId).Should().BeEquivalentTo(new[] { recipientA, recipientB });
+        list.Should().OnlyContain(r => r.OfficeId == officeId);
+    }
+
+    [Fact]
     public async Task Two_new_records_with_different_period_starts_succeed()
     {
         var officeId = Guid.NewGuid();

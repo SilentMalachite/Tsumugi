@@ -52,6 +52,67 @@ public sealed class SetRecipientHourlyRateUseCaseTests
     }
 
     [Fact]
+    public async Task Execute_corrects_existing_period_instead_of_duplicating_new()
+    {
+        var repo = new FakeHourlyRateRepo();
+        var audit = new FakeHourlyRateAudit();
+        var uc = new SetRecipientHourlyRateUseCase(repo, new FakeHourlyRateUow(), audit, TimeProvider.System);
+
+        var first = await uc.ExecuteAsync(Office, Recipient, Period, 800, "alice", default);
+        var second = await uc.ExecuteAsync(Office, Recipient, Period, 850, "alice", default);
+
+        second.Kind.Should().Be(RecordKind.Correct, "同一開始日の再保存は New の重複ではなく訂正になる");
+        second.OriginId.Should().Be(first.Id);
+        repo.Added.Count(r => r.Kind == RecordKind.New).Should().Be(1,
+            "partial unique index (Kind=New, PeriodStart) と整合する");
+        audit.Entries[1].Action.Should().Be(AuditAction.Update);
+    }
+
+    [Fact]
+    public async Task Execute_correction_chains_hop_by_hop_on_third_save()
+    {
+        var repo = new FakeHourlyRateRepo();
+        var uc = new SetRecipientHourlyRateUseCase(
+            repo, new FakeHourlyRateUow(), new FakeHourlyRateAudit(), TimeProvider.System);
+
+        await uc.ExecuteAsync(Office, Recipient, Period, 800, "alice", default);
+        var second = await uc.ExecuteAsync(Office, Recipient, Period, 850, "alice", default);
+        var third = await uc.ExecuteAsync(Office, Recipient, Period, 900, "alice", default);
+
+        third.Kind.Should().Be(RecordKind.Correct);
+        third.OriginId.Should().Be(second.Id, "訂正の訂正は直前レコードを指す（hop-by-hop 規約）");
+    }
+
+    [Fact]
+    public async Task Execute_creates_new_record_for_different_period_start()
+    {
+        var repo = new FakeHourlyRateRepo();
+        var uc = new SetRecipientHourlyRateUseCase(
+            repo, new FakeHourlyRateUow(), new FakeHourlyRateAudit(), TimeProvider.System);
+
+        await uc.ExecuteAsync(Office, Recipient, Period, 800, "alice", default);
+        var laterPeriod = new DateRange(new DateOnly(2026, 10, 1), null);
+        var second = await uc.ExecuteAsync(Office, Recipient, laterPeriod, 850, "alice", default);
+
+        second.Kind.Should().Be(RecordKind.New, "開始日が異なる期間は独立した New になる");
+        second.OriginId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Execute_rejects_reregistering_cancelled_period_start()
+    {
+        var repo = new FakeHourlyRateRepo();
+        var uc = new SetRecipientHourlyRateUseCase(
+            repo, new FakeHourlyRateUow(), new FakeHourlyRateAudit(), TimeProvider.System);
+        var first = await uc.ExecuteAsync(Office, Recipient, Period, 800, "alice", default);
+        repo.Added.Add(RecipientHourlyRate.Cancel(
+            Guid.NewGuid(), Office, Recipient, Period, first.Id, "alice", DateTimeOffset.UtcNow));
+
+        var act = async () => await uc.ExecuteAsync(Office, Recipient, Period, 850, "alice", default);
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*取消済み*");
+    }
+
+    [Fact]
     public async Task Execute_rejects_empty_actor()
     {
         var uc = new SetRecipientHourlyRateUseCase(
@@ -81,6 +142,10 @@ file sealed class FakeHourlyRateRepo : IRecipientHourlyRateRepository
         Guid officeId, Guid recipientId, CancellationToken ct) =>
         Task.FromResult<IReadOnlyList<RecipientHourlyRate>>(Added
             .Where(r => r.OfficeId == officeId && r.RecipientId == recipientId).ToArray());
+    public Task<IReadOnlyList<RecipientHourlyRate>> ListByOfficeAsync(
+        Guid officeId, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyList<RecipientHourlyRate>>(Added
+            .Where(r => r.OfficeId == officeId).ToArray());
 }
 
 file sealed class FakeHourlyRateUow : IUnitOfWork

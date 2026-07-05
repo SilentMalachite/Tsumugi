@@ -104,25 +104,25 @@ public sealed partial class WageAdjustmentViewModel(
 
         var ym = ToYearMonth(SelectedYearMonthInt);
         var dirty = Rows.Where(r => r.IsDirty).ToList();
+        if (dirty.Count == 0) return;
 
         try
         {
-            foreach (var row in dirty)
-            {
-                await recordAdjustment.ExecuteAsync(
-                    SelectedOffice.Id, row.Recipient.Id, ym,
-                    WageAdjustmentType.SpecialAllowance, row.SpecialAllowanceYen,
-                    note: null,
-                    actor: Environment.UserName, ct);
-            }
+            // 全行を 1 トランザクションで保存（部分保存を作らない）
+            await recordAdjustment.ExecuteManyAsync(
+                SelectedOffice.Id,
+                dirty.Select(r => (r.Recipient.Id, r.SpecialAllowanceYen)).ToArray(),
+                ym, WageAdjustmentType.SpecialAllowance,
+                note: null,
+                actor: Environment.UserName, ct);
 
             foreach (var row in dirty)
                 row.ResetDirty();
 
             ErrorMessage = null;
         }
-        catch (ArgumentException ex) { ErrorMessage = ex.Message; }
-        catch (InvalidOperationException ex) { ErrorMessage = ex.Message; }
+        // 保存失敗（DB 制約違反等の想定外を含む）は UI に必ず表示する
+        catch (Exception ex) { ErrorMessage = ex.Message; }
     }
 
 }

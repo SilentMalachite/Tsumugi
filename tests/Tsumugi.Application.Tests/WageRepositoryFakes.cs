@@ -87,6 +87,9 @@ internal sealed class FakeRecipientHourlyRateRepoSeeded(IEnumerable<RecipientHou
     public Task<IReadOnlyList<RecipientHourlyRate>> ListByOfficeRecipientAsync(Guid officeId, Guid recipientId, CancellationToken ct)
         => Task.FromResult<IReadOnlyList<RecipientHourlyRate>>(
             _items.Where(r => r.OfficeId == officeId && r.RecipientId == recipientId).ToList());
+    public Task<IReadOnlyList<RecipientHourlyRate>> ListByOfficeAsync(Guid officeId, CancellationToken ct)
+        => Task.FromResult<IReadOnlyList<RecipientHourlyRate>>(
+            _items.Where(r => r.OfficeId == officeId).ToList());
 }
 
 internal sealed class FakeWageAdjustmentRepoSeeded(IEnumerable<WageAdjustment> seed) : IWageAdjustmentRepository

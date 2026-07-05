@@ -7,4 +7,6 @@ public interface IRecipientHourlyRateRepository
     Task AddAsync(RecipientHourlyRate rate, CancellationToken ct);
     Task<IReadOnlyList<RecipientHourlyRate>> ListByOfficeRecipientAsync(
         Guid officeId, Guid recipientId, CancellationToken ct);
+    Task<IReadOnlyList<RecipientHourlyRate>> ListByOfficeAsync(
+        Guid officeId, CancellationToken ct);
 }

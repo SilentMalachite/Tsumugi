@@ -104,6 +104,42 @@ public class HourlyWageStrategyKouchinModuleTests
     }
 
     [Fact]
+    public void Rejects_mixed_batch_where_worked_recipient_lacks_breakdown()
+    {
+        // A は時給レートあり、B はレート未設定のまま就労実績あり → 黙って 0 円にせず失敗させる
+        var b = Guid.Parse("00000000-0000-0000-0000-000000000022");
+        var withBreakdown = new WageInputs(A, PresentDays: 15, TotalWorkedMinutes: 1560,
+            TotalPieceAmountYen: 0, TotalPoints: 0)
+        {
+            DailyBreakdown = new[] { new DailyHourlyBasis(new DateOnly(2026, 5, 1), 60, 350) },
+        };
+        var withoutBreakdown = new WageInputs(b, PresentDays: 10, TotalWorkedMinutes: 600,
+            TotalPieceAmountYen: 0, TotalPoints: 0);
+
+        var act = () => new HourlyWageStrategy()
+            .Calculate(new[] { withBreakdown, withoutBreakdown }, fund: null, settings: Settings());
+        act.Should().Throw<ArgumentException>().WithMessage("*DailyBreakdown*");
+    }
+
+    [Fact]
+    public void Allows_mixed_batch_when_recipient_without_breakdown_has_no_worked_minutes()
+    {
+        var b = Guid.Parse("00000000-0000-0000-0000-000000000022");
+        var withBreakdown = new WageInputs(A, PresentDays: 1, TotalWorkedMinutes: 60,
+            TotalPieceAmountYen: 0, TotalPoints: 0)
+        {
+            DailyBreakdown = new[] { new DailyHourlyBasis(new DateOnly(2026, 5, 1), 60, 350) },
+        };
+        var noWork = new WageInputs(b, PresentDays: 0, TotalWorkedMinutes: 0,
+            TotalPieceAmountYen: 0, TotalPoints: 0);
+
+        var lines = new HourlyWageStrategy()
+            .Calculate(new[] { withBreakdown, noWork }, fund: null, settings: Settings());
+        lines.Should().HaveCount(2);
+        lines.Single(l => l.RecipientId == b).AmountYen.Should().Be(0);
+    }
+
+    [Fact]
     public void DailyBreakdown_supports_mid_month_rate_change()
     {
         // 前半 10 日 350 円/h × 1h, 後半 5 日 400 円/h × 1h

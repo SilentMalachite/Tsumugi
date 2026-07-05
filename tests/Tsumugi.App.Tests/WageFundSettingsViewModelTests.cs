@@ -175,8 +175,9 @@ public sealed class WageFundSettingsViewModelTests
         vm.AddSkillAllowanceTierCommand.Execute(null);
         vm.SkillAllowanceTiers.Should().HaveCount(2);
 
+        // View は行側の RemoveCommand を配線している（WageFundSettingsView.axaml）
         var toRemove = vm.SkillAllowanceTiers[0];
-        vm.RemoveSkillAllowanceTierCommand.Execute(toRemove);
+        toRemove.RemoveCommand.Execute(null);
         vm.SkillAllowanceTiers.Should().HaveCount(1);
         vm.SkillAllowanceTiers.Should().NotContain(toRemove);
     }

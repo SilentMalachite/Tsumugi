@@ -200,4 +200,12 @@ internal sealed class SpyHourlyRateRepo : IRecipientHourlyRateRepository
             Added.Where(r => r.OfficeId == officeId && r.RecipientId == recipientId).ToList();
         return Task.FromResult(result);
     }
+
+    public Task<IReadOnlyList<RecipientHourlyRate>> ListByOfficeAsync(
+        Guid officeId, CancellationToken ct)
+    {
+        IReadOnlyList<RecipientHourlyRate> result =
+            Added.Where(r => r.OfficeId == officeId).ToList();
+        return Task.FromResult(result);
+    }
 }

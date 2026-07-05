@@ -96,7 +96,7 @@ public sealed partial class RecipientHourlyRateViewModel(
             ErrorMessage = null;
             await RefreshRatesAsync(ct);
         }
-        catch (ArgumentException ex) { ErrorMessage = ex.Message; }
-        catch (InvalidOperationException ex) { ErrorMessage = ex.Message; }
+        // 保存失敗（DB 制約違反等の想定外を含む）は UI に必ず表示する
+        catch (Exception ex) { ErrorMessage = ex.Message; }
     }
 }

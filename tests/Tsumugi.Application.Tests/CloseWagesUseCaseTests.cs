@@ -64,6 +64,8 @@ public sealed class CloseWagesUseCaseTests
         public Task AddAsync(RecipientHourlyRate rate, CancellationToken ct) => Task.CompletedTask;
         public Task<IReadOnlyList<RecipientHourlyRate>> ListByOfficeRecipientAsync(Guid officeId, Guid recipientId, CancellationToken ct)
             => Task.FromResult<IReadOnlyList<RecipientHourlyRate>>(Array.Empty<RecipientHourlyRate>());
+        public Task<IReadOnlyList<RecipientHourlyRate>> ListByOfficeAsync(Guid officeId, CancellationToken ct)
+            => Task.FromResult<IReadOnlyList<RecipientHourlyRate>>(Array.Empty<RecipientHourlyRate>());
     }
 
     private sealed class EmptyAdjustmentRepo : IWageAdjustmentRepository
