@@ -43,4 +43,30 @@ public sealed class AverageWageMetricTests
     [Fact]
     public void Empty_returns_zero()
         => AverageWageMetric.Calculate(Array.Empty<WageStatement>(), AverageWageDenominator.ActiveRecipients).Should().Be(0);
+
+    /// <summary>
+    /// 分母切替の回帰テスト。AC2-8 正式定義確定時は <see cref="AverageWageDenominator"/> を追加し
+    /// このテストに対応する <c>[InlineData]</c> を足すだけで対応できることを保証する。
+    /// 5 行 (TotalRecipients=5) / 4 名 (ActiveRecipients=4)、合計 10,000 円 で検証。
+    /// </summary>
+    [Theory]
+    [InlineData(AverageWageDenominator.TotalRecipients, 5, 10000, 2000)]
+    [InlineData(AverageWageDenominator.ActiveRecipients, 5, 10000, 2500)]
+    public void Calculate_switches_denominator(
+        AverageWageDenominator denominator, int totalCount, int totalYen, int expected)
+    {
+        // 5 rows (totalCount) totaling totalYen yen; R1 appears twice → Active=4, Total=5
+        var perRow = totalYen / totalCount; // = 2000
+        var r3 = Guid.NewGuid();
+        var r4 = Guid.NewGuid();
+        var stmts = new[]
+        {
+            S(R1, new YearMonth(2026, 1), perRow),
+            S(R1, new YearMonth(2026, 2), perRow),
+            S(R2, new YearMonth(2026, 1), perRow),
+            S(r3, new YearMonth(2026, 1), perRow),
+            S(r4, new YearMonth(2026, 1), perRow),
+        };
+        AverageWageMetric.Calculate(stmts, denominator).Should().Be(expected);
+    }
 }
