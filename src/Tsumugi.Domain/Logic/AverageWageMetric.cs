@@ -9,10 +9,10 @@ public enum AverageWageDenominator
 }
 
 /// <summary>
-/// 平均工賃月額（暫定式）。
-/// FIXME(open-questions): 正式定義（分母＝延べ/実利用者、対象期間、控除項目）は
-/// 厚労省告示/通知突合で確定する。本暫定式は分母の差し替えに強い構造で実装してあり、
-/// 確定後は AverageWageDenominator を増減してテストで固定し直すこと。
+/// 平均工賃月額算定クラス。
+/// AC2-8 の正式定義（厚労省告示/通知）確定時は、<see cref="AverageWageDenominator"/> の列挙値追加
+/// （例：常勤換算・除外者を含む定義）と <see cref="Calculate"/> のオプション引数追加で対応する。
+/// 本構造は分母切替に強いよう設計されている。
 /// </summary>
 public static class AverageWageMetric
 {

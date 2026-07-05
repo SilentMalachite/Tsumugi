@@ -14,6 +14,9 @@ public sealed class ConfigureWageSettingsUseCase(
         Guid officeId, DateRange period,
         WageMethod method, RoundingRule rounding, RemainderPolicy remainder,
         int fiscalYearStartMonth, int? fixedDailyYen,
+        int? workAllowancePerDayYen,
+        IReadOnlyList<SkillAllowanceTier>? skillAllowanceTiers,
+        int hourUnitMinutes,
         string actor, CancellationToken ct)
     {
         if (officeId == Guid.Empty)
@@ -23,6 +26,7 @@ public sealed class ConfigureWageSettingsUseCase(
         var entity = WageSettings.Create(
             Guid.NewGuid(), officeId, period,
             method, rounding, remainder, fiscalYearStartMonth, fixedDailyYen,
+            workAllowancePerDayYen, skillAllowanceTiers, hourUnitMinutes,
             actor, clock.GetUtcNow());
 
         await repo.AddAsync(entity, ct);
@@ -32,5 +36,6 @@ public sealed class ConfigureWageSettingsUseCase(
 
     internal static WageSettingsDto Map(WageSettings e) =>
         new(e.Id, e.OfficeId, e.Period, e.Method, e.Rounding, e.Remainder,
-            e.FiscalYearStartMonth, e.FixedDailyYen);
+            e.FiscalYearStartMonth, e.FixedDailyYen,
+            e.WorkAllowancePerDayYen, e.SkillAllowanceTiers, e.HourUnitMinutes);
 }

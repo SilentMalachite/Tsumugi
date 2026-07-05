@@ -14,6 +14,7 @@ public sealed class PieceWageStrategyTests
         new DateRange(new DateOnly(2026, 4, 1), null),
         WageMethod.Piece, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder,
         fiscalYearStartMonth: 4, fixedDailyYen: null,
+        workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15,
         "tester", new DateTimeOffset(2026, 4, 1, 0, 0, 0, TimeSpan.Zero));
 
     [Fact]
@@ -29,5 +30,23 @@ public sealed class PieceWageStrategyTests
         lines[0].AmountYen.Should().Be(5_400);
         lines[1].AmountYen.Should().Be(3_120);
         lines.Sum(l => l.AmountYen).Should().Be(8_520);
+    }
+
+    [Fact]
+    public void Adds_work_and_skill_allowance_on_top_of_piece_amount()
+    {
+        var s = WageSettings.Create(
+            Guid.NewGuid(), Guid.NewGuid(),
+            new DateRange(new DateOnly(2026, 4, 1), null),
+            WageMethod.Piece, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder,
+            fiscalYearStartMonth: 4, fixedDailyYen: null,
+            workAllowancePerDayYen: 400,
+            skillAllowanceTiers: new[] { new SkillAllowanceTier(55, 2000) },
+            hourUnitMinutes: 15,
+            "tester", new DateTimeOffset(2026, 4, 1, 0, 0, 0, TimeSpan.Zero));
+        var input = new WageInputs(Guid.NewGuid(), PresentDays: 10, TotalWorkedMinutes: 60 * 60,
+            TotalPieceAmountYen: 5_400, TotalPoints: 0);
+        var line = new PieceWageStrategy().Calculate(new[] { input }, fund: null, s).Single();
+        line.AmountYen.Should().Be(5_400 + 10 * 400 + 2_000);
     }
 }

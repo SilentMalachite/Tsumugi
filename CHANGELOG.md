@@ -12,8 +12,40 @@
 ### 本番投入前に必須の deferred
 - QuestPDF Community License の事業所年商閾値確認（ADR 0013 / `docs/open-questions.md`）。
 - PDF 帳票の日本語フォント埋込（Noto Sans CJK JP）。漢字抽出が CJK 互換ブロックに化けるため、運用投入前に `assets/fonts/` 追加 + `Settings.UseEnvironmentFonts = false` + `FontManager.RegisterFontFromEmbeddedResource` を実施。
-- KouchinModule.bas v5 の実挙動突合 → ADR 0012 暫定値の正式化。
-- 平均工賃月額（AC2-8）の厚労省告示/通知突合 → 正式定義確定。
+- 平均工賃月額（AC2-8）の厚労省告示/通知突合 → 正式定義確定（構造整備完了、値差替のみで完了できる状態）。
+
+### 追加（Added）— Phase 4 S0: KouchinModule 方式対応・手当モデル確立
+
+#### Domain（純粋ロジック）
+- `WageAdjustment` エンティティ + `WageAdjustmentPolicy`（ADR 0018）— 利用者×月の任意特別手当を append-only で表現
+- `RecipientHourlyRate` エンティティ + `RecipientHourlyRatePolicy`（ADR 0019）— 利用者×期間の時給期間マスタ
+- `RoundingPolicy` + `RoundingRule.HalfUp` / `.Ceiling`（既定を `FloorYen` → `HalfUp` に変更、ADR 0012 v2）
+- `WageSettings` 拡張: `WorkAllowancePerDayYen`（作業手当日額）/ `SkillAllowanceTiers`（職能手当閾値表）/ `HourUnitMinutes`（工賃時給最小単位）
+- `DailyHourlyBasis` 値オブジェクト（日単位の時給×時間の積算単位）
+- `SkillAllowanceTier` 値オブジェクト（職能手当の閾値と金額のペア）
+- `HourlyWageStrategy` を KouchinModule 方式に対応（レート別集計後 ROUND（HalfUp）/ 作業手当・職能手当加算）
+
+#### Application（ユースケース）
+- `RecordWageAdjustmentUseCase` — 特別手当の New / Correction / Cancel
+- `QueryWageAdjustmentUseCase` — 月次特別手当一覧
+- `SetRecipientHourlyRateUseCase` — 利用者時給の期間設定
+- `QueryRecipientHourlyRateUseCase` — 利用者時給の期間一覧
+
+#### Infrastructure（EF Core / SQLite）
+- `WageAdjustments` テーブル + `WageAdjustmentConfiguration`（Phase 4 S0 マイグレーション）
+- `RecipientHourlyRates` テーブル + `RecipientHourlyRateConfiguration`（Phase 4 S0 マイグレーション）
+- `WageSettings` に `WorkAllowancePerDayYen` / `SkillAllowanceTiersJson` / `HourUnitMinutes` 3 新カラム
+- partial unique index（`WageAdjustments`: 利用者×月×New 重複防止）
+
+#### App（Avalonia UI / MVVM）
+- 「利用者時給」タブ: `RecipientHourlyRateViewModel` + `RecipientHourlyRateView`（期間マスタ CRUD）
+- 「特別手当」タブ: `WageAdjustmentViewModel` + `WageAdjustmentView`（月次特別手当 New/Correction/Cancel）
+- `WageFundSettingsView` に手当規則欄（`WorkAllowancePerDayYen` / `SkillAllowanceTiers` / `HourUnitMinutes`）追加
+
+#### ADR
+- [0012 工賃計算の方式戦略・端数・年度起点](docs/decisions/0012-wage-calculation-strategy.md)（v2: 暫定 → 確定。KouchinModule v5 突合、HalfUp 丸め・手当規則確定）
+- [0018 WageAdjustment を append-only 特別手当レコードとして導入](docs/decisions/0018-wage-adjustment-append-only.md)（新規）
+- [0019 RecipientHourlyRate を利用者×期間の時給期間マスタとして導入](docs/decisions/0019-recipient-hourly-rate-periodic-master.md)（新規）
 
 ---
 

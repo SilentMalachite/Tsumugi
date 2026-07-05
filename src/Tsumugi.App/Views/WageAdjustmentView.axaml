@@ -1,0 +1,81 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             x:Class="Tsumugi.App.Views.WageAdjustmentView"
+             x:DataType="vm:WageAdjustmentViewModel">
+    <ScrollViewer>
+        <StackPanel Margin="8" Spacing="8">
+            <TextBlock Text="工賃調整（特別手当）入力"
+                       FontSize="{DynamicResource HeadingFontSize}" />
+
+            <!-- 事業所選択 -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="事業所（必須）" />
+                <ComboBox ItemsSource="{Binding Offices}"
+                          SelectedItem="{Binding SelectedOffice}"
+                          PlaceholderText="事業所を選択"
+                          HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <!-- 対象年月 -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="対象年月（必須、YYYYMM 形式）" />
+                <NumericUpDown Value="{Binding SelectedYearMonthInt}"
+                               Minimum="202601" Maximum="209912"
+                               FormatString="0"
+                               Watermark="202605"
+                               Width="200"
+                               HorizontalAlignment="Left" />
+            </StackPanel>
+
+            <!-- 操作ボタン -->
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                <Button Content="再読込"
+                        Command="{Binding RefreshMatrixCommand}" />
+                <Button Content="すべて保存"
+                        Command="{Binding SaveAllCommand}"
+                        IsDefault="True" />
+            </StackPanel>
+
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" />
+
+            <!-- 利用者 × 特別手当マトリクス -->
+            <TextBlock Text="利用者別特別手当"
+                       FontSize="{DynamicResource BaseFontSize}" FontWeight="Bold"
+                       Margin="0,8,0,0" />
+
+            <ItemsControl ItemsSource="{Binding Rows}"
+                          Margin="0,4,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="vm:WageAdjustmentRowViewModel">
+                        <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,2">
+                            <TextBlock Grid.Column="0"
+                                       Text="{Binding Recipient.KanjiName}"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,8,0" />
+                            <NumericUpDown Grid.Column="1"
+                                           Value="{Binding SpecialAllowanceYen}"
+                                           Minimum="0" Maximum="1000000"
+                                           FormatString="0"
+                                           Width="160" />
+                            <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                            VerticalAlignment="Center" Margin="4,0,0,0">
+                                <TextBlock Text=" 円" />
+                                <TextBlock Text=" *" Foreground="DodgerBlue"
+                                           IsVisible="{Binding IsDirty}"
+                                           ToolTip.Tip="未保存の変更があります" />
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

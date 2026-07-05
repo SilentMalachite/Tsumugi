@@ -6,6 +6,8 @@ using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic.Wage;
 using Tsumugi.Domain.ValueObjects;
 using Xunit;
+using RecipientHourlyRate = Tsumugi.Domain.Entities.RecipientHourlyRate;
+using WageAdjustment = Tsumugi.Domain.Entities.WageAdjustment;
 
 namespace Tsumugi.Application.Tests;
 
@@ -28,7 +30,8 @@ public sealed class CloseWagesUseCaseTests
 
     private static WageSettings Settings() => WageSettings.Create(
         Guid.NewGuid(), Office, new DateRange(new DateOnly(2026, 4, 1), null),
-        WageMethod.Hourly, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, null, "t", T0);
+        WageMethod.Hourly, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, null,
+        workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15, "t", T0);
 
     private static WageFund Fund(int yen) =>
         WageFund.NewRecord(Guid.NewGuid(), Office, new YearMonth(2026, 7), yen, null, "t", T0);
@@ -56,6 +59,22 @@ public sealed class CloseWagesUseCaseTests
         }
     }
 
+    private sealed class EmptyHourlyRateRepo : IRecipientHourlyRateRepository
+    {
+        public Task AddAsync(RecipientHourlyRate rate, CancellationToken ct) => Task.CompletedTask;
+        public Task<IReadOnlyList<RecipientHourlyRate>> ListByOfficeRecipientAsync(Guid officeId, Guid recipientId, CancellationToken ct)
+            => Task.FromResult<IReadOnlyList<RecipientHourlyRate>>(Array.Empty<RecipientHourlyRate>());
+        public Task<IReadOnlyList<RecipientHourlyRate>> ListByOfficeAsync(Guid officeId, CancellationToken ct)
+            => Task.FromResult<IReadOnlyList<RecipientHourlyRate>>(Array.Empty<RecipientHourlyRate>());
+    }
+
+    private sealed class EmptyAdjustmentRepo : IWageAdjustmentRepository
+    {
+        public Task AddAsync(WageAdjustment adjustment, CancellationToken ct) => Task.CompletedTask;
+        public Task<IReadOnlyList<WageAdjustment>> ListByOfficeMonthAsync(Guid officeId, YearMonth yearMonth, CancellationToken ct)
+            => Task.FromResult<IReadOnlyList<WageAdjustment>>(Array.Empty<WageAdjustment>());
+    }
+
     private static CloseWagesUseCase BuildClose(
         IEnumerable<Recipient> recipients,
         IEnumerable<Contract> contracts,
@@ -73,6 +92,7 @@ public sealed class CloseWagesUseCaseTests
             new FakeWageSettingsRepoSeeded(settings),
             new FakeContractRepoSeeded(contracts),
             new FakeRecipientRepoSeeded(recipients),
+            new EmptyHourlyRateRepo(), new EmptyAdjustmentRepo(),
             AllStrategies);
         return new CloseWagesUseCase(
             calculate, stmtRepo, new FakeUnitOfWork(),

@@ -691,6 +691,113 @@ namespace Tsumugi.Infrastructure.Migrations
                     b.ToTable("Recipients", (string)null);
                 });
 
+            modelBuilder.Entity("Tsumugi.Domain.Entities.RecipientHourlyRate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ConcurrencyToken")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("HourlyYen")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("OfficeId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("OriginId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("PeriodJson");
+
+                    b.Property<DateOnly>("PeriodStart")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("PeriodStart");
+
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OfficeId", "RecipientId", "PeriodStart")
+                        .IsUnique()
+                        .HasDatabaseName("UX_RecipientHourlyRates_OfficeRecipientPeriodStart_NewOnly")
+                        .HasFilter("\"Kind\" = 1");
+
+                    b.ToTable("RecipientHourlyRates", (string)null);
+                });
+
+            modelBuilder.Entity("Tsumugi.Domain.Entities.WageAdjustment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("AmountYen")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ConcurrencyToken")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("OfficeId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("OriginId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("YearMonth")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OfficeId", "RecipientId", "YearMonth", "Type")
+                        .IsUnique()
+                        .HasDatabaseName("UX_WageAdjustments_OfficeRecipientYmType_NewOnly")
+                        .HasFilter("\"Kind\" = 1");
+
+                    b.ToTable("WageAdjustments", (string)null);
+                });
+
             modelBuilder.Entity("Tsumugi.Domain.Entities.WageFund", b =>
                 {
                     b.Property<Guid>("Id")
@@ -766,6 +873,9 @@ namespace Tsumugi.Infrastructure.Migrations
                     b.Property<int?>("FixedDailyYen")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("HourUnitMinutes")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Method")
                         .HasColumnType("INTEGER");
 
@@ -781,6 +891,14 @@ namespace Tsumugi.Infrastructure.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Rounding")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SkillAllowanceTiers")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("SkillAllowanceTiersJson");
+
+                    b.Property<int?>("WorkAllowancePerDayYen")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");

@@ -1,5 +1,6 @@
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Domain.Entities;
+using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.Application.Tests;
@@ -77,4 +78,25 @@ internal sealed class FakeWageSettingsRepoSeeded(IEnumerable<WageSettings> seed)
     public Task AddAsync(WageSettings s, CancellationToken ct) { _items.Add(s); return Task.CompletedTask; }
     public Task<IReadOnlyList<WageSettings>> ListByOfficeAsync(Guid officeId, CancellationToken ct)
         => Task.FromResult<IReadOnlyList<WageSettings>>(_items.Where(s => s.OfficeId == officeId).ToList());
+}
+
+internal sealed class FakeRecipientHourlyRateRepoSeeded(IEnumerable<RecipientHourlyRate> seed) : IRecipientHourlyRateRepository
+{
+    private readonly List<RecipientHourlyRate> _items = seed.ToList();
+    public Task AddAsync(RecipientHourlyRate rate, CancellationToken ct) { _items.Add(rate); return Task.CompletedTask; }
+    public Task<IReadOnlyList<RecipientHourlyRate>> ListByOfficeRecipientAsync(Guid officeId, Guid recipientId, CancellationToken ct)
+        => Task.FromResult<IReadOnlyList<RecipientHourlyRate>>(
+            _items.Where(r => r.OfficeId == officeId && r.RecipientId == recipientId).ToList());
+    public Task<IReadOnlyList<RecipientHourlyRate>> ListByOfficeAsync(Guid officeId, CancellationToken ct)
+        => Task.FromResult<IReadOnlyList<RecipientHourlyRate>>(
+            _items.Where(r => r.OfficeId == officeId).ToList());
+}
+
+internal sealed class FakeWageAdjustmentRepoSeeded(IEnumerable<WageAdjustment> seed) : IWageAdjustmentRepository
+{
+    private readonly List<WageAdjustment> _items = seed.ToList();
+    public Task AddAsync(WageAdjustment adjustment, CancellationToken ct) { _items.Add(adjustment); return Task.CompletedTask; }
+    public Task<IReadOnlyList<WageAdjustment>> ListByOfficeMonthAsync(Guid officeId, YearMonth yearMonth, CancellationToken ct)
+        => Task.FromResult<IReadOnlyList<WageAdjustment>>(
+            _items.Where(a => a.OfficeId == officeId && a.YearMonth == yearMonth).ToList());
 }

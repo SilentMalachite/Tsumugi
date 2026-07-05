@@ -15,7 +15,8 @@ public sealed class HourlyWageStrategyTests
 
     private static WageSettings Settings() => WageSettings.Create(
         Guid.NewGuid(), Office, new DateRange(new DateOnly(2026, 4, 1), null),
-        WageMethod.Hourly, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, null, "t", T);
+        WageMethod.Hourly, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, null,
+        workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15, "t", T);
 
     private static WageFund Fund(int yen) =>
         WageFund.NewRecord(Guid.NewGuid(), Office, Month, yen, null, "t", T);
@@ -60,10 +61,11 @@ public sealed class HourlyWageStrategyTests
     }
 
     [Fact]
-    public void Fund_required_for_hourly()
+    public void No_breakdown_no_fund_no_allowances_yields_zero()
     {
+        // DailyBreakdown なし・fund なし・手当なし: 時給分 0 + 手当 0 = 0
         var only = new WageInputs(Guid.NewGuid(), 10, 600, 0, 0);
-        FluentActions.Invoking(() => new HourlyWageStrategy().Calculate(new[] { only }, fund: null, Settings()))
-            .Should().Throw<ArgumentNullException>().WithParameterName("fund");
+        var lines = new HourlyWageStrategy().Calculate(new[] { only }, fund: null, Settings());
+        lines.Single().AmountYen.Should().Be(0);
     }
 }

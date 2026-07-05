@@ -120,6 +120,67 @@ public sealed class WageFundSettingsViewModelTests
         vm.SelectedOffice = null;
         vm.OfficeId.Should().Be(Guid.Empty);
     }
+
+    [Fact]
+    public async Task Save_persists_allowance_rules()
+    {
+        var vm = NewVm();
+        vm.OfficeId = Guid.NewGuid();
+        vm.WorkAllowancePerDayYen = 500;
+        vm.HourUnitMinutes = 15;
+
+        // tier (55h → 2000円) と (70h → 4000円)
+        vm.AddSkillAllowanceTierCommand.Execute(null);
+        vm.SkillAllowanceTiers[0].MinHours = 55;
+        vm.SkillAllowanceTiers[0].Yen = 2000;
+        vm.AddSkillAllowanceTierCommand.Execute(null);
+        vm.SkillAllowanceTiers[1].MinHours = 70;
+        vm.SkillAllowanceTiers[1].Yen = 4000;
+
+        await vm.SaveSettingsCommand.ExecuteAsync(null);
+
+        vm.ErrorMessage.Should().BeNull();
+        _settings.Items.Should().ContainSingle();
+        var saved = _settings.Items[0];
+        saved.WorkAllowancePerDayYen.Should().Be(500);
+        saved.SkillAllowanceTiers.Should().HaveCount(2);
+        saved.SkillAllowanceTiers[0].Should().Be(new SkillAllowanceTier(55, 2000));
+        saved.SkillAllowanceTiers[1].Should().Be(new SkillAllowanceTier(70, 4000));
+        saved.HourUnitMinutes.Should().Be(15);
+    }
+
+    [Fact]
+    public async Task Save_with_null_work_allowance_and_empty_tiers_succeeds()
+    {
+        var vm = NewVm();
+        vm.OfficeId = Guid.NewGuid();
+        vm.WorkAllowancePerDayYen = null;
+        // SkillAllowanceTiers empty by default
+
+        await vm.SaveSettingsCommand.ExecuteAsync(null);
+
+        vm.ErrorMessage.Should().BeNull();
+        _settings.Items.Should().ContainSingle();
+        var saved = _settings.Items[0];
+        saved.WorkAllowancePerDayYen.Should().BeNull();
+        saved.SkillAllowanceTiers.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Add_and_remove_tier_command_maintains_collection()
+    {
+        var vm = NewVm();
+
+        vm.AddSkillAllowanceTierCommand.Execute(null);
+        vm.AddSkillAllowanceTierCommand.Execute(null);
+        vm.SkillAllowanceTiers.Should().HaveCount(2);
+
+        // View は行側の RemoveCommand を配線している（WageFundSettingsView.axaml）
+        var toRemove = vm.SkillAllowanceTiers[0];
+        toRemove.RemoveCommand.Execute(null);
+        vm.SkillAllowanceTiers.Should().HaveCount(1);
+        vm.SkillAllowanceTiers.Should().NotContain(toRemove);
+    }
 }
 
 internal sealed class InMemoryFundRepo : IWageFundRepository

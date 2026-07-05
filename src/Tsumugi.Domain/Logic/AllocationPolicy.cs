@@ -43,7 +43,7 @@ public static class AllocationPolicy
             .Select(s => (s.Key, Exact: (decimal)totalYen * s.Weight / totalWeight))
             .ToArray();
 
-        var floored = raw.Select(r => Round(r.Exact, rounding)).ToArray();
+        var floored = raw.Select(r => RoundingPolicy.Round(r.Exact, rounding)).ToArray();
         var allocated = floored.Sum();
         var leftover = totalYen - allocated;
 
@@ -78,12 +78,4 @@ public static class AllocationPolicy
 
         return raw.Zip(floored, (r, f) => (r.Key, f)).ToList();
     }
-
-    private static int Round(decimal exact, RoundingRule rule) => rule switch
-    {
-        RoundingRule.FloorYen => (int)Math.Floor(exact),
-        RoundingRule.CeilYen => (int)Math.Ceiling(exact),
-        RoundingRule.RoundHalfAwayFromZeroYen => (int)Math.Round(exact, MidpointRounding.AwayFromZero),
-        _ => throw new ArgumentOutOfRangeException(nameof(rule), rule, "未対応の RoundingRule"),
-    };
 }

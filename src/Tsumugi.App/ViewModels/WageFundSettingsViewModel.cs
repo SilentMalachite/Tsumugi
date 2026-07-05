@@ -34,13 +34,22 @@ public sealed partial class WageFundSettingsViewModel(
     [ObservableProperty] private DateOnly _periodStart = new(DateTime.UtcNow.Year, 4, 1);
     [ObservableProperty] private DateOnly? _periodEnd;
     [ObservableProperty] private WageMethod _method = WageMethod.Hourly;
-    [ObservableProperty] private RoundingRule _rounding = RoundingRule.FloorYen;
+    [ObservableProperty] private RoundingRule _rounding = RoundingRule.HalfUp;
     [ObservableProperty] private RemainderPolicy _remainder = RemainderPolicy.LargestRemainder;
     [ObservableProperty] private int _fiscalYearStartMonth = 4;
     [ObservableProperty] private int? _fixedDailyYen;
+    [ObservableProperty] private int? _workAllowancePerDayYen;
+    [ObservableProperty] private int _hourUnitMinutes = 15;
+
+    /// <summary>職能手当段リスト（UI 行エディタ用）。</summary>
+    public ObservableCollection<SkillAllowanceTierViewModel> SkillAllowanceTiers { get; } = new();
 
     partial void OnTotalYenChanged(int value)
         => FormattedTotalYen = YenFormatter.Format(value);
+
+    [RelayCommand]
+    private void AddSkillAllowanceTier()
+        => SkillAllowanceTiers.Add(new SkillAllowanceTierViewModel(t => SkillAllowanceTiers.Remove(t)));
 
     [RelayCommand]
     public async Task SaveFundAsync()
@@ -60,10 +69,14 @@ public sealed partial class WageFundSettingsViewModel(
     {
         try
         {
+            var tiers = SkillAllowanceTiers
+                .Select(t => new SkillAllowanceTier(t.MinHours, t.Yen))
+                .ToList();
             await configureSettings.ExecuteAsync(
                 OfficeId,
                 new DateRange(PeriodStart, PeriodEnd),
                 Method, Rounding, Remainder, FiscalYearStartMonth, FixedDailyYen,
+                WorkAllowancePerDayYen, skillAllowanceTiers: tiers, HourUnitMinutes,
                 actor: Environment.UserName, default);
             ErrorMessage = null;
         }

@@ -78,7 +78,8 @@ public sealed class WageStatementViewModelTests
         var contracts = ds.Select(t => t.c).ToArray();
         var settings = WageSettings.Create(Guid.NewGuid(), Office,
             new DateRange(new DateOnly(2026, 4, 1), null),
-            WageMethod.Hourly, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, null, "u", T0);
+            WageMethod.Hourly, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, null,
+            workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15, "u", T0);
         var fund = WageFund.NewRecord(Guid.NewGuid(), Office, new YearMonth(2026, 7), 100_000, null, "u", T0);
 
         var recipientRepoSafe = recipientRepo ?? new InMemoryRecipientRepoForWork();
@@ -89,6 +90,8 @@ public sealed class WageStatementViewModelTests
             new WageCalculationViewModelTests_SettingsRepoLocal(settings),
             new WageCalculationViewModelTests_ContractRepoLocal(contracts),
             recipientRepoSafe,
+            new WageStatementViewModelTests_EmptyHourlyRateRepo(),
+            new WageStatementViewModelTests_EmptyAdjustmentRepo(),
             AllStrategies);
 
         var stmtRepoSafe = stmtRepo ?? new InMemoryStatementRepo();
@@ -385,4 +388,20 @@ internal sealed class WageCalculationViewModelTests_ContractRepoLocal(IEnumerabl
         => Task.FromResult<IReadOnlyList<Contract>>(_items.Where(c => c.RecipientId == rid).ToList());
     public Task<Contract?> FindEffectiveAsync(Guid rid, DateOnly asOf, CancellationToken ct)
         => Task.FromResult<Contract?>(_items.Where(c => c.RecipientId == rid && c.Period.Contains(asOf)).FirstOrDefault());
+}
+
+internal sealed class WageStatementViewModelTests_EmptyHourlyRateRepo : IRecipientHourlyRateRepository
+{
+    public Task AddAsync(Tsumugi.Domain.Entities.RecipientHourlyRate rate, CancellationToken ct) => Task.CompletedTask;
+    public Task<IReadOnlyList<Tsumugi.Domain.Entities.RecipientHourlyRate>> ListByOfficeRecipientAsync(Guid officeId, Guid recipientId, CancellationToken ct)
+        => Task.FromResult<IReadOnlyList<Tsumugi.Domain.Entities.RecipientHourlyRate>>(Array.Empty<Tsumugi.Domain.Entities.RecipientHourlyRate>());
+    public Task<IReadOnlyList<Tsumugi.Domain.Entities.RecipientHourlyRate>> ListByOfficeAsync(Guid officeId, CancellationToken ct)
+        => Task.FromResult<IReadOnlyList<Tsumugi.Domain.Entities.RecipientHourlyRate>>(Array.Empty<Tsumugi.Domain.Entities.RecipientHourlyRate>());
+}
+
+internal sealed class WageStatementViewModelTests_EmptyAdjustmentRepo : IWageAdjustmentRepository
+{
+    public Task AddAsync(Tsumugi.Domain.Entities.WageAdjustment adjustment, CancellationToken ct) => Task.CompletedTask;
+    public Task<IReadOnlyList<Tsumugi.Domain.Entities.WageAdjustment>> ListByOfficeMonthAsync(Guid officeId, YearMonth yearMonth, CancellationToken ct)
+        => Task.FromResult<IReadOnlyList<Tsumugi.Domain.Entities.WageAdjustment>>(Array.Empty<Tsumugi.Domain.Entities.WageAdjustment>());
 }

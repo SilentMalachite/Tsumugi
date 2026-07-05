@@ -13,6 +13,8 @@ public sealed class MainViewModel(
     DailyRecordViewModel dailyRecord,
     WorkRecordViewModel workRecord,
     WageFundSettingsViewModel wageFundSettings,
+    RecipientHourlyRateViewModel recipientHourlyRate,
+    WageAdjustmentViewModel wageAdjustment,
     WageCalculationViewModel wageCalculation,
     WageStatementViewModel wageStatement) : ViewModelBase
 {
@@ -31,4 +33,8 @@ public sealed class MainViewModel(
     public WageFundSettingsViewModel WageFundSettings { get; } = wageFundSettings;
     public WageCalculationViewModel WageCalculation { get; } = wageCalculation;
     public WageStatementViewModel WageStatement { get; } = wageStatement;
+
+    // Phase 4 S0 tabs
+    public RecipientHourlyRateViewModel RecipientHourlyRate { get; } = recipientHourlyRate;
+    public WageAdjustmentViewModel WageAdjustment { get; } = wageAdjustment;
 }

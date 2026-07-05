@@ -20,6 +20,9 @@ public sealed class ViewLifecycleWiringTests
         "WageFundSettingsView.axaml.cs",
         "WageCalculationView.axaml.cs",
         "WageStatementView.axaml.cs",
+        // Phase 4 S0
+        "RecipientHourlyRateView.axaml.cs",
+        "WageAdjustmentView.axaml.cs",
     };
 
     [Theory]
@@ -28,6 +31,8 @@ public sealed class ViewLifecycleWiringTests
     [InlineData("WageFundSettingsView.axaml.cs")]
     [InlineData("WageCalculationView.axaml.cs")]
     [InlineData("WageStatementView.axaml.cs")]
+    [InlineData("RecipientHourlyRateView.axaml.cs")]
+    [InlineData("WageAdjustmentView.axaml.cs")]
     public void View_code_behind_wires_InitializeAsync_to_Loaded(string viewFileName)
     {
         var path = LocateView(viewFileName);
@@ -41,7 +46,7 @@ public sealed class ViewLifecycleWiringTests
     public void All_views_requiring_recipient_load_are_covered()
     {
         // 万一スキャン対象配列を縮めて検査をすり抜けないよう、明示的に件数も pin。
-        ViewsRequiringInitialize.Should().HaveCount(5);
+        ViewsRequiringInitialize.Should().HaveCount(7);
     }
 
     private static string LocateView(string fileName)

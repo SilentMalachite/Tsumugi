@@ -29,7 +29,8 @@ public sealed class CalculateWagesUseCaseTests
 
     private static WageSettings Settings(WageMethod method, int? fixedYen = null) => WageSettings.Create(
         Guid.NewGuid(), Office, new DateRange(new DateOnly(2026, 4, 1), null),
-        method, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, fixedYen, "t", T0);
+        method, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, fixedYen,
+        workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15, "t", T0);
 
     private static WageFund Fund(int yen) =>
         WageFund.NewRecord(Guid.NewGuid(), Office, new YearMonth(2026, 7), yen, null, "t", T0);
@@ -117,6 +118,22 @@ public sealed class CalculateWagesUseCaseTests
             => Task.FromResult<IReadOnlyList<WageSettings>>(_items.Where(s => s.OfficeId == officeId).ToList());
     }
 
+    private sealed class FakeHourlyRateRepo : IRecipientHourlyRateRepository
+    {
+        public Task AddAsync(Tsumugi.Domain.Entities.RecipientHourlyRate rate, CancellationToken ct) => Task.CompletedTask;
+        public Task<IReadOnlyList<Tsumugi.Domain.Entities.RecipientHourlyRate>> ListByOfficeRecipientAsync(Guid officeId, Guid recipientId, CancellationToken ct)
+            => Task.FromResult<IReadOnlyList<Tsumugi.Domain.Entities.RecipientHourlyRate>>(Array.Empty<Tsumugi.Domain.Entities.RecipientHourlyRate>());
+        public Task<IReadOnlyList<Tsumugi.Domain.Entities.RecipientHourlyRate>> ListByOfficeAsync(Guid officeId, CancellationToken ct)
+            => Task.FromResult<IReadOnlyList<Tsumugi.Domain.Entities.RecipientHourlyRate>>(Array.Empty<Tsumugi.Domain.Entities.RecipientHourlyRate>());
+    }
+
+    private sealed class FakeAdjustmentRepo : IWageAdjustmentRepository
+    {
+        public Task AddAsync(Tsumugi.Domain.Entities.WageAdjustment adjustment, CancellationToken ct) => Task.CompletedTask;
+        public Task<IReadOnlyList<Tsumugi.Domain.Entities.WageAdjustment>> ListByOfficeMonthAsync(Guid officeId, YearMonth yearMonth, CancellationToken ct)
+            => Task.FromResult<IReadOnlyList<Tsumugi.Domain.Entities.WageAdjustment>>(Array.Empty<Tsumugi.Domain.Entities.WageAdjustment>());
+    }
+
     [Fact]
     public async Task Missing_settings_throws()
     {
@@ -127,6 +144,7 @@ public sealed class CalculateWagesUseCaseTests
             new FakeSettingsRepo(Array.Empty<WageSettings>()),
             new FakeContractRepo(Array.Empty<Contract>()),
             new FakeRecipientRepo(Array.Empty<Recipient>()),
+            new FakeHourlyRateRepo(), new FakeAdjustmentRepo(),
             AllStrategies);
         var act = async () => await u.ExecuteAsync(Office, 2026, 7, default);
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*工賃設定が見つかりません*");
@@ -142,6 +160,7 @@ public sealed class CalculateWagesUseCaseTests
             new FakeSettingsRepo(new[] { Settings(WageMethod.Hourly) }),
             new FakeContractRepo(Array.Empty<Contract>()),
             new FakeRecipientRepo(Array.Empty<Recipient>()),
+            new FakeHourlyRateRepo(), new FakeAdjustmentRepo(),
             AllStrategies);
         var act = async () => await u.ExecuteAsync(Office, 2026, 7, default);
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*WageFund*");
@@ -165,6 +184,7 @@ public sealed class CalculateWagesUseCaseTests
             new FakeSettingsRepo(new[] { Settings(WageMethod.Piece) }),
             new FakeContractRepo(new[] { ContractFor(r1.Id, period), ContractFor(r2.Id, period) }),
             new FakeRecipientRepo(new[] { r1, r2 }),
+            new FakeHourlyRateRepo(), new FakeAdjustmentRepo(),
             AllStrategies);
 
         var preview = await u.ExecuteAsync(Office, 2026, 7, default);
@@ -192,6 +212,7 @@ public sealed class CalculateWagesUseCaseTests
             new FakeSettingsRepo(new[] { Settings(WageMethod.Hourly) }),
             new FakeContractRepo(new[] { ContractFor(r1.Id, period), ContractFor(r2.Id, period) }),
             new FakeRecipientRepo(new[] { r1, r2 }),
+            new FakeHourlyRateRepo(), new FakeAdjustmentRepo(),
             AllStrategies);
 
         var preview = await u.ExecuteAsync(Office, 2026, 7, default);
@@ -218,6 +239,7 @@ public sealed class CalculateWagesUseCaseTests
             new FakeSettingsRepo(new[] { Settings(WageMethod.Hourly) }),
             new FakeContractRepo(new[] { ContractFor(r1.Id, new DateRange(new DateOnly(2026, 4, 1), null)) }),
             new FakeRecipientRepo(new[] { r1, r2 }),
+            new FakeHourlyRateRepo(), new FakeAdjustmentRepo(),
             AllStrategies);
 
         var preview = await u.ExecuteAsync(Office, 2026, 7, default);
@@ -244,6 +266,7 @@ public sealed class CalculateWagesUseCaseTests
             new FakeSettingsRepo(new[] { Settings(WageMethod.Hourly) }),
             new FakeContractRepo(new[] { ContractFor(r1.Id, period), ContractFor(r2.Id, period) }),
             new FakeRecipientRepo(new[] { r1, r2 }),
+            new FakeHourlyRateRepo(), new FakeAdjustmentRepo(),
             AllStrategies);
 
         var act = async () => await u.ExecuteAsync(Office, 2026, 7, default);
