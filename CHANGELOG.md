@@ -8,11 +8,16 @@
 
 ### 計画
 - フェーズ 3（国保連請求 CSV 生成）— 報酬告示・CSV インターフェース仕様の出典確定後に着手。
+- フェーズ 4（リリース準備・運用ハードニング）残り: フォント埋込・暗号化方針決定・バックアップ自動化・記録UI補完・配布パッケージング・運用ガイド・bulk operations ガード。詳細は `07_ClaudeCode_Phase4実装指示_リリース準備_Tsumugi.md`。
 
 ### 本番投入前に必須の deferred
 - QuestPDF Community License の事業所年商閾値確認（ADR 0013 / `docs/open-questions.md`）。
 - PDF 帳票の日本語フォント埋込（Noto Sans CJK JP）。漢字抽出が CJK 互換ブロックに化けるため、運用投入前に `assets/fonts/` 追加 + `Settings.UseEnvironmentFonts = false` + `FontManager.RegisterFontFromEmbeddedResource` を実施。
-- 平均工賃月額（AC2-8）の厚労省告示/通知突合 → 正式定義確定（構造整備完了、値差替のみで完了できる状態）。
+- 平均工賃月額（AC2-8 / AC4-14）の厚労省告示/通知突合 → 正式定義確定（構造整備完了、値差替のみで完了できる状態）。
+
+## [0.3.0-phase4-s0] - 2026-07-05
+
+フェーズ 4 S0（KouchinModule v5 突合・工賃計算モデル拡張）完了。時給方式の日次レート集計、特別手当・利用者別時給の追記型モデルを導入し、ADR 0012 を暫定から確定へ移行（AC4-13 達成）。コードレビュー（自己ワークフロー + Codex）で見つかった過少支給・保存競合バグを修正済み。
 
 ### 追加（Added）— Phase 4 S0: KouchinModule 方式対応・手当モデル確立
 
@@ -46,6 +51,14 @@
 - [0012 工賃計算の方式戦略・端数・年度起点](docs/decisions/0012-wage-calculation-strategy.md)（v2: 暫定 → 確定。KouchinModule v5 突合、HalfUp 丸め・手当規則確定）
 - [0018 WageAdjustment を append-only 特別手当レコードとして導入](docs/decisions/0018-wage-adjustment-append-only.md)（新規）
 - [0019 RecipientHourlyRate を利用者×期間の時給期間マスタとして導入](docs/decisions/0019-recipient-hourly-rate-periodic-master.md)（新規）
+
+### 修正（Fixed）— コードレビュー（自己ワークフロー + Codex）由来
+- 時給方式のバッチ全体フラグにより、時給マスタ未設定の利用者の工賃が黙って 0 円になっていた過少支給バグを解消（設定漏れは例外で明示）。
+- 時給期間の隙間に落ちた就労日が黙って賃金基礎から除外されていたバグを解消。
+- 特別手当・利用者時給の再保存が常に New レコードを生成し、DB の一意制約違反が未捕捉のまま保存が失敗していた問題を解消（既存レコードへの Correction を積むよう変更）。
+- `RecipientHourlyRatePolicy` / `WageAdjustmentPolicy` の追記型連鎖解決を、既存の `WageFundPolicy` と同じ hop-by-hop 方式に統一（共通ヘルパー `AppendOnlyChainPolicy` を追加）。
+- 丸め・手当算定ロジックの重複実装を `RoundingPolicy` / `AllowancePolicy` に集約。
+- `CalculateWagesUseCase` の時給マスタ取得を事業所単位の一括取得に変更し N+1 クエリを解消。
 
 ---
 
