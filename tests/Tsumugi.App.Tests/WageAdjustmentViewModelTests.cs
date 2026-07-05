@@ -90,7 +90,7 @@ public sealed class WageAdjustmentViewModelTests
 
         // SelectedYearMonthInt を設定すると auto-refresh が fire-and-forget で走る
         vm.SelectedYearMonthInt = 202605;
-        await Task.Delay(100); // fire-and-forget の完了を待つ
+        await vm.RefreshMatrixCommand.ExecuteAsync(null); // 確定的な完了を待つ
 
         vm.Rows.Should().HaveCount(2);
         vm.Rows.Single(row => row.Recipient.Id == r1.Id).SpecialAllowanceYen.Should().Be(5000);
@@ -109,7 +109,7 @@ public sealed class WageAdjustmentViewModelTests
         await vm.LoadCommand.ExecuteAsync(null);
         vm.SelectedOffice = vm.Offices.Single();
         vm.SelectedYearMonthInt = 202605;
-        await Task.Delay(100);
+        await vm.RefreshMatrixCommand.ExecuteAsync(null);
 
         vm.Rows.Should().AllSatisfy(row => row.IsDirty.Should().BeFalse());
     }
@@ -127,7 +127,7 @@ public sealed class WageAdjustmentViewModelTests
         await vm.LoadCommand.ExecuteAsync(null);
         vm.SelectedOffice = vm.Offices.Single();
         vm.SelectedYearMonthInt = 202605;
-        await Task.Delay(100);
+        await vm.RefreshMatrixCommand.ExecuteAsync(null);
 
         // r1 の行を変更（ダーティにする）
         var rowR1 = vm.Rows.Single(row => row.Recipient.Id == r1.Id);
@@ -153,7 +153,7 @@ public sealed class WageAdjustmentViewModelTests
         await vm.LoadCommand.ExecuteAsync(null);
         vm.SelectedOffice = vm.Offices.Single();
         vm.SelectedYearMonthInt = 202605;
-        await Task.Delay(100);
+        await vm.RefreshMatrixCommand.ExecuteAsync(null);
 
         // 何も変更せずに SaveAll
         await vm.SaveAllCommand.ExecuteAsync(null);
@@ -172,12 +172,32 @@ public sealed class WageAdjustmentViewModelTests
         await vm.LoadCommand.ExecuteAsync(null);
         vm.SelectedOffice = vm.Offices.Single();
         vm.SelectedYearMonthInt = 202605;
-        await Task.Delay(100);
+        await vm.RefreshMatrixCommand.ExecuteAsync(null);
 
         vm.Rows[0].SpecialAllowanceYen = 1000; // dirty
         await vm.SaveAllCommand.ExecuteAsync(null);
 
         vm.Rows.Should().AllSatisfy(row => row.IsDirty.Should().BeFalse());
+    }
+
+    [Theory]
+    [InlineData(202600)] // month 0
+    [InlineData(202613)] // month 13
+    [InlineData(202699)] // month 99
+    public async Task Invalid_month_component_does_not_trigger_refresh(int yyyymm)
+    {
+        var office = MakeOffice();
+        MakeRecipient("利用者A");
+
+        var vm = NewVm();
+        await vm.LoadCommand.ExecuteAsync(null);
+        vm.SelectedOffice = vm.Offices.Single();
+
+        // 無効な年月を設定 → auto-refresh は起動しない
+        vm.SelectedYearMonthInt = yyyymm;
+        // Rows は空のまま（RefreshMatrix が起動されていない）
+        vm.Rows.Should().BeEmpty();
+        vm.SaveAllCommand.CanExecute(null).Should().BeFalse();
     }
 
     [Fact]

@@ -6,5 +6,4 @@ namespace Tsumugi.Application.Dtos;
 public sealed record WageAdjustmentDto(
     Guid Id, Guid OfficeId, Guid RecipientId, YearMonth YearMonth,
     WageAdjustmentType Type, int AmountYen,
-    RecordKind Kind, Guid? OriginId, string? Note,
-    DateTimeOffset CreatedAt);
+    RecordKind Kind, Guid? OriginId, string? Note);
