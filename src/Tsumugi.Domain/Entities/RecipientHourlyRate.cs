@@ -22,10 +22,15 @@ public sealed record RecipientHourlyRate : Entity
         ArgumentOutOfRangeException.ThrowIfNegative(hourlyYen);
         return new RecipientHourlyRate
         {
-            Id = id, OfficeId = officeId, RecipientId = recipientId,
-            Period = period, HourlyYen = hourlyYen,
-            Kind = RecordKind.New, OriginId = null,
-            CreatedBy = createdBy, CreatedAt = createdAt,
+            Id = id,
+            OfficeId = officeId,
+            RecipientId = recipientId,
+            Period = period,
+            HourlyYen = hourlyYen,
+            Kind = RecordKind.New,
+            OriginId = null,
+            CreatedBy = createdBy,
+            CreatedAt = createdAt,
             ConcurrencyToken = Guid.NewGuid(),
         };
     }
@@ -38,10 +43,15 @@ public sealed record RecipientHourlyRate : Entity
         if (originId == Guid.Empty) throw new ArgumentException("OriginId が空です。", nameof(originId));
         return new RecipientHourlyRate
         {
-            Id = id, OfficeId = officeId, RecipientId = recipientId,
-            Period = period, HourlyYen = hourlyYen,
-            Kind = RecordKind.Correct, OriginId = originId,
-            CreatedBy = createdBy, CreatedAt = createdAt,
+            Id = id,
+            OfficeId = officeId,
+            RecipientId = recipientId,
+            Period = period,
+            HourlyYen = hourlyYen,
+            Kind = RecordKind.Correct,
+            OriginId = originId,
+            CreatedBy = createdBy,
+            CreatedAt = createdAt,
             ConcurrencyToken = Guid.NewGuid(),
         };
     }
@@ -53,10 +63,15 @@ public sealed record RecipientHourlyRate : Entity
         if (originId == Guid.Empty) throw new ArgumentException("OriginId が空です。", nameof(originId));
         return new RecipientHourlyRate
         {
-            Id = id, OfficeId = officeId, RecipientId = recipientId,
-            Period = period, HourlyYen = 0,
-            Kind = RecordKind.Cancel, OriginId = originId,
-            CreatedBy = createdBy, CreatedAt = createdAt,
+            Id = id,
+            OfficeId = officeId,
+            RecipientId = recipientId,
+            Period = period,
+            HourlyYen = 0,
+            Kind = RecordKind.Cancel,
+            OriginId = originId,
+            CreatedBy = createdBy,
+            CreatedAt = createdAt,
             ConcurrencyToken = Guid.NewGuid(),
         };
     }

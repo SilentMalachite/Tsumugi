@@ -24,10 +24,17 @@ public sealed record WageAdjustment : Entity
         ArgumentOutOfRangeException.ThrowIfNegative(amountYen);
         return new WageAdjustment
         {
-            Id = id, OfficeId = officeId, RecipientId = recipientId,
-            YearMonth = yearMonth, Type = type, AmountYen = amountYen,
-            Kind = RecordKind.New, OriginId = null, Note = note,
-            CreatedBy = createdBy, CreatedAt = createdAt,
+            Id = id,
+            OfficeId = officeId,
+            RecipientId = recipientId,
+            YearMonth = yearMonth,
+            Type = type,
+            AmountYen = amountYen,
+            Kind = RecordKind.New,
+            OriginId = null,
+            Note = note,
+            CreatedBy = createdBy,
+            CreatedAt = createdAt,
             ConcurrencyToken = Guid.NewGuid(),
         };
     }
@@ -41,10 +48,17 @@ public sealed record WageAdjustment : Entity
         if (originId == Guid.Empty) throw new ArgumentException("OriginId が空です。", nameof(originId));
         return new WageAdjustment
         {
-            Id = id, OfficeId = officeId, RecipientId = recipientId,
-            YearMonth = yearMonth, Type = type, AmountYen = amountYen,
-            Kind = RecordKind.Correct, OriginId = originId, Note = note,
-            CreatedBy = createdBy, CreatedAt = createdAt,
+            Id = id,
+            OfficeId = officeId,
+            RecipientId = recipientId,
+            YearMonth = yearMonth,
+            Type = type,
+            AmountYen = amountYen,
+            Kind = RecordKind.Correct,
+            OriginId = originId,
+            Note = note,
+            CreatedBy = createdBy,
+            CreatedAt = createdAt,
             ConcurrencyToken = Guid.NewGuid(),
         };
     }
@@ -57,10 +71,17 @@ public sealed record WageAdjustment : Entity
         if (originId == Guid.Empty) throw new ArgumentException("OriginId が空です。", nameof(originId));
         return new WageAdjustment
         {
-            Id = id, OfficeId = officeId, RecipientId = recipientId,
-            YearMonth = yearMonth, Type = type, AmountYen = 0,
-            Kind = RecordKind.Cancel, OriginId = originId, Note = null,
-            CreatedBy = createdBy, CreatedAt = createdAt,
+            Id = id,
+            OfficeId = officeId,
+            RecipientId = recipientId,
+            YearMonth = yearMonth,
+            Type = type,
+            AmountYen = 0,
+            Kind = RecordKind.Cancel,
+            OriginId = originId,
+            Note = null,
+            CreatedBy = createdBy,
+            CreatedAt = createdAt,
             ConcurrencyToken = Guid.NewGuid(),
         };
     }

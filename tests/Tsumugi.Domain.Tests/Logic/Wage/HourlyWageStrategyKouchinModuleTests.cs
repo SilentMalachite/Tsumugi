@@ -113,7 +113,8 @@ public class HourlyWageStrategyKouchinModuleTests
                 .Select(i => new DailyHourlyBasis(new DateOnly(2026, 5, i + 11), 60, 400)))
             .ToArray();
         var inputs = new WageInputs(A, PresentDays: 15, TotalWorkedMinutes: 900,
-            TotalPieceAmountYen: 0, TotalPoints: 0) { DailyBreakdown = breakdown };
+            TotalPieceAmountYen: 0, TotalPoints: 0)
+        { DailyBreakdown = breakdown };
         var line = new HourlyWageStrategy()
             .Calculate(new[] { inputs }, fund: null, settings: Settings(workAllowancePerDay: 0,
                 tiers: Array.Empty<SkillAllowanceTier>())).Single();
