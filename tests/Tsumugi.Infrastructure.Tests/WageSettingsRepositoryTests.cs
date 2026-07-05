@@ -24,6 +24,7 @@ public sealed class WageSettingsRepositoryTests : IClassFixture<SqliteFixture>
             new DateRange(new DateOnly(2026, 4, 1), null),
             WageMethod.Hourly, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder,
             fiscalYearStartMonth: 4, fixedDailyYen: null,
+            workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15,
             createdBy: "t", createdAt: DateTimeOffset.UtcNow);
         await repo.AddAsync(settings, default);
         await ctx.SaveChangesAsync();

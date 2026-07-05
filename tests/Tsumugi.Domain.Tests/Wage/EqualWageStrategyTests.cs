@@ -14,7 +14,8 @@ public sealed class EqualWageStrategyTests
 
     private static WageSettings Settings() => WageSettings.Create(
         Guid.NewGuid(), Office, new DateRange(new DateOnly(2026, 4, 1), null),
-        WageMethod.Equal, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, null, "t", T);
+        WageMethod.Equal, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, null,
+        workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15, "t", T);
 
     private static WageFund Fund(int yen) =>
         WageFund.NewRecord(Guid.NewGuid(), Office, new YearMonth(2026, 7), yen, null, "t", T);

@@ -79,16 +79,4 @@ public sealed record WageSettings : Entity
         };
     }
 
-    // 暫定オーバーロード（Task 7 で除去）
-    public static WageSettings Create(
-        Guid id, Guid officeId, DateRange period,
-        WageMethod method, RoundingRule rounding, RemainderPolicy remainder,
-        int fiscalYearStartMonth, int? fixedDailyYen,
-        string createdBy, DateTimeOffset createdAt) =>
-        Create(id, officeId, period, method, rounding, remainder,
-            fiscalYearStartMonth, fixedDailyYen,
-            workAllowancePerDayYen: null,
-            skillAllowanceTiers: null,
-            hourUnitMinutes: 15,
-            createdBy, createdAt);
 }

@@ -15,6 +15,8 @@ public sealed class CalculateWagesUseCase(
     IWageSettingsRepository settingsRepo,
     IContractRepository contractRepo,
     IRecipientRepository recipientRepo,
+    IRecipientHourlyRateRepository hourlyRateRepo,
+    IWageAdjustmentRepository adjustmentRepo,
     IReadOnlyList<IWageMethodStrategy> strategies)
 {
     public async Task<WagePreviewDto> ExecuteAsync(
@@ -35,9 +37,6 @@ public sealed class CalculateWagesUseCase(
 
         var fund = WageFundPolicy.Effective(
             await fundRepo.ListByOfficeAndMonthAsync(officeId, year, month, ct));
-        if (settings.Method is WageMethod.Hourly or WageMethod.Equal && fund is null)
-            throw new InvalidOperationException(
-                "Hourly / Equal 方式では当月の工賃原資（WageFund）が必須です。");
 
         // 単一事業所運用前提: 当月 1 日時点で有効な契約を持つ利用者を対象とする。
         // 複数事業所対応は ContractedProvider / Contract 整理時に再実装する（open-questions 既出）。
@@ -58,13 +57,84 @@ public sealed class CalculateWagesUseCase(
             allWork.AddRange(await workRepo.ListByRecipientAndMonthAsync(rid, year, month, ct));
         }
 
-        var inputs = WageBasisExtractor.Build(allDaily, allWork, ym);
+        var baseInputs = WageBasisExtractor.Build(allDaily, allWork, ym);
+
+        // KouchinModule: Hourly 方式の場合、利用者ごとの時給マスタから DailyBreakdown を組み立てる
+        IReadOnlyList<WageInputs> inputs = baseInputs;
+        if (settings.Method == WageMethod.Hourly && targetRecipients.Count > 0)
+        {
+            var updatedInputs = new List<WageInputs>(baseInputs.Count);
+            foreach (var baseInput in baseInputs)
+            {
+                var rates = await hourlyRateRepo.ListByOfficeRecipientAsync(officeId, baseInput.RecipientId, ct);
+                if (rates.Count == 0)
+                {
+                    updatedInputs.Add(baseInput);
+                    continue;
+                }
+
+                // 出席日かつ WorkRecord がある日を DailyHourlyBasis に変換
+                // allWork から当該利用者の当月実効 WorkRecord を日付ごとに取得
+                var recipientWork = allWork
+                    .Where(w => w.RecipientId == baseInput.RecipientId)
+                    .ToArray();
+
+                // WorkRecordPolicy.EffectiveByDate で訂正・取消を反映
+                var effectiveWork = WorkRecordPolicy.EffectiveByDate(recipientWork).Values;
+
+                // 出席日のみ対象（WageBasisExtractor と同一ロジック）
+                var recipientDaily = allDaily
+                    .Where(d => d.RecipientId == baseInput.RecipientId)
+                    .ToArray();
+                var effectiveDaily = DailyRecordPolicy.EffectiveByDate(recipientDaily).Values;
+                var presentDates = effectiveDaily
+                    .Where(d => d.Attendance == Attendance.Present)
+                    .Select(d => d.ServiceDate)
+                    .ToHashSet();
+
+                var breakdown = new List<DailyHourlyBasis>();
+                foreach (var work in effectiveWork.Where(w => presentDates.Contains(w.WorkDate)))
+                {
+                    var hourlyYen = RecipientHourlyRatePolicy.EffectiveYen(rates, baseInput.RecipientId, work.WorkDate);
+                    if (hourlyYen is null) continue;
+                    breakdown.Add(new DailyHourlyBasis(work.WorkDate, work.WorkedMinutes ?? 0, hourlyYen.Value));
+                }
+
+                if (breakdown.Count == 0)
+                {
+                    updatedInputs.Add(baseInput);
+                    continue;
+                }
+
+                updatedInputs.Add(baseInput with { DailyBreakdown = breakdown });
+            }
+            inputs = updatedInputs;
+        }
+
+        // Hourly: DailyBreakdown がある場合は fund 不要、ない場合は fund 必須
+        var anyBreakdown = inputs.Any(i => i.DailyBreakdown is not null);
+        if (!anyBreakdown && settings.Method is WageMethod.Hourly or WageMethod.Equal && fund is null)
+            throw new InvalidOperationException(
+                "Hourly / Equal 方式では当月の工賃原資（WageFund）が必須です。");
+
         var lines = WageCalculator.Calculate(strategies, settings.Method, inputs, fund, settings);
+
+        // WageAdjustment の実効合計を各利用者の工賃に加算
+        var adjustments = await adjustmentRepo.ListByOfficeMonthAsync(officeId, ym, ct);
+        var lineItems = lines.Select(l =>
+        {
+            var adj = WageAdjustmentPolicy.SumEffective(adjustments, l.RecipientId, ym);
+            if (adj == 0) return l;
+            return new WageLineItem(l.RecipientId, l.AmountYen + adj,
+                adj > 0
+                    ? $"{l.BasisSummary} + 特別手当 {adj:N0} 円"
+                    : l.BasisSummary);
+        }).ToArray();
 
         return new WagePreviewDto(
             officeId, year, month, settings.Method,
             TotalFundYen: fund?.TotalYen ?? 0,
-            TotalAllocatedYen: lines.Sum(l => l.AmountYen),
-            Lines: lines.Select(l => new WagePreviewLineDto(l.RecipientId, l.AmountYen, l.BasisSummary)).ToArray());
+            TotalAllocatedYen: lineItems.Sum(l => l.AmountYen),
+            Lines: lineItems.Select(l => new WagePreviewLineDto(l.RecipientId, l.AmountYen, l.BasisSummary)).ToArray());
     }
 }

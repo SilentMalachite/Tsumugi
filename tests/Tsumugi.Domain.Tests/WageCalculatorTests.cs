@@ -21,7 +21,8 @@ public sealed class WageCalculatorTests
 
     private static WageSettings Settings(WageMethod m, int? fixedYen = null) => WageSettings.Create(
         Guid.NewGuid(), Office, new DateRange(new DateOnly(2026, 4, 1), null),
-        m, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, fixedYen, "t", T);
+        m, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, fixedYen,
+        workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15, "t", T);
 
     [Fact]
     public void Selects_strategy_matching_settings_method()

@@ -14,6 +14,7 @@ public sealed class PieceWageStrategyTests
         new DateRange(new DateOnly(2026, 4, 1), null),
         WageMethod.Piece, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder,
         fiscalYearStartMonth: 4, fixedDailyYen: null,
+        workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15,
         "tester", new DateTimeOffset(2026, 4, 1, 0, 0, 0, TimeSpan.Zero));
 
     [Fact]

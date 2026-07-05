@@ -13,6 +13,7 @@ public sealed class FixedWageStrategyTests
         Guid.NewGuid(), Guid.NewGuid(),
         new DateRange(new DateOnly(2026, 4, 1), null),
         WageMethod.Fixed, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, fixedYen,
+        workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15,
         "tester", new DateTimeOffset(2026, 4, 1, 0, 0, 0, TimeSpan.Zero));
 
     [Fact]
@@ -35,6 +36,7 @@ public sealed class FixedWageStrategyTests
             Guid.NewGuid(), Guid.NewGuid(),
             new DateRange(new DateOnly(2026, 4, 1), null),
             WageMethod.Hourly, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, null,
+            workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15,
             "tester", new DateTimeOffset(2026, 4, 1, 0, 0, 0, TimeSpan.Zero));
         var only = new WageInputs(Guid.NewGuid(), 10, 0, 0, 0);
         FluentActions.Invoking(() => new FixedWageStrategy().Calculate(new[] { only }, null, s))

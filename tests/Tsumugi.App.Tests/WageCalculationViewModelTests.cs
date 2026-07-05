@@ -93,12 +93,27 @@ public sealed class WageCalculationViewModelTests
             => Task.FromResult<IReadOnlyList<WageSettings>>(_items.Where(s => s.OfficeId == o).ToList());
     }
 
+    private sealed class FakeHourlyRateRepo : IRecipientHourlyRateRepository
+    {
+        public Task AddAsync(Tsumugi.Domain.Entities.RecipientHourlyRate rate, CancellationToken ct) => Task.CompletedTask;
+        public Task<IReadOnlyList<Tsumugi.Domain.Entities.RecipientHourlyRate>> ListByOfficeRecipientAsync(Guid officeId, Guid recipientId, CancellationToken ct)
+            => Task.FromResult<IReadOnlyList<Tsumugi.Domain.Entities.RecipientHourlyRate>>(Array.Empty<Tsumugi.Domain.Entities.RecipientHourlyRate>());
+    }
+
+    private sealed class FakeAdjustmentRepo : IWageAdjustmentRepository
+    {
+        public Task AddAsync(Tsumugi.Domain.Entities.WageAdjustment adjustment, CancellationToken ct) => Task.CompletedTask;
+        public Task<IReadOnlyList<Tsumugi.Domain.Entities.WageAdjustment>> ListByOfficeMonthAsync(Guid officeId, YearMonth yearMonth, CancellationToken ct)
+            => Task.FromResult<IReadOnlyList<Tsumugi.Domain.Entities.WageAdjustment>>(Array.Empty<Tsumugi.Domain.Entities.WageAdjustment>());
+    }
+
     [Fact]
     public async Task LoadPreviewAsync_with_empty_office_id_sets_error()
     {
         var calc = new CalculateWagesUseCase(
             new FakeDailyRepo(), new FakeWorkRepo(), new FakeFundRepo(),
             new FakeSettingsRepo(), new FakeContractRepo(), new FakeRecipientRepo(),
+            new FakeHourlyRateRepo(), new FakeAdjustmentRepo(),
             AllStrategies);
         var vm = new WageCalculationViewModel(calc, new ListOfficesUseCase(new InMemoryOfficeRepo())) { Year = 2026, Month = 7 };
         await vm.LoadPreviewCommand.ExecuteAsync(null);
@@ -112,6 +127,7 @@ public sealed class WageCalculationViewModelTests
         var calc = new CalculateWagesUseCase(
             new FakeDailyRepo(), new FakeWorkRepo(), new FakeFundRepo(),
             new FakeSettingsRepo(), new FakeContractRepo(), new FakeRecipientRepo(),
+            new FakeHourlyRateRepo(), new FakeAdjustmentRepo(),
             AllStrategies);
         var vm = new WageCalculationViewModel(calc, new ListOfficesUseCase(new InMemoryOfficeRepo())) { OfficeId = Office, Year = 2026, Month = 7 };
         await vm.LoadPreviewCommand.ExecuteAsync(null);
@@ -125,7 +141,8 @@ public sealed class WageCalculationViewModelTests
         var r = Recipient.Create(rid, "氏名", "シメイ", new DateOnly(1990, 1, 1), "u", T0, Guid.NewGuid());
         var period = new DateRange(new DateOnly(2026, 4, 1), null);
         var settings = WageSettings.Create(Guid.NewGuid(), Office, period,
-            WageMethod.Hourly, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, null, "u", T0);
+            WageMethod.Hourly, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder, 4, null,
+            workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15, "u", T0);
         var fund = WageFund.NewRecord(Guid.NewGuid(), Office, new YearMonth(2026, 7), 100_000, null, "u", T0);
         var daily = Tsumugi.Domain.Entities.DailyRecord.NewRecord(
             Guid.NewGuid(), rid, new DateOnly(2026, 7, 1),
@@ -138,6 +155,7 @@ public sealed class WageCalculationViewModelTests
             new FakeDailyRepo(daily), new FakeWorkRepo(work),
             new FakeFundRepo(fund), new FakeSettingsRepo(settings),
             new FakeContractRepo(contract), new FakeRecipientRepo(r),
+            new FakeHourlyRateRepo(), new FakeAdjustmentRepo(),
             AllStrategies);
         var vm = new WageCalculationViewModel(calc, new ListOfficesUseCase(new InMemoryOfficeRepo())) { OfficeId = Office, Year = 2026, Month = 7 };
 
@@ -162,6 +180,7 @@ public sealed class WageCalculationViewModelTests
         var calc = new CalculateWagesUseCase(
             new FakeDailyRepo(), new FakeWorkRepo(), new FakeFundRepo(),
             new FakeSettingsRepo(), new FakeContractRepo(), new FakeRecipientRepo(),
+            new FakeHourlyRateRepo(), new FakeAdjustmentRepo(),
             AllStrategies);
         var vm = new WageCalculationViewModel(calc, new ListOfficesUseCase(offices));
 
@@ -176,6 +195,7 @@ public sealed class WageCalculationViewModelTests
         var calc = new CalculateWagesUseCase(
             new FakeDailyRepo(), new FakeWorkRepo(), new FakeFundRepo(),
             new FakeSettingsRepo(), new FakeContractRepo(), new FakeRecipientRepo(),
+            new FakeHourlyRateRepo(), new FakeAdjustmentRepo(),
             AllStrategies);
         var vm = new WageCalculationViewModel(calc, new ListOfficesUseCase(new InMemoryOfficeRepo()));
         var oid = Guid.NewGuid();

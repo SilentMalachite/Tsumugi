@@ -140,7 +140,9 @@ public sealed class WageSettingsTests
                 Guid.NewGuid(), Office,
                 new DateRange(new DateOnly(2026, 4, 1), null),
                 WageMethod.Fixed, RoundingRule.FloorYen,
-                RemainderPolicy.LargestRemainder, 4, null, "tester", T))
+                RemainderPolicy.LargestRemainder, 4, null,
+                workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15,
+                "tester", T))
             .Should().Throw<ArgumentException>()
             .WithMessage("*FixedDailyYen*");
     }

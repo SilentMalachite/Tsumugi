@@ -85,6 +85,7 @@ public sealed class WageMasterUseCaseTests
             new DateRange(new DateOnly(2026, 4, 1), null),
             WageMethod.Hourly, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder,
             fiscalYearStartMonth: 4, fixedDailyYen: null,
+            workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15,
             actor: "alice", default);
         dto.Method.Should().Be(WageMethod.Hourly);
         repo.Items.Should().ContainSingle();
@@ -99,7 +100,8 @@ public sealed class WageMasterUseCaseTests
             Guid.NewGuid(),
             new DateRange(new DateOnly(2026, 4, 1), null),
             WageMethod.Fixed, RoundingRule.FloorYen, RemainderPolicy.LargestRemainder,
-            4, null, "alice", default);
+            4, null, workAllowancePerDayYen: null, skillAllowanceTiers: null, hourUnitMinutes: 15,
+            "alice", default);
         await act.Should().ThrowAsync<ArgumentException>().WithMessage("*FixedDailyYen*");
     }
 }

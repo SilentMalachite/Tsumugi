@@ -38,6 +38,8 @@ public sealed partial class WageFundSettingsViewModel(
     [ObservableProperty] private RemainderPolicy _remainder = RemainderPolicy.LargestRemainder;
     [ObservableProperty] private int _fiscalYearStartMonth = 4;
     [ObservableProperty] private int? _fixedDailyYen;
+    [ObservableProperty] private int? _workAllowancePerDayYen;
+    [ObservableProperty] private int _hourUnitMinutes = 15;
 
     partial void OnTotalYenChanged(int value)
         => FormattedTotalYen = YenFormatter.Format(value);
@@ -64,6 +66,7 @@ public sealed partial class WageFundSettingsViewModel(
                 OfficeId,
                 new DateRange(PeriodStart, PeriodEnd),
                 Method, Rounding, Remainder, FiscalYearStartMonth, FixedDailyYen,
+                WorkAllowancePerDayYen, skillAllowanceTiers: null, HourUnitMinutes,
                 actor: Environment.UserName, default);
             ErrorMessage = null;
         }
