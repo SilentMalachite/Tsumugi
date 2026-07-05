@@ -8,12 +8,42 @@
 
 ### 計画
 - フェーズ 3（国保連請求 CSV 生成）— 報酬告示・CSV インターフェース仕様の出典確定後に着手。
-- フェーズ 4（リリース準備・運用ハードニング）残り: フォント埋込・暗号化方針決定・バックアップ自動化・記録UI補完・配布パッケージング・運用ガイド・bulk operations ガード。詳細は `07_ClaudeCode_Phase4実装指示_リリース準備_Tsumugi.md`。
+- フェーズ 4（リリース準備・運用ハードニング）残り: 暗号化方針決定・バックアップ自動化・記録UI補完・配布パッケージング・運用ガイド・bulk operations ガード。詳細は `07_ClaudeCode_Phase4実装指示_リリース準備_Tsumugi.md`。
 
 ### 本番投入前に必須の deferred
-- QuestPDF Community License の事業所年商閾値確認（ADR 0013 / `docs/open-questions.md`）。
-- PDF 帳票の日本語フォント埋込（Noto Sans CJK JP）。漢字抽出が CJK 互換ブロックに化けるため、運用投入前に `assets/fonts/` 追加 + `Settings.UseEnvironmentFonts = false` + `FontManager.RegisterFontFromEmbeddedResource` を実施。
 - 平均工賃月額（AC2-8 / AC4-14）の厚労省告示/通知突合 → 正式定義確定（構造整備完了、値差替のみで完了できる状態）。
+
+## [0.3.1-phase4-s1] - 2026-07-05
+
+Phase 4 S1（日本語フォント埋込 + QuestPDF ライセンス確定）完了。CHANGELOG
+「本番投入前に必須の deferred」から 2 件 (QuestPDF 閾値 / PDF フォント) を
+クローズし、Phase 3-2 の帳票フォント前提を先行解消 (AC4-1, AC4-2 達成)。
+
+### 追加（Added）— Phase 4 S1: Reporting アセンブリの日本語フォント同梱
+
+#### Infrastructure.Reporting
+- `assets/fonts/NotoSansJP-Regular.otf` / `NotoSansJP-Bold.otf`（SIL OFL 1.1、notofonts/noto-cjk Sans2.004 の JP-only OTF subset）を EmbeddedResource として同梱
+- `assets/fonts/NotoSansJP.LICENSE.txt`（OFL 1.1 全文）同梱
+- `QuestPdfLicenseConfigurator.Initialize()` に一本化 — ライセンス設定 + `Settings.UseEnvironmentFonts = false` + フォント登録を lock で冪等実行
+- `NotoSansJpFamilyName = "Noto Sans JP"` の internal const 化
+- `WageStatementPdfGenerator` の `GenerateStatement` / `GeneratePaymentList` で `DefaultTextStyle` にフォント指定
+
+#### Tests
+- `QuestPdfFontRegistrationTests`（新規）: EmbeddedResource 解決 3 件 + Initialize 冪等・License・UseEnvironmentFonts・Family 名定数の 4 件
+- `WageStatementPdfGeneratorTests` に CJK 3 系統 (漢字・ひらがな・カタカナ) + Bold 漢字 の substring assertion を復活
+- `WagePaymentListPdfGeneratorTests` に Bold ASCII (20,000 / 10,000) + Bold 漢字の substring assertion を復活
+
+#### Docs
+- NOTICE に Noto Sans JP の OFL 帰属追記
+- ADR 0013 を「暫定」→「確定」へ書き換え（一次情報 URL 付き、multi-facility 社会福祉法人 の consolidated 年商閾値 再判定トリガーを first-class 明記、閾値超過時の Avalonia 印刷フォールバック計画を計画のみ記載）
+- `docs/open-questions.md` の QuestPDF ライセンス項・PDF フォント項をクローズ
+- `docs/superpowers/plans/2026-06-29-phase3-2-reports.md` からフォント前提タスク除去
+
+### 変更（Changed）
+- `QuestPdfLicenseConfigurator.ApplyCommunityLicense()` を削除し `Initialize()` へ改名。既存呼出 3 箇所（`App.axaml.cs` / 2 つの PDF テスト static ctor）を改名済（CLAUDE.md §運用メモ「backwards-compatibility hacks を導入しない」規約）
+- QuestPDF 2025.4.0 の API に合わせ `FontManager.RegisterFont(Stream)` を使用（`RegisterFontFromStream` は当該版に存在しない — 実装時に判明）
+
+---
 
 ## [0.3.0-phase4-s0] - 2026-07-05
 

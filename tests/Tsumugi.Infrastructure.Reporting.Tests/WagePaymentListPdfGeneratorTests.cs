@@ -9,7 +9,7 @@ namespace Tsumugi.Infrastructure.Reporting.Tests;
 
 public sealed class WagePaymentListPdfGeneratorTests
 {
-    static WagePaymentListPdfGeneratorTests() => QuestPdfLicenseConfigurator.ApplyCommunityLicense();
+    static WagePaymentListPdfGeneratorTests() => QuestPdfLicenseConfigurator.Initialize();
 
     private static RecipientDto Rec(Guid id, string kana) => new(
         id, "氏名", kana, new DateOnly(1990, 1, 1), Guid.NewGuid(), false, default,
@@ -39,14 +39,13 @@ public sealed class WagePaymentListPdfGeneratorTests
         bytes.Should().NotBeNullOrEmpty();
         var text = ExtractText(bytes);
 
-        // 日本語フォント埋込が未完了 (docs/open-questions.md 参照)。
-        // Linux/Windows CI では QuestPDF が Bold 用に切り替えるフォールバックフォントの
-        // CMap が壊れていて、太字コンテキストの ASCII (数字・記号・空白) が
-        // PdfPig 抽出時に NUL バイトに化ける (CJK は kangxi radical で拾えることが多い)。
-        // このため合計/平均のような太字行の数値は substring assertion にできない。
-        // 個別金額は非太字テーブルセルで描画しているため全 OS で抽出可能。
         text.Should().Contain("12,000");
         text.Should().Contain("8,000");
+
+        // S1: Noto Sans JP 埋込により Bold 行の ASCII と CJK が抽出可能
+        text.Should().Contain("20,000", because: "合計行の Bold ASCII が抽出可能");
+        text.Should().Contain("10,000", because: "平均行の Bold ASCII が抽出可能");
+        text.Should().Contain("工賃支払一覧", because: "ヘッダ Bold 漢字が抽出可能");
     }
 
     [Fact]
@@ -68,6 +67,6 @@ public sealed class WagePaymentListPdfGeneratorTests
         using var pdf = PdfDocument.Open(stream);
         var sb = new System.Text.StringBuilder();
         foreach (var page in pdf.GetPages()) sb.Append(page.Text);
-        return sb.ToString();
+        return KangxiRadicalNormalizer.FoldKangxiRadicals(sb.ToString());
     }
 }

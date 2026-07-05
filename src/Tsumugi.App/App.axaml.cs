@@ -28,7 +28,7 @@ public partial class App : AvaloniaApplication
     public override void OnFrameworkInitializationCompleted()
     {
         // ADR 0013: QuestPDF Community ライセンスをコードで固定する（オフライン保証）。
-        QuestPdfLicenseConfigurator.ApplyCommunityLicense();
+        QuestPdfLicenseConfigurator.Initialize();
 
         var appDataRoot = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),

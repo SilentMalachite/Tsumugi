@@ -31,4 +31,15 @@
     <ProjectReference Include="..\Tsumugi.Infrastructure\Tsumugi.Infrastructure.csproj" />
     <ProjectReference Include="..\Tsumugi.Infrastructure.Reporting\Tsumugi.Infrastructure.Reporting.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\NOTICE" Link="NOTICE">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <None Include="..\..\assets\fonts\NotoSansJP.LICENSE.txt" Link="assets\fonts\NotoSansJP.LICENSE.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
 </Project>

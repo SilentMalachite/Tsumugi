@@ -80,6 +80,10 @@ public sealed class AppOfflineComplianceTests
 
     // P/Invoke 経由のネットワーク呼び出しも禁止（CLR の TypeRef を介さずに通信できる経路）。
     // 既定の allowlist は空。やむを得ない場合のみ、(DllName, Reason) を埋めて明示する。
+    // 設計メモ: UrlLiteralAllowlist と異なりアセンブリ単位のスコープ化はまだ導入していない
+    // （Task 9.5 時点でエントリ 0 件のため必要性なし）。将来 P/Invoke の許可が必要になった際は
+    // UrlLiteralAllowlist と同様に (DllName, AssemblyName?, Reason) へ拡張し、
+    // .Where(e => e.AssemblyName is null || ...) の絞り込みを追加すること。
     private static readonly (string DllName, string Reason)[] PInvokeAllowlist =
         Array.Empty<(string, string)>();
 
@@ -111,9 +115,40 @@ public sealed class AppOfflineComplianceTests
     }
 
     // URL リテラル混入（http:// / https:// / ftp:// 等）も禁止。
-    // ヒット時はソースを修正するか、本配列に (UrlPrefix, Reason) を追加すること。
-    private static readonly (string UrlPrefix, string Reason)[] UrlLiteralAllowlist =
-        Array.Empty<(string, string)>();
+    // ヒット時はソースを修正するか、本配列に (UrlPrefix, AssemblyName, Reason) を追加すること。
+    // AssemblyName は任意（nullable）: null の場合は全 5 アセンブリに対して該当スキームを許可する
+    // （危険なため既定では使用しないこと）。特定のアセンブリ名を指定した場合は、
+    // そのアセンブリの検査時のみ該当スキームを許可し、他のアセンブリでは引き続き検出対象とする。
+    //
+    /// <summary>
+    /// <para>
+    /// 【精度上のトレードオフ（final review I-2 で発見）】この allowlist は
+    /// <c>(UrlPrefix, AssemblyName)</c> の粒度でスキーム単位に許可する。個々のリテラル値
+    /// （例: 本配列の <c>"Tsumugi.Infrastructure.Reporting"</c> エントリが実際に許可したいのは
+    /// <c>http://www.adobe.com/</c> という 1 リテラルのみ）までは絞り込めない。
+    /// </para>
+    /// <para>
+    /// つまり、当該アセンブリ (<c>AssemblyName</c> 一致分) に **他の** <c>http://</c> リテラルが
+    /// 将来誤って混入しても、このテストだけでは検出できない
+    /// （ただし型参照スキャン・P/Invoke スキャンは影響を受けず引き続き検出可能）。
+    /// </para>
+    /// <para>
+    /// 将来的な改善案: <see cref="AssemblyMetadataScanner.ContainsRawUtf16SubstringIgnoreCase"/> は
+    /// bool のみを返すため、ヒット位置（オフセット）まで返す厳密リテラル一致 API へ拡張し、
+    /// スキーム単位ではなく完全一致リテラル単位で allowlist を組めるようにする。本 fix パスでは
+    /// スキャン API 自体の変更は行わない（コストが大きいため見送り）。
+    /// </para>
+    /// </summary>
+    private static readonly (string UrlPrefix, string? AssemblyName, string Reason)[] UrlLiteralAllowlist =
+        new (string UrlPrefix, string? AssemblyName, string Reason)[]
+        {
+            ("http://",
+             "Tsumugi.Infrastructure.Reporting",
+             "Noto Sans JP (assets/fonts/) の font `name` テーブルに埋込済の Copyright URL " +
+             "`http://www.adobe.com/`。SIL OFL 1.1 帰属要件により font metadata は改変不可、" +
+             "また Reporting アセンブリはネットワーク通信を一切行わない (System.Net.* 参照なし)。" +
+             "URL 混入は文字列リテラルとしてスキャンで検出されるが実害なし。"),
+        };
 
     [Theory]
     [InlineData("Tsumugi.App")]
@@ -127,6 +162,7 @@ public sealed class AppOfflineComplianceTests
 
         var allowed = UrlLiteralAllowlist
             .Where(e => !string.IsNullOrWhiteSpace(e.Reason))
+            .Where(e => e.AssemblyName is null || string.Equals(e.AssemblyName, assemblyName, StringComparison.Ordinal))
             .Select(e => e.UrlPrefix.ToLowerInvariant())
             .ToHashSet(StringComparer.Ordinal);
 

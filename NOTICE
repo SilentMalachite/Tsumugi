@@ -18,5 +18,8 @@ which is licensed under its own terms:
 - xUnit.net — Apache License 2.0 — https://github.com/xunit/xunit
 - FluentAssertions — Apache License 2.0 — https://github.com/fluentassertions/fluentassertions
 - Coverlet — MIT License — https://github.com/coverlet-coverage/coverlet
+- Noto Sans JP — SIL Open Font License 1.1 — https://github.com/notofonts/noto-cjk/releases/download/Sans2.004/16_NotoSansJP.zip
+  Copyright 2014-2021 Adobe (http://www.adobe.com/). Noto is a trademark of Google Inc.
+  ライセンス本文: assets/fonts/NotoSansJP.LICENSE.txt
 
 ライセンス本文は各プロジェクトのリポジトリを参照してください。

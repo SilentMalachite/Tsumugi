@@ -25,6 +25,7 @@ public sealed class WageStatementPdfGenerator(TimeProvider timeProvider) : IWage
             {
                 p.Size(PageSizes.A4);
                 p.Margin(2, Unit.Centimetre);
+                p.DefaultTextStyle(x => x.FontFamily(QuestPdfLicenseConfigurator.NotoSansJpFamilyName));
                 p.Header().Text($"{office.Name}　{statement.Year}年{statement.Month}月分 工賃明細")
                     .FontSize(14).Bold();
                 p.Content().Column(col =>
@@ -65,6 +66,7 @@ public sealed class WageStatementPdfGenerator(TimeProvider timeProvider) : IWage
             {
                 p.Size(PageSizes.A4);
                 p.Margin(2, Unit.Centimetre);
+                p.DefaultTextStyle(x => x.FontFamily(QuestPdfLicenseConfigurator.NotoSansJpFamilyName));
                 p.Header().Text($"{office.Name}　{year}年{month}月分 工賃支払一覧")
                     .FontSize(14).Bold();
                 p.Content().Column(col =>

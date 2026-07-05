@@ -2,17 +2,19 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Phase 3-0 で埋め込んだ Noto Sans CJK JP を用いて、3 種類の請求関連 PDF 帳票（サービス提供実績記録票・介護給付費等請求書・介護給付費等請求明細書）を `Tsumugi.Infrastructure.Reporting` に追加し、Application UseCase と App UI を配線する。決定論（同入力＋同 TimeProvider → 同バイト）、CJK 抽出検証、合計値検証を CI で固定する。
+**Goal:** 埋込済みの Noto Sans JP を用いて、3 種類の請求関連 PDF 帳票（サービス提供実績記録票・介護給付費等請求書・介護給付費等請求明細書）を `Tsumugi.Infrastructure.Reporting` に追加し、Application UseCase と App UI を配線する。決定論（同入力＋同 TimeProvider → 同バイト）、CJK 抽出検証、合計値検証を CI で固定する。
 
 **Architecture:** Phase 2 の `WageStatementPdfGenerator` と同じ流儀で `ClaimReportGenerator` を追加。`Application.Abstractions.IClaimReportGenerator` 経由で DI 注入し、`GenerateClaimReportsUseCase` から呼ぶ。App は `IFileSaveService` で保存先を取得し、`ClaimReportViewModel` が状態管理。
 
-**Tech Stack:** .NET 10 / QuestPDF 2025.4.0 (Community License, Noto Sans CJK JP 埋込済) / xUnit / FluentAssertions / Avalonia 11.3 / CommunityToolkit.Mvvm 8.4 / `TimeProvider`
+**Tech Stack:** .NET 10 / QuestPDF 2025.4.0 (Community License, Noto Sans JP 埋込済) / xUnit / FluentAssertions / Avalonia 11.3 / CommunityToolkit.Mvvm 8.4 / `TimeProvider`
 
 ## Global Constraints
 
 > 親文書 `CLAUDE.md` §ハード制約、`01 §6`、`06_Phase3指示書 §4.2`、設計仕様書を尊守。
 
-- **着手条件**: Phase 3-0 完了、AC3-0-2（Noto Sans CJK JP 埋込）が緑、Phase 3-1 完了（`ClaimResult` DTO・UseCase が揃う）
+> **前提解消**: 日本語フォント埋込は Phase 4 / S1 で解消済 (`docs/superpowers/plans/2026-07-05-phase4-s1-font-embed-and-questpdf-license.md`)。本プランでは前提として扱う。
+
+- **着手条件**: Phase 3-0 完了、Phase 3-1 完了（`ClaimResult` DTO・UseCase が揃う）
 - **決定論**: 同入力＋同 `TimeProvider` で同バイト列を返すこと（Phase 2 `WageStatementPdfGenerator` と同じ規律）
 - **CJK 検証**: 抽出テキストに利用者氏名・事業所名・帳票タイトル等の漢字が含まれること（Linux/Windows CI で NUL 化しない）
 - **依存方向**: `Tsumugi.Infrastructure.Reporting → Application/Domain`、`Tsumugi.App → Tsumugi.Application + Reporting`。Domain は Reporting を直接参照しない
@@ -216,7 +218,7 @@ public sealed class ServiceProvisionRecordPdfTests
     [Fact]
     public void GenerateServiceProvisionRecord_includes_office_recipient_name_and_month_in_extracted_text()
     {
-        QuestPdfLicenseConfigurator.ApplyCommunityLicense();
+        QuestPdfLicenseConfigurator.Initialize();
         var clock = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z"));
         var gen = new ClaimReportGenerator(clock);
         var dto = new ServiceProvisionRecordDto(
@@ -243,7 +245,7 @@ public sealed class ServiceProvisionRecordPdfTests
     [Fact]
     public void GenerateServiceProvisionRecord_is_deterministic_for_same_inputs_and_same_timeprovider()
     {
-        QuestPdfLicenseConfigurator.ApplyCommunityLicense();
+        QuestPdfLicenseConfigurator.Initialize();
         var clock1 = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z"));
         var clock2 = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z"));
         var dto = /* 同じ DTO */;
@@ -272,7 +274,7 @@ namespace Tsumugi.Infrastructure.Reporting;
 
 public sealed class ClaimReportGenerator(TimeProvider clock) : IClaimReportGenerator
 {
-    private const string FontFamily = "Noto Sans CJK JP";
+    private const string FontFamily = QuestPdfLicenseConfigurator.NotoSansJpFamilyName;
 
     public byte[] GenerateServiceProvisionRecord(ServiceProvisionRecordDto dto)
     {
@@ -373,7 +375,7 @@ public sealed class ClaimInvoicePdfTests
     [Fact]
     public void GenerateClaimInvoice_shows_office_name_and_total_amounts_and_master_versions()
     {
-        QuestPdfLicenseConfigurator.ApplyCommunityLicense();
+        QuestPdfLicenseConfigurator.Initialize();
         var clock = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z"));
         var gen = new ClaimReportGenerator(clock);
         var v = new ClaimMasterVersion("v2024.04", new DateOnly(2026, 6, 29), "ADR-0018");
@@ -473,7 +475,7 @@ public sealed class ClaimStatementPdfTests
     [Fact]
     public void GenerateClaimStatement_lists_each_recipient_with_basic_and_additions()
     {
-        QuestPdfLicenseConfigurator.ApplyCommunityLicense();
+        QuestPdfLicenseConfigurator.Initialize();
         var clock = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z"));
         var gen = new ClaimReportGenerator(clock);
         var dto = new ClaimStatementDto(
@@ -904,7 +906,7 @@ git commit -m "docs(phase3-2): Phase 3-2 acceptance complete + CHANGELOG"
 
 ## Phase 3-2 全体受け入れ基準
 
-- [ ] AC3-5 日本語フォント埋込で CI で CJK 化けなし
+- [ ] AC3-5 日本語フォント埋込で CI で CJK 化けなし（前提解消済 — 上記 Global Constraints 参照）
 - [ ] AC3-6 3 種類の帳票（実績記録票・請求書・明細書）出力、抽出テキスト＋合計＋CJK 検証、決定論
 - [ ] AC3-10（横断）`./build/ci.sh` 緑、依存方向不変、オフライン検査緑（Reporting 含む）
 

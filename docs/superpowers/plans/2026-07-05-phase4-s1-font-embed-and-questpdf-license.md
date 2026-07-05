@@ -1140,3 +1140,31 @@ S1 完了時点で以下の状態:
 - Codex レビュー実施 → 重大度別トリアージ → 修正 commit を積む（もし指摘があれば）
 
 次スライスは **S2 (bulk operations 禁止スキャナ + NetArchTest 見送り ADR)**。ロードマップ §2 / §8.2 参照。
+
+---
+
+## 完了ログ
+
+**完了日**: 2026-07-05
+**最終 commit（Task 10 commit の直前）**: `237048a test(phase4/s1): scope offline URL allowlist per assembly for Noto Sans JP font metadata`
+**全 AC 達成**: AC4-1 / AC4-2 ✅
+
+**CI 結果**:
+- `dotnet build -warnaserror`: 緑
+- `dotnet test`: 緑（607/607 passing across all projects — Domain 207 / Application 124 / Infrastructure 131 / Infrastructure.Reporting 12 / App 133）
+- `dotnet format --verify-no-changes`: 差分なし
+- `./build/ci.sh`: 全項目緑（format / build / test+coverage / Domain 98.66% line / Application 83.34% line）
+
+**S0 パターン比較**:
+- Task 0（一次情報確認）→ 1 fix pass 後 clean（fabricated quote 修正）
+- Task 3（Initialize 一本化）→ API drift 発見 → `RegisterFontFromStream` → `RegisterFont(Stream)` 置換で解消
+- Task 4（DefaultTextStyle + CJK assertion）→ 2件の follow-up 発生:
+  - Kangxi Radical fold ヘルパー: 2 テストで重複、DRY refactor 予定（Task 9.6, Minor）
+  - Font Copyright URL による offline compliance 赤化 → Task 9.5 で per-assembly allowlist 化して解消
+
+**確認事項の残**:
+- [ ] Windows 実機での CJK 抽出（Task 4 は macOS + CI で検証済）→ S5 の手動 QA で最終確認
+- [ ] self-contained 発行時のバイナリサイズ確認 → S5 の smoke で計測
+- [ ] Kangxi Radical fold の DRY refactor（Task 9.6, Minor）
+
+**Codex レビュー**: whole-branch code review は subagent-driven-development のプロセスに従い、本 Task 10 完了後の Final review で実施予定
