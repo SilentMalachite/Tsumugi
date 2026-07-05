@@ -41,13 +41,14 @@ public sealed class WageStatementPdfGeneratorTests
         bytes.Should().NotBeNullOrEmpty();
 
         var text = ExtractText(bytes);
-        // ★日本語フォント埋込が未実装のため、CJK (漢字・ひらがな・カタカナ全般) は
-        // フォント不在の Linux/Windows CI 環境では glyph→Unicode マッピングが解決できず
-        // 抽出テキストが NUL バイトに化ける (macOS は OS 同梱の Hiragino が拾うため動く)。
-        // クロスプラットフォーム CI を緑に保つため、ASCII / 数字のみで構造的検証を行う。
-        // フォント埋込完了後 (docs/open-questions.md 参照) に CJK assertion を追加する。
         text.Should().Contain("12,345", because: "金額は N0 形式で桁区切り");
         text.Should().Contain("2026", because: "対象年がヘッダに出る");
+
+        // S1: Noto Sans JP 埋込により CJK が抽出可能
+        text.Should().Contain("山田太郎", because: "利用者名 (漢字) がフォント埋込で抽出可能");
+        text.Should().Contain("ヤマダタロウ", because: "カナが抽出可能");
+        text.Should().Contain("テスト事業所", because: "事業所名 (ひらがな含む漢字) が抽出可能");
+        text.Should().Contain("工賃明細", because: "帳票タイトル (漢字) がヘッダ Bold で抽出可能");
     }
 
     [Fact]
@@ -97,6 +98,29 @@ public sealed class WageStatementPdfGeneratorTests
         var sb = new System.Text.StringBuilder();
         foreach (var page in pdf.GetPages())
             sb.Append(page.Text);
+        return FoldKangxiRadicals(sb.ToString());
+    }
+
+    // Noto Sans JP は「山」「田」「工」等、康熙部首 (Kangxi Radicals, U+2F00-2FD5) と字形を
+    // 共有する漢字を含んでおり、QuestPDF/SkiaSharp が生成する ToUnicode CMap がその部首の
+    // コードポイントを採用することがある (レンダリングされる字形自体は正しい。抽出テキストの
+    // みに影響。pdftotext でも同一結果になることを確認済みのため QuestPDF/Skia 側の生成物起因で
+    // あり PdfPig 固有ではない)。Directory.Build.props で InvariantGlobalization=true のため
+    // string.Normalize(FormKC) は ICU 不使用で分解を行わず使えない。このテストで実際に出現する
+    // 部首だけを固定表で統合漢字へ畳み込む。
+    private static readonly System.Collections.Generic.Dictionary<char, char> KangxiRadicalToIdeograph =
+        new System.Collections.Generic.Dictionary<char, char>
+        {
+            ['⼭'] = '山', // KANGXI RADICAL MOUNTAIN -> 山
+            ['⽥'] = '田', // KANGXI RADICAL FIELD -> 田
+            ['⼯'] = '工', // KANGXI RADICAL WORK -> 工
+        };
+
+    private static string FoldKangxiRadicals(string s)
+    {
+        var sb = new System.Text.StringBuilder(s.Length);
+        foreach (var ch in s)
+            sb.Append(KangxiRadicalToIdeograph.TryGetValue(ch, out var mapped) ? mapped : ch);
         return sb.ToString();
     }
 
