@@ -10,7 +10,7 @@ namespace Tsumugi.Infrastructure.Reporting.Tests;
 
 public sealed class WageStatementPdfGeneratorTests
 {
-    static WageStatementPdfGeneratorTests() => QuestPdfLicenseConfigurator.ApplyCommunityLicense();
+    static WageStatementPdfGeneratorTests() => QuestPdfLicenseConfigurator.Initialize();
 
     [Fact]
     public void Statement_pdf_contains_recipient_name_office_name_and_amount()

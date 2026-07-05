@@ -9,7 +9,7 @@ namespace Tsumugi.Infrastructure.Reporting.Tests;
 
 public sealed class WagePaymentListPdfGeneratorTests
 {
-    static WagePaymentListPdfGeneratorTests() => QuestPdfLicenseConfigurator.ApplyCommunityLicense();
+    static WagePaymentListPdfGeneratorTests() => QuestPdfLicenseConfigurator.Initialize();
 
     private static RecipientDto Rec(Guid id, string kana) => new(
         id, "氏名", kana, new DateOnly(1990, 1, 1), Guid.NewGuid(), false, default,
