@@ -55,4 +55,22 @@ public class RecipientHourlyRateTests
         r.Kind.Should().Be(RecordKind.Cancel);
         r.HourlyYen.Should().Be(0);
     }
+
+    [Fact]
+    public void Correction_rejects_empty_origin_id()
+    {
+        var act = () => RecipientHourlyRate.Correction(
+            Guid.NewGuid(), Office, Recipient, Period, Guid.Empty, 400,
+            "tester", DateTimeOffset.UtcNow);
+        act.Should().Throw<ArgumentException>().WithParameterName("originId");
+    }
+
+    [Fact]
+    public void Cancel_rejects_empty_origin_id()
+    {
+        var act = () => RecipientHourlyRate.Cancel(
+            Guid.NewGuid(), Office, Recipient, Period, Guid.Empty,
+            "tester", DateTimeOffset.UtcNow);
+        act.Should().Throw<ArgumentException>().WithParameterName("originId");
+    }
 }
