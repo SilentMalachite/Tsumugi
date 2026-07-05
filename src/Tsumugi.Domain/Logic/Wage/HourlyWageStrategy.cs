@@ -60,6 +60,9 @@ public sealed class HourlyWageStrategy : IWageMethodStrategy
 
                 foreach (var (yen, totalMins) in groups)
                 {
+                    if (totalMins < 0)
+                        throw new ArgumentException(
+                            $"就労時間に負の値が含まれています。", nameof(inputs));
                     if (totalMins % unit != 0)
                         throw new ArgumentException(
                             $"就労時間は{unit}分単位で指定してください。", nameof(inputs));

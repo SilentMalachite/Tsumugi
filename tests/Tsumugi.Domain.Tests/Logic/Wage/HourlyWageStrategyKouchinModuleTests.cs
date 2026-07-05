@@ -87,6 +87,23 @@ public class HourlyWageStrategyKouchinModuleTests
     }
 
     [Fact]
+    public void Rejects_negative_total_minutes_in_rate_group()
+    {
+        var inputs = new WageInputs(A, PresentDays: 1, TotalWorkedMinutes: 0,
+            TotalPieceAmountYen: 0, TotalPoints: 0)
+        {
+            DailyBreakdown = new[]
+            {
+                new DailyHourlyBasis(new DateOnly(2026, 5, 1), Minutes: -60, HourlyYen: 350),
+                new DailyHourlyBasis(new DateOnly(2026, 5, 2), Minutes: 30, HourlyYen: 350),
+            },
+        };
+        var act = () => new HourlyWageStrategy()
+            .Calculate(new[] { inputs }, fund: null, settings: Settings());
+        act.Should().Throw<ArgumentException>().WithMessage("*負の値*");
+    }
+
+    [Fact]
     public void DailyBreakdown_supports_mid_month_rate_change()
     {
         // 前半 10 日 350 円/h × 1h, 後半 5 日 400 円/h × 1h
