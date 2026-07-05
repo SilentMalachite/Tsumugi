@@ -37,7 +37,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
-    <None Include="..\..\assets\fonts\NotoSansJP.LICENSE.txt" Link="ThirdPartyLicenses\NotoSansJP.LICENSE.txt">
+    <None Include="..\..\assets\fonts\NotoSansJP.LICENSE.txt" Link="assets\fonts\NotoSansJP.LICENSE.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
