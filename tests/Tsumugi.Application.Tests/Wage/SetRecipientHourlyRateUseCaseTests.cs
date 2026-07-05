@@ -31,6 +31,9 @@ public sealed class SetRecipientHourlyRateUseCaseTests
         dto.Kind.Should().Be(RecordKind.New);
         repo.Added.Should().HaveCount(1);
         audit.Entries.Should().HaveCount(1);
+        audit.Entries[0].Action.Should().Be(AuditAction.Register);
+        audit.Entries[0].TargetType.Should().Be(nameof(RecipientHourlyRate));
+        audit.Entries[0].TargetId.Should().Be(dto.Id);
     }
 
     [Fact]

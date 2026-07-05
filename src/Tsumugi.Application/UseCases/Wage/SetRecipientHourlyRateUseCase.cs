@@ -18,14 +18,15 @@ public sealed class SetRecipientHourlyRateUseCase(
         if (string.IsNullOrWhiteSpace(actor))
             throw new ArgumentException("actor が空です。", nameof(actor));
 
+        var now = clock.GetUtcNow();
         var entity = RecipientHourlyRate.NewRecord(
             Guid.NewGuid(), officeId, recipientId, period, hourlyYen,
-            actor, clock.GetUtcNow());
+            actor, now);
 
         await repo.AddAsync(entity, ct);
         await audit.RecordAsync(
             actor, AuditAction.Register, nameof(RecipientHourlyRate),
-            entity.Id, clock.GetUtcNow(),
+            entity.Id, now,
             $"RecipientHourlyRate 追記 {hourlyYen}円/時", ct);
         await uow.SaveChangesAsync(ct);
         return Map(entity);

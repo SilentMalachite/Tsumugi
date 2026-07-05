@@ -31,6 +31,9 @@ public sealed class RecordWageAdjustmentUseCaseTests
         dto.YearMonth.Should().Be(Ym);
         repo.Added.Should().HaveCount(1);
         audit.Entries.Should().HaveCount(1);
+        audit.Entries[0].Action.Should().Be(AuditAction.Register);
+        audit.Entries[0].TargetType.Should().Be(nameof(WageAdjustment));
+        audit.Entries[0].TargetId.Should().Be(dto.Id);
     }
 
     [Fact]

@@ -19,14 +19,15 @@ public sealed class RecordWageAdjustmentUseCase(
         if (string.IsNullOrWhiteSpace(actor))
             throw new ArgumentException("actor が空です。", nameof(actor));
 
+        var now = clock.GetUtcNow();
         var entity = WageAdjustment.NewRecord(
             Guid.NewGuid(), officeId, recipientId, yearMonth,
-            type, amountYen, note, actor, clock.GetUtcNow());
+            type, amountYen, note, actor, now);
 
         await repo.AddAsync(entity, ct);
         await audit.RecordAsync(
             actor, AuditAction.Register, nameof(WageAdjustment),
-            entity.Id, clock.GetUtcNow(),
+            entity.Id, now,
             $"WageAdjustment 追記 {type} {amountYen}円", ct);
         await uow.SaveChangesAsync(ct);
         return Map(entity);
