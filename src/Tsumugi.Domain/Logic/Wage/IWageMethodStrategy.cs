@@ -1,5 +1,6 @@
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
+using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.Domain.Logic.Wage;
 
@@ -8,7 +9,10 @@ public sealed record WageInputs(
     int PresentDays,
     int TotalWorkedMinutes,
     int TotalPieceAmountYen,
-    int TotalPoints);
+    int TotalPoints)
+{
+    public IReadOnlyList<DailyHourlyBasis>? DailyBreakdown { get; init; }
+}
 
 public sealed record WageLineItem(Guid RecipientId, int AmountYen, string BasisSummary);
 

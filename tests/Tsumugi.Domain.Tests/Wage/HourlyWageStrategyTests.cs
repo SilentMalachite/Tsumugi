@@ -60,10 +60,11 @@ public sealed class HourlyWageStrategyTests
     }
 
     [Fact]
-    public void Fund_required_for_hourly()
+    public void No_breakdown_no_fund_no_allowances_yields_zero()
     {
+        // DailyBreakdown なし・fund なし・手当なし: 時給分 0 + 手当 0 = 0
         var only = new WageInputs(Guid.NewGuid(), 10, 600, 0, 0);
-        FluentActions.Invoking(() => new HourlyWageStrategy().Calculate(new[] { only }, fund: null, Settings()))
-            .Should().Throw<ArgumentNullException>().WithParameterName("fund");
+        var lines = new HourlyWageStrategy().Calculate(new[] { only }, fund: null, Settings());
+        lines.Single().AmountYen.Should().Be(0);
     }
 }
