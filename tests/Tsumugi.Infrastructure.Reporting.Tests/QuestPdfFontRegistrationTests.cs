@@ -54,6 +54,6 @@ public sealed class QuestPdfFontRegistrationTests
             .GetField("NotoSansJpFamilyName",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
             .GetValue(null) as string;
-        name.Should().NotBeNullOrWhiteSpace(because: "登録した .otf の Family 名を定数化していること");
+        name.Should().Be("Noto Sans JP", because: "登録した .otf の Family 名を定数化していること");
     }
 }

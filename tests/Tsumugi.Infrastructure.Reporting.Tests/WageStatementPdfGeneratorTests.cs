@@ -98,30 +98,7 @@ public sealed class WageStatementPdfGeneratorTests
         var sb = new System.Text.StringBuilder();
         foreach (var page in pdf.GetPages())
             sb.Append(page.Text);
-        return FoldKangxiRadicals(sb.ToString());
-    }
-
-    // Noto Sans JP は「山」「田」「工」等、康熙部首 (Kangxi Radicals, U+2F00-2FD5) と字形を
-    // 共有する漢字を含んでおり、QuestPDF/SkiaSharp が生成する ToUnicode CMap がその部首の
-    // コードポイントを採用することがある (レンダリングされる字形自体は正しい。抽出テキストの
-    // みに影響。pdftotext でも同一結果になることを確認済みのため QuestPDF/Skia 側の生成物起因で
-    // あり PdfPig 固有ではない)。Directory.Build.props で InvariantGlobalization=true のため
-    // string.Normalize(FormKC) は ICU 不使用で分解を行わず使えない。このテストで実際に出現する
-    // 部首だけを固定表で統合漢字へ畳み込む。
-    private static readonly System.Collections.Generic.Dictionary<char, char> KangxiRadicalToIdeograph =
-        new System.Collections.Generic.Dictionary<char, char>
-        {
-            ['⼭'] = '山', // KANGXI RADICAL MOUNTAIN -> 山
-            ['⽥'] = '田', // KANGXI RADICAL FIELD -> 田
-            ['⼯'] = '工', // KANGXI RADICAL WORK -> 工
-        };
-
-    private static string FoldKangxiRadicals(string s)
-    {
-        var sb = new System.Text.StringBuilder(s.Length);
-        foreach (var ch in s)
-            sb.Append(KangxiRadicalToIdeograph.TryGetValue(ch, out var mapped) ? mapped : ch);
-        return sb.ToString();
+        return KangxiRadicalNormalizer.FoldKangxiRadicals(sb.ToString());
     }
 
     private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
