@@ -24,6 +24,7 @@ public sealed class TsumugiDbContext(DbContextOptions<TsumugiDbContext> options)
 
     // Phase 4 - KouchinModule
     public DbSet<WageAdjustment> WageAdjustments => Set<WageAdjustment>();
+    public DbSet<RecipientHourlyRate> RecipientHourlyRates => Set<RecipientHourlyRate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

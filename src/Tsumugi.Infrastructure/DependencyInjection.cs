@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<IWageStatementRepository, WageStatementRepository>();
         services.AddScoped<IAuditEntryRepository, AuditEntryRepository>();
         services.AddScoped<IWageAdjustmentRepository, WageAdjustmentRepository>();
+        services.AddScoped<IRecipientHourlyRateRepository, RecipientHourlyRateRepository>();
         services.AddScoped<IAuditTrail, AuditTrail>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<IBackupService, SqliteBackupService>();
