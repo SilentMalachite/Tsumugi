@@ -1,0 +1,89 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             xmlns:conv="using:Tsumugi.App.Converters"
+             x:Class="Tsumugi.App.Views.RecipientHourlyRateView"
+             x:DataType="vm:RecipientHourlyRateViewModel">
+    <ScrollViewer>
+        <StackPanel Margin="8" Spacing="8">
+            <TextBlock Text="利用者別時給設定"
+                       FontSize="{DynamicResource HeadingFontSize}" />
+
+            <!-- 事業所選択 -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="事業所（必須）" />
+                <ComboBox ItemsSource="{Binding Offices}"
+                          SelectedItem="{Binding SelectedOffice}"
+                          PlaceholderText="事業所を選択"
+                          HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <!-- 利用者選択 -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="利用者（必須）" />
+                <ComboBox ItemsSource="{Binding Recipients}"
+                          SelectedItem="{Binding SelectedRecipient}"
+                          PlaceholderText="利用者を選択"
+                          HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding KanjiName}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <!-- 新規レート追記 -->
+            <TextBlock Text="新規期間を追記"
+                       FontSize="{DynamicResource BaseFontSize}" FontWeight="Bold" Margin="0,8,0,0" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                <TextBlock Text="開始日（必須）" VerticalAlignment="Center" />
+                <TextBox Text="{Binding PeriodStart, Converter={x:Static conv:DateOnlyConverter.Instance}}"
+                         Watermark="2026-04-01" Width="140" />
+                <TextBlock Text="終了日（省略可）" VerticalAlignment="Center" />
+                <TextBox Text="{Binding PeriodEnd, Converter={x:Static conv:DateOnlyConverter.Instance}}"
+                         Watermark="空欄＝継続中" Width="140" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                <TextBlock Text="時給（円）" VerticalAlignment="Center" />
+                <NumericUpDown Value="{Binding HourlyYen}"
+                               Minimum="0" Maximum="100000" Width="160" FormatString="0" />
+            </StackPanel>
+
+            <Button Content="追記保存"
+                    Command="{Binding SaveCommand}"
+                    Margin="0,8,0,0"
+                    IsDefault="True" />
+
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" />
+
+            <!-- 既存レート一覧 -->
+            <TextBlock Text="登録済みレート"
+                       FontSize="{DynamicResource BaseFontSize}" FontWeight="Bold" Margin="0,16,0,0" />
+            <Button Content="再読込"
+                    Command="{Binding RefreshRatesCommand}"
+                    Margin="0,4,0,0" />
+
+            <ListBox ItemsSource="{Binding Rates}"
+                     Margin="0,4,0,0"
+                     MinHeight="80">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="vm:RecipientHourlyRateRowViewModel">
+                        <StackPanel Orientation="Horizontal" Spacing="16" Margin="4,2">
+                            <TextBlock Text="{Binding PeriodDisplay}" Width="280" />
+                            <TextBlock Text="{Binding HourlyYen, StringFormat={}{0} 円/時}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
