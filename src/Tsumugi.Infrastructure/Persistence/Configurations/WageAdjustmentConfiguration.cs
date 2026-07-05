@@ -25,7 +25,7 @@ public sealed class WageAdjustmentConfiguration : IEntityTypeConfiguration<WageA
         builder.Property(x => x.CreatedBy).IsRequired().HasMaxLength(64);
         builder.Property(x => x.CreatedAt).IsRequired();
         builder.Property(x => x.ConcurrencyToken);
-        // partial unique index: 同一 (OfficeId, RecipientId, YearMonth, Type) の Kind=New（=1）を DB レベルで一意化する（ADR 0017）
+        // partial unique index: 同一 (OfficeId, RecipientId, YearMonth, Type) の Kind=New（=1）を DB レベルで一意化する（ADR 0018）
         builder.HasIndex(x => new { x.OfficeId, x.RecipientId, x.YearMonth, x.Type })
             .HasFilter("\"Kind\" = 1")
             .IsUnique()

@@ -34,7 +34,7 @@ public sealed partial class WageFundSettingsViewModel(
     [ObservableProperty] private DateOnly _periodStart = new(DateTime.UtcNow.Year, 4, 1);
     [ObservableProperty] private DateOnly? _periodEnd;
     [ObservableProperty] private WageMethod _method = WageMethod.Hourly;
-    [ObservableProperty] private RoundingRule _rounding = RoundingRule.FloorYen;
+    [ObservableProperty] private RoundingRule _rounding = RoundingRule.HalfUp;
     [ObservableProperty] private RemainderPolicy _remainder = RemainderPolicy.LargestRemainder;
     [ObservableProperty] private int _fiscalYearStartMonth = 4;
     [ObservableProperty] private int? _fixedDailyYen;

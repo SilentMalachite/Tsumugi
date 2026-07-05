@@ -45,6 +45,9 @@ public sealed record WageSettings : Entity
         var tiers = skillAllowanceTiers ?? Array.Empty<SkillAllowanceTier>();
         for (var i = 0; i < tiers.Count; i++)
         {
+            if (tiers[i].MinHours < 0)
+                throw new ArgumentOutOfRangeException(nameof(skillAllowanceTiers),
+                    tiers[i].MinHours, "職能手当の閾値時間は 0 以上で指定してください。");
             if (tiers[i].Yen < 0)
                 throw new ArgumentOutOfRangeException(nameof(skillAllowanceTiers),
                     tiers[i].Yen, "職能手当の金額は0円以上で指定してください。");

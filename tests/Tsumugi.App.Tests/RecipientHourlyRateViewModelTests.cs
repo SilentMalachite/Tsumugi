@@ -152,8 +152,10 @@ public sealed class RecipientHourlyRateViewModelTests
         vm.SelectedOffice = vm.Offices.Single();
         vm.SelectedRecipient = vm.Recipients.Single();
 
-        // fire-and-forget タスクの完了を待つ
-        await Task.Delay(50);
+        // fire-and-forget タスクの完了を deterministic に待つ（Task.Delay はフレーキー）
+        var timeout = DateTime.UtcNow.AddSeconds(5);
+        while (vm.RefreshRatesCommand.IsRunning && DateTime.UtcNow < timeout)
+            await Task.Yield();
 
         vm.Rates.Should().ContainSingle(r => r.HourlyYen == 900);
     }

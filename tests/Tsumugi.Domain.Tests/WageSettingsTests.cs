@@ -80,6 +80,17 @@ public class WageSettingsAllowanceExtensionTests
         act2.Should().Throw<ArgumentOutOfRangeException>();
     }
 
+    [Fact]
+    public void Create_rejects_negative_min_hours()
+    {
+        var tiers = new[] { new SkillAllowanceTier(-1, 2000) };
+        var act = () => WageSettings.Create(
+            Guid.NewGuid(), OfficeId, Period,
+            WageMethod.Hourly, RoundingRule.HalfUp, RemainderPolicy.LargestRemainder,
+            4, null, 500, tiers, 15, "tester", DateTimeOffset.UtcNow);
+        act.Should().Throw<ArgumentOutOfRangeException>().WithMessage("*閾値時間*");
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(7)]  // 60 の約数ではない
