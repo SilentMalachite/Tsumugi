@@ -218,7 +218,7 @@ public sealed class ServiceProvisionRecordPdfTests
     [Fact]
     public void GenerateServiceProvisionRecord_includes_office_recipient_name_and_month_in_extracted_text()
     {
-        QuestPdfLicenseConfigurator.ApplyCommunityLicense();
+        QuestPdfLicenseConfigurator.Initialize();
         var clock = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z"));
         var gen = new ClaimReportGenerator(clock);
         var dto = new ServiceProvisionRecordDto(
@@ -245,7 +245,7 @@ public sealed class ServiceProvisionRecordPdfTests
     [Fact]
     public void GenerateServiceProvisionRecord_is_deterministic_for_same_inputs_and_same_timeprovider()
     {
-        QuestPdfLicenseConfigurator.ApplyCommunityLicense();
+        QuestPdfLicenseConfigurator.Initialize();
         var clock1 = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z"));
         var clock2 = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z"));
         var dto = /* 同じ DTO */;
@@ -375,7 +375,7 @@ public sealed class ClaimInvoicePdfTests
     [Fact]
     public void GenerateClaimInvoice_shows_office_name_and_total_amounts_and_master_versions()
     {
-        QuestPdfLicenseConfigurator.ApplyCommunityLicense();
+        QuestPdfLicenseConfigurator.Initialize();
         var clock = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z"));
         var gen = new ClaimReportGenerator(clock);
         var v = new ClaimMasterVersion("v2024.04", new DateOnly(2026, 6, 29), "ADR-0018");
@@ -475,7 +475,7 @@ public sealed class ClaimStatementPdfTests
     [Fact]
     public void GenerateClaimStatement_lists_each_recipient_with_basic_and_additions()
     {
-        QuestPdfLicenseConfigurator.ApplyCommunityLicense();
+        QuestPdfLicenseConfigurator.Initialize();
         var clock = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z"));
         var gen = new ClaimReportGenerator(clock);
         var dto = new ClaimStatementDto(

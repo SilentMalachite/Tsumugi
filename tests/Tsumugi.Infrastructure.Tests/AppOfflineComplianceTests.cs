@@ -119,6 +119,26 @@ public sealed class AppOfflineComplianceTests
     // AssemblyName は任意（nullable）: null の場合は全 5 アセンブリに対して該当スキームを許可する
     // （危険なため既定では使用しないこと）。特定のアセンブリ名を指定した場合は、
     // そのアセンブリの検査時のみ該当スキームを許可し、他のアセンブリでは引き続き検出対象とする。
+    //
+    /// <summary>
+    /// <para>
+    /// 【精度上のトレードオフ（final review I-2 で発見）】この allowlist は
+    /// <c>(UrlPrefix, AssemblyName)</c> の粒度でスキーム単位に許可する。個々のリテラル値
+    /// （例: 本配列の <c>"Tsumugi.Infrastructure.Reporting"</c> エントリが実際に許可したいのは
+    /// <c>http://www.adobe.com/</c> という 1 リテラルのみ）までは絞り込めない。
+    /// </para>
+    /// <para>
+    /// つまり、当該アセンブリ (<c>AssemblyName</c> 一致分) に **他の** <c>http://</c> リテラルが
+    /// 将来誤って混入しても、このテストだけでは検出できない
+    /// （ただし型参照スキャン・P/Invoke スキャンは影響を受けず引き続き検出可能）。
+    /// </para>
+    /// <para>
+    /// 将来的な改善案: <see cref="AssemblyMetadataScanner.ContainsRawUtf16SubstringIgnoreCase"/> は
+    /// bool のみを返すため、ヒット位置（オフセット）まで返す厳密リテラル一致 API へ拡張し、
+    /// スキーム単位ではなく完全一致リテラル単位で allowlist を組めるようにする。本 fix パスでは
+    /// スキャン API 自体の変更は行わない（コストが大きいため見送り）。
+    /// </para>
+    /// </summary>
     private static readonly (string UrlPrefix, string? AssemblyName, string Reason)[] UrlLiteralAllowlist =
         new (string UrlPrefix, string? AssemblyName, string Reason)[]
         {
