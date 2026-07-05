@@ -43,6 +43,12 @@
         <TabItem Header="工賃原資・設定(_B)">
             <views:WageFundSettingsView DataContext="{Binding WageFundSettings}" />
         </TabItem>
+        <TabItem Header="利用者時給(_E)">
+            <views:RecipientHourlyRateView DataContext="{Binding RecipientHourlyRate}" />
+        </TabItem>
+        <TabItem Header="特別手当(_F)">
+            <views:WageAdjustmentView DataContext="{Binding WageAdjustment}" />
+        </TabItem>
         <TabItem Header="工賃計算(_C)">
             <views:WageCalculationView DataContext="{Binding WageCalculation}" />
         </TabItem>

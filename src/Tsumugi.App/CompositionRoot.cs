@@ -90,6 +90,12 @@ public static class CompositionRoot
         services.AddScoped<CloseWagesUseCase>();
         services.AddScoped<QueryWageStatementUseCase>();
 
+        // Phase 4 S0: 利用者時給・工賃調整（特別手当）
+        services.AddScoped<SetRecipientHourlyRateUseCase>();
+        services.AddScoped<QueryRecipientHourlyRateUseCase>();
+        services.AddScoped<RecordWageAdjustmentUseCase>();
+        services.AddScoped<QueryWageAdjustmentUseCase>();
+
         // Phase 2: 帳票（E2/E3）
         services.AddScoped<IWageReportGenerator, WageStatementPdfGenerator>();
 
@@ -111,6 +117,9 @@ public static class CompositionRoot
         services.AddTransient<WageFundSettingsViewModel>();
         services.AddTransient<WageCalculationViewModel>();
         services.AddTransient<WageStatementViewModel>();
+        // Phase 4 S0 ViewModels
+        services.AddTransient<RecipientHourlyRateViewModel>();
+        services.AddTransient<WageAdjustmentViewModel>();
         services.AddTransient<MainViewModel>();
 
         return services;

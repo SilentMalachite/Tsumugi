@@ -47,6 +47,16 @@ public sealed class CompositionRootTests
             scope.ServiceProvider.GetRequiredService<WageCalculationViewModel>().Should().NotBeNull();
             scope.ServiceProvider.GetRequiredService<WageStatementViewModel>().Should().NotBeNull();
             scope.ServiceProvider.GetRequiredService<MainViewModel>().Should().NotBeNull();
+
+            // Phase 4 S0 use cases resolve
+            scope.ServiceProvider.GetRequiredService<SetRecipientHourlyRateUseCase>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<QueryRecipientHourlyRateUseCase>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<RecordWageAdjustmentUseCase>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<QueryWageAdjustmentUseCase>().Should().NotBeNull();
+
+            // Phase 4 S0 ViewModels resolve
+            scope.ServiceProvider.GetRequiredService<RecipientHourlyRateViewModel>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<WageAdjustmentViewModel>().Should().NotBeNull();
         }
         finally
         {
