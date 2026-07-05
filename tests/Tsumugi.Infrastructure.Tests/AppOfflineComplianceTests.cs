@@ -80,6 +80,10 @@ public sealed class AppOfflineComplianceTests
 
     // P/Invoke 経由のネットワーク呼び出しも禁止（CLR の TypeRef を介さずに通信できる経路）。
     // 既定の allowlist は空。やむを得ない場合のみ、(DllName, Reason) を埋めて明示する。
+    // 設計メモ: UrlLiteralAllowlist と異なりアセンブリ単位のスコープ化はまだ導入していない
+    // （Task 9.5 時点でエントリ 0 件のため必要性なし）。将来 P/Invoke の許可が必要になった際は
+    // UrlLiteralAllowlist と同様に (DllName, AssemblyName?, Reason) へ拡張し、
+    // .Where(e => e.AssemblyName is null || ...) の絞り込みを追加すること。
     private static readonly (string DllName, string Reason)[] PInvokeAllowlist =
         Array.Empty<(string, string)>();
 
@@ -111,9 +115,20 @@ public sealed class AppOfflineComplianceTests
     }
 
     // URL リテラル混入（http:// / https:// / ftp:// 等）も禁止。
-    // ヒット時はソースを修正するか、本配列に (UrlPrefix, Reason) を追加すること。
-    private static readonly (string UrlPrefix, string Reason)[] UrlLiteralAllowlist =
-        Array.Empty<(string, string)>();
+    // ヒット時はソースを修正するか、本配列に (UrlPrefix, AssemblyName, Reason) を追加すること。
+    // AssemblyName は任意（nullable）: null の場合は全 5 アセンブリに対して該当スキームを許可する
+    // （危険なため既定では使用しないこと）。特定のアセンブリ名を指定した場合は、
+    // そのアセンブリの検査時のみ該当スキームを許可し、他のアセンブリでは引き続き検出対象とする。
+    private static readonly (string UrlPrefix, string? AssemblyName, string Reason)[] UrlLiteralAllowlist =
+        new (string UrlPrefix, string? AssemblyName, string Reason)[]
+        {
+            ("http://",
+             "Tsumugi.Infrastructure.Reporting",
+             "Noto Sans JP (assets/fonts/) の font `name` テーブルに埋込済の Copyright URL " +
+             "`http://www.adobe.com/`。SIL OFL 1.1 帰属要件により font metadata は改変不可、" +
+             "また Reporting アセンブリはネットワーク通信を一切行わない (System.Net.* 参照なし)。" +
+             "URL 混入は文字列リテラルとしてスキャンで検出されるが実害なし。"),
+        };
 
     [Theory]
     [InlineData("Tsumugi.App")]
@@ -127,6 +142,7 @@ public sealed class AppOfflineComplianceTests
 
         var allowed = UrlLiteralAllowlist
             .Where(e => !string.IsNullOrWhiteSpace(e.Reason))
+            .Where(e => e.AssemblyName is null || string.Equals(e.AssemblyName, assemblyName, StringComparison.Ordinal))
             .Select(e => e.UrlPrefix.ToLowerInvariant())
             .ToHashSet(StringComparer.Ordinal);
 
