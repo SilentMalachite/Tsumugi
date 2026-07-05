@@ -35,5 +35,5 @@ public sealed class RecordWageAdjustmentUseCase(
 
     internal static WageAdjustmentDto Map(WageAdjustment e) =>
         new(e.Id, e.OfficeId, e.RecipientId, e.YearMonth, e.Type, e.AmountYen,
-            e.Kind, e.OriginId, e.Note);
+            e.Kind, e.OriginId, e.Note, e.CreatedAt);
 }
