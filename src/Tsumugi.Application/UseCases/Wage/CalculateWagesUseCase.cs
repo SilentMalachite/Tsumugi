@@ -125,10 +125,15 @@ public sealed class CalculateWagesUseCase(
         {
             var adj = WageAdjustmentPolicy.SumEffective(adjustments, l.RecipientId, ym);
             if (adj == 0) return l;
+            // 現在 WageAdjustment.AmountYen は非負のため adj < 0 は到達不可だが、
+            // 将来の deduction 系列 (WageAdjustmentType 拡張) のための保守的分岐。
             return new WageLineItem(l.RecipientId, l.AmountYen + adj,
-                adj > 0
-                    ? $"{l.BasisSummary} + 特別手当 {adj:N0} 円"
-                    : l.BasisSummary);
+                adj switch
+                {
+                    > 0 => $"{l.BasisSummary} + 特別手当 {adj:N0} 円",
+                    < 0 => $"{l.BasisSummary} + 控除 {adj:N0} 円",
+                    _ => l.BasisSummary,
+                });
         }).ToArray();
 
         return new WagePreviewDto(
