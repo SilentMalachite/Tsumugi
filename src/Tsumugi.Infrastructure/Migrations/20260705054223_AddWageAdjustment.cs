@@ -16,20 +16,26 @@ namespace Tsumugi.Infrastructure.Migrations
                 table: "WageSettings",
                 type: "INTEGER",
                 nullable: false,
-                defaultValue: 0);
+                defaultValue: 15);
 
             migrationBuilder.AddColumn<string>(
                 name: "SkillAllowanceTiersJson",
                 table: "WageSettings",
                 type: "TEXT",
                 nullable: false,
-                defaultValue: "");
+                defaultValue: "[]");
 
             migrationBuilder.AddColumn<int>(
                 name: "WorkAllowancePerDayYen",
                 table: "WageSettings",
                 type: "INTEGER",
                 nullable: true);
+
+            // Backfill existing rows that received the original (invalid) defaults.
+            migrationBuilder.Sql(
+                "UPDATE \"WageSettings\" SET \"HourUnitMinutes\" = 15 WHERE \"HourUnitMinutes\" = 0;");
+            migrationBuilder.Sql(
+                "UPDATE \"WageSettings\" SET \"SkillAllowanceTiersJson\" = '[]' WHERE \"SkillAllowanceTiersJson\" = '' OR \"SkillAllowanceTiersJson\" IS NULL;");
 
             migrationBuilder.CreateTable(
                 name: "WageAdjustments",
