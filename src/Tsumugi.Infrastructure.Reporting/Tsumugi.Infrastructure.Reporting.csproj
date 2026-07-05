@@ -8,4 +8,15 @@
   <ItemGroup>
     <ProjectReference Include="..\Tsumugi.Application\Tsumugi.Application.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\assets\fonts\NotoSansJP-Regular.otf">
+      <LogicalName>Tsumugi.Infrastructure.Reporting.assets.fonts.NotoSansJP-Regular.otf</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\assets\fonts\NotoSansJP-Bold.otf">
+      <LogicalName>Tsumugi.Infrastructure.Reporting.assets.fonts.NotoSansJP-Bold.otf</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\assets\fonts\NotoSansJP.LICENSE.txt">
+      <LogicalName>Tsumugi.Infrastructure.Reporting.assets.fonts.NotoSansJP.LICENSE.txt</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>
