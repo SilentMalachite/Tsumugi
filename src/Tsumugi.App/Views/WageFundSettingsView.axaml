@@ -53,8 +53,55 @@
                 </ComboBox>
                 <TextBlock Text="固定日額（円）" VerticalAlignment="Center" />
                 <NumericUpDown Value="{Binding FixedDailyYen}" Minimum="0" Maximum="1000000" Width="120" FormatString="0" />
-                <Button Content="保存" Command="{Binding SaveSettingsCommand}" />
             </StackPanel>
+
+            <!-- 作業手当日額 -->
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                <TextBlock Text="作業手当日額（円）" VerticalAlignment="Center" />
+                <NumericUpDown Value="{Binding WorkAllowancePerDayYen}"
+                               Minimum="0" Maximum="1000000" Width="120" FormatString="0" />
+            </StackPanel>
+
+            <!-- 工賃最小単位 -->
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                <TextBlock Text="工賃最小単位（分）" VerticalAlignment="Center" />
+                <ComboBox SelectedItem="{Binding HourUnitMinutes}" MinWidth="80">
+                    <x:Int32>1</x:Int32>
+                    <x:Int32>2</x:Int32>
+                    <x:Int32>3</x:Int32>
+                    <x:Int32>4</x:Int32>
+                    <x:Int32>5</x:Int32>
+                    <x:Int32>6</x:Int32>
+                    <x:Int32>10</x:Int32>
+                    <x:Int32>12</x:Int32>
+                    <x:Int32>15</x:Int32>
+                    <x:Int32>20</x:Int32>
+                    <x:Int32>30</x:Int32>
+                    <x:Int32>60</x:Int32>
+                </ComboBox>
+            </StackPanel>
+
+            <!-- 職能手当 閾値段 -->
+            <TextBlock Text="職能手当（閾値段）" Margin="0,8,0,0" FontWeight="Bold" />
+            <ItemsControl ItemsSource="{Binding SkillAllowanceTiers}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="vm:SkillAllowanceTierViewModel">
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                            <NumericUpDown Value="{Binding MinHours}"
+                                           Minimum="0" Maximum="9999" Width="100" FormatString="0" />
+                            <TextBlock Text="時間以上" VerticalAlignment="Center" />
+                            <NumericUpDown Value="{Binding Yen}"
+                                           Minimum="0" Maximum="1000000" Width="120" FormatString="0" />
+                            <TextBlock Text="円" VerticalAlignment="Center" />
+                            <Button Content="削除" Command="{Binding RemoveCommand}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Content="＋ 段を追加" Command="{Binding AddSkillAllowanceTierCommand}"
+                    Margin="0,4,0,0" />
+
+            <Button Content="保存" Command="{Binding SaveSettingsCommand}" Margin="0,8,0,0" />
 
             <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" />
         </StackPanel>
