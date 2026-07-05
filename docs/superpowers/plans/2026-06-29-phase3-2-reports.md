@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 埋込済みの Noto Sans CJK JP を用いて、3 種類の請求関連 PDF 帳票（サービス提供実績記録票・介護給付費等請求書・介護給付費等請求明細書）を `Tsumugi.Infrastructure.Reporting` に追加し、Application UseCase と App UI を配線する。決定論（同入力＋同 TimeProvider → 同バイト）、CJK 抽出検証、合計値検証を CI で固定する。
+**Goal:** 埋込済みの Noto Sans JP を用いて、3 種類の請求関連 PDF 帳票（サービス提供実績記録票・介護給付費等請求書・介護給付費等請求明細書）を `Tsumugi.Infrastructure.Reporting` に追加し、Application UseCase と App UI を配線する。決定論（同入力＋同 TimeProvider → 同バイト）、CJK 抽出検証、合計値検証を CI で固定する。
 
 **Architecture:** Phase 2 の `WageStatementPdfGenerator` と同じ流儀で `ClaimReportGenerator` を追加。`Application.Abstractions.IClaimReportGenerator` 経由で DI 注入し、`GenerateClaimReportsUseCase` から呼ぶ。App は `IFileSaveService` で保存先を取得し、`ClaimReportViewModel` が状態管理。
 
-**Tech Stack:** .NET 10 / QuestPDF 2025.4.0 (Community License, Noto Sans CJK JP 埋込済) / xUnit / FluentAssertions / Avalonia 11.3 / CommunityToolkit.Mvvm 8.4 / `TimeProvider`
+**Tech Stack:** .NET 10 / QuestPDF 2025.4.0 (Community License, Noto Sans JP 埋込済) / xUnit / FluentAssertions / Avalonia 11.3 / CommunityToolkit.Mvvm 8.4 / `TimeProvider`
 
 ## Global Constraints
 
@@ -274,7 +274,7 @@ namespace Tsumugi.Infrastructure.Reporting;
 
 public sealed class ClaimReportGenerator(TimeProvider clock) : IClaimReportGenerator
 {
-    private const string FontFamily = "Noto Sans CJK JP";
+    private const string FontFamily = QuestPdfLicenseConfigurator.NotoSansJpFamilyName;
 
     public byte[] GenerateServiceProvisionRecord(ServiceProvisionRecordDto dto)
     {
