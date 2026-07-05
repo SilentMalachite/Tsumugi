@@ -38,10 +38,12 @@
 
 ## Phase 2 工賃計算（2026-06-28 追加）
 
-- [ ] **KouchinModule.bas v5 の実挙動突合**: 旧 Excel の方式（Piece/Hourly/Fixed/Equal のどれを採用しているか）・締め日・端数規則・年度起点を一次情報として確認し、ADR 0012 を**確定**へ書き換える。ファイルがリポジトリに無いため、運用者からのコピー入手が前提。突合完了までは ADR 0012 の暫定既定値で実装を進めるが、**事業所運用に投入する前に再確認必須**。
-- [ ] **平均工賃月額の正式定義**: 厚労省告示/通知の定義（分母＝延べ利用者 or 実利用者、基準期間、控除項目）を一次情報で確認。確定までは `AverageWageMetric` の暫定式を `[Obsolete("要・通知突合（暫定）")]` 相当のコメントで明示し、テストで形を固定（分母切替に強い構造）する。
+- [x] **KouchinModule.bas v5 の実挙動突合（2026-07-05 クローズ / ADR 0012 v2）**: `.xlsm` 検査で方式 Hourly・端数 HalfUp（`ROUND(…,0)` = `BD5`）・`HourUnitMinutes = 15`（`AY9 = 1/96日`）・年度起点 4 月を確認。ADR 0012 を「確定」へ書き換え済み。実装補足として丸めスコープは per-rate 集計後 1 回（.xlsm の per-day BD5 との semantic drift はユーザ承認済み）。
+- [ ] **平均工賃月額の正式定義**: 厚労省告示/通知の定義（分母＝延べ利用者 or 実利用者、基準期間、控除項目）を一次情報で確認。確定までは `AverageWageMetric` の暫定式を `[Obsolete("要・通知突合（暫定）")]` 相当のコメントで明示し、テストで形を固定（分母切替に強い構造）する。一次資料入手時にクローズ。
+- [x] **特別手当の性格（2026-07-05 クローズ / ADR 0018）**: `.xlsm` の G 列（特別手当）を確認。利用者×月の任意支給であり、`WageAdjustment` append-only エンティティで受ける設計に確定。作業手当・職能手当は `WageSettings` 拡張で表現、特別手当のみ `WageAdjustment` に分離。
 - [ ] **QuestPDF ライセンス**: Community License の収益閾値・帰属表示要件を確認し、ADR 0013 で採否を確定。社会福祉事業の収益閾値超過リスクが大きい場合は Avalonia 印刷経路（PrintDialog → 視覚 Print）にフォールバックする判断を ADR に書く。
 - [ ] **工賃確定後の下層訂正方針**: 自動再計算しない（Correction で履歴に残す）方針を ADR 0012 に併記済。次月調整 or 再確定の手順は運用ガイドへ。
+- [ ] **職能手当閾値の妥当性**: `SkillAllowanceTiers` の閾値（55h/70h は 2025 年時点の運用者設定値）。UI から編集可能とする形で対応済みだが、他事業所での標準的な設定値があるか確認する。
 - [ ] **PDF 帳票の日本語フォント埋込**: Phase 2 / Task E2 で QuestPDF による工賃明細 PDF を実装したが、日本語埋込フォントを構成していないためシステムフォントへフォールバックする。**2026-06-29 訂正**: 当初「漢字は化けるがカナ・ASCII は正常」と判定していたが、フォントが OS にインストールされていない Linux/Windows CI ランナーでは glyph→Unicode マッピングが解決できず CJK (漢字・ひらがな・カタカナ) **全般** が NUL バイト (`\0`) に化けて抽出される (macOS は Hiragino 同梱で動くため見落としていた)。一時対応として `WageStatementPdfGeneratorTests` / `WagePaymentListPdfGeneratorTests` の CJK substring assertion をすべて除去し、ASCII / 数値で構造検証する形にした (commit 後続)。**2026-07-02 追記**: Windows CI ランナーで `WagePaymentListPdfGeneratorTests.PaymentList_includes_each_amount_total_and_recipient_count` が再度赤に。原因は QuestPDF の Bold 用フォールバックフォントの CMap が壊れており、**太字コンテキストの ASCII (数字・記号・空白すべて)** も NUL に化けること。合計 "20,000" / 平均 "10,000" 等の `.Bold()` 行の数値 substring assertion を除去し、非太字テーブルセル側の個別金額のみで検証する形に整理した (CJK は Bold でも kangxi radical 経由で拾える一方、ASCII は完全に落ちる)。**運用投入前に Noto Sans CJK JP 等の日本語フォントを `assets/fonts/` に追加し `QuestPdfLicenseConfigurator` で `Settings.UseEnvironmentFonts = false` + `FontManager.RegisterFontFromEmbeddedResource` を行うこと**。ライセンス確認 (Noto は SIL OFL 1.1) も同時に実施。テスト側で CJK / Bold ASCII の substring assertion はフォント埋込完了後に追加する。
 
 ## Phase 2 Codex review 由来クローズ（2026-06-29 追加）
