@@ -1,329 +1,546 @@
 # Tsumugi Phase 3 設計 — 国保連請求データ生成
 
-> **Source**: `06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md` を現状リポジトリ実態（Phase 0〜2 完了）に接地して設計化したもの。
-> **Status**: 設計合意済（2026-06-29）。実装計画は writing-plans スキルで本書から派生させる（3-0/3-1/3-2/3-3 の 4 本に分割）。
-> **着手規律**: §2.3 の一次出典が未確定の間はそれに依存する実装に着手しない（推測実装の禁止）。
+> **Source**: `06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md`
+> **Status**: 2026-06-29 設計合意、2026-07-10 現行制度・現行リポジトリへ再接地
+> **計画規律**: 2026-06-29付けのPhase 3既存計画は、ADR番号、フォント前提、令和8年6月改定、CSVレコード構造、Recipient拡張前提が古い。本書からサブフェーズごとに再計画するまで実行しない。
 
-## 目的
+## 1. 目的
 
-就労継続支援B型事業所向け Tsumugi で **国保連請求データの生成**を実装する。責務は「公式インターフェース仕様準拠の請求データ(CSV)を生成し、公式の取込・送信システムにインポートできる状態」まで。**伝送・電子証明書・回線処理は範囲外**（オフライン維持）。
+就労継続支援B型事業所向けTsumugiに、次の一連のオフライン請求機能を追加する。
 
-## 責務境界（再確認）
+1. 実効記録と期間マスタから請求をプレビューする
+2. 公式様式の実績記録票・請求書・請求明細書を生成する
+3. 請求をappend-onlyスナップショットとして確定する
+4. 確定済みスナップショットから公式仕様準拠CSVを生成する
 
-- 出力 CSV は公式インターフェース仕様に厳密準拠する
-- アプリは `System.Net.*` を含む通信 API を**全プロダクションアセンブリ**で直接参照しない（オフライン検査の対象に `Tsumugi.Infrastructure.Csv` を追加）
-- 報酬の単位数・加算・地域区分単価・CSV 項目定義は**コードに置かず、適用年月でバージョン管理した外部マスタ(seed JSON)** に置く。Domain は純粋な算定ロジックのみを持つ
-- 算定金額は整数円、最終額に浮動小数点を混入させない。端数規則は告示準拠でマスタ/設定に明記しテストで固定
+責務は公式の取込・送信システムへインポートできるデータ生成までとし、伝送、電子証明書、回線、返戻・過誤再請求の自動化は行わない。
 
-## アーキテクチャ
+## 2. 設計原則
 
-既存の 4 プロジェクト構成（`Tsumugi.Domain` / `.Application` / `.Infrastructure` / `.App`）と、Phase 2 で導入された `Tsumugi.Infrastructure.Reporting` を維持しつつ、新たに `Tsumugi.Infrastructure.Csv` を追加する。
+- **制度値の外部化**: 単位数、閾値、加算、地域単価、負担上限、サービスコード、交換情報IDは出典付き外部データとする。
+- **純粋算定**: Domainの請求計算は日付、DB、ファイル、UIに依存しない。
+- **適用年月版**: 令和6年版と令和8年6月版を同一コードで切り替える。
+- **確定後不変**: 下層訂正で確定請求を自動更新しない。再確定はCorrectionを追記する。
+- **提出は確定後のみ**: CSVはプレビューから生成せず、確定済み実効ClaimBatchから生成する。
+- **バイト準拠**: CP932、CRLF、順序、桁、引用、必須条件をバイトテストで固定する。
+- **フェイルクローズ**: 不足・未知・変換不能を推測補完せず、出力前に全件検証して停止する。
+- **オフライン**: 全プロダクションアセンブリで通信API直接参照を禁止する。
 
+## 3. 一次資料と適用版
+
+### 3.1 報酬
+
+- [令和6年度障害福祉サービス等報酬改定](https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000202214_00009.html)
+- [令和8年度障害福祉サービス等報酬改定](https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000202214_00013.html)
+- [令和8年6月 報酬算定構造・サービスコード表等](https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000174644_00022.html)
+
+マスタには少なくとも2024-04/06以降の令和6版と2026-06以降の令和8版を収録する。改定ページだけでなく、告示、留意事項通知、Q&A、報酬算定構造、サービスコード表、体制等状況一覧表を相互参照し、修正資料を反映する。
+
+### 3.2 平均工賃月額
+
+令和6年度改定後の正式式を採用する。
+
+```text
+年間工賃支払総額 ÷ (年間延べ利用者数 ÷ 年間開所日数) ÷ 12
 ```
+
+以前の「各月の工賃支払対象者数」を分母にする式や除外規則は、新式と混在させない。令和8年6月の基本報酬区分見直しと経過措置は別の版付き規則として扱う。
+
+### 3.3 CSV・帳票
+
+- [インタフェース仕様書 共通編（令和7年10月）](https://www.mhlw.go.jp/content/12200000/001565560.pdf)
+- [インタフェース仕様書 事業所編（令和7年10月）](https://www.mhlw.go.jp/content/12200000/001565561.pdf)
+- [インタフェース仕様書一覧](https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000045136.html)
+- [令和8年6月 報酬算定構造・サービスコード表等](https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000174644_00022.html)
+
+令和8年6月資料では実績記録票、請求書明細書、記載例、決定サービス設定が「変更なし」とされている。したがってCSV共通規則・事業所項目構造は令和7年10月版を基準とし、令和8年6月の報酬・サービスコード差分を組み合わせる。
+
+国保連事業所編に性別項目はない。`Recipient.Gender`の追加を前提にせず、ADR 0024で既存モデルとの項目マッピングを行い、不足する公式必須項目だけを追加する。
+
+項目マッピングは3-0の完了条件とする。請求書、明細書、実績記録票の各項目について、既存モデルの具体的プロパティ、必須条件、不足時の追加先、migration要否を一覧化する。現行`DailyRecord`は出欠・送迎・食事・備考を中心とし、提供時間や帳票固有の加算入力欄を持たないため、既存値や自由記述から推定して帳票を埋めない。
+
+### 3.4 出典トレーサビリティ
+
+各制度データ束は次を保持する。
+
+```text
+documentId
+title
+publisher
+publishedOrEffectiveAt
+retrievedAt
+url
+sha256
+supersedes
+notes
+```
+
+算定結果と確定スナップショットには、使用した報酬マスタ束、CSV仕様束、アプリ版を記録する。
+
+## 4. アーキテクチャ
+
+既存の依存方向を維持し、CSVだけを新規アセンブリへ物理分離する。
+
+```text
+App
+ ├─ Application
+ │   └─ Domain
+ ├─ Infrastructure
+ │   ├─ Application
+ │   └─ Domain
+ ├─ Infrastructure.Reporting
+ │   ├─ Application
+ │   └─ Domain
+ └─ Infrastructure.Csv
+     ├─ Application
+     └─ Domain
+```
+
+DomainはEF Core、Avalonia、QuestPDF、CSV、ファイルI/Oを参照しない。
+
+### 4.1 ファイル責務
+
+```text
 src/
-  Tsumugi.Domain/                   record・値オブジェクト・報酬算定の純粋ロジック
+  Tsumugi.Domain/
     Entities/
-      ClaimBatch.cs                 [新規] 請求確定スナップショット（append-only）
-      ClaimDetail.cs                [新規] 請求明細（ClaimBatch 配下）
-    Logic/
-      Claim/
-        IRateMaster.cs              [新規] 単価マスタ抽象
-        IAdditionMaster.cs          [新規] 加算マスタ抽象
-        IBurdenCapMaster.cs         [新規] 負担上限額マスタ抽象
-        IRegionUnitMaster.cs        [新規] 地域区分単価マスタ抽象
-        ClaimCalculator.cs          [新規] 算定本体（純粋関数）
-        BasicAllowanceClassifier.cs [新規] B型基本報酬区分の解決（純粋関数）
-        AdditionRules/              [新規] 加算ごとに 1 関数（純粋関数）
-        BurdenCalculator.cs         [新規] 利用者負担＋月額上限管理
-        RoundingPolicy.cs           [新規] 端数規則（ADR 0025）
+      ClaimBatch.cs                 確定請求のappend-onlyヘッダ
+      ClaimDetail.cs                提出再現可能な請求明細スナップショット
+    Logic/Claim/
+      ClaimCalculator.cs            算定全体の純粋関数
+      AverageWageCalculator.cs      正式平均工賃月額
+      BasicRewardResolver.cs        報酬区分・経過措置・サービスコード解決
+      AdditionCalculator.cs         加算・減算
+      BurdenCalculator.cs           利用者負担・上限管理
+      RoundingPolicy.cs             固定小数と端数規則
+      Models/                       入出力値、版情報、検証結果
+      Masters/                      マスタ参照interface
 
   Tsumugi.Application/
     Abstractions/
-      IClaimBatchRepository.cs      [新規]
-      IClaimReportGenerator.cs      [新規] 請求帳票 PDF 抽象
-      ICsvClaimWriter.cs            [新規] CSV 書出し抽象
+      IClaimBatchRepository.cs
+      IClaimReportGenerator.cs
+      IClaimCsvWriter.cs
+      IClaimMasterProvider.cs
     UseCases/Claim/
-      CalculateClaimUseCase.cs      [新規] プレビュー算定
-      QueryClaimUseCase.cs          [新規] 確定済参照／未確定再算定
-      GenerateClaimReportsUseCase.cs[新規]
-      ExportClaimCsvUseCase.cs      [新規]
-      CloseClaimUseCase.cs          [新規] 確定スナップショット追記
-    Dtos/Claim/                     [新規]
+      CalculateClaimUseCase.cs
+      QueryClaimUseCase.cs
+      CloseClaimUseCase.cs
+      GenerateClaimReportsUseCase.cs
+      ExportClaimCsvUseCase.cs
+    Validation/ClaimPreflightValidator.cs
+    Dtos/Claim/
 
   Tsumugi.Infrastructure/
     Persistence/
-      ClaimBatchRepository.cs       [新規]
-      Configurations/
-        ClaimBatchConfiguration.cs  [新規] partial unique index (OfficeId, YearMonth) WHERE Kind=New
-        ClaimDetailConfiguration.cs [新規]
-      JsonClaimMasterLoader.cs      [新規] マスタ JSON 読込
-    Seed/Claim/                     [新規]
-      rates-v1.json
-      additions-v1.json
-      burden-caps-v1.json
-      region-units-v1.json
-      meta.json                     出典 ADR 番号 / 改定版 / 取得日 / 取得 URL
-    Migrations/
-      <yyyyMMddHHmmss>_AddClaimBatchAndDetail.cs [新規]
-      <yyyyMMddHHmmss>_ExpandRecipientForCsv.cs  [新規, 3-3 で]
+      ClaimBatchRepository.cs
+      Configurations/ClaimBatchConfiguration.cs
+      Configurations/ClaimDetailConfiguration.cs
+    ClaimMasters/
+      JsonClaimMasterProvider.cs
+      Schema/
+      Seed/
+        basic-rewards.json
+        additions.json
+        region-unit-prices.json
+        burden-caps.json
+        transition-rules.json
+        service-codes.json
+        sources.json
+    Migrations/<timestamp>_AddClaimBatchAndDetail.cs
+    Migrations/<timestamp>_ExpandClaimInputs.cs     ADR 0024で不足確定時のみ
 
   Tsumugi.Infrastructure.Reporting/
-    QuestPdfLicenseConfigurator.cs  [拡張] Settings.UseEnvironmentFonts=false + 埋込フォント登録
-    ClaimReportGenerator.cs         [新規]
-    assets/fonts/NotoSansCJKjp/     [新規] OFL 1.1 同梱
+    ClaimReportGenerator.cs
+    ClaimReports/
+      ServicePerformanceReport.cs
+      BenefitClaimForm.cs
+      BenefitClaimDetailForm.cs
 
-  Tsumugi.Infrastructure.Csv/       [新規アセンブリ]
-    ClaimCsvWriter.cs               ICsvClaimWriter 実装
-    Records/                        レコード種別ごとの構造体（ADR 0023 確定後）
-    Encoding/                       Shift_JIS/UTF-8 と CRLF 規律
-    Tsumugi.Infrastructure.Csv.csproj
+  Tsumugi.Infrastructure.Csv/
+    ClaimCsvWriter.cs
+    CsvEncoding.cs
+    CsvFieldWriter.cs
+    Specifications/
+      common-r7-10.json
+      provider-claim-r7-10.json
+      sources.json
+    Records/
+      ControlRecord.cs
+      DataRecord.cs
+      EndRecord.cs
+      Claim/
+      Performance/
 
   Tsumugi.App/
-    ViewModels/Claim/               [新規] ClaimPreview / ClaimReport / ClaimCsvExport / ClaimClose
-    Views/Claim/                    [新規] 対応 View
+    ViewModels/Claim/
+    Views/Claim/
 ```
 
-依存方向は変更なし: `App → Application → Domain`、`Infrastructure → Application/Domain`、`Infrastructure.Reporting → Application/Domain`、`Infrastructure.Csv → Application/Domain`。`Domain` は EF/Avalonia/Reporting/Csv を直接参照しない（`ArchitectureTests` 機械判定）。
+既存ファイルが肥大化する場合も、Phase 3と無関係な分割・整理は行わない。
 
-## 全体構造（4 サブフェーズ）
+## 5. ドメインモデル
 
-### Phase 3-0 土台フェーズ（出典確定＋非ブロッキング先行）
-- §2.3-1〜6 を一次情報で確認し ADR 0018〜0023 として文書化
-- Noto Sans CJK JP 埋込（ADR 0024）→ Phase 2 残課題の解消
-- ハードコード機械判定スキャナ (a)(b)(c) を ArchitectureTests / OfflineComplianceTests に追加
-- マスタ抽象（interface + InMemory 実装）と JSON ローダ空殻
-- `Tsumugi.Infrastructure.Csv` アセンブリ新設（空殻＋オフライン検査追加）
-- `ClaimBatch` / `ClaimDetail` 骨組み（AppendOnlyGuard 登録、partial unique index、migration）
-- `ci.sh` Application 閾値底上げ準備（3-3 完了時に 70→90 へ）
+### 5.1 Claim calculation input
 
-### Phase 3-1 報酬算定エンジン＋マスタ実値
-- ADR 0018/0019/0021/0022 確定後に着手
-- B 型基本報酬区分（平均工賃月額連動）の純粋関数
-- 加算/減算マスタ駆動の純粋関数（食事・送迎・配置・欠席時対応・上限管理 等）
-- 地域区分単価計算（端数規則含む、ADR 0025）
-- 利用者負担計算＋月額上限管理
-- 適用年月差し替えテスト（令和 6 → 令和 9）
-- Application: `CalculateClaimUseCase` / `QueryClaimUseCase`
-
-### Phase 3-2 帳票（フォント埋込済の Reporting に追加）
-- AC3-0-2（フォント埋込）が緑になってから着手
-- サービス提供実績記録票（A4, 利用者・月次）
-- 介護給付費／訓練等給付費等 請求書／明細書（事業所・月次）
-- Application: `IClaimReportGenerator` / `GenerateClaimReportsUseCase`
-- App: 帳票出力 View + ViewModel + `IFileSaveService` 経由保存
-
-### Phase 3-3 CSV 生成＋請求確定
-- ADR 0023 確定後に着手
-- `Tsumugi.Infrastructure.Csv` に正式仕様のレコード種別を実装
-- Recipient 拡張（性別等の CSV 必須項目）＋migration
-- `ClaimBatch` 確定スナップショット追記（`CloseClaimUseCase`）
-- 再生成は `Correct` レコード（新スナップショット）として履歴に残す
-- バイト単位スナップショットテスト
-- App: CSV エクスポート / 請求確定 View + ViewModel
-- `ci.sh` の Application カバレッジ閾値 70 → 90 へ昇格
-
-## マスタ JSON 設計
-
-### 配置とスキーマ
-
-`src/Tsumugi.Infrastructure/Seed/Claim/` 配下にマスタ種別ごとに 1 ファイル、適用開始年月でファイル内 entries を持つ。
-
-| ファイル | 内容 | キー |
-| --- | --- | --- |
-| `rates-v1.json` | 報酬単位数マスタ | (サービスコード, 適用開始年月, 定員規模) |
-| `additions-v1.json` | 加算マスタ | (加算コード, 適用開始年月, 条件) |
-| `burden-caps-v1.json` | 負担上限額マスタ | (PaymentBurdenCategory, 適用開始年月) |
-| `region-units-v1.json` | 地域区分単価マスタ | (RegionGrade, ServiceCategory, 適用開始年月) |
-| `meta.json` | 出典トレーサビリティ | ADR 番号 / 改定版 / 取得日 / 取得 URL |
-
-### Domain が参照する抽象
-
-```
-Tsumugi.Domain.Logic.Claim
-  IRateMaster.LookupBasic(ServiceCode, YearMonth, CapacityClass) → UnitCount
-  IAdditionMaster.LookupAddition(AdditionCode, YearMonth, Conditions) → UnitCount | Rate
-  IBurdenCapMaster.LookupCap(PaymentBurdenCategory, YearMonth) → MonthlyCapYen
-  IRegionUnitMaster.LookupUnitPrice(RegionGrade, ServiceCategory, YearMonth) → UnitPriceMoney
+```text
+ClaimCalculationInput
+  OfficeSnapshot
+  OfficeClaimProfile
+  IReadOnlyList<RecipientClaimInput>
+  ServiceMonth
+  ClaimMasterVersion
 ```
 
-実装は `Tsumugi.Infrastructure/Persistence/JsonClaimMasterLoader.cs` で起動時に JSON を読み込み。**オフラインなのでファイルバンドルで OK**。
+`OfficeClaimProfile`は期間マスタとし、次を明示する。
 
-### 適用年月差し替え（無改修切替）
+- 報酬体系
+- 人員配置
+- 利用定員
+- 届出済み基本報酬区分
+- 令和8年経過措置の適用情報
+- `OfficeCapability`正式コード集合
+- 有効期間と作成根拠
 
-ファイル内 `effectiveFrom` を増やすだけで令和 6 改定 → 令和 9 改定が切替可能であることをテストで実証（AC3-4）。Domain は interface のみ参照しているため、マスタ実値の変更は再ビルド不要（JSON 入替で済む）。
+令和8年経過措置は過去区分や届出判断を必要とするため、平均工賃だけから推測しない。経過措置なしの場合は計算区分と届出区分の一致を検証する。経過措置ありの場合は、公式届出情報とマスタ規則から許容区分を検証する。
 
-## `ClaimBatch` の append-only 規律
+### 5.2 Claim result
 
-| 項目 | 内容 |
+```text
+ClaimResult
+  OfficeId
+  ServiceMonth
+  MasterVersion
+  CsvSpecificationVersion
+  RecipientResults
+  Totals
+  Warnings
+```
+
+金額は整数円、単価は固定小数値とする。`double`/`float`は使用しない。
+
+### 5.3 ClaimBatch / ClaimDetail
+
+| 項目 | 設計 |
 | --- | --- |
-| 粒度 | `(OfficeId, YearMonth)` 単位で 1 行 |
-| 永続化 | `record` + append-only（`AppendOnlyGuard.AppendOnlyTypes` 登録） |
-| 重複 New 防止 | partial unique index `(OfficeId, YearMonth) WHERE Kind = New`（ADR 0026） |
-| 履歴 | `RecordKind` ∈ `{ New, Correct, Cancel }`（既存 enum）、`OriginId` で初代 New を指す |
-| 再現性 | 算定時のマスタ版バージョン（`meta.json` から）を保持 |
-| 監査 | `CreatedAt` / `CreatedBy` / `ConcurrencyToken`（既存 `Entity` 基底） |
-| 明細 | `ClaimDetail` を `ClaimBatchId` で結合（受給者×明細行：基本報酬・各加算） |
+| 粒度 | `(OfficeId, ServiceMonth)` |
+| 履歴 | `RecordKind.New/Correct/Cancel`、`OriginId`は初代New |
+| 重複防止 | `(OfficeId, ServiceMonth) WHERE Kind = 1` partial unique index |
+| 自動更新 | 禁止。下層訂正は未確定プレビュー差分として表示 |
+| 再確定 | 明示操作でCorrectionを追記 |
+| 再現性 | 事業所・受給者・証・実績・算定明細・版情報をスナップショット |
+| 監査 | `CreatedAt`、`CreatedBy`、`IAuditTrail` |
 
-**再生成は `Correct` で表現**: 確定後に実績や受給者証が訂正されても自動再算定しない。明示的に `CloseClaimUseCase` を再実行すると `Correct` レコードが積まれる。返戻・過誤調整の運用フロー自動化は本フェーズの範囲外（運用ガイドへ）。請求取下げは `Cancel` レコードとして表現。
+`ClaimDetail`も親のappend-only規律に従い、直接更新・削除を禁止する。
 
-## `Tsumugi.Infrastructure.Csv` — 新アセンブリ
+## 6. マスタ設計
 
-### 理由
-- CSV カラム名 literal の名前空間境界 (b) を機械判定する以上、**境界を物理的に区切るのが安全**（名前空間だけだと `Tsumugi.Infrastructure` の他コードから漏れる）
-- `OfflineComplianceTests` の `[Theory]` パターン（Reporting と同じ流儀）に乗る
-- 依存: `Tsumugi.Application` / `Tsumugi.Domain` のみ参照、外部依存は標準 `System.Text.Encoding` / `System.IO` のみ
+### 6.1 適用版の選択
 
-### 構成
+各エントリは次を持つ。
+
+```json
+{
+  "effectiveFrom": 202606,
+  "effectiveTo": null,
+  "sourceDocumentId": "...",
+  "key": "...",
+  "value": "..."
+}
 ```
-src/Tsumugi.Infrastructure.Csv/
-  ClaimCsvWriter.cs               ICsvClaimWriter 実装
-  Records/                        レコード種別ごとの構造体（ADR 0023 確定後）
-  Encoding/                       Shift_JIS/UTF-8（仕様確認後に確定）と CRLF 規律
-  Tsumugi.Infrastructure.Csv.csproj
+
+- 適用版は`effectiveFrom <= ServiceMonth`のうち最新を選ぶ。
+- 同一キー・同一開始月の重複、版の空白、逆転した期間は起動時に拒否する。
+- JSONの値を差し替えるだけで制度改定に追随できるようにする。
+- 令和9仮データは使用しない。実在する令和6/令和8の境界で切替を実証する。
+
+### 6.2 平均工賃月額
+
+入力は前年度の工賃総額、延べ利用者数、年間開所日数。12か月未満の新規指定等、通常式と異なる公式規則がある場合は別rule IDとして外部化し、根拠なしに一般式へフォールバックしない。
+
+### 6.3 報酬区分と経過措置
+
+`BasicRewardResolver`は以下を受け取る。
+
+```text
+ServiceMonth
+AverageWageMonthlyYen
+CapacityClass
+StaffingClass
+RewardSystem
+DeclaredBracket
+TransitionContext
+IBasicRewardMaster
 ```
 
-### メタ情報の埋込
-生成 CSV のヘッダ or ファイル名に **マスタ版 / CSV 仕様版 / 生成日時** を含める（再現性）。
+閾値、単位数、中間区分、経過措置の適用条件はマスタに置く。Domainは条件照合と結果構築だけを行う。
 
-## ハードコード機械判定 (a)(b)(c)
+## 7. CSV設計
 
-| ID | 対象 | 実装場所 |
+### 7.1 ファイル全体
+
+共通編に従い、ファイルは次の順序とする。
+
+1. コントロールレコード（レコード種別`1`）
+2. データレコード（レコード種別`2`、1件以上）
+3. エンドレコード（レコード種別`3`）
+
+レコード番号は1からの連番。コントロールレコードの件数はデータレコードだけを数える。
+
+`ServiceMonth`と`ProcessingMonth`を混同しない。コントロールレコードの処理対象年月は国保連で電算処理する年月であり、サービス提供年月とは別入力とする。
+
+両者は同じ`YearMonth`を使い回さず、別の値オブジェクト型として定義する。相互の暗黙変換は設けず、`ExportClaimCsvUseCase`は`ProcessingMonth`を必須引数として受け取る。
+
+### 7.2 エンコーディング
+
+- Windows標準Shift_JISとしてコードページ932を使用する。
+- 改行は常に`0x0D 0x0A`。
+- 区切りは`,`。
+- 仕様に従って引用し、引用内の`"`は二重化する。
+- 最大長は文字数ではなくCP932変換後のバイト数で検証する。
+- 変換不能文字、禁止文字、制御文字は対象項目を示して拒否する。
+- `Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)`の初期化責務はCsvアセンブリ内に閉じる。
+
+### 7.3 データレコード内部
+
+事業所編の交換情報識別番号と内側レコード種別を仕様データで定義する。少なくとも次を扱う。
+
+- 介護給付費等請求書の基本・明細情報
+- 介護給付費等明細書の基本・日数・明細・集計・契約情報
+- サービス提供実績記録票の基本・明細情報
+
+「基本・明細・集計の3種だけ」という旧計画の簡略化は採用しない。
+
+### 7.4 出力前検証
+
+`ClaimPreflightValidator`が全件を走査し、次を集約して返す。
+
+- 必須項目不足
+- 未知のサービスコード・交換情報ID
+- 桁・範囲・コード値不正
+- CP932変換不能・禁止文字
+- マスタ版・CSV仕様版不一致
+- `ServiceMonth`/`ProcessingMonth`不正
+- `ProcessingMonth`未入力、またはコントロールレコードへの誤マッピング
+- 未確定ClaimBatchからの出力要求
+
+1件でもエラーがあればStreamへ1バイトも書かない。
+
+### 7.5 決定論と監査
+
+CSVは`(実効ClaimBatch, ProcessingMonth, CsvSpecificationVersion)`が同じなら同一バイトを返す。出力時はファイル本体をDBへ保存せず、バイト数、SHA-256、版、処理対象年月、操作者を`AuditEntry`へ記録する。氏名・受給者証番号・保存先はログに残さない。
+
+## 8. 帳票設計
+
+Phase 4 S1 / ADR 0013で完成したNoto Sans JP埋込と`QuestPdfLicenseConfigurator.Initialize()`を再利用する。新しいフォントADRは作らない。
+
+| 帳票 | 入力 | 検証 |
 | --- | --- | --- |
-| (a) | Domain/Application 内に `単位数`/`加算`/`区分単価` 等の語彙 literal が現れたら赤 | `tests/Tsumugi.Domain.Tests/ArchitectureTests/HardcodeScannerTests.cs` |
-| (b) | CSV カラム名 literal が `Tsumugi.Infrastructure.Csv` 以外に現れたら赤 | `tests/Tsumugi.Infrastructure.Tests/OfflineComplianceTests` ファミリに `CsvLiteralNamespaceTests` |
-| (c) | Domain 内の int/decimal literal 上限ガード（例: 1000 超を禁止） | `tests/Tsumugi.Domain.Tests/ArchitectureTests/IntegerLiteralCeilingTests.cs` |
+| サービス提供実績記録票 | 実効`ClaimBatch`/`ClaimDetail`内の実績・事業所・受給者証スナップショット | 日付、提供状況、送迎・食事・欠席、CJK |
+| 請求書 | 実効`ClaimBatch`/`ClaimDetail`の事業所・市町村集計 | 件数、単位数、費用、請求額、負担額 |
+| 請求明細書 | 実効`ClaimBatch`/`ClaimDetail`の受給者別明細 | 基本・日数・明細・集計・契約、合計 |
 
-各スキャナに**意図的違反で赤になるテスト**（歯のある検査）を併設。除外: テストプロジェクト、`Tsumugi.Infrastructure/Seed/Claim/*.json`、属性付きの allowlist エントリ。
+3帳票とも生成時に現行`DailyRecord`、`Certificate`、`Office`等を再読込せず、確定時のスナップショットだけを入力とする。同一入力と同一`TimeProvider`で同一バイトを返す。既知の康熙部首抽出問題は既存`KangxiRadicalNormalizer`をテスト時だけ使用し、表示グリフと合計値の検証を省略しない。
 
-## 既存資産の改修ポイント
+## 9. ApplicationとUIのデータフロー
 
-| 既存資産 | 改修 | 着手フェーズ |
-| --- | --- | --- |
-| `AverageWageMetric` | 正式定義 ADR 0022 確定後、`FIXME` を解消。分母切替の構造は維持 | 3-1 |
-| `OfficeCapability.Flags` | 暫定キー（`mealProvision`/`transportSupport`）→ 正式コード集合へ置換（ADR 0020 / 0019） | 3-0（ADR）→ 3-1（コード置換） |
-| `Recipient` | CSV 必須項目（性別等）を追加、`Certificate.RecipientGender` と整合 | 3-3 |
-| `QuestPdfLicenseConfigurator` | `Settings.UseEnvironmentFonts = false` + 埋込フォント登録 | 3-0 |
-| `ci.sh` Application 閾値 | 70 → 90 へ昇格 | 3-3 完了時 |
+```text
+事業所・対象月・届出設定を選択
+  → CalculateClaimUseCase
+  → ClaimPreflightValidator
+  → ClaimCalculator（純粋関数）
+  → プレビュー・警告・確定済みとの差分
+  → CloseClaimUseCase
+  → ClaimBatch/ClaimDetailをNewまたはCorrectionで追記
+  ├─ GenerateClaimReportsUseCase → PDF → IFileSaveService
+  └─ ExportClaimCsvUseCase
+       → 実効ClaimBatchを再読込
+       → CSV preflight
+       → CP932 bytes
+       → IFileSaveService
+       → AuditEntryへhash・版・処理年月
+```
 
-## UI 範囲
+UIは1画面1責務を守る。
 
-Phase 2 と同じ流儀（CommunityToolkit.Mvvm + `ObservableObject` + `ICommand`、AccessibilityDefaults 踏襲）。View XAML 構造は実装時に決定、設計時はビヘイビアまで。
-
-| View | 機能 |
+| View | 責務 |
 | --- | --- |
-| `ClaimPreviewView` | 月次プレビュー（明細・利用者負担表示、再算定可能） |
-| `ClaimReportView` | 帳票出力（実績記録票/請求書/明細書、`IFileSaveService` で保存） |
-| `ClaimCsvExportView` | CSV エクスポート（保存先指定、出典版表示） |
-| `ClaimCloseView` | 請求確定（確定済の場合は再実行が `Correct` レコードを追加する旨を警告ダイアログで明示） |
+| `ClaimPreviewView` | 入力選択、算定、警告、差分 |
+| `ClaimCloseView` | 確定、再確定、取下げ |
+| `ClaimReportView` | 確定済み帳票の生成・保存 |
+| `ClaimCsvExportView` | 確定済みCSVの処理対象年月指定・保存 |
 
-## 受け入れ基準
+Office選択を各Viewで明示し、テストだけが`OfficeId`を直接注入する構造にしない。保存キャンセルはエラー扱いせず、状態を変更しない。
+
+## 10. エラーハンドリング
+
+| 条件 | 動作 |
+| --- | --- |
+| 対象月に適用マスタなし | 算定停止。欠落キーと対象月を表示 |
+| 令和8経過措置入力不足 | 算定停止。必要な届出・過去区分を表示 |
+| 届出区分と計算区分不整合 | 確定禁止。差分と根拠版を表示 |
+| 必須証情報・契約情報不足 | 該当受給者を列挙して確定/CSV禁止 |
+| CP932変換不能・禁止文字 | 項目名と対象を表示し、0バイト出力 |
+| 二重New | DB制約で拒否し、最新実効版を再読込 |
+| 楽観ロック競合 | 再読込を促し、自動上書きしない |
+| 保存ダイアログキャンセル | 正常終了、監査行・状態変更なし |
+| 途中I/O失敗 | 完了扱いにせず、部分ファイルの扱いをUIで通知 |
+
+例外メッセージやログに氏名、受給者証番号、保存先フルパスを含めない。
+
+## 11. TDD・品質ゲート
+
+### 11.1 Domain
+
+- 平均工賃正式式のゼロ・境界・端数
+- 2026-05/2026-06の版切替
+- 令和8区分境界と経過措置
+- 基本報酬、加算・減算、地域単価、利用者負担
+- `Logic.Claim`分岐100%目標、Domain全体95%以上
+
+### 11.2 マスタ
+
+- スキーマ、出典、SHA-256、適用期間
+- 重複・空白・未知コードで起動失敗
+- 制度実値がDomain/Applicationへ漏れていない
+- 交換情報ID・サービスコードが指定データ領域外へ漏れていない
+
+単純な「1000超の整数を全面禁止」だけに依存せず、許可領域・型・出典メタデータを組み合わせて誤検知と抜けを抑える。
+
+### 11.3 CSV
+
+- コントロール/データ/エンドの順序と連番
+- CP932、CRLF、引用、空欄、ゼロ
+- 文字数とバイト数の差
+- 変換不能文字・禁止文字で0バイト出力
+- 請求書、明細書、実績記録票のバイトスナップショット
+- 同一入力の決定論
+
+### 11.4 Persistence / Application / App
+
+- AppendOnlyGuard、二重New、Correction、Cancel
+- migration往復
+- 確定前CSV拒否
+- 確定後の下層訂正で自動変更なし
+- 再計算差分、再確定、保存キャンセル
+- Office/対象月/処理対象年月の実UI配線
+- Phase 3完了時Applicationカバレッジ90%以上
+
+### 11.5 横断
+
+- Csv/Reporting/Appを含むオフライン検査
+- 依存方向テスト
+- `dotnet format --verify-no-changes`
+- `./build/ci.sh`
+- 意図的違反で各境界テストが赤になること
+
+## 12. サブフェーズ
+
+### Phase 3-0: 出典・契約・土台
+
+- ADR 0020〜0026確定
+- 公式帳票・CSV全項目と既存モデルのマッピング、不足項目一覧
+- マスタschemaと版メタデータ
+- `Tsumugi.Infrastructure.Csv`空殻とオフライン境界
+- `ClaimBatch`/`ClaimDetail`、Repository、migration、AppendOnlyGuard、partial unique index
+- 制度値・CSV仕様値の境界検査
+
+### Phase 3-1: 報酬算定
+
+- 不足確定した請求入力モデル・migration・入力UI
+- 令和6/令和8の実値マスタ
+- `OfficeClaimProfile`
+- 平均工賃正式式
+- 基本報酬区分、経過措置、加算・減算、地域単価、負担上限
+- Calculate/Query/Close UseCase
+- `ClaimBatch`の初回確定、再確定、取下げ
+
+### Phase 3-2: 帳票
+
+- 3-0の項目マッピングと3-1の請求入力拡張を着手条件とする
+- 3-1で確定した実効`ClaimBatch`の読取
+- 3帳票
+- `IClaimReportGenerator`
+- Reporting実装
+- ViewModel/Viewと保存
+
+### Phase 3-3: CSV・出力
+
+- 公式レコード構造とCP932 writer
+- `ClaimPreflightValidator`
+- Export UseCase
+- CSV出力UI
+- Applicationカバレッジ90%
+- Phase 3全体受け入れ
+
+## 13. ADR採番
+
+ADR 0018/0019はPhase 4 S0で使用済み。Phase 3では次を使用する。
+
+| ADR | タイトル | 主な確定事項 |
+| --- | --- | --- |
+| 0020 | 令和6/令和8報酬マスタの出典と版管理 | 告示・通知・サービスコード・施行境界 |
+| 0021 | 加算コード集合とOfficeCapability移行 | 正式キー、暫定キー変換、移行期限 |
+| 0022 | 負担上限額マスタ | 区分、金額、証記載値との優先関係 |
+| 0023 | 平均工賃月額と令和8経過措置 | 正式式、区分、届出入力、経過措置 |
+| 0024 | 国保連CSV仕様 | 版、CP932、CRLF、外側/内側レコード、項目マッピング |
+| 0025 | 報酬計算の端数規則 | 単位ごとの丸め順序と固定小数 |
+| 0026 | 請求確定スナップショット | append-only、partial index、再確定、CSV確定後限定 |
+
+フォント・QuestPDFはADR 0013を参照する。
+
+## 14. 受け入れ基準
 
 ### Phase 3-0
-- **AC3-0-1** §2.3-1〜6 の各項目について、一次情報に基づき ADR 0018〜0023 を文書化（出典 URL／改定版／取得日／結論／影響範囲）
-- **AC3-0-2** Noto Sans CJK JP を `assets/fonts/` に SIL OFL 1.1 同梱で追加、`QuestPdfLicenseConfigurator` で埋込登録（ADR 0024）。既存 PDF テストで CJK substring assertion を再有効化し、Linux/Windows CI ランナーで NUL 化しない
-- **AC3-0-3** ハードコード機械判定 (a)(b)(c) が CI で緑、各スキャナに歯あり性テスト
-- **AC3-0-4** マスタ抽象 interface 群と InMemory 実装が揃い、JSON ローダ空殻が配置される
-- **AC3-0-5** `Tsumugi.Infrastructure.Csv` アセンブリ新設、`OfflineComplianceTests` / `AppOfflineComplianceTests` の `[Theory]` 対象
-- **AC3-0-6** `ClaimBatch` / `ClaimDetail` 骨組み（型・`AppendOnlyGuard` 登録・partial unique index・migration・Repository）と `ClaimBatchDuplicateNewIndexTests` 緑
-- **AC3-0-7** Application カバレッジ閾値 70 → 90 への昇格準備（3-3 完了時に実引き上げ）
-- **AC3-0-8** `OfficeCapability` 正式コード集合への移行 ADR 0020 と移行スキーマ
-- **AC3-0-9** `./build/ci.sh` 緑、`dotnet format` 通過、依存方向不変、Domain カバレッジ 95% 維持、オフライン検査（App/Reporting/Csv）緑
+
+- **AC3-0-1** ADR 0020〜0026が一次資料とハッシュを持つ
+- **AC3-0-2** マスタschema・出典版・適用年月の検証が緑
+- **AC3-0-3** Csvアセンブリが依存方向・オフライン検査対象
+- **AC3-0-4** ClaimBatch/Detail、AppendOnlyGuard、partial index、migrationが緑
+- **AC3-0-5** 公式帳票・CSVの全項目について既存対応、不足項目、必須条件、追加先、migration要否が確定する
 
 ### Phase 3-1
-- **AC3-1** 単価/加算/負担上限が seed JSON（適用年月版）から供給、Domain 内に数値 literal 無し（(a)(c) 緑）
-- **AC3-2** B 型基本報酬区分が `AverageWageMetric`（ADR 0022 確定後）連動でマスタ駆動解決
-- **AC3-3** 加算/減算・地域区分単価・利用者負担上限がマスタ駆動で算定、既知ケース対応表で分岐網羅 100% 目標
-- **AC3-4** 適用年月差し替え（令和 6 → 令和 9）で算定結果が無改修切替されることをテストで実証
-- **AC3-1-add** Domain カバレッジ 95% 維持、報酬算定モジュール（`Tsumugi.Domain.Logic.Claim`）は 100% 目標
+
+- **AC3-1** 令和6/令和8の制度値が外部マスタから供給される
+- **AC3-2** 平均工賃正式式、令和8区分、経過措置が正しく解決される
+- **AC3-3** 基本報酬・加算・減算・地域単価・負担上限が公式ケースと一致する
+- **AC3-4** 2026-05/06の版境界が無改修で切り替わる
+- **AC3-8** AC3-0-5で不足と確定した入力だけがモデル・migration・実UIへ追加され、全公式必須項目を入力できる
+- **AC3-9** 初回確定・再確定・取下げがappend-onlyの`New`/`Correction`/`Cancel`で履歴化される
 
 ### Phase 3-2
-- **AC3-5** 日本語フォント埋込が有効化され、CI で CJK が化けない
-- **AC3-6** 3 種類の帳票（実績記録票・請求書・明細書）を出力でき、抽出テキスト＋合計＋CJK が検証され、決定化されている（同入力＋同 TimeProvider → 同バイト）
+
+- **AC3-5** 既存埋込フォントを使いCJK・合計・決定論が緑
+- **AC3-6** 3帳票をUIから保存できる
 
 ### Phase 3-3
-- **AC3-7** 請求 CSV が公式仕様（ADR 0023 出典版明記）準拠、バイト単位スナップショット緑、カラム名 literal が `Tsumugi.Infrastructure.Csv` 限定（(b) 緑）、新規アセンブリがオフライン検査対象
-- **AC3-8** Recipient の CSV 必須項目拡張＋migration、`Certificate.RecipientGender` と整合
-- **AC3-9** 請求確定が append-only スナップショットで固定、確定後の下層訂正で自動再生成しない。再生成は `Correct` レコードで履歴に残す（取下げは `Cancel`）。`AppendOnlyGuard` 登録・違反で赤・partial unique index
-- **AC3-3-add** `ci.sh` の Application カバレッジ閾値を 70 → 90 へ昇格
 
-### 横断（Phase 3 全体）
-- **AC3-10** 伝送系コードが存在せず、オフライン検査（App/Reporting/Csv）が緑。`./build/ci.sh` 緑・`dotnet format` 通過・依存方向不変・Domain カバレッジ 95% 維持・Application 90% 達成（3-3 完了時）
+- **AC3-7** 独立入力した`ProcessingMonth`がコントロールレコードの処理対象年月へ設定され、CP932/CRLFと公式レコード構造のCSVがバイト一致する
+- CSVは3-1で確定した実効ClaimBatchからのみ生成される
 
-## 新規 ADR 一覧
+### 横断
 
-| ADR | タイトル | 着手フェーズ |
+- **AC3-10** 伝送コードなし、オフライン検査緑、Domain 95%以上、Application 90%以上、CI/format/依存方向が緑
+
+## 15. リスクと対策
+
+| リスク | 影響 | 対策 |
 | --- | --- | --- |
-| 0018 | 報酬単位数・地域区分単価の一次出典（令和 6 改定） | 3-0 |
-| 0019 | 加算正式コード集合（食事提供 I/II・送迎 I/II 等） | 3-0 |
-| 0020 | OfficeCapability 正式コード集合への移行戦略 | 3-0 |
-| 0021 | PaymentBurdenCategory → 月額上限額テーブル | 3-0 |
-| 0022 | 平均工賃月額の正式定義（分母・基準期間・控除） | 3-0 |
-| 0023 | 国保連 請求 CSV インターフェース仕様（版・文字コード・改行・項目順） | 3-0 |
-| 0024 | Noto Sans CJK JP の埋込（SIL OFL 1.1） | 3-0 |
-| 0025 | 報酬計算の端数規則（単位×単価の切り捨て規律） | 3-1 |
-| 0026 | ClaimBatch partial unique index `(OfficeId, YearMonth) WHERE Kind=New` | 3-0 |
+| 令和8経過措置を平均工賃だけで推測 | 誤請求 | 届出済み区分・過去区分を期間マスタで明示 |
+| ServiceMonthとProcessingMonthの混同 | 国保連取込エラー | 型・UI・テストで別項目にする |
+| Shift_JISを一般的な名称だけで選ぶ | Windows拡張文字差 | CP932を明示しバイトスナップショット化 |
+| 文字数だけの桁検証 | 漢字項目のバイト超過 | 変換後バイト数で検証 |
+| プレビューからCSV生成 | 確定内容との不一致 | 確定済み実効ClaimBatch限定 |
+| 性別追加を先行 | 不要migration・二重管理 | 公式項目マッピング後、不足項目だけ追加 |
+| ADR番号衝突 | 追跡不能 | Phase 3を0020〜0026へ再採番 |
+| 旧計画の実行 | 古い制度・CSV構造を実装 | 本書からサブフェーズごとに再計画 |
 
-## テスト戦略
+## 16. 実装移行条件
 
-### Phase 3-0
-- ADR レビュー（手動）: 各 ADR が一次情報 URL を含み、後続フェーズ着手の前提として参照可能
-- フォント埋込決定論: 既存 `Statement_pdf_is_deterministic_for_same_inputs_and_same_timeprovider` を CJK 抽出付きで再検証
-- スキャナ歯あり性: 各スキャナに意図的違反コードを混入させ、赤になることを `ScannerToothTests`（仮）で固定
-- `ClaimBatch` CRUD + AppendOnly + duplicate-new + partial unique index: 既存 `DailyRecord` / `WageFund` の往復テストパターンを踏襲
-- マスタ抽象テスト: InMemory 実装で各 `Lookup*` の境界条件（適用年月境界・存在しないコード・複数バージョン）を網羅
-- `Tsumugi.Infrastructure.Csv` オフライン検査: `OfflineComplianceTests` の `[Theory]` に追加し、意図的 `HttpClient` 混入で赤になることを確認
+1. 本書と実装指示書のレビュー完了
+2. 3-0実装計画を本書から再作成
+3. ADR 0020〜0026を一次資料に基づき確定
+4. 出典に依存しない土台からTDDで着手
+5. 各サブフェーズを個別に受け入れて次へ進む
 
-### Phase 3-1
-- Domain: 報酬算定のテーブル駆動テスト（分岐網羅 100% 目標）。基本報酬区分解決、各加算/減算、地域区分単価、利用者負担上限
-- マスタ外部化: 単位数/加算/単価が JSON 由来で、Domain に literal が無いこと（(a)(c) 緑）
-- 適用年月差し替え: 同入力で令和 6 / 令和 9 を切替えて結果が異なることをテストで固定
-
-### Phase 3-2
-- 帳票: 抽出テキスト＋合計＋CJK substring の検証、決定化（同入力＋同 TimeProvider → 同バイト）
-
-### Phase 3-3
-- CSV: バイト単位スナップショット（文字コード・改行・桁・項目順）
-- カラム名 literal が `Tsumugi.Infrastructure.Csv` 限定であること（(b) 緑）
-- 新追記型 CRUD（`ClaimBatch` の `Correct` / `Cancel` レコード）、`AppendOnlyGuard` 違反で赤（意図的違反で確認）
-- Recipient 拡張 migration の往復
-
-### Phase 3 全体
-- App: プレビュー / エクスポート / 確定コマンドの ViewModel テスト、金額整形（InvariantCulture）
-
-## エラーハンドリング
-
-- 必須出典が未確定のマスタコードを参照: `ClaimCalculator` が `InvalidOperationException` でフェイルファスト（推測値で計算させない）
-- 確定済 ClaimBatch の再 New 試行: partial unique index で `DbUpdateException`
-- CSV 生成時の必須項目欠落: `ClaimCsvWriter` が `InvalidOperationException` でフェイルファスト（推測埋めしない）
-- マスタ JSON のスキーマ違反: 起動時に `JsonClaimMasterLoader` が例外（CI でも検出される）
-
-## 制約 / 品質ゲート
-
-- 親文書 `CLAUDE.md` のハード制約全項目を維持
-- `01 §6` 全項目維持
-- オフライン検査に新規アセンブリ（`Tsumugi.Infrastructure.Csv` / `Tsumugi.Infrastructure.Reporting` 追加分）を必ず含める
-- 伝送・電子証明書・`System.Net.*` を持ち込まない
-- 報酬/CSV の数値・項目定義をハードコードしない（(a)(b)(c) 機械判定）
-- 金額は整数円、最終額に浮動小数点を混入させない
-- 算定は分岐網羅 100% 目標、適用年月差し替えの無改修切替をテストで実証
-- 日本語フォント埋込（Noto OFL 1.1）を ADR 化し帳票で有効化
-- §2.3 の必須出典は一次情報で ADR 化してから該当サブフェーズに着手
-- 新規設計判断（マスタ構造、請求確定の再生成規律、CSV 名前空間境界、フォント埋込）は `docs/decisions/` 0018〜0026 に ADR 化
-
-## 着手手順（要約）
-
-1. **Phase 3-0**: §2.3 の一次出典を確認し ADR 0018〜0024 と 0026 を起票（0025 は 3-1）。並行で フォント埋込・スキャナ・マスタ抽象・Csv アセンブリ・ClaimBatch 骨組み・カバレッジ準備を実装
-2. **Phase 3-1**: ADR 0018/0019/0021/0022 が確定したらマスタ実値投入＋算定純粋関数を TDD で実装。ADR 0025（端数規則）も合わせて確定
-3. **Phase 3-2**: AC3-0-2（フォント埋込）が緑になったら実績記録票・請求書/明細書を Reporting に追加
-4. **Phase 3-3**: ADR 0023 が確定したら Csv アセンブリに正式仕様を実装、Recipient 拡張＋migration、`CloseClaimUseCase` で確定スナップショット。Application 閾値を 70 → 90 へ
-5. 各サブフェーズで `./build/ci.sh` 緑・依存方向不変・Domain 95% 維持を確認して受け入れへ
-
-## 参考
-
-- `01_ClaudeCode_実装指示書_Tsumugi.md`（全体仕様の正本）
-- `06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md`（本書の元）
-- `docs/open-questions.md`（§2.3 と Phase 1/2 引継ぎの未確定事項）
-- `docs/decisions/0006-office-capability-flag-set.md`（OfficeCapability 暫定キーの根拠）
-- `docs/decisions/0013-pdf-engine-questpdf.md`（QuestPDF Community 採用）
-- `docs/decisions/0014-audit-trail-append-only.md`（追記専用の規律）
-- `docs/decisions/0015-dailyrecord-duplicate-new-index.md` / `0017-wagefund-duplicate-new-index.md`（partial unique index 作法の前例）
+不確定事項は`docs/open-questions.md`へ戻す。推測値、仮コード、暫定CSVを「後で差し替える」前提で本番経路へ入れない。
