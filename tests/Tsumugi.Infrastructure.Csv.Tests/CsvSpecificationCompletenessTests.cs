@@ -129,6 +129,14 @@ public sealed class CsvSpecificationCompletenessTests
         AssertOfficialFieldShape(allFields, "provider:J121:04:014", "numeric", 10);
         AssertOfficialFieldShape(allFields, "provider:J121:04:015", "numeric", 6);
         AssertOfficialFieldShape(allFields, "provider:J121:04:024", "numeric", 10);
+        allFields["provider:J121:01:018"].GetProperty("officialName").GetString().Should()
+            .Be("日中支援加算欄 指定事業所番号");
+        allFields["provider:J121:01:019"].GetProperty("officialName").GetString().Should()
+            .Be("日中支援加算欄 当該事業所への通所日数");
+        allFields["provider:J611:01:140"].GetProperty("officialName").GetString().Should()
+            .Be("保育・教育等移行支援加算 移行日（年月日）");
+        allFields["provider:J611:01:142"].GetProperty("officialName").GetString().Should()
+            .Be("通所施設移行支援加算 移行日（年月日）");
         failures.Should().BeEmpty(string.Join(Environment.NewLine, failures));
     }
 
@@ -265,6 +273,86 @@ public sealed class CsvSpecificationCompletenessTests
     }
 
     [Fact]
+    public void Current_grant_manual_supersedes_the_retained_404_historical_source()
+    {
+        using var sources = ReadEmbeddedJson("sources.json");
+        var items = sources.RootElement.GetProperty("sources").EnumerateArray().ToDictionary(
+            source => source.GetProperty("sourceDocumentId").GetString()!, StringComparer.Ordinal);
+
+        items.Should().HaveCount(14);
+        var historical = items["r8-grant-decision-administration-202606"];
+        historical.GetProperty("supersededBy").GetString().Should()
+            .Be("r8-grant-decision-administration-202607");
+        historical.GetProperty("availability").GetString().Should().Contain("historical");
+        var liveCheck = historical.GetProperty("liveCheck");
+        liveCheck.GetProperty("checkedAt").GetString().Should().Be("2026-07-10");
+        liveCheck.GetProperty("httpStatus").GetInt32().Should().Be(404);
+        liveCheck.GetProperty("responseSha256").GetString().Should()
+            .Be("62487501d53438999737baba39208b6f83de89280b31efcd804a99d193108ed8");
+        liveCheck.GetProperty("responseSizeBytes").GetInt64().Should().Be(48_524);
+
+        var current = items["r8-grant-decision-administration-202607"];
+        current.GetProperty("title").GetString().Should().Be("介護給付費等に係る支給決定事務等について（事務処理要領）");
+        current.GetProperty("version").GetString().Should().Be("最終改正令和8年7月");
+        current.GetProperty("url").GetString().Should()
+            .Be("https://www.mhlw.go.jp/content/12200000/001721666.pdf");
+        current.GetProperty("sha256").GetString().Should()
+            .Be("1a94220c99986f353e4c63c095c156448271ecad1d7bf0d9e197d3b8ca06de65");
+        current.GetProperty("sizeBytes").GetInt64().Should().Be(1_999_016);
+        current.GetProperty("pageCount").GetInt32().Should().Be(262);
+        current.GetProperty("applicablePages").EnumerateArray().Select(page => page.GetInt32())
+            .Should().Equal(233, 234, 235);
+        current.GetProperty("supersedes").GetString().Should()
+            .Be("r8-grant-decision-administration-202606");
+        current.GetProperty("verifiedDownloads").GetInt32().Should().Be(3);
+        var expectedPageHashes = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["233"] = "66919118600c5e8405c50edf511a2ea0eb0dd4bc6dc8a9ddf77265eaeff9c114",
+            ["234"] = "05f86f3b66585f4b45cb15b04e7b250e687fb072e1d4c304be30295bcf5078c1",
+            ["235"] = "edae343c688a0d26a1994f5d40cb2eecc4da62af74f29855c720bf47602fc108",
+        };
+        foreach (var expected in expectedPageHashes)
+        {
+            current.GetProperty("applicablePageTextSha256").GetProperty(expected.Key).GetString()
+                .Should().Be(expected.Value);
+            historical.GetProperty("applicablePageTextSha256").GetProperty(expected.Key).GetString()
+                .Should().Be(expected.Value, $"physical page {expected.Key} must remain text-identical across the version boundary");
+        }
+    }
+
+    [Fact]
+    public void Service_usage_days_count_distinct_calculated_claim_line_dates()
+    {
+        using var mapping = ReadEmbeddedJson("field-mapping-r7-10.json");
+        var item = mapping.RootElement.GetProperty("mappings").EnumerateArray().Single(mappingItem =>
+            mappingItem.GetProperty("fieldId").GetString() == "provider:J121:04:009");
+        var contract = item.GetProperty("sourceContracts").EnumerateArray().Single();
+        contract.GetProperty("contractId").GetString().Should()
+            .Be("ClaimDetailSnapshot.CalculatedClaimLines");
+        contract.GetProperty("dateProperty").GetString().Should().Be("ServiceDate");
+        contract.GetProperty("aggregation").GetString().Should().Be("countDistinctDate");
+        var includedKinds = contract.GetProperty("includedLineKinds").EnumerateArray()
+            .Select(kind => kind.GetString()!).ToHashSet(StringComparer.Ordinal);
+        includedKinds.Should().BeEquivalentTo(
+            "MainBenefit", "Addition", "UpperLimitManagementAddition", "AbsenceSupportAddition");
+
+        CountUsageDays(new[] { (new DateOnly(2026, 7, 1), "Addition") }, includedKinds).Should().Be(1,
+            "an addition-only calculated claim day is included");
+        CountUsageDays(new[] { (new DateOnly(2026, 7, 2), "AbsenceSupportAddition") }, includedKinds).Should().Be(1,
+            "an absence-support-addition-only calculated claim day is included");
+        CountUsageDays(new[]
+        {
+            (new DateOnly(2026, 7, 3), "MainBenefit"),
+            (new DateOnly(2026, 7, 3), "Addition"),
+        }, includedKinds).Should().Be(1, "multiple calculated lines on one day are de-duplicated");
+
+        item.GetProperty("generatorRule").GetString().Should().ContainAll(
+            "ClaimDetailSnapshot.CalculatedClaimLines", "lineKindIn(MainBenefit,Addition,UpperLimitManagementAddition,AbsenceSupportAddition)",
+            "distinctBy=ServiceDate");
+        item.GetProperty("generatorRule").GetString().Should().NotContain("DailyRecord.serviceProvided");
+    }
+
+    [Fact]
     public void Specification_strings_do_not_contain_placeholders()
     {
         foreach (var file in new[]
@@ -317,6 +405,8 @@ public sealed class CsvSpecificationCompletenessTests
         var fieldIds = records.SelectMany(record => record.GetProperty("fields").EnumerateArray())
             .Select(field => field.GetProperty("fieldId").GetString()!)
             .ToHashSet(StringComparer.Ordinal);
+        var fieldsById = records.SelectMany(record => record.GetProperty("fields").EnumerateArray())
+            .ToDictionary(field => field.GetProperty("fieldId").GetString()!, StringComparer.Ordinal);
         var recordIds = records.Select(record => record.GetProperty("recordId").GetString()!)
             .ToHashSet(StringComparer.Ordinal);
         var failures = new List<string>();
@@ -358,6 +448,19 @@ public sealed class CsvSpecificationCompletenessTests
         generated.Single(item => item.GetProperty("fieldId").GetString() == "provider:J121:04:016")
             .GetProperty("generatorRule").GetString().Should()
             .ContainAll("provider:J121:01:012", "provider:J121:04:015", "min(");
+        fieldsById["provider:J611:01:034"].GetProperty("requiredWhen").GetString().Should()
+            .Be("modelIn(DailyRecord.Transport;Outbound;Inbound;Round)");
+        fieldsById["provider:J611:02:021"].GetProperty("requiredWhen").GetString().Should()
+            .Be("modelIn(DailyRecord.Transport;Outbound;Round)");
+        fieldsById["provider:J611:02:022"].GetProperty("requiredWhen").GetString().Should()
+            .Be("modelIn(DailyRecord.Transport;Inbound;Round)");
+        fieldsById["provider:J611:02:036"].GetProperty("requiredWhen").GetString().Should()
+            .Be("modelEquals(DailyRecord.Attendance;AbsenceSupport)");
+        generated.Single(item => item.GetProperty("fieldId").GetString() == "provider:J611:01:034")
+            .GetProperty("generatorRule").GetString().Should().Contain("directions=Outbound,Inbound,Round");
+        generated.Select(item => item.GetProperty("generatorRule").GetString()!)
+            .Should().NotContain(rule => rule.Contains("DailyRecord.serviceProvided", StringComparison.Ordinal),
+                "generated values must use an explicit Phase 3-1 source contract instead of an undefined DailyRecord selector");
         failures.Should().BeEmpty(string.Join(Environment.NewLine, failures));
     }
 
@@ -425,6 +528,14 @@ public sealed class CsvSpecificationCompletenessTests
         fields[fieldId].GetProperty("dataType").GetString().Should().Be(expectedDataType, fieldId);
         fields[fieldId].GetProperty("maxBytes").GetInt32().Should().Be(expectedMaxBytes, fieldId);
     }
+
+    private static int CountUsageDays(
+        IEnumerable<(DateOnly ServiceDate, string Kind)> lines,
+        HashSet<string> includedKinds) =>
+        lines.Where(line => includedKinds.Contains(line.Kind))
+            .Select(line => line.ServiceDate)
+            .Distinct()
+            .Count();
 
     private static void AssertModelPathExists(string modelPath)
     {
@@ -510,6 +621,17 @@ public sealed class CsvSpecificationCompletenessTests
             return;
         }
 
+        if (operation is "modelEquals" or "modelIn")
+        {
+            if (arguments.Count < 2)
+            {
+                failures.Add($"{fieldId}: invalid {operation} condition: {condition}");
+                return;
+            }
+            ValidateModelOperator(operation, arguments[0], arguments.Skip(1).ToArray(), fieldId, failures);
+            return;
+        }
+
         if (!unary.Contains(operation) || arguments.Count != 1)
         {
             failures.Add($"{fieldId}: undefined condition operator: {condition}");
@@ -532,6 +654,10 @@ public sealed class CsvSpecificationCompletenessTests
                  && (!int.TryParse(arguments[0], out _) || arguments[0].Length != 6))
         {
             failures.Add($"{fieldId}: invalid month condition: {condition}");
+        }
+        else if (operation is "modelPresent" or "modelTrue" or "modelNonZero")
+        {
+            ValidateModelOperator(operation, arguments[0], Array.Empty<string>(), fieldId, failures);
         }
     }
 
@@ -612,5 +738,63 @@ public sealed class CsvSpecificationCompletenessTests
         }
         result.Add(input[start..]);
         return result;
+    }
+
+    private static void ValidateModelOperator(
+        string operation,
+        string modelPath,
+        IReadOnlyCollection<string> values,
+        string fieldId,
+        List<string> failures)
+    {
+        var parts = modelPath.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length != 2)
+        {
+            failures.Add($"{fieldId}: invalid model path in {operation}: {modelPath}");
+            return;
+        }
+
+        var type = typeof(Domain.Entities.Office).Assembly.GetType($"Tsumugi.Domain.Entities.{parts[0]}");
+        var property = type?.GetProperty(parts[1]);
+        if (property is null)
+        {
+            if (operation is "modelEquals" or "modelIn")
+            {
+                failures.Add($"{fieldId}: unresolved enum model path in {operation}: {modelPath}");
+            }
+            return; // A proposed Phase 3-1 input contract is validated by its missing mapping instead.
+        }
+
+        var propertyType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+        if (operation == "modelTrue" && propertyType != typeof(bool))
+        {
+            failures.Add($"{fieldId}: modelTrue requires bool but {modelPath} is {propertyType.Name}");
+        }
+        else if (operation == "modelPresent"
+                 && property.PropertyType.IsValueType
+                 && Nullable.GetUnderlyingType(property.PropertyType) is null)
+        {
+            failures.Add($"{fieldId}: modelPresent cannot target non-nullable {propertyType.Name} {modelPath}");
+        }
+        else if (operation == "modelNonZero"
+                 && propertyType.IsEnum)
+        {
+            failures.Add($"{fieldId}: modelNonZero cannot target enum {modelPath}");
+        }
+        else if (operation is "modelEquals" or "modelIn")
+        {
+            if (!propertyType.IsEnum)
+            {
+                failures.Add($"{fieldId}: {operation} requires enum but {modelPath} is {propertyType.Name}");
+                return;
+            }
+            foreach (var value in values)
+            {
+                if (!Enum.GetNames(propertyType).Contains(value, StringComparer.Ordinal))
+                {
+                    failures.Add($"{fieldId}: {value} is not a {propertyType.Name} value for {modelPath}");
+                }
+            }
+        }
     }
 }

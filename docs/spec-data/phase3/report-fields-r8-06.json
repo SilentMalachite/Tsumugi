@@ -129,7 +129,7 @@
       "section": "daily",
       "position": 6,
       "officialName": "送迎加算 往",
-      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.Transport))",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelIn(DailyRecord.Transport;Outbound;Round))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
       "sourcePage": 12,
       "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 6"
@@ -140,7 +140,7 @@
       "section": "daily",
       "position": 7,
       "officialName": "送迎加算 復",
-      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.Transport))",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelIn(DailyRecord.Transport;Inbound;Round))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
       "sourcePage": 12,
       "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 7"
@@ -260,11 +260,13 @@
       "artifactId": "service-performance",
       "section": "totals",
       "position": 1,
-      "officialName": "サービス提供日数 合計",
-      "requiredWhen": "rowPresent(service-performance.daily)",
-      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12,
-      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 1"
+      "officialName": "合計",
+      "requiredWhen": "always",
+      "sourceDocumentId": "service-performance-r6-04-xls",
+      "sourcePage": 1,
+      "requiredWhenSource": "service-performance-r6-04-xls sheet 就労継続支援 range C36:W37 merged static label",
+      "sourceSheet": "就労継続支援",
+      "sourceRange": "C36:W37"
     },
     {
       "fieldId": "report:service-performance:totals:002",
@@ -272,7 +274,7 @@
       "section": "totals",
       "position": 2,
       "officialName": "送迎加算 合計",
-      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.Transport))",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelIn(DailyRecord.Transport;Outbound;Inbound;Round))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
       "sourcePage": 12,
       "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 2"

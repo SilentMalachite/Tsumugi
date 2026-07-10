@@ -94,7 +94,7 @@
     },
     {
       "fieldId": "report:service-performance:daily:006",
-      "requiredCondition": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.Transport))",
+      "requiredCondition": "all(rowPresent(service-performance.daily);modelIn(DailyRecord.Transport;Outbound;Round))",
       "notes": "",
       "status": "existing",
       "modelPath": "DailyRecord.Transport",
@@ -102,7 +102,7 @@
     },
     {
       "fieldId": "report:service-performance:daily:007",
-      "requiredCondition": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.Transport))",
+      "requiredCondition": "all(rowPresent(service-performance.daily);modelIn(DailyRecord.Transport;Inbound;Round))",
       "notes": "",
       "status": "existing",
       "modelPath": "DailyRecord.Transport",
@@ -213,14 +213,14 @@
     },
     {
       "fieldId": "report:service-performance:totals:001",
-      "requiredCondition": "rowPresent(service-performance.daily)",
+      "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "count(target=report:service-performance:totals:001;selector=DailyRecord.serviceProvided;distinctBy=ServiceDate;source=service-performance-examples-r6-04-pdf:p12)"
+      "generatorRule": "const(target=report:service-performance:totals:001;value=合計;layout=就労継続支援!C36:W37;source=service-performance-r6-04-xls:p1)"
     },
     {
       "fieldId": "report:service-performance:totals:002",
-      "requiredCondition": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.Transport))",
+      "requiredCondition": "all(rowPresent(service-performance.daily);modelIn(DailyRecord.Transport;Outbound;Inbound;Round))",
       "notes": "",
       "status": "generated",
       "generatorRule": "render(target=report:service-performance:totals:002;field=provider:J611:01:034;format=service-performance.totals.position2;source=service-performance-examples-r6-04-pdf:p12)",

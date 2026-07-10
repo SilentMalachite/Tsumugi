@@ -889,9 +889,24 @@
     {
       "fieldId": "provider:J121:04:009",
       "requiredCondition": "always",
-      "notes": "",
+      "notes": "ClaimDetailSnapshot contract required by Phase 3-1; count distinct calculated claim-line dates including addition-only days",
       "status": "generated",
-      "generatorRule": "count(target=provider:J121:04:009;selector=DailyRecord.serviceProvided;distinctBy=ServiceDate;source=provider-r7-10:p32:item9)"
+      "generatorRule": "count(target=provider:J121:04:009;selector=contract(ClaimDetailSnapshot.CalculatedClaimLines).ServiceDate;filter=lineKindIn(MainBenefit,Addition,UpperLimitManagementAddition,AbsenceSupportAddition);distinctBy=ServiceDate;source=provider-r7-10:p32:item9)",
+      "sourceContracts": [
+        {
+          "contractId": "ClaimDetailSnapshot.CalculatedClaimLines",
+          "itemType": "CalculatedClaimLineSnapshot",
+          "dateProperty": "ServiceDate",
+          "lineKindProperty": "Kind",
+          "includedLineKinds": [
+            "MainBenefit",
+            "Addition",
+            "UpperLimitManagementAddition",
+            "AbsenceSupportAddition"
+          ],
+          "aggregation": "countDistinctDate"
+        }
+      ]
     },
     {
       "fieldId": "provider:J121:04:010",
@@ -1398,10 +1413,10 @@
     },
     {
       "fieldId": "provider:J611:01:034",
-      "requiredCondition": "modelTrue(DailyRecord.Transport)",
+      "requiredCondition": "modelIn(DailyRecord.Transport;Outbound;Inbound;Round)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "count(target=provider:J611:01:034;selector=DailyRecord.Transport;directions=outbound,return;source=provider-r7-10:p62:item34)"
+      "generatorRule": "count(target=provider:J611:01:034;selector=DailyRecord.Transport;directions=Outbound,Inbound,Round;source=provider-r7-10:p62:item34)"
     },
     {
       "fieldId": "provider:J611:01:035",
@@ -1665,9 +1680,22 @@
     {
       "fieldId": "provider:J611:01:072",
       "requiredCondition": "modelPresent(ClaimCalculation.InitialAdditionStartDate)",
-      "notes": "",
+      "notes": "ClaimDetailSnapshot contract required by Phase 3-1; count distinct main-benefit claim-line dates in the official initial-addition window",
       "status": "generated",
-      "generatorRule": "count(target=provider:J611:01:072;selector=DailyRecord.serviceProvided;window=InitialAdditionFirst30DaysAndServiceProvisionMonth;source=provider-r7-10:p64:item72)"
+      "generatorRule": "count(target=provider:J611:01:072;selector=contract(ClaimDetailSnapshot.CalculatedClaimLines).ServiceDate;filter=lineKindIn(MainBenefit);window=InitialAdditionFirst30DaysAndServiceProvisionMonth;distinctBy=ServiceDate;source=provider-r7-10:p64:item72)",
+      "sourceContracts": [
+        {
+          "contractId": "ClaimDetailSnapshot.CalculatedClaimLines",
+          "itemType": "CalculatedClaimLineSnapshot",
+          "dateProperty": "ServiceDate",
+          "lineKindProperty": "Kind",
+          "includedLineKinds": [
+            "MainBenefit"
+          ],
+          "window": "InitialAdditionFirst30DaysAndServiceProvisionMonth",
+          "aggregation": "countDistinctDate"
+        }
+      ]
     },
     {
       "fieldId": "provider:J611:01:073",
@@ -2523,14 +2551,14 @@
     },
     {
       "fieldId": "provider:J611:02:021",
-      "requiredCondition": "modelTrue(DailyRecord.Transport)",
+      "requiredCondition": "modelIn(DailyRecord.Transport;Outbound;Round)",
       "notes": "",
       "status": "existing",
       "modelPath": "DailyRecord.Transport"
     },
     {
       "fieldId": "provider:J611:02:022",
-      "requiredCondition": "modelTrue(DailyRecord.Transport)",
+      "requiredCondition": "modelIn(DailyRecord.Transport;Inbound;Round)",
       "notes": "",
       "status": "existing",
       "modelPath": "DailyRecord.Transport"
@@ -2637,7 +2665,7 @@
     },
     {
       "fieldId": "provider:J611:02:036",
-      "requiredCondition": "modelPresent(DailyRecord.Attendance)",
+      "requiredCondition": "modelEquals(DailyRecord.Attendance;AbsenceSupport)",
       "notes": "",
       "status": "existing",
       "modelPath": "DailyRecord.Attendance"

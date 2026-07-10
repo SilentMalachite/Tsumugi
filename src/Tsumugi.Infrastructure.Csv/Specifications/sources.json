@@ -137,9 +137,47 @@
       "sizeBytes": 1998305,
       "pageCount": 262,
       "applicablePages": [
+        233,
         234,
         235
-      ]
+      ],
+      "applicablePageTextSha256": {
+        "233": "66919118600c5e8405c50edf511a2ea0eb0dd4bc6dc8a9ddf77265eaeff9c114",
+        "234": "05f86f3b66585f4b45cb15b04e7b250e687fb072e1d4c304be30295bcf5078c1",
+        "235": "edae343c688a0d26a1994f5d40cb2eecc4da62af74f29855c720bf47602fc108"
+      },
+      "availability": "historical bytes retained; live URL returned HTTP 404 on 2026-07-10",
+      "supersededBy": "r8-grant-decision-administration-202607",
+      "liveCheck": {
+        "checkedAt": "2026-07-10",
+        "httpStatus": 404,
+        "responseSha256": "62487501d53438999737baba39208b6f83de89280b31efcd804a99d193108ed8",
+        "responseSizeBytes": 48524
+      }
+    },
+    {
+      "sourceDocumentId": "r8-grant-decision-administration-202607",
+      "title": "介護給付費等に係る支給決定事務等について（事務処理要領）",
+      "version": "最終改正令和8年7月",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001721666.pdf",
+      "sha256": "1a94220c99986f353e4c63c095c156448271ecad1d7bf0d9e197d3b8ca06de65",
+      "sizeBytes": 1999016,
+      "pageCount": 262,
+      "applicablePages": [
+        233,
+        234,
+        235
+      ],
+      "applicablePageTextSha256": {
+        "233": "66919118600c5e8405c50edf511a2ea0eb0dd4bc6dc8a9ddf77265eaeff9c114",
+        "234": "05f86f3b66585f4b45cb15b04e7b250e687fb072e1d4c304be30295bcf5078c1",
+        "235": "edae343c688a0d26a1994f5d40cb2eecc4da62af74f29855c720bf47602fc108"
+      },
+      "availability": "live verified by three byte-identical downloads on 2026-07-10",
+      "verifiedDownloads": 3,
+      "supersedes": "r8-grant-decision-administration-202606",
+      "changeAssessment": "physical pages 233-235 are text-identical to the retained 2026-06 bytes"
     }
   ]
 }

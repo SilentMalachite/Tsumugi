@@ -168,6 +168,19 @@ public sealed class ClaimFieldMappingCompletenessTests
         AssertMapping(mappings, "report:benefit-claim-detail:upper-limit-management:001", "missing", "UpperLimitManagementProviderNumber");
         AssertMapping(mappings, "report:benefit-claim-detail:upper-limit-management:002", "existing", "Certificate.UpperLimitManagementProvider");
         AssertMapping(mappings, "report:benefit-claim-detail:summary:015", "missing", "MunicipalSubsidyAmountYen");
+        var staticTotalLabel = fields.Single(field =>
+            field.GetProperty("fieldId").GetString() == "report:service-performance:totals:001");
+        staticTotalLabel.GetProperty("officialName").GetString().Should().Be("合計");
+        staticTotalLabel.GetProperty("requiredWhen").GetString().Should().Be("always");
+        staticTotalLabel.GetProperty("sourceDocumentId").GetString().Should().Be("service-performance-r6-04-xls");
+        staticTotalLabel.GetProperty("sourceSheet").GetString().Should().Be("就労継続支援");
+        staticTotalLabel.GetProperty("sourceRange").GetString().Should().Be("C36:W37");
+        var staticTotalMapping = mappings.Single(item =>
+            item.GetProperty("fieldId").GetString() == "report:service-performance:totals:001");
+        staticTotalMapping.GetProperty("status").GetString().Should().Be("generated");
+        staticTotalMapping.GetProperty("generatorRule").GetString().Should()
+            .ContainAll("const(", "value=合計");
+        staticTotalMapping.TryGetProperty("sameMeaningAsCsvFieldId", out _).Should().BeFalse();
         var statutoryUserCharge = mappings.Single(item =>
             item.GetProperty("fieldId").GetString() == "report:benefit-claim-detail:summary:007");
         statutoryUserCharge.GetProperty("status").GetString().Should().Be("generated");
@@ -243,8 +256,13 @@ public sealed class ClaimFieldMappingCompletenessTests
             }
         }
 
-        reportFields.Where(field => field.GetProperty("artifactId").GetString() == "service-performance")
+        reportFields.Where(field => field.GetProperty("artifactId").GetString() == "service-performance"
+                                    && field.GetProperty("fieldId").GetString() != "report:service-performance:totals:001")
             .Should().OnlyContain(field => field.GetProperty("sourcePage").GetInt32() == 12);
+        reportFields.Single(field =>
+                field.GetProperty("fieldId").GetString() == "report:service-performance:totals:001")
+            .GetProperty("sourcePage").GetInt32().Should().Be(1,
+                "sourcePage is the one-based workbook sheet ordinal for this static XLS layout slot");
         reportFields.Where(field => field.GetProperty("artifactId").GetString() == "benefit-claim-form")
             .Should().OnlyContain(field => field.GetProperty("sourcePage").GetInt32() == 1);
         reportFields.Where(field => field.GetProperty("artifactId").GetString() == "benefit-claim-detail")
@@ -255,6 +273,14 @@ public sealed class ClaimFieldMappingCompletenessTests
             .ToArray();
         CsvSpecificationCompletenessTests.AssertDeterministicGeneratorRules(generated,
             fieldIds.Concat(recordIds).ToHashSet(StringComparer.Ordinal), failures);
+        var byId = reportFields.ToDictionary(
+            field => field.GetProperty("fieldId").GetString()!, StringComparer.Ordinal);
+        byId["report:service-performance:daily:006"].GetProperty("requiredWhen").GetString().Should()
+            .Be("all(rowPresent(service-performance.daily);modelIn(DailyRecord.Transport;Outbound;Round))");
+        byId["report:service-performance:daily:007"].GetProperty("requiredWhen").GetString().Should()
+            .Be("all(rowPresent(service-performance.daily);modelIn(DailyRecord.Transport;Inbound;Round))");
+        byId["report:service-performance:totals:002"].GetProperty("requiredWhen").GetString().Should()
+            .Be("all(rowPresent(service-performance.daily);modelIn(DailyRecord.Transport;Outbound;Inbound;Round))");
         failures.Should().BeEmpty(string.Join(Environment.NewLine, failures));
     }
 

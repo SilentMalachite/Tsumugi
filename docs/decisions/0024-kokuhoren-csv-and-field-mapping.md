@@ -30,12 +30,16 @@
 
 請求帳票はCSV列から生成しない。実績記録票41項目、介護給付費・訓練等給付費等請求書24項目、同明細書48項目を公式様式・記載例から独立して棚卸しし、合計113項目を`report-fields-r8-06.json`に固定する。同義のCSV項目は`sameMeaningAsCsvFieldId`で参照するだけとする。
 
+実績記録票41項目には、令和6年4月・6月施行分Excelの`就労継続支援!C36:W37`にある静的な「合計」ラベルを1項目として含める。このslotは数値ではなく`const(合計)`であり、サービス提供日数やCSV fieldとの同義参照を持たない。公式layoutの静的文字もinventory対象とする既存方針を維持するため、項目を削除せず41件を維持する。
+
+J121-04項番9のサービス利用日数は`DailyRecord`の架空propertyから数えない。Phase 3-1の`ClaimDetailSnapshot.CalculatedClaimLines`契約をsourceとし、本体報酬、加算、上限額管理加算、欠席時対応加算の算定済みlineに含まれる`ServiceDate`のdistinct集合を数える。同日の複数lineは1日、加算のみの日も1日とする。
+
 ## 版選択
 
 - CSV仕様は、公式索引に掲載された令和7年10月版共通編・事業所編を使用する。
 - 請求書・明細書は平成31年10月施行分の障害福祉命令様式Excelと記載例PDFを正本にする。令和3年4月、令和4年10月、令和6年4月・6月、令和8年6月の各公式ページが「変更なし」としているため、令和8年6月にも継続適用する。
 - 実績記録票は令和6年4月・6月施行分の障害福祉様式Excelと2025年1月31日確定記載例を正本にする。令和8年6月ページが「変更なし」としているため、様式17を令和8年6月にも継続適用する。
-- 令和8年6月の支給決定事務要領physical pages 234〜235で、様式17のB型固有欄と記載条件を照合する。
+- 現行の令和8年7月支給決定事務要領（`001721666.pdf`）physical pages 233〜235で、様式17のB型固有欄と記載条件を照合する。保持済み令和8年6月版の同pagesと正規化テキストSHA-256が3pageすべて一致し、様式17の記載規則に変更はない。
 - `000535461.xls`は障害児命令様式であり、成人の就労継続支援B型帳票inventoryへ混入させない。
 
 
@@ -47,13 +51,16 @@
 condition := always | optional | never
            | recordPresent(recordId) | rowPresent(reportSection)
            | fieldPresent(fieldId) | fieldNonZero(fieldId) | fieldEquals(fieldId;value)
-           | modelPresent(modelPath) | modelTrue(modelPath) | modelNonZero(modelPath)
+           | modelPresent(modelPath) | modelTrue(boolModelPath) | modelNonZero(numericModelPath)
+           | modelEquals(enumModelPath;enumValue) | modelIn(enumModelPath;enumValue...)
            | inputPresent(inputContract)
            | serviceProvisionMonthBefore(YYYYMM) | processingMonthBefore(YYYYMM)
            | all(condition;condition...) | any(condition;condition...) | not(condition)
 ```
 
 `always`は公式表の`◎`、`optional`は`△`、条件式は`○`を具体的な入力・算定結果へ展開したもの、`never`はJ121または様式1701列が空白の項目である。各fieldは`requiredWhenSource`に必須表のphysical page、項番、様式1701列を保持する。注記だけ、または「該当時」という自然文はconditionとして扱わない。
+
+`modelTrue`はboolだけ、`modelPresent`はnullable値型または参照型だけに使用する。enumは`modelEquals`または`modelIn`を使用し、reflectionで実在するenum値を検証する。`TransportKind`は`None / Outbound / Inbound / Round`、往は`Outbound / Round`、復は`Inbound / Round`、`Attendance`の欠席時対応は`AbsenceSupport`に固定する。
 
 `generatorRule`は`operation(target=fieldId;具体入力;source=sourceDocumentId:pN:itemN)`の形式とする。operationは`aggregate`、`calendarDay`、`conditional`、`const`、`constEmpty`、`copy`、`count`、`difference`、`format`、`lookup`、`max`、`min`、`multiply`、`payload`、`recordCount`、`render`、`roundDown`、`sequence`、`sum`の閉集合である。全generated項目は一意のtarget、公式source、具体的なfield/model/selectorと演算を持ち、共通の自由記述規則へフォールバックしない。
 
@@ -76,6 +83,9 @@ condition := always | optional | never
 | service-performance-examples-r6-04-pdf | 2025-01-31確定分 | 2026-07-10 | https://www.mhlw.go.jp/content/12200000/20241129005.pdf | 2afb44f72d04fe6c376d115641cc542e7d82545284dd9eb40f5b66e14dbbc1d9 | 1401207 |
 | r8-structure-page-observed-13da3c44 | 2026-06 observed bytes | 2026-07-10 | https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000174644_00022.html | 13da3c44eb9e9485c38fda878bb1fe966407e7331609f87123ba2b2778a32083 | 51888 |
 | r8-grant-decision-administration-202606 | 最終改正令和8年6月 | 2026-07-10 | https://www.mhlw.go.jp/content/12200000/001470632.pdf | d6e1672245370d2d7bb9a4258622ae3e631d0a6144c8e0c9ea51e2018a146f1e | 1998305 |
+| r8-grant-decision-administration-202607 | 最終改正令和8年7月 | 2026-07-10 | https://www.mhlw.go.jp/content/12200000/001721666.pdf | 1a94220c99986f353e4c63c095c156448271ecad1d7bf0d9e197d3b8ca06de65 | 1999016 |
+
+令和8年6月版の取得済みPDF bytesは削除せず、歴史sourceとして保持する。旧URLは2026-07-10のlive確認でHTTP 404となり、404 responseは48,524 bytes、SHA-256 `62487501d53438999737baba39208b6f83de89280b31efcd804a99d193108ed8`だったため、旧sourceをlive reproducibleとは呼ばない。令和8年7月版は3回取得して全bytesが一致し、令和8年6月版をsupersedeする。帳票inventoryの直接sourceは各Excel・記載例PDFのままとし、支給決定事務要領は様式17記載規則の照合sourceとして版境界を分離する。
 
 ## 失敗時の扱い
 
