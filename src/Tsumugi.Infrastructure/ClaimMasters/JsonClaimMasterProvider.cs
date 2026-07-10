@@ -57,12 +57,16 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider
         ValidateSchemaResource(masterSchema, "claim-master-file.schema.json");
 
         using var sources = OpenEmbedded(assembly, ".ClaimMasters.Seed.sources.json");
-        var masters = MasterFileNames.ToDictionary(
-            fileName => fileName,
-            fileName => OpenEmbedded(assembly, $".ClaimMasters.Seed.{fileName}"),
-            StringComparer.Ordinal);
+        var masters = new Dictionary<string, Stream>(StringComparer.Ordinal);
         try
         {
+            foreach (var fileName in MasterFileNames)
+            {
+                masters.Add(
+                    fileName,
+                    OpenEmbedded(assembly, $".ClaimMasters.Seed.{fileName}"));
+            }
+
             return Load(sources, masters);
         }
         finally
@@ -130,9 +134,20 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider
         }
     }
 
-    private static T Deserialize<T>(Stream stream, string fileName) =>
-        JsonSerializer.Deserialize<T>(stream, SerializerOptions)
-        ?? throw new InvalidDataException($"Claim master resource '{fileName}' is null.");
+    private static T Deserialize<T>(Stream stream, string fileName)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<T>(stream, SerializerOptions)
+                ?? throw new InvalidDataException($"Claim master resource '{fileName}' is null.");
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidDataException(
+                $"Claim master resource '{fileName}' contains invalid JSON.",
+                exception);
+        }
+    }
 
     private static void ValidateCatalog(SourceCatalogFile catalog)
     {
@@ -166,6 +181,21 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider
             {
                 throw new InvalidDataException(
                     $"Source '{source.DocumentId}' has more than one supersedes target.");
+            }
+
+            var hasRelations = source.Supersedes is { Count: > 0 }
+                || source.Corrects is { Count: > 0 }
+                || source.Supplements is { Count: > 0 };
+            if (hasRelations && source.CorrectionNote is null)
+            {
+                throw new InvalidDataException(
+                    $"Source '{source.DocumentId}' must have correctionNote when a source relation exists.");
+            }
+
+            if (!hasRelations && source.CorrectionNote is not null)
+            {
+                throw new InvalidDataException(
+                    $"Source '{source.DocumentId}' cannot have correctionNote without a source relation.");
             }
         }
 

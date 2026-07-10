@@ -97,31 +97,30 @@ public sealed class JsonClaimMasterProviderTests
 
     public static IEnumerable<object[]> InvalidCatalogCases()
     {
-        yield return ["schema mismatch", MutateCatalog(root => root["schemaVersion"] = "2")];
+        yield return ["schema mismatch", MutateCatalog(root => root["schemaVersion"] = "2"), false];
         yield return ["duplicate source", MutateCatalog(root =>
         {
             var sources = root["sources"]!.AsArray();
             sources.Add(sources[0]!.DeepClone());
-        })];
-        yield return ["blank required", MutateSource(source => source["title"] = " ")];
-        yield return ["outer whitespace", MutateSource(source => source["publisher"] = " Ministry ")];
-        yield return ["invalid sha", MutateSource(source => source["sha256"] = Sha256.ToUpperInvariant())];
-        yield return ["invalid date", MutateSource(source => source["effectiveAt"] = "2024-02-30")];
-        yield return ["unknown supersedes", MutateSource(source => source["supersedes"] = new JsonArray("missing"))];
-        yield return ["unknown corrects", MutateSource(source => source["corrects"] = new JsonArray("missing"))];
-        yield return ["unknown supplements", MutateSource(source => source["supplements"] = new JsonArray("missing"))];
-        yield return ["too many supersedes", MutateSource(source => source["supersedes"] = new JsonArray("doc-1", "doc-1"))];
+        }), false];
+        yield return ["blank required", MutateSource(source => source["title"] = " "), false];
+        yield return ["outer whitespace", MutateSource(source => source["publisher"] = " Ministry "), false];
+        yield return ["invalid sha", MutateSource(source => source["sha256"] = Sha256.ToUpperInvariant()), false];
+        yield return ["invalid date", MutateSource(source => source["effectiveAt"] = "2024-02-30"), false];
+        yield return ["unknown supersedes", MutateSource(source => source["supersedes"] = new JsonArray("missing")), false];
+        yield return ["unknown corrects", MutateSource(source => source["corrects"] = new JsonArray("missing")), false];
+        yield return ["unknown supplements", MutateSource(source => source["supplements"] = new JsonArray("missing")), false];
         yield return ["unknown release source", MutateCatalog(root =>
-            root["releases"]![0]!["sourceDocumentIds"] = new JsonArray("missing"))];
-        yield return ["required null", MutateSource(source => source["documentId"] = null)];
-        yield return ["case mismatch", ValidCatalogJson.Replace("\"documentId\"", "\"DocumentId\"", StringComparison.Ordinal)];
-        yield return ["unknown top-level", MutateCatalog(root => root["unknown"] = true)];
-        yield return ["unknown source", MutateSource(source => source["unknown"] = true)];
-        yield return ["unknown release", MutateCatalog(root => root["releases"]![0]!["unknown"] = true)];
+            root["releases"]![0]!["sourceDocumentIds"] = new JsonArray("missing")), true];
+        yield return ["required null", MutateSource(source => source["documentId"] = null), false];
+        yield return ["case mismatch", ValidCatalogJson.Replace("\"documentId\"", "\"DocumentId\"", StringComparison.Ordinal), false];
+        yield return ["unknown top-level", MutateCatalog(root => root["unknown"] = true), false];
+        yield return ["unknown source", MutateSource(source => source["unknown"] = true), false];
+        yield return ["unknown release", MutateCatalog(root => root["releases"]![0]!["unknown"] = true), false];
         yield return ["duplicate property", ValidCatalogJson.Replace(
             "\"schemaVersion\": \"1\"",
             "\"schemaVersion\": \"1\", \"schemaVersion\": \"1\"",
-            StringComparison.Ordinal)];
+            StringComparison.Ordinal), false];
     }
 
     public static IEnumerable<object[]> InvalidMasterCases()
@@ -204,11 +203,72 @@ public sealed class JsonClaimMasterProviderTests
 
     [Theory]
     [MemberData(nameof(InvalidCatalogCases))]
-    public void Load_rejects_invalid_or_non_strict_catalog_json(string _, string json)
+    public void Load_rejects_invalid_or_non_strict_catalog_json(
+        string _,
+        string json,
+        bool expectsArgumentException)
     {
         var action = () => Load(json, ValidMasterJsons());
 
-        action.Should().Throw<Exception>();
+        if (expectsArgumentException)
+            action.Should().Throw<ArgumentException>();
+        else
+            action.Should().Throw<InvalidDataException>();
+    }
+
+    [Fact]
+    public void Load_rejects_a_relation_without_a_correction_note()
+    {
+        var json = MutateCatalog(root =>
+        {
+            AddSource(root, "doc-2");
+            root["sources"]![0]!["corrects"] = new JsonArray("doc-2");
+        });
+
+        var action = () => Load(json, ValidMasterJsons());
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*correctionNote*");
+    }
+
+    [Fact]
+    public void Load_rejects_a_correction_note_without_any_relation()
+    {
+        var json = MutateSource(source => source["correctionNote"] = "No relation exists");
+
+        var action = () => Load(json, ValidMasterJsons());
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*correctionNote*");
+    }
+
+    [Fact]
+    public void Load_rejects_two_distinct_supersedes_targets_via_the_max_one_guard()
+    {
+        var json = MutateCatalog(root =>
+        {
+            AddSource(root, "doc-2");
+            var source = AddSource(root, "doc-3");
+            source["supersedes"] = new JsonArray("doc-1", "doc-2");
+            source["correctionNote"] = "doc-1 and doc-2 are both replaced";
+        });
+
+        var action = () => Load(json, ValidMasterJsons());
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*more than one supersedes target*");
+    }
+
+    [Fact]
+    public void Load_wraps_catalog_json_errors_with_the_resource_name()
+    {
+        var json = ValidCatalogJson.Replace("\"documentId\"", "\"DocumentId\"", StringComparison.Ordinal);
+
+        var action = () => Load(json, ValidMasterJsons());
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*sources.json*")
+            .WithInnerException<JsonException>();
     }
 
     [Theory]
@@ -224,7 +284,7 @@ public sealed class JsonClaimMasterProviderTests
 
         var action = () => Load(ValidCatalogJson, masters);
 
-        action.Should().Throw<Exception>();
+        action.Should().Throw<InvalidDataException>();
     }
 
     [Theory]
@@ -236,7 +296,7 @@ public sealed class JsonClaimMasterProviderTests
 
         var action = () => Load(ValidCatalogJson, masters);
 
-        action.Should().Throw<Exception>();
+        action.Should().Throw<InvalidDataException>();
     }
 
     [Fact]
@@ -247,7 +307,7 @@ public sealed class JsonClaimMasterProviderTests
 
         var action = () => Load(ValidCatalogJson, masters);
 
-        action.Should().Throw<Exception>();
+        action.Should().Throw<InvalidDataException>();
     }
 
     [Theory]
@@ -259,7 +319,21 @@ public sealed class JsonClaimMasterProviderTests
 
         var action = () => Load(ValidCatalogJson, masters);
 
-        action.Should().Throw<Exception>();
+        action.Should().Throw<InvalidDataException>();
+    }
+
+    [Fact]
+    public void Load_wraps_master_json_errors_with_the_filename()
+    {
+        var masters = ValidMasterJsons();
+        masters["basic-rewards.json"] = MasterJson("basic-rewards", "[]")
+            .Replace("\"masterKind\"", "\"MasterKind\"", StringComparison.Ordinal);
+
+        var action = () => Load(ValidCatalogJson, masters);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*basic-rewards.json*")
+            .WithInnerException<JsonException>();
     }
 
     [Fact]
@@ -381,6 +455,16 @@ public sealed class JsonClaimMasterProviderTests
 
     private static string MutateSource(Action<JsonObject> mutate) => MutateCatalog(root =>
         mutate(root["sources"]![0]!.AsObject()));
+
+    private static JsonObject AddSource(JsonObject root, string documentId)
+    {
+        var sources = root["sources"]!.AsArray();
+        var source = sources[0]!.DeepClone().AsObject();
+        source["documentId"] = documentId;
+        source["url"] = $"https://example.test/{documentId}.pdf";
+        sources.Add(source);
+        return source;
+    }
 
     private static string[] ReleaseSourceIds(JsonElement release) => release
         .GetProperty("sourceDocumentIds")

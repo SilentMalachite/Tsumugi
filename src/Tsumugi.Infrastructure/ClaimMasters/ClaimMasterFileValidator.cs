@@ -52,9 +52,23 @@ internal static class ClaimMasterFileValidator
             if (!stream.CanRead)
                 throw new ArgumentException($"Claim master stream '{expected.Key}' must be readable.", nameof(masterFiles));
 
-            var file = JsonSerializer.Deserialize<MasterFile>(stream, SerializerOptions)
-                ?? throw new InvalidDataException($"Claim master file '{expected.Key}' is null.");
+            var file = Deserialize(stream, expected.Key);
             ValidateFile(expected.Key, expected.Value, file, knownSourceDocumentIds);
+        }
+    }
+
+    private static MasterFile Deserialize(Stream stream, string fileName)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<MasterFile>(stream, SerializerOptions)
+                ?? throw new InvalidDataException($"Claim master file '{fileName}' is null.");
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidDataException(
+                $"Claim master file '{fileName}' contains invalid JSON.",
+                exception);
         }
     }
 
