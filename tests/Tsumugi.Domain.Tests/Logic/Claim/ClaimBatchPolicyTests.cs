@@ -162,6 +162,32 @@ public sealed class ClaimBatchPolicyTests
             { "wrong expected head", new[] { root, revision2 with { ExpectedHeadBatchId = Revision3Id } } },
             { "null expected head revision", new[] { root, revision2 with { ExpectedHeadRevision = null } } },
             { "wrong expected head revision", new[] { root, revision2 with { ExpectedHeadRevision = 2 } } },
+            { "null cancellation origin", new[] { root, cancellation2 with { OriginId = null } } },
+            { "empty cancellation origin", new[] { root, cancellation2 with { OriginId = Guid.Empty } } },
+            {
+                "non-root cancellation origin",
+                new[] { root, cancellation2 with { OriginId = Revision2Id } }
+            },
+            {
+                "null cancellation expected head",
+                new[] { root, cancellation2 with { ExpectedHeadBatchId = null } }
+            },
+            {
+                "empty cancellation expected head",
+                new[] { root, cancellation2 with { ExpectedHeadBatchId = Guid.Empty } }
+            },
+            {
+                "wrong cancellation expected head",
+                new[] { root, cancellation2 with { ExpectedHeadBatchId = Revision3Id } }
+            },
+            {
+                "null cancellation expected head revision",
+                new[] { root, cancellation2 with { ExpectedHeadRevision = null } }
+            },
+            {
+                "wrong cancellation expected head revision",
+                new[] { root, cancellation2 with { ExpectedHeadRevision = 2 } }
+            },
             {
                 "record after cancellation",
                 new[]
@@ -185,7 +211,10 @@ public sealed class ClaimBatchPolicyTests
                 "mixed service month",
                 new[] { root, revision2 with { ServiceMonth = new ServiceMonth(2026, 7) } }
             },
-            { "unknown record kind", new[] { root with { Kind = (RecordKind)99 } } },
+            {
+                "unknown record kind",
+                new[] { root, revision2 with { Kind = (RecordKind)99 } }
+            },
         };
     }
 

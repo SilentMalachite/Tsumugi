@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Tsumugi.Domain.Entities;
+using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.Domain.Tests.Entities;
 
@@ -48,6 +49,49 @@ public sealed class ClaimDetailTests
 
         detail.InputSnapshotJson.Should().Be("not-json");
         detail.CalculationSnapshotJson.Should().Be("{broken");
+    }
+
+    [Fact]
+    public void Batch_and_detail_factories_do_not_enforce_aggregate_version_or_total_consistency()
+    {
+        var batch = ClaimBatch.NewRecord(
+            BatchId,
+            Guid.Parse("00000000-0000-0000-0000-000000000204"),
+            new ServiceMonth(2026, 6),
+            totalUnits: 100,
+            totalCostYen: 10_000,
+            totalBenefitYen: 9_000,
+            totalBurdenYen: 1_000,
+            claimMasterVersion: "batch-claim-master",
+            csvSpecificationVersion: "batch-csv-specification",
+            reportSpecificationVersion: "batch-report-specification",
+            snapshotApplicationVersion: "batch-snapshot-application",
+            operationApplicationVersion: "operation-application",
+            finalizationOperationId: Guid.Parse("00000000-0000-0000-0000-000000000205"),
+            operationPayloadSchemaVersion: ClaimBatch.CurrentOperationPayloadSchemaVersion,
+            operationPayloadSha256: new string('a', 64),
+            createdBy: "tester",
+            CreatedAt);
+        var detail = Create(Valid with
+        {
+            ClaimMasterVersion = "detail-claim-master",
+            CsvSpecificationVersion = "detail-csv-specification",
+            ReportSpecificationVersion = "detail-report-specification",
+            SnapshotApplicationVersion = "detail-snapshot-application",
+            TotalUnits = 1,
+            TotalCostYen = 2,
+            BenefitYen = 3,
+            BurdenYen = 4,
+        });
+
+        detail.ClaimMasterVersion.Should().NotBe(batch.ClaimMasterVersion);
+        detail.CsvSpecificationVersion.Should().NotBe(batch.CsvSpecificationVersion);
+        detail.ReportSpecificationVersion.Should().NotBe(batch.ReportSpecificationVersion);
+        detail.SnapshotApplicationVersion.Should().NotBe(batch.SnapshotApplicationVersion);
+        detail.TotalUnits.Should().NotBe(batch.TotalUnits);
+        detail.TotalCostYen.Should().NotBe(batch.TotalCostYen);
+        detail.BenefitYen.Should().NotBe(batch.TotalBenefitYen);
+        detail.BurdenYen.Should().NotBe(batch.TotalBurdenYen);
     }
 
     [Theory]
