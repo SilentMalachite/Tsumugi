@@ -532,9 +532,229 @@ internal static class ExternalSpecificationLiteralGuard
                 GetLineNumber(numericSource, match.Index)));
         }
 
+        foreach (var hole in EnumerateInterpolationHoles(codeWithoutComments))
+        {
+            literals.AddRange(EnumerateCSharpLiterals(hole.Text)
+                .Select(literal => literal with
+                {
+                    LineNumber = literal.LineNumber + hole.LineOffset,
+                }));
+        }
+
         return literals;
     }
 
+    private static List<InterpolationHole> EnumerateInterpolationHoles(string text)
+    {
+        var holes = new List<InterpolationHole>();
+        var index = 0;
+        while (index < text.Length)
+        {
+            if (TryReadInterpolatedStringStart(text, index, out var interpolation))
+            {
+                index = interpolation.QuoteIndex + interpolation.QuoteCount;
+                while (index < text.Length)
+                {
+                    if (IsInterpolationClosingDelimiter(text, index, interpolation))
+                    {
+                        index += interpolation.QuoteCount;
+                        break;
+                    }
+
+                    if (!interpolation.IsRaw &&
+                        !interpolation.IsVerbatim &&
+                        text[index] == '\\' &&
+                        index + 1 < text.Length)
+                    {
+                        index += 2;
+                        continue;
+                    }
+
+                    if (interpolation.IsVerbatim &&
+                        text[index] == '"' &&
+                        index + 1 < text.Length &&
+                        text[index + 1] == '"')
+                    {
+                        index += 2;
+                        continue;
+                    }
+
+                    var braceCount = interpolation.IsRaw ? interpolation.DollarCount : 1;
+                    if (text[index] == '{' &&
+                        CountRun(text, index, '{') >= braceCount &&
+                        (interpolation.IsRaw || !StartsWith(text, index, "{{")))
+                    {
+                        var holeStart = index + braceCount;
+                        var holeEnd = FindInterpolationHoleEnd(text, holeStart, braceCount);
+                        if (holeEnd < 0)
+                        {
+                            index = text.Length;
+                            break;
+                        }
+
+                        holes.Add(new InterpolationHole(
+                            text[holeStart..holeEnd],
+                            GetLineNumber(text, holeStart) - 1));
+                        index = holeEnd + braceCount;
+                        continue;
+                    }
+
+                    if (!interpolation.IsRaw &&
+                        (StartsWith(text, index, "{{") || StartsWith(text, index, "}}")))
+                    {
+                        index += 2;
+                        continue;
+                    }
+
+                    index++;
+                }
+
+                continue;
+            }
+
+            if (text[index] == '"')
+            {
+                var quoteCount = CountRun(text, index, '"');
+                index = quoteCount >= 3
+                    ? SkipRawString(text, index, quoteCount)
+                    : SkipQuotedLiteral(text, index, '"', isVerbatim: false);
+                continue;
+            }
+
+            if (text[index] == '@' && index + 1 < text.Length && text[index + 1] == '"')
+            {
+                index = SkipQuotedLiteral(text, index + 1, '"', isVerbatim: true);
+                continue;
+            }
+
+            if (text[index] == '\'')
+            {
+                index = SkipQuotedLiteral(text, index, '\'', isVerbatim: false);
+                continue;
+            }
+
+            index++;
+        }
+
+        return holes;
+    }
+
+    private static bool TryReadInterpolatedStringStart(
+        string text,
+        int index,
+        out InterpolatedStringStart interpolation)
+    {
+        interpolation = default;
+        var dollarCount = 0;
+        var isVerbatim = false;
+        var quoteIndex = index;
+
+        if (text[index] == '$')
+        {
+            dollarCount = CountRun(text, index, '$');
+            quoteIndex += dollarCount;
+            if (quoteIndex < text.Length && text[quoteIndex] == '@')
+            {
+                if (dollarCount != 1) return false;
+                isVerbatim = true;
+                quoteIndex++;
+            }
+        }
+        else if (text[index] == '@' &&
+                 index + 2 < text.Length &&
+                 text[index + 1] == '$')
+        {
+            dollarCount = 1;
+            isVerbatim = true;
+            quoteIndex = index + 2;
+        }
+        else
+        {
+            return false;
+        }
+
+        if (quoteIndex >= text.Length || text[quoteIndex] != '"') return false;
+        var quoteCount = CountRun(text, quoteIndex, '"');
+        if (quoteCount == 2 || isVerbatim && quoteCount != 1) return false;
+
+        interpolation = new InterpolatedStringStart(
+            quoteIndex,
+            quoteCount,
+            dollarCount,
+            isVerbatim,
+            quoteCount >= 3);
+        return true;
+    }
+
+    private static bool IsInterpolationClosingDelimiter(
+        string text,
+        int index,
+        InterpolatedStringStart interpolation)
+    {
+        if (text[index] != '"') return false;
+        if (interpolation.IsRaw)
+        {
+            return CountRun(text, index, '"') >= interpolation.QuoteCount;
+        }
+
+        return !interpolation.IsVerbatim ||
+               index + 1 >= text.Length ||
+               text[index + 1] != '"';
+    }
+
+    private static int FindInterpolationHoleEnd(
+        string text,
+        int startIndex,
+        int closingBraceCount)
+    {
+        var nestedBraceDepth = 0;
+        var index = startIndex;
+        while (index < text.Length)
+        {
+            if (text[index] == '"')
+            {
+                var quoteCount = CountRun(text, index, '"');
+                index = quoteCount >= 3
+                    ? SkipRawString(text, index, quoteCount)
+                    : SkipQuotedLiteral(text, index, '"', isVerbatim: false);
+                continue;
+            }
+
+            if (text[index] == '@' && index + 1 < text.Length && text[index + 1] == '"')
+            {
+                index = SkipQuotedLiteral(text, index + 1, '"', isVerbatim: true);
+                continue;
+            }
+
+            if (text[index] == '\'')
+            {
+                index = SkipQuotedLiteral(text, index, '\'', isVerbatim: false);
+                continue;
+            }
+
+            if (text[index] == '{')
+            {
+                nestedBraceDepth++;
+                index++;
+                continue;
+            }
+
+            if (text[index] == '}')
+            {
+                if (nestedBraceDepth == 0 &&
+                    CountRun(text, index, '}') >= closingBraceCount)
+                {
+                    return index;
+                }
+
+                if (nestedBraceDepth > 0) nestedBraceDepth--;
+            }
+
+            index++;
+        }
+
+        return -1;
+    }
     private static string StripComments(string text)
     {
         var result = text.ToCharArray();
@@ -718,4 +938,13 @@ internal static class ExternalSpecificationLiteralGuard
         LiteralKind Kind,
         string MatchValue,
         int LineNumber);
+
+    private sealed record InterpolationHole(string Text, int LineOffset);
+
+    private readonly record struct InterpolatedStringStart(
+        int QuoteIndex,
+        int QuoteCount,
+        int DollarCount,
+        bool IsVerbatim,
+        bool IsRaw);
 }

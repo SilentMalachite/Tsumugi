@@ -54,6 +54,41 @@ public sealed class ClaimSpecificationBoundaryTests
     }
 
     [Fact]
+    public void Scan_detects_master_number_literal_inside_interpolation_hole()
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/InterpolatedUnits.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal static class InterpolatedUnits { " +
+            "internal static string Value => $\"{777}\"; }");
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-literal" && v.Literal == "777");
+
+        violation.RelativePath.Should().Be("src/Tsumugi.Domain/Logic/Claim/InterpolatedUnits.cs");
+        violation.LineNumber.Should().Be(1);
+    }
+
+    [Fact]
+    public void Scan_detects_master_string_literal_inside_interpolation_hole()
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.Write(
+            "src/Tsumugi.Application/Claims/InterpolatedCode.cs",
+            "namespace Tsumugi.Application.Claims; internal static class InterpolatedCode { " +
+            "internal static string Value => $\"{Echo(\"NESTED-CODE\")}\"; " +
+            "private static string Echo(string value) => value; }");
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-literal" && v.Literal == "NESTED-CODE");
+
+        violation.RelativePath.Should().Be("src/Tsumugi.Application/Claims/InterpolatedCode.cs");
+        violation.LineNumber.Should().Be(1);
+    }
+
+    [Fact]
     public void Scan_detects_all_csv_boundary_token_kinds_outside_infrastructure_csv()
     {
         using var fixture = new SpecificationFixture();
