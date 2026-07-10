@@ -6,12 +6,12 @@
 
 就労継続支援B型の請求算定は、次の順序と端数規則を固定する。
 
-1. 平均工賃月額はADR 0023の正式式を使う。開所日1日当たりの平均利用者数を小数点第1位までとし、小数点第2位以下があれば切り上げ、最後に平均工賃月額の円未満を四捨五入する。本ADRはこの規則を変更又は重複定義せず、安定したrule IDを与えて参照する。
-2. 基本単位数へ割合による加算又は減算を適用するたびに、小数点以下を四捨五入して整数単位へ戻す。複数割合を最後に一括して乗算・丸めしてはならない。公式サービスコード表の合成単位数は既に端数処理済みの整数として受け取り、再丸めしない。
-3. 整数のサービスコード単位数に当月の算定回数を乗じてサービス単位数を求め、サービス種別ごとに一月分を整数加算して給付単位数を求める。この乗算と加算では丸めは発生しない。
-4. サービス種別ごとの月次給付単位数に、当該事業所・サービス種別・サービス月へ適用される一単位の地域単価を1回だけ乗じ、円未満を切り捨てて総費用額を求める。各サービスコード明細を個別に円換算して切り捨てた後に合算してはならない。
-5. 1割相当額は、整数円の総費用額に`10 / 100`を乗じ、円未満を切り捨てる。法第31条の特例給付が受給者証へ明記されている場合は、明記された整数円と1割相当額の小さい方を使い、割合又は金額を推測しない。
-6. 利用者負担は、1割相当額、受給者証の個別上限、制度上限、同一事業所内の調整及び正式な上限額管理結果をこの順で適用する。上限額との`min`、左からの充当及び正式結果票の転記は全て整数円の演算であり、追加の丸めを行わない。データの優先関係とR6成人B型の算定不能境界はADR 0022に従う。
+1. 平均工賃月額はADR 0023の正式式を使う。開所日1日当たりの平均利用者数を小数点第1位までとし、小数点第2位以下があれば切り上げ、最後に平均工賃月額の円未満を四捨五入する。本ADRはこの規則を変更又は重複定義せず、安定した`roundingRuleId`を与えて参照する。
+2. 割合加減算は固定の線形順序では処理しない。適用版の公式source rowが持つ`percentageBaseScope`と`percentageApplicationKind`で基礎単位、丸め位置及び結果の加減先を決める。`PerServiceCodeUnit`は整数の基礎単位へ割合を適用して四捨五入した後に回数を乗じる。`MonthlyTargetUnitSum`は端数処理済み単位へ回数を乗じた整数を対象集合で月次合算してから割合を適用・四捨五入し、得た整数の加算又は減算単位を月次給付単位へ反映する。異なるscopeを同じ順序へ寄せない。
+3. 割合による単位数を求めるたびに小数点以下を四捨五入して整数単位へ戻す。複数割合を最後に一括して乗算・丸めしてはならない。公式サービスコード表の合成単位数は既に端数処理済みの整数として受け取り、再丸めしない。整数の回数乗算、対象合算、加算又は減算では丸めを行わない。
+4. source rowどおりに全てのper-service-code結果とmonthly-target結果を反映した後、サービス種別ごとの最終月次給付単位数を確定する。その整数給付単位数に、当該事業所・サービス種別・サービス月へ適用される一単位の地域単価を1回だけ乗じ、円未満を切り捨てて総費用額を求める。各サービスコード明細を個別に円換算して切り捨てた後に合算してはならない。
+5. 1割相当額は、整数円の総費用額に`10 / 100`を乗じ、円未満を切り捨てる。法第31条の特例給付は三値の構造化入力で確認し、`Applicable`かつ有効な非負整数円だけを1割相当額との`min`へ参加させる。`Unknown`、null又は自由記述から不適用・割合・金額を推測しない。
+6. 利用者負担は、法第31条特例の検証結果、受給者証の個別上限、制度上限、同一事業所内の調整及び正式な上限額管理結果を順に適用する。上限額との`min`、左からの充当及び正式結果票の転記は全て整数円の演算であり、追加の丸めを行わない。データの優先関係とR6成人B型の算定不能境界はADR 0022に従う。
 7. B型の請求額・給付費は、整数円の総費用額から整数円の決定利用者負担額を控除して求める。`総費用額 × 90 / 100`を別に計算して丸めてはならない。B型経路にA型事業者減免を混入させない。
 
 金額の保存型と外部出力は非負の整数円、地域単価、割合及び丸め前の中間値は`decimal`とする。`double`及び`float`は、Domain、Application、マスタ読込、テストデータ生成のいずれにも使用しない。全演算はchecked contextで範囲を検証し、オーバーフロー又は整数円へ変換できない値を算定不能とする。
@@ -22,11 +22,11 @@
 
 同じ「端数処理」でも、平均工賃、割合加減算後の単位数、月次給付単位数、総費用額、1割相当額、決定利用者負担額及び給付費では、演算単位と丸め位置が異なる。単一の`MultiplyAndFloor`へ集約すると、割合加減算の四捨五入、月次合算前後、正式結果票の転記を混同する危険がある。
 
-またADR 0012の`RoundingRule.HalfUp`は利用者へ支払う工賃計算の契約であり、本ADRの障害福祉サービス報酬請求とは別である。型名を共有してもrule ID、入力、適用順及び監査出典を共有してはならない。
+またADR 0012の`RoundingRule.HalfUp`は利用者へ支払う工賃計算の契約であり、本ADRの障害福祉サービス報酬請求とは別である。型名を共有しても`roundingRuleId`、`calculationStepId`、入力、適用順及び監査出典を共有してはならない。
 
 ## 選択肢
 
-### A: 段階別rule IDと公式順序を固定する（採用）
+### A: `roundingRuleId`と`calculationStepId`を分離して公式順序を固定する（採用）
 
 - 公式例の中間値をそのまま再現できる。
 - 月次給付単位数の合算前後を区別できる。
@@ -53,74 +53,142 @@
 | サービスコード単位数、サービス単位数、給付単位数 | `int`又は範囲検証中の`long` | 整数単位 | 負値禁止。永続化・出力前に公式桁数と`int`範囲を検証 |
 | 地域単価 | `decimal` | 円 / 単位。公式値を十進数で保持 | `double` / `float`経由禁止。ADR 0020の適用版から一意に解決 |
 | 加減算割合、給付率 | `decimal` | 無次元 | 文字列又は整数の分子・分母から`decimal`へ厳密変換。二進浮動小数経由禁止 |
-| 丸め前中間値 | `decimal` | 人、単位又は円 | rule IDに対応する一時値だけを保持し、別段階へ未丸めで渡さない |
+| 丸め前中間値 | `decimal` | 人、単位又は円 | `roundingRuleId`に対応する一時値だけを保持し、別段階へ未丸めで渡さない |
 | 平均工賃月額、総費用額、1割相当額、上限額、決定利用者負担額、給付費 | `int`又は範囲検証中の`long` | 整数円 | 負値禁止。未入力0と正式な0円を区別する |
 
 JSONの地域単価及び割合は、C#の`decimal`へ直接読み込む。テストの`InlineData`を含め、`10.91d`、`0.1f`又は`double`からのcastを使用しない。四捨五入は非負値に対する`MidpointRounding.AwayFromZero`、切捨ては非負値に対する`decimal.Floor`として実装し、既定のbanker's roundingへ依存しない。
 
-### `RoundingPolicy`の安定rule ID
+### 割合加減算のsource row契約
 
-rule IDは確定スナップショットに保存する文字列であり、名称の変更、同じIDへの別規則の上書き及び不明IDの既定規則へのフォールバックを禁止する。
+割合を持つ公式service-code row又は外部マスタrowは、少なくとも次を必須にする。名称又は割合値だけからscopeと加減先を推測しない。
 
-| 適用順 | rule ID | 入力 | 出力 | 丸め単位・方向 | sourceDocumentId / 物理頁 |
-| ---: | --- | --- | --- | --- | --- |
-| 1a | `claim.avg-wage.daily-users.ceil-1dp.r6-corrected.v1` | `annualExtendedUsers / annualOpeningDays`の`decimal` | 小数点第1位の`decimal`人 | 小数点第2位以下があれば正方向へ切上げ | ADR 0023、`r6-qa-v2` p11を`r6-qa-corr-2` p4で訂正 |
-| 1b | `claim.avg-wage.monthly-yen.half-up.v1` | `annualWagePaidYen / roundedDailyAverageUsers / 12`の`decimal`円 | 整数円 | 円未満四捨五入 | ADR 0023、`r6-qa-corr-2` p4 |
-| 2 | `claim.units.percentage.half-up-each.v1` | sourceで指定された整数単位と`decimal`割合 | 整数単位 | 割合加減算を行うたび小数点以下四捨五入 | `r6-calculation-note` p8〜9、`r8-calculation-note` p8〜10 |
-| 3a | `claim.units.service-line.multiply-count.v1` | 端数処理済み整数単位、当月算定回数 | 整数サービス単位 | 丸めなし、checked整数乗算 | `r8-grant-decision-administration-202606` p197、`r8-grant-decision-administration-202607` p197 |
-| 3b | `claim.units.monthly-service-kind.sum.v1` | 同一受給者・同一事業所番号・同一サービス種別の整数サービス単位列 | 整数給付単位 | 丸めなし、月次整数合算 | 同上 p197〜198 |
-| 4a | `claim.region-unit-price.exact-decimal.v1` | サービス月、地域区分、サービス種別 | `decimal`円 / 単位 | 丸めなし。適用版の公式値をそのまま選択 | ADR 0020、`mhlw-unit-price-notice-observed-946c3d96` HTML pageNo=1、`r6-calculation-note` p9、`r8-calculation-note` p10 |
-| 4b | `claim.cost.monthly-service-kind.floor-yen.v1` | 整数給付単位、`decimal`地域単価 | 整数円の総費用額 | 積の円未満切捨て。サービス種別月次合算後に1回 | `r6-calculation-note` p9、`r8-calculation-note` p9〜10、`r8-grant-decision-administration-202606` p197〜198、`r8-grant-decision-administration-202607` p197〜198 |
-| 5 | `claim.burden.ten-percent.floor-yen.v1` | 整数円の総費用額、`decimal`の`10 / 100` | 整数円の1割相当額 | 円未満切捨て | `r8-grant-decision-administration-202606` p197〜198、`r8-grant-decision-administration-202607` p197〜198 |
-| 6a | `claim.burden.cap.minimum-yen.v1` | 1割相当額、法31条特例額、受給者証上限、制度上限 | 整数円の暫定負担額 | 丸めなし、検証済み整数円の`min` | ADR 0022、`r6-disability-support-guide-202404` p9、`r8-grant-decision-administration-202606` p197〜198、`r8-grant-decision-administration-202607` p197〜198 |
-| 6b | `claim.burden.in-office-order.allocate-yen.v1` | サービス種別別暫定負担額、受給者証上限、公式優先順 | サービス種別別調整後負担額 | 丸めなし、左から上限到達まで整数円を充当 | ADR 0022、`r8-grant-decision-administration-202606` p198〜199、`r8-grant-decision-administration-202607` p198〜199 |
-| 6c | `claim.burden.upper-limit-result.allocate-yen.v1` | 検証済み管理結果額、サービス種別別の管理前最終負担額 | サービス種別別決定利用者負担額 | 丸めなし、正式結果額へ到達するまで公式順に整数円を転記 | ADR 0022、`r8-grant-decision-administration-202606` p182〜186、p199、`r8-grant-decision-administration-202607` p182〜186、p199 |
-| 7 | `claim.benefit.cost-minus-decided-burden.v1` | 整数円の総費用額、整数円の決定利用者負担額 | 整数円の請求額・給付費 | 丸めなし、checked減算 | `mhlw-disability-support-act-observed-4b8f2824` 29条3項、`r8-grant-decision-administration-202606` p197、p199、`r8-grant-decision-administration-202607` p197、p199 |
+| field | 閉じた値 / 内容 | 検証 |
+| --- | --- | --- |
+| `percentageBaseScope` | `PerServiceCodeUnit` / `MonthlyTargetUnitSum` | 未知値、null又は版外の値を拒否 |
+| `percentageApplicationKind` | `Replace` / `Add` / `Subtract` | source rowが定める結果の反映方法と完全一致させる |
+| `targetSelector` | 基礎単位又は月次対象service-code集合を一意に指定する版付きselector | 空集合、複数候補、自己参照又は未登録codeを拒否 |
+| `calculationOrder` | 同じ対象へ複数割合を適用する場合の公式順序と依存先 | 穴、重複、循環又は順序不明を拒否 |
+| `roundingRuleId` | `claim.rounding.units.half-up.v1` | 別rule又は未登録ruleへのフォールバック禁止 |
+| `calculationStepId` | `PerServiceCodeUnit`は`claim.step.units.per-service-code.percentage.v1`、`MonthlyTargetUnitSum`は`claim.step.units.monthly-target.percentage.v1` | scopeと矛盾するstep、欠落又は未登録stepを拒否。multiply / sum / applyは後掲の固定pipeline stepを記録 |
+| `sourceDocumentId` / `sourceLocator` | ADR 0020の適用版sourceとPDF physical page又はservice-code row | 適用月、source SHA又はrowを一意に検証 |
 
-`RoundingPolicy`は端数変換だけを担い、どの基本単位へどの割合を適用するか、処遇改善加算の対象合計、サービス種別、地域単価、優先順又は上限額管理結果を選ばない。これらは適用版の外部マスタ及びADR 0022・0023の検証済み入力が決める。
+`PerServiceCodeUnit`は、source rowが指定する整数の基礎単位に割合を乗じ、`claim.rounding.units.half-up.v1`で整数へ戻し、`Replace` / `Add` / `Subtract`を反映した端数処理済みservice-code単位を作る。同じservice-codeへ割合を連続適用する場合は、直前の丸め済み整数を次の基礎値とする。その後に当月算定回数を整数乗算する。
+
+`MonthlyTargetUnitSum`は、対象service-codeごとに上記の端数処理済み単位へ当月算定回数を乗じ、その整数列を`targetSelector`どおり月次合算する。合計へ割合を乗じて`claim.rounding.units.half-up.v1`で整数の加算又は減算単位を求め、`percentageApplicationKind`どおり最終給付単位数へ反映する。特別地域加算及び福祉・介護職員等処遇改善加算のような月次対象を、per-line計算へ変更しない。
+
+### 法第31条特例給付の構造化入力
+
+Phase 3-1は、自由記述やnullable金額ではなく、次の三値を持つ`Article31SpecialBurdenStatus`を追加する。
+
+| status | 意味 | 必須条件 | 算定 |
+| --- | --- | --- | --- |
+| `Unknown` | 受給者証原本を未確認又は状態不明 | 金額を請求根拠に使用しない | 算定不能 |
+| `NotApplicable` | 原本で法31条特例がないことを確認済み | 非適用を確認した`effectiveFrom` / `effectiveTo`、受給者証原本document reference、確認日時・確認者・確認根拠が必須。特例額はnull | 1割相当額をそのまま後続上限処理へ渡す |
+| `Applicable` | 原本に市町村決定の特例負担額が明記済み | 非負整数円`amountYen`、`effectiveFrom`、`effectiveTo`、受給者証原本document reference、確認日時・確認者・確認根拠が全て必須 | 対象サービス日だけ`min(oneTenthYen, amountYen)`を後続へ渡す |
+
+`Applicable`の0円は、原本参照と入力済み状態を検証できる場合だけ有効である。対象月内で状態、金額又は適用期間が切り替わり、各サービス日に適用する値を一意にできない場合は算定不能とする。`status = null`、`amountYen = null`、既存の`SupplyNotes`その他の自由記述から`NotApplicable`又は金額を推測しない。`NotApplicable`なのに金額がある、`Applicable`なのに必須項目がない、対象日が有効期間外、原本と登録スナップショットが不一致のときも拒否する。
+
+現行Domainにはこの三値、特例額の入力済み状態、期間及び原本参照がない。したがってPhase 3-1の`missing`入力としてモデル、migration、Application DTO、入力UI、原本再確認フローへ追加し、既存null又は自由記述を自動移行しない。
+
+### `RoundingPolicy`の安定`roundingRuleId`
+
+`RoundingPolicy`の閉集合は、端数を別の精度へ変換する次の5規則だけとする。単価選択、整数乗算・合算、`min`、配分及び減算は受け取らない。同じIDへの別規則の上書き、不明IDの既定規則へのフォールバック及び`calculationStepId`を`roundingRuleId`として渡すことを禁止する。
+
+| roundingRuleId | 入力 | 出力 | 単位・方向 | sourceDocumentId / 物理頁 |
+| --- | --- | --- | --- | --- |
+| `claim.rounding.average-wage.daily-users.ceil-1dp.r6-corrected.v1` | 日平均利用者数の`decimal` | 小数点第1位の`decimal`人 | 小数点第2位以下があれば正方向へ切上げ | ADR 0023、`r6-qa-v2` p11を`r6-qa-corr-2` p4で訂正 |
+| `claim.rounding.average-wage.monthly-yen.half-up.v1` | 丸め前平均工賃月額の`decimal`円 | 整数円 | 円未満四捨五入 | ADR 0023、`r6-qa-corr-2` p4 |
+| `claim.rounding.units.half-up.v1` | source rowの割合計算結果である`decimal`単位 | 整数単位 | 小数点以下四捨五入 | `r6-calculation-note` p8〜9、`r8-calculation-note` p8〜10 |
+| `claim.rounding.cost.floor-yen.v1` | 月次給付単位数と地域単価の積である`decimal`円 | 整数円 | 円未満切捨て | `r6-calculation-note` p9、`r8-calculation-note` p9〜10、`r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197〜198 |
+| `claim.rounding.burden.floor-yen.v1` | 総費用額と`10 / 100`の積である`decimal`円 | 整数円 | 円未満切捨て | `r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197〜198 |
+
+### 安定`calculationStepId`
+
+`ClaimCalculator`、`AverageWageCalculator`及び`BurdenCalculator`は、選択・整数演算・配分の意味を次の`calculationStepId`で記録する。端数が生じるstepだけ、表で指定した`roundingRuleId`を`RoundingPolicy`へ渡す。`—（呼出しなし）`のstepは`RoundingPolicy`を呼ばず、監査上の`roundingRuleId`もnullとする。nullから計算stepを推測せず、`calculationStepId`は必ず記録する。
+
+| calculationStepId | 入力 -> 出力 | roundingRuleId | sourceDocumentId / 物理頁 |
+| --- | --- | --- | --- |
+| `claim.step.average-wage.daily-users.divide.v1` | 年間延べ利用者数、年間開所日数 -> 日平均利用者数 | `claim.rounding.average-wage.daily-users.ceil-1dp.r6-corrected.v1` | ADR 0023 |
+| `claim.step.average-wage.monthly.divide.v1` | 年間工賃、丸め済み日平均利用者数、12 -> 平均工賃月額 | `claim.rounding.average-wage.monthly-yen.half-up.v1` | ADR 0023 |
+| `claim.step.units.per-service-code.percentage.v1` | 整数基礎単位、割合、`calculationOrder` -> 端数処理済み整数service-code単位 | `claim.rounding.units.half-up.v1` | `r6-calculation-note` p8〜9、`r8-calculation-note` p8〜10 |
+| `claim.step.units.service-code.multiply-count.v1` | 端数処理済み整数単位、回数 -> 整数サービス単位 | —（呼出しなし） | `r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197 |
+| `claim.step.units.monthly-service-kind.sum.v1` | 同一サービス種別の整数サービス単位列 -> 月次基礎給付単位数 | —（呼出しなし） | `r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197〜198 |
+| `claim.step.units.monthly-target.sum.v1` | `targetSelector`対象の整数サービス単位列 -> 月次対象単位合計 | —（呼出しなし） | `r6-calculation-note` p8〜9、`r8-calculation-note` p8〜10 |
+| `claim.step.units.monthly-target.percentage.v1` | 月次対象単位合計、割合 -> 整数の加算又は減算単位 | `claim.rounding.units.half-up.v1` | 同上 |
+| `claim.step.units.monthly-target.apply.v1` | 月次基礎単位、整数の加算又は減算単位、`percentageApplicationKind` -> 最終給付単位数 | —（呼出しなし） | `r6-calculation-note` / `r8-calculation-note` p8〜10、`r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197〜198 |
+| `claim.step.region-unit-price.select.v1` | サービス月、地域、サービス種別 -> `decimal`地域単価 | —（呼出しなし） | ADR 0020、`mhlw-unit-price-notice-observed-946c3d96` HTML pageNo=1 |
+| `claim.step.cost.monthly-service-kind.multiply-unit-price.v1` | 最終給付単位数、地域単価 -> 整数円総費用額 | `claim.rounding.cost.floor-yen.v1` | `r6-calculation-note` p9、`r8-calculation-note` p9〜10、`r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197〜198 |
+| `claim.step.burden.ten-percent.multiply.v1` | 整数円総費用額、`10 / 100` -> 整数円1割相当額 | `claim.rounding.burden.floor-yen.v1` | `r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197〜198 |
+| `claim.step.burden.article31.resolve.v1` | 1割相当額、`Article31SpecialBurdenStatus`と検証済み入力 -> 特例適用後負担額 | —（呼出しなし） | `mhlw-disability-support-act-observed-4b8f2824` 31条、`r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197〜198 |
+| `claim.step.burden.cap.minimum.v1` | 特例適用後負担額、受給者証上限、制度上限 -> 暫定負担額 | —（呼出しなし） | ADR 0022、`r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197〜198 |
+| `claim.step.burden.in-office-order.allocate.v1` | サービス種別別暫定負担額、証上限、公式順 -> 調整後負担額 | —（呼出しなし） | ADR 0022、`r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p198〜199 |
+| `claim.step.burden.upper-limit-result.allocate.v1` | 検証済み管理結果額、管理前最終負担額 -> 決定利用者負担額 | —（呼出しなし） | ADR 0022、`r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p182〜186、p199 |
+| `claim.step.benefit.cost-minus-decided-burden.v1` | 総費用額、決定利用者負担額 -> 請求額・給付費 | —（呼出しなし） | `mhlw-disability-support-act-observed-4b8f2824` 29条3項、`r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197、p199 |
 
 ### 適用順
 
 ```text
 ADR 0023の平均工賃計算
   -> PaymentBand / 実在service-code解決
-  -> 割合加減算ごとに整数単位へ四捨五入
-  -> 端数処理済み単位 × 当月算定回数
-  -> サービス種別ごとの月次給付単位数を整数合算
-  -> 月次給付単位数 × decimal地域単価を円未満切捨て
+  -> 公式source rowのpercentageBaseScope / applicationKind / selector / orderを検証
+  -> PerServiceCodeUnitの各row
+       整数基礎単位 × 割合 -> 都度四捨五入 -> Replace/Add/Subtract
+       -> 端数処理済み整数service-code単位 × 当月算定回数
+  -> 同一サービス種別の整数サービス単位を月次基礎給付単位数へ合算
+  -> MonthlyTargetUnitSumの各row
+       selector対象の「端数処理済み単位 × 回数」を月次整数合算
+       -> 合計 × 割合 -> 四捨五入
+       -> 整数の加算/減算単位をcalculationOrderどおり反映
+  -> サービス種別ごとの最終月次給付単位数を確定
+  -> 最終月次給付単位数 × decimal地域単価を円未満切捨て
   -> 総費用額 × 10 / 100を円未満切捨て
-  -> 法31条特例額・証上限・制度上限のmin
+  -> Article31SpecialBurdenStatusを検証
+       Unknown: 算定不能
+       NotApplicable: 1割相当額を維持
+       Applicable: min(1割相当額, 検証済み特例額)
+  -> 証上限・制度上限のmin
   -> 同一事業所内の公式順調整
   -> 対象者だけ正式な上限額管理結果を公式順に転記
   -> 総費用額 - 決定利用者負担額 = B型の請求額・給付費
 ```
 
-同一受給者に複数サービス種別がある場合、総費用額と1割相当額はサービス種別ごとに算出してから、公式順で利用者負担を配分する。全サービス種別の給付単位数を先に一括合算して単一の単価を乗じない。
+同一受給者に複数サービス種別がある場合、総費用額と1割相当額はサービス種別ごとに算出してから、公式順で利用者負担を配分する。全サービス種別の給付単位数を先に一括合算して単一の単価を乗じない。`MonthlyTargetUnitSum`の対象集合もsource rowの`targetSelector`を越えて広げない。
 
 ### 公式ケースの期待値
 
-一次資料に数値が明記されたケースだけを公式ケースとして固定する。一次資料に具体値がない1割相当額、上限額管理及び給付費の境界テストは、上表の式から作る仕様テストとして公式数値例と区別する。
+一次資料に数値が明記されたケースだけを公式ケースとして固定する。`scope / application`列は公式文言を本ADRの閉じた値へ分類したものであり、数値例の改変ではない。一次資料に具体値がない1割相当額、上限額管理及び給付費の境界テストは、上表の式から作る仕様テストとして公式数値例と区別する。
 
-| case ID | 公式入力 | 公式期待値 | 検証する禁止事項 | sourceDocumentId / 物理頁 |
-| --- | --- | --- | --- | --- |
-| `official.units.sequential-01` | `587単位 × 0.70` | `410.9 -> 411単位` | 割合適用後の未丸め値を次段へ渡さない | `r6-calculation-note` p8〜9、`r8-calculation-note` p8〜9 |
-| `official.units.sequential-02` | `411単位 × 1.5` | `616.5 -> 617単位` | `587 × 0.70 × 1.5 = 616.35`を最後に1回丸めない | 同上 p9 |
-| `official.units.monthly-rate-01` | `587単位 × 6回 = 3,522単位`、`3,522 × 0.15` | `528.3 -> 528単位` | 月次合算対象の割合を日次・明細ごとに分割しない | 同上 p9 |
-| `official.cost.region-01` | `617単位 × 4回 = 2,468単位`、`2,468 × 11.20円` | `27,641.6 -> 27,641円` | 1円未満を四捨五入しない | `r6-calculation-note` p9、`r8-calculation-note` p9〜10 |
-| `official.avg-wage.daily-users-01` | `14.679人` | `14.7人` | 訂正前の小数点第2位四捨五入を使わない | ADR 0023、`r6-qa-v2` p11、`r6-qa-corr-2` p4 |
+| case ID | scope / application | 公式入力 | 公式期待値 | 検証する禁止事項 | sourceDocumentId / 物理頁 |
+| --- | --- | --- | --- | --- | --- |
+| `official.units.sequential-01` | `PerServiceCodeUnit` / `Replace` | `587単位 × 0.70` | `410.9 -> 411単位` | 割合適用後の未丸め値を次段へ渡さない | `r6-calculation-note` p8〜9、`r8-calculation-note` p8〜9 |
+| `official.units.sequential-02` | `PerServiceCodeUnit` / `Replace` | `411単位 × 1.5` | `616.5 -> 617単位` | `587 × 0.70 × 1.5 = 616.35`を最後に1回丸めない | 同上 p9 |
+| `official.units.monthly-rate-01` | `MonthlyTargetUnitSum` / `Add` | `587単位 × 6回 = 3,522単位`、`3,522 × 0.15` | `528.3 -> 528単位` | 月次合算対象の割合を日次・明細ごとに分割しない | 同上 p9 |
+| `official.cost.region-01` | 対象外 | `617単位 × 4回 = 2,468単位`、`2,468 × 11.20円` | `27,641.6 -> 27,641円` | 1円未満を四捨五入しない | `r6-calculation-note` p9、`r8-calculation-note` p9〜10 |
+| `official.avg-wage.daily-users-01` | 対象外 | `14.679人` | `14.7人` | 訂正前の小数点第2位四捨五入を使わない | ADR 0023、`r6-qa-v2` p11、`r6-qa-corr-2` p4 |
+
+### scope順序差の仕様境界例
+
+次は公式資料に掲載された数値例ではなく、`percentageBaseScope`の取り違えを検出する仕様境界テストである。公式ケースの表へ混入させない。
+
+| case ID | scope / application | 計算 | 期待する割合加算単位 | 基礎404単位へ加算後 |
+| --- | --- | --- | ---: | ---: |
+| `spec.scope.per-service-code-101x4x15` | `PerServiceCodeUnit` / `Add` | `roundHalfUp(101 × 0.15) = 15`、`15 × 4` | 60 | 464 |
+| `spec.scope.monthly-target-101x4x15` | `MonthlyTargetUnitSum` / `Add` | `101 × 4 = 404`、`roundHalfUp(404 × 0.15) = 61` | 61 | 465 |
+
+同じ`101単位 × 4回 × 15%`でもscopeにより1単位差が生じる。source rowが`MonthlyTargetUnitSum`ならper-service-codeの60単位を、`PerServiceCodeUnit`ならmonthly-targetの61単位を採用してはならない。
 
 ### 未確定時とフェイルクローズ
 
 | 境界 | 算定不能条件 |
 | --- | --- |
-| 平均工賃 | ADR 0023の入力、適用版、完全性又は丸めrule IDが欠ける。既存`AverageWageMetric`又はADR 0012の工賃丸めへフォールバックしない |
-| 単位数 | 割合を適用する基礎単位、対象合計、適用順又は公式service-code rowを一意にできない。複数割合を一括乗算しない |
+| 平均工賃 | ADR 0023の入力、適用版、完全性又は`roundingRuleId`が欠ける。既存`AverageWageMetric`又はADR 0012の工賃丸めへフォールバックしない |
+| 単位数 | `percentageBaseScope`、`percentageApplicationKind`、基礎単位、`targetSelector`、`calculationOrder`又は公式service-code rowを一意にできない。per-service-codeとmonthly-targetの相互代用、複数割合の一括乗算をしない |
 | 地域単価 | サービス月・地域・サービス種別に対する公式単価を一意に解決できない。10円又は直近値を既定値にしない |
 | 総費用額 | サービス種別、月次給付単位数又は単価が不明、範囲超過、負値。明細別円換算又は全サービス種別一括換算へ切り替えない |
-| 利用者負担 | 受給者証の法31条特例、個別上限、入力済み状態又は適用期間を確認できない。特例割合・金額を推測しない |
+| 利用者負担 | `Article31SpecialBurdenStatus.Unknown`、法31条特例の金額・期間・原本参照・確認根拠の欠落又は矛盾、受給者証の個別上限・入力済み状態・適用期間を確認できない。null又は自由記述から不適用・特例割合・金額を推測しない |
 | 上限額管理 | ADR 0022の対象状態、成人B型に適用できる当月版一次資料又は確定済み正式結果票が欠ける。特に2024-04〜2026-05のR6成人B型で対象者は算定不能 |
 | 給付費 | 決定利用者負担額が未確定、負値、総費用額超過又はB型以外の減免が混入。90%乗算へ置換しない |
-| 数値型 | `double` / `float`経由、非有限値、overflow、公式桁数超過又は未登録rule ID。丸めモードを既定選択しない |
+| 数値型 | `double` / `float`経由、非有限値、overflow、公式桁数超過、未登録`roundingRuleId`又は未登録`calculationStepId`。丸めモード又は計算stepを既定選択しない |
 
 ### 版境界
 
@@ -149,9 +217,11 @@ ADR 0023の平均工賃計算
 
 ## 影響
 
-- Phase 3-1の`RoundingPolicy`は、上表のrule IDを閉じた集合として実装し、公式例をテーブル駆動テストにする。
-- `ClaimCalculator`はサービスコード明細の円額を先に作らず、サービス種別ごとの月次給付単位数を構築してから地域単価を適用する。
-- `BurdenCalculator`は1割相当額の切捨てだけを`RoundingPolicy`へ委譲し、証上限、制度上限、正式結果票及び優先順をADR 0022の入力契約として扱う。
-- 確定スナップショットは、rule ID、丸め前値、丸め後値、適用順、masterVersion、sourceDocumentIds及びsource pageを保持する。合成サービスコードでは「公式表で端数処理済み」であることとsource rowを保持する。
+- Phase 3-1の`RoundingPolicy`は、上表の5つの`roundingRuleId`だけを閉じた集合として実装する。選択、整数乗算・合算、`min`、配分又は減算を追加しない。
+- `ClaimCalculator`はsource rowの`percentageBaseScope`、`percentageApplicationKind`、`targetSelector`及び`calculationOrder`を検証し、per-service-codeとmonthly-targetを別の`calculationStepId`で実行する。仕様境界例と公式例を別のテーブル駆動テストにする。
+- `ClaimCalculator`はサービスコード明細の円額を先に作らず、全monthly-target結果を反映したサービス種別ごとの最終月次給付単位数を構築してから地域単価を適用する。
+- `BurdenCalculator`は1割相当額の切捨てだけを`RoundingPolicy`へ委譲し、法31条三値入力、証上限、制度上限、正式結果票及び優先順を`calculationStepId`で扱う。
+- Phase 3-1で`Article31SpecialBurdenStatus`、特例額、`effectiveFrom` / `effectiveTo`、受給者証原本document reference及び確認証跡をモデル、migration、DTO、入力UIへ追加する。既存null又は`SupplyNotes`は`NotApplicable`へ自動移行しない。
+- 確定スナップショットは、`roundingRuleId`と`calculationStepId`を別フィールドで、丸め前値、丸め後値、scope、selector、適用順、masterVersion、sourceDocumentIds及びsource pageとともに保持する。合成サービスコードでは「公式表で端数処理済み」であることとsource rowを保持する。
 - 2026-06-29版Phase 3-1計画の`MultiplyAndFloor`を明細ごとに呼ぶ設計例、`double`の`InlineData`及びR9仮データは現行設計の実装契約にしない。Phase 3-1再計画時に本ADRと2026-06-29設計の現行化注記へ合わせる。
-- ADR 0012の工賃支払額用`RoundingPolicy`と、請求算定用rule IDのnamespace又は型を分け、同名の`HalfUp`を暗黙共有しない。
+- ADR 0012の工賃支払額用`RoundingPolicy`と、請求算定用`roundingRuleId` / `calculationStepId`のnamespace又は型を分け、同名の`HalfUp`を暗黙共有しない。
