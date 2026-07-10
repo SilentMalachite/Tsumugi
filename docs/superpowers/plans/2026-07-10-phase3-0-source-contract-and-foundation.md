@@ -885,6 +885,7 @@ git commit -m "feat(phase3-0/AC3-0-2): load versioned claim master metadata"
 **Files:**
 - Create: `tests/Tsumugi.Infrastructure.Tests/ExternalSpecificationLiteralGuard.cs`
 - Create: `tests/Tsumugi.Infrastructure.Tests/ClaimSpecificationBoundaryTests.cs`
+- Modify: `tests/Tsumugi.Infrastructure.Tests/Tsumugi.Infrastructure.Tests.csproj`
 
 - [ ] **Step 1: 歯あり性テストを先に書く**
 
@@ -895,6 +896,8 @@ git commit -m "feat(phase3-0/AC3-0-2): load versioned claim master metadata"
 - CSVの`fieldId`／交換情報ID／内側レコード種別をCsv以外のC#へ書く
 - source参照なしのmaster entryを追加する
 - 許可ディレクトリ外へclaim用JSONを追加する
+
+C# literalの抽出は通常literalだけでなく補間文字列のexpression holeを含める。generic型引数、nullable型注釈、tuple、alignment、条件演算子を含む有効なC#でもliteralを見逃さず、補間format textはC# literalと誤認しない反対例を置く。独自のC# parserを実装せず、SDK同梱Roslynのsyntax tokenを使って歯あり性を固定する。
 
 - [ ] **Step 2: production scanの失敗テストを書く**
 
@@ -918,6 +921,8 @@ Expected: guard未実装でFAIL。
 
 検査結果は`relativePath:line`と違反したcatalog pathを返す。コメントとテストコード、`obj`、`bin`、Migrationsを除外する。allowlistを作る場合は`(path, literal, reason)`を必須とし、空reasonをCI違反にする。
 
+test projectは新しいNuGet packageを追加せず、`$(MSBuildToolsPath)/Roslyn/bincore/`の`Microsoft.CodeAnalysis.dll`と`Microsoft.CodeAnalysis.CSharp.dll`をtest-onlyの`Reference`として使用する。`CSharpSyntaxTree`を現行言語版でparseし、`StringLiteralToken`／raw／UTF-8 string literalと`NumericLiteralToken`だけを比較対象にする。コメントと補間format textはsyntax token種別で除外し、補間expression hole内のliteralは通常tokenとして検出する。SDK compiler assemblyが見つからない場合はsilent fallbackせずbuildを失敗させる。
+
 - [ ] **Step 5: 緑を確認する**
 
 Run: `dotnet test tests/Tsumugi.Infrastructure.Tests/Tsumugi.Infrastructure.Tests.csproj --filter "FullyQualifiedName~ClaimSpecificationBoundaryTests" -v normal`
@@ -927,7 +932,7 @@ Expected: production scanと歯あり性unit testがともにPASS。
 - [ ] **Step 6: コミット**
 
 ```bash
-git add tests/Tsumugi.Infrastructure.Tests/ExternalSpecificationLiteralGuard.cs tests/Tsumugi.Infrastructure.Tests/ClaimSpecificationBoundaryTests.cs
+git add tests/Tsumugi.Infrastructure.Tests/ExternalSpecificationLiteralGuard.cs tests/Tsumugi.Infrastructure.Tests/ClaimSpecificationBoundaryTests.cs tests/Tsumugi.Infrastructure.Tests/Tsumugi.Infrastructure.Tests.csproj
 git commit -m "test(phase3-0/AC3-0-2): enforce external claim specification boundaries"
 ```
 
