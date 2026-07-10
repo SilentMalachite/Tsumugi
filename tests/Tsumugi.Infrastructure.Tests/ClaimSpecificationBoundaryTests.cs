@@ -73,6 +73,81 @@ public sealed class ClaimSpecificationBoundaryTests
     }
 
     [Fact]
+    public void Scan_detects_master_literals_in_trace_conditional_branch()
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.Write(
+            "src/Tsumugi.Application/Claims/TraceConditional.cs",
+            """
+            namespace Tsumugi.Application.Claims;
+            internal static class TraceConditional
+            {
+            #if TRACE
+                private const int Units = 777;
+                private const string Code = "NESTED-CODE";
+            #endif
+            }
+            """);
+
+        var violations = fixture.Scan()
+            .Where(v => v.Rule == "claim-master-literal")
+            .OrderBy(v => v.LineNumber)
+            .ToArray();
+
+        violations.Select(v => (v.Literal, v.LineNumber)).Should().Equal(
+            ("777", 5),
+            ("NESTED-CODE", 6));
+    }
+
+    [Theory]
+    [InlineData("#if NEVER_DEFINED\n    private const int Units = 777;\n#endif", 5)]
+    [InlineData("#if NEVER_DEFINED\n#if ALSO_NEVER_DEFINED\n    private const int Units = 777;\n#endif\n#endif", 6)]
+    public void Scan_detects_master_literal_in_unknown_conditional_branch(
+        string conditionalBranch,
+        int expectedLineNumber)
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/UnknownConditional.cs",
+            "namespace Tsumugi.Domain.Logic.Claim;\n" +
+            "internal static class UnknownConditional\n" +
+            "{\n" +
+            conditionalBranch + "\n" +
+            "}\n");
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-literal" && v.Literal == "777");
+
+        violation.LineNumber.Should().Be(expectedLineNumber);
+    }
+
+    [Fact]
+    public void Scan_fails_closed_for_malformed_literal_in_disabled_conditional_branch()
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/BrokenConditional.cs",
+            """
+            namespace Tsumugi.Domain.Logic.Claim;
+            internal static class BrokenConditional
+            {
+            #if NEVER_DEFINED
+                private const string Code = "unterminated;
+            #endif
+            }
+            """);
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "csharp-parse");
+
+        violation.RelativePath.Should().Be("src/Tsumugi.Domain/Logic/Claim/BrokenConditional.cs");
+        violation.LineNumber.Should().Be(5);
+        violation.Literal.Should().StartWith("CS");
+    }
+
+    [Fact]
     public void Scan_detects_master_number_literal_inside_interpolation_hole()
     {
         using var fixture = new SpecificationFixture();

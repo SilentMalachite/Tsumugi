@@ -500,9 +500,10 @@ internal static class ExternalSpecificationLiteralGuard
         SourceFile sourceFile,
         ICollection<Violation> violations)
     {
+        var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
         var syntaxTree = CSharpSyntaxTree.ParseText(
             sourceFile.Text,
-            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            parseOptions,
             path: sourceFile.RelativePath);
         var errors = syntaxTree.GetDiagnostics()
             .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
@@ -523,8 +524,36 @@ internal static class ExternalSpecificationLiteralGuard
 
         if (errors.Length > 0) return [];
 
-        return syntaxTree.GetRoot()
-            .DescendantTokens()
+        var root = syntaxTree.GetRoot();
+        var disabledTokens = root.DescendantTrivia(descendIntoTrivia: true)
+            .Where(trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+            .SelectMany(trivia => SyntaxFactory.ParseTokens(
+                trivia.ToString(),
+                initialTokenPosition: trivia.SpanStart,
+                options: parseOptions))
+            .ToArray();
+        var disabledErrors = disabledTokens
+            .SelectMany(token => token.GetDiagnostics()
+                .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+                .Select(diagnostic => (Token: token, Diagnostic: diagnostic)))
+            .ToArray();
+
+        foreach (var (token, diagnostic) in disabledErrors)
+        {
+            violations.Add(new Violation(
+                sourceFile.RelativePath,
+                GetLineNumber(sourceFile.Text, token.SpanStart),
+                "csharp-parse",
+                diagnostic.Id + ": " + diagnostic.GetMessage(CultureInfo.InvariantCulture),
+                sourceFile.RelativePath + "#syntax"));
+        }
+
+        if (disabledErrors.Length > 0) return [];
+
+        return root.DescendantTokens()
+            .Concat(disabledTokens)
+            .DistinctBy(token => (token.SpanStart, token.Span.Length, token.RawKind))
+            .OrderBy(token => token.SpanStart)
             .Select(token => ToSourceLiteral(syntaxTree, token))
             .OfType<SourceLiteral>()
             .ToList();
