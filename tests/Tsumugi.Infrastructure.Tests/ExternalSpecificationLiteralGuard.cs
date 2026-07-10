@@ -339,27 +339,17 @@ internal static class ExternalSpecificationLiteralGuard
                 break;
             case JsonValueKind.Number:
                 var rawNumber = element.GetRawText();
-                if (HasAbsoluteValueAtLeastTen(element))
+                var canonicalNumber = ParseDecimalNumber(rawNumber);
+                if (canonicalNumber.HasAbsoluteValueAtLeastTen)
                 {
                     catalogLiterals.Add(new CatalogLiteral(
                         LiteralKind.Number,
                         rawNumber,
-                        NormalizeCatalogNumber(rawNumber),
+                        canonicalNumber.MatchValue,
                         CatalogPath(relativePath, pointer)));
                 }
                 break;
         }
-    }
-
-    private static bool HasAbsoluteValueAtLeastTen(JsonElement number)
-    {
-        if (number.TryGetDecimal(out var decimalValue))
-        {
-            return decimalValue >= 10m || decimalValue <= -10m;
-        }
-
-        return number.TryGetDouble(out var doubleValue) &&
-               (doubleValue >= 10d || doubleValue <= -10d);
     }
 
     private static void InspectCsvSpecification(
@@ -638,9 +628,9 @@ internal static class ExternalSpecificationLiteralGuard
         return literal[..suffixStart];
     }
 
-    private static string NormalizeCatalogNumber(string literal) => NormalizeDecimalNumber(literal);
+    private static string NormalizeDecimalNumber(string literal) => ParseDecimalNumber(literal).MatchValue;
 
-    private static string NormalizeDecimalNumber(string literal)
+    private static CanonicalDecimal ParseDecimalNumber(string literal)
     {
         var unsignedLiteral = literal.AsSpan();
         if (unsignedLiteral.Length > 0 && unsignedLiteral[0] is '+' or '-')
@@ -668,7 +658,7 @@ internal static class ExternalSpecificationLiteralGuard
 
         var firstNonZero = 0;
         while (firstNonZero < digits.Length && digits[firstNonZero] == '0') firstNonZero++;
-        if (firstNonZero == digits.Length) return "0";
+        if (firstNonZero == digits.Length) return new CanonicalDecimal("0", BigInteger.Zero);
 
         var decimalExponent = explicitExponent - fractionalDigitCount;
         var significantEnd = digits.Length;
@@ -678,10 +668,7 @@ internal static class ExternalSpecificationLiteralGuard
             decimalExponent++;
         }
 
-        var significantDigits = digits[firstNonZero..significantEnd];
-        return decimalExponent.IsZero
-            ? significantDigits
-            : significantDigits + "E" + decimalExponent.ToString(CultureInfo.InvariantCulture);
+        return new CanonicalDecimal(digits[firstNonZero..significantEnd], decimalExponent);
     }
 
     private static int FindElementOffset(string text, JsonElement element, int startIndex)
@@ -754,4 +741,16 @@ internal static class ExternalSpecificationLiteralGuard
         LiteralKind Kind,
         string MatchValue,
         int LineNumber);
+
+    private readonly record struct CanonicalDecimal(
+        string SignificantDigits,
+        BigInteger DecimalExponent)
+    {
+        public bool HasAbsoluteValueAtLeastTen =>
+            SignificantDigits != "0" && DecimalExponent + SignificantDigits.Length >= 2;
+
+        public string MatchValue => DecimalExponent.IsZero
+            ? SignificantDigits
+            : SignificantDigits + "E" + DecimalExponent.ToString(CultureInfo.InvariantCulture);
+    }
 }

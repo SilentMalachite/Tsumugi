@@ -80,6 +80,41 @@ public sealed class ClaimSpecificationBoundaryTests
             v => v.Rule == "claim-master-literal" && v.Literal == "1e20");
     }
 
+    [Theory]
+    [InlineData("9.99999999999999999999999999999")]
+    [InlineData("-9.99999999999999999999999999999")]
+    public void Scan_ignores_master_number_below_ten_even_when_double_rounds_to_ten(string number)
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.WriteMasterNumber(number);
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/BelowTen.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal static class BelowTen { " +
+            "internal static double Value => " + number + "; }");
+
+        fixture.Scan().Should().NotContain(
+            v => v.Rule == "claim-master-literal" && v.Literal == number);
+    }
+
+    [Theory]
+    [InlineData("10")]
+    [InlineData("-10")]
+    public void Scan_detects_master_number_at_exact_absolute_ten(string number)
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.WriteMasterNumber(number);
+        fixture.Write(
+            "src/Tsumugi.Application/Claims/ExactTen.cs",
+            "namespace Tsumugi.Application.Claims; internal static class ExactTen { " +
+            "internal static int Value => " + number + "; }");
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-literal" && v.Literal == number);
+
+        violation.LineNumber.Should().Be(1);
+    }
+
     [Fact]
     public void Scan_detects_nested_master_string_literal_in_application_source()
     {
