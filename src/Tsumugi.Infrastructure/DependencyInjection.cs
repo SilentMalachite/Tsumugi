@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Audit;
+using Tsumugi.Infrastructure.ClaimMasters;
 using Tsumugi.Infrastructure.Persistence;
 
 namespace Tsumugi.Infrastructure;
@@ -11,6 +12,8 @@ public static class DependencyInjection
     public static IServiceCollection AddTsumugiInfrastructure(
         this IServiceCollection services, string connectionString)
     {
+        var claimMasterProvider = JsonClaimMasterProvider.LoadEmbedded();
+        services.AddSingleton<IClaimMasterProvider>(claimMasterProvider);
         services.AddDbContext<TsumugiDbContext>(o => o.UseSqlite(connectionString));
         services.AddScoped<IOfficeRepository, OfficeRepository>();
         services.AddScoped<IRecipientRepository, RecipientRepository>();

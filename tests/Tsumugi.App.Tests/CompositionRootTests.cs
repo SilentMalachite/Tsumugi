@@ -10,12 +10,32 @@ using Tsumugi.Application.UseCases;
 using Tsumugi.Application.UseCases.Wage;
 using Tsumugi.Application.UseCases.WorkRecord;
 using Tsumugi.Domain.Logic.Wage;
+using Tsumugi.Domain.ValueObjects;
 using Xunit;
 
 namespace Tsumugi.App.Tests;
 
 public sealed class CompositionRootTests
 {
+    [Fact]
+    public void Claim_master_provider_is_registered_as_an_eager_singleton_instance()
+    {
+        var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
+        var descriptor = services.Single(service => service.ServiceType == typeof(IClaimMasterProvider));
+
+        descriptor.ImplementationInstance.Should().NotBeNull();
+        descriptor.ImplementationType.Should().BeNull();
+        descriptor.ImplementationFactory.Should().BeNull();
+
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+        var resolved = scope.ServiceProvider.GetRequiredService<IClaimMasterProvider>();
+
+        resolved.Should().BeSameAs(descriptor.ImplementationInstance);
+        resolved.ResolveVersion(new ServiceMonth(2026, 6)).Version.Value
+            .Should().Be("claim-master-r8-06");
+    }
+
     [Fact]
     public void Build_resolves_use_cases_from_root()
     {

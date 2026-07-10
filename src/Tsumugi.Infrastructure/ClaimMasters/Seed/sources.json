@@ -1,0 +1,1121 @@
+{
+  "schemaVersion": "1",
+  "sources": [
+    {
+      "documentId": "mhlw-r6-revision-page-observed-c7b78655",
+      "title": "令和6年度障害福祉サービス等報酬改定（観測バイトc7b78655・69,626 bytes）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000202214_00009.html",
+      "sha256": "c7b78655086e6f5d9276c1a84dad5e20826d8bbbbd7e9bd44c15142facedf923",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "同一URLからfefe2d88バリアントも観測。両者はエンティティ・空白正規化後の本文と公式リンク集合が一致する。時系列関係と全バリアントの網羅を主張しないロケータ証拠",
+      "correctionNote": null
+    },
+    {
+      "documentId": "mhlw-r6-revision-page-observed-fefe2d88",
+      "title": "令和6年度障害福祉サービス等報酬改定（観測バイトfefe2d88・69,915 bytes）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000202214_00009.html",
+      "sha256": "fefe2d888f93acb90b7c24a08aeec617104b4bbe5e02489c854ecfcd4a502369",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "同一URLからc7b78655バリアントも観測。両者はエンティティ・空白正規化後の本文と公式リンク集合が一致する。時系列関係と全バリアントの網羅を主張しないロケータ証拠",
+      "correctionNote": null
+    },
+    {
+      "documentId": "mhlw-r6-structure-page-observed-8a9858bf",
+      "title": "報酬算定構造・サービスコード表等 令和6年4月、6月施行分（観測バイト8a9858bf・57,638 bytes）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": "2025-01-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000174644_00018.html",
+      "sha256": "8a9858bf575af9bb57a3a5df61428e66e8d903bf984de9f6b46b3fd47631a0c7",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "2024-11-29修正後の2025-01-31確定ファイルを指す観測ロケータ。今回の反復取得ではこのバイトだけを観測したが、全バリアントの網羅を主張しない",
+      "correctionNote": null
+    },
+    {
+      "documentId": "mhlw-r8-revision-page-observed-2e8f1425",
+      "title": "令和8年度障害福祉サービス等報酬改定（観測バイト2e8f1425・55,758 bytes）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000202214_00013.html",
+      "sha256": "2e8f142511e9c6a5c9125c4dbaec6c05062cd5fb2e65ea2b0ba925f639b6c395",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "同一URLから7c937a6aバリアントも観測。両者はエンティティ・空白正規化後の本文と公式リンク集合が一致する。時系列関係と全バリアントの網羅を主張しないロケータ証拠",
+      "correctionNote": null
+    },
+    {
+      "documentId": "mhlw-r8-revision-page-observed-7c937a6a",
+      "title": "令和8年度障害福祉サービス等報酬改定（観測バイト7c937a6a・55,469 bytes）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000202214_00013.html",
+      "sha256": "7c937a6a51aa0bfb3974ef47b20119c929fa3b142f74d65e78526095a34ee70e",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "同一URLから2e8f1425バリアントも観測。両者はエンティティ・空白正規化後の本文と公式リンク集合が一致する。時系列関係と全バリアントの網羅を主張しないロケータ証拠",
+      "correctionNote": null
+    },
+    {
+      "documentId": "mhlw-r8-structure-page-observed-9bc71ce6",
+      "title": "報酬算定構造・サービスコード表等 令和8年6月施行分（観測バイト9bc71ce6・51,599 bytes）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-04-28",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000174644_00022.html",
+      "sha256": "9bc71ce6bfdfe2461a3068dd2ad924a215c12d3f071e2034a8ca51b51de49622",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "同一URLから13da3c44バリアントも観測。両者の正規化本文・公式リンク集合は一致し、5項目の「変更なし」と対応表の掲載を確認。時系列関係と全バリアントの網羅を主張しないロケータ証拠",
+      "correctionNote": null
+    },
+    {
+      "documentId": "mhlw-r8-structure-page-observed-13da3c44",
+      "title": "報酬算定構造・サービスコード表等 令和8年6月施行分（観測バイト13da3c44・51,888 bytes）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-04-28",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000174644_00022.html",
+      "sha256": "13da3c44eb9e9485c38fda878bb1fe966407e7331609f87123ba2b2778a32083",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "同一URLから9bc71ce6バリアントも観測。両者の正規化本文・公式リンク集合は一致し、5項目の「変更なし」と対応表の掲載を確認。時系列関係と全バリアントの網羅を主張しないロケータ証拠",
+      "correctionNote": null
+    },
+    {
+      "documentId": "mhlw-unit-price-notice-observed-946c3d96",
+      "title": "こども家庭庁長官及び厚生労働大臣が定める一単位の単価並びに厚生労働大臣が定める一単位の単価（厚生労働省告示第539号・観測バイト946c3d96・52,785 bytes）",
+      "publisher": "こども家庭庁・厚生労働省",
+      "effectiveAt": "2006-10-01",
+      "publishedAt": "2006-09-29",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/web/t_doc?dataId=83aa8493&dataType=0&pageNo=1",
+      "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "2026-07-10の独立12回取得でSHA-256と52,785 bytesが一致。B型を含む基準額10円と1〜7級地・その他の割合を直接収載するため、3版共通のマスタ値ソースとする",
+      "correctionNote": null
+    },
+    {
+      "documentId": "r6-disability-support-guide-202404",
+      "title": "障害者総合支援法 地域社会における共生の実現に向けて（2024年4月版）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001327493.pdf",
+      "sha256": "3ead1b2d235ff15e6d0c71a129e7ef880e119272a00acd043e635aee8c637469",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "effectiveAtは資料の「2024年4月版」を月初に正規化。physical page 9（printed page 17）に生活保護0円、低所得0円、一般1 9,300円、一般2 37,200円と、一般1の所得割16万円未満・20歳以上入所施設利用者とグループホーム利用者を除く条件を収載。制度区分値の根拠として3版に含めるが、受給者証の実値を上書きしない",
+      "correctionNote": null
+    },
+    {
+      "documentId": "r6-claim-handbook-202405",
+      "title": "障害福祉サービス・障害児支援 請求事務ハンドブック（令和6年5月版）",
+      "publisher": "国民健康保険中央会",
+      "effectiveAt": "2024-05-01",
+      "publishedAt": "2024-05-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://cdn.jshien.e-seikyuu.jp/jiritsu/202606001/faq/%E8%AB%8B%E6%B1%82%E4%BA%8B%E5%8B%99%E3%83%8F%E3%83%B3%E3%83%89%E3%83%96%E3%83%83%E3%82%AF_2024%E5%B9%B45%E6%9C%88%E7%89%88.pdf",
+      "sha256": "700e124690489c747655e9ca5227f370a51e8f93ae5141962f2c29f6f69f8c1d",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "effectiveAtは資料の「令和6年5月版」を月初に正規化し、publishedAtは公式お知らせの提示開始日に基づく。成人B型にはphysical pages 16〜17の一般上限額管理フローとpages 19〜20の入力不整合・適用境界の存在確認だけに使用する。physical page 18全体は障害児通所用であり、徴収順、管理結果区分1〜3、金額関係のいずれも成人B型の検証へ使用しない。2024-04へ遡及せず、R6-06版にも含めない。2024-04〜2026-05の成人B型上限額管理対象は成人用一次資料追加まで算定不能とする",
+      "correctionNote": null
+    },
+    {
+      "documentId": "r6-revision-overview",
+      "title": "令和6年度障害福祉サービス等報酬改定の概要",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001216035.pdf",
+      "sha256": "8b66f74bd44cceeb3a0556f8055d10d997199097ed2f9715f79df6cd6fc94f75",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "地域区分は令和6〜8年度の適用地域を示す",
+      "correctionNote": null
+    },
+    {
+      "documentId": "r6-fee-notice",
+      "title": "指定障害福祉サービス等及び基準該当障害福祉サービスに要する費用の額の算定に関する基準等の一部を改正する告示（令和6年こども家庭庁・厚生労働省告示第3号）",
+      "publisher": "こども家庭庁・厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": "2024-03-15",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001239565.pdf",
+      "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "一部は2024-06-01施行。留意事項・正誤・構造表と併用",
+      "correctionNote": null
+    },
+    {
+      "documentId": "r6-calculation-note",
+      "title": "指定障害福祉サービス等の費用算定基準等の制定に伴う実施上の留意事項について",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": "2025-03-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001494356.pdf",
+      "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-fee-notice"
+      ],
+      "applicabilityNote": "2024-06-01施行分と2025-03-31までの改正を含む現行ファイル",
+      "correctionNote": "r6-fee-noticeを補足（2024-06-01施行分と2025-03-31までの改正を含む現行ファイル）"
+    },
+    {
+      "documentId": "r6-employment-guidance-r6",
+      "title": "就労移行支援事業、就労継続支援事業（A型、B型）における留意事項について（令和6年3月29日通知）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": "2024-03-29",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001261445.pdf",
+      "sha256": "58097cbd040de95fd26b65ee2177f762ed276e899214bbc692a3c58c2e3440f3",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-calculation-note"
+      ],
+      "applicabilityNote": "令和6改定時の原本。正誤その4と組み合わせる",
+      "correctionNote": "r6-calculation-noteを補足（令和6改定時の原本。正誤その4と組み合わせる）"
+    },
+    {
+      "documentId": "r6-employment-guidance",
+      "title": "就労移行支援事業、就労継続支援事業（A型、B型）における留意事項について（現行通知）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2025-03-31",
+      "publishedAt": "2025-03-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001473458.pdf",
+      "sha256": "185fa99281ea97b5724297041f8bcbb50c92f9d3882496d3d9a3227328b17481",
+      "supersedes": [
+        "r6-employment-guidance-r6"
+      ],
+      "corrects": null,
+      "supplements": [
+        "r6-calculation-note"
+      ],
+      "applicabilityNote": "2025-10-01開始事項を含む。各サービス月に有効な条項だけを使用",
+      "correctionNote": "r6-employment-guidance-r6を置換。r6-calculation-noteを補足（2025-10-01開始事項を含む。各サービス月に有効な条項だけを使用）"
+    },
+    {
+      "documentId": "r6-employment-guidance-corr-4",
+      "title": "令和6年度障害福祉サービス等関連通知の正誤について（その4）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-06-06",
+      "publishedAt": "2024-06-06",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001261442.pdf",
+      "sha256": "ee76aa76e2e0f76b38d4282142291501f9982a818d1a9a6ac3e6a343d9de6626",
+      "supersedes": null,
+      "corrects": [
+        "r6-employment-guidance-r6"
+      ],
+      "supplements": null,
+      "applicabilityNote": "施設外支援等を訂正",
+      "correctionNote": "r6-employment-guidance-r6を訂正（施設外支援等を訂正）"
+    },
+    {
+      "documentId": "r6-qa-v1",
+      "title": "令和6年度障害福祉サービス等報酬改定等に関するQ&A VOL.1",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-03-29",
+      "publishedAt": "2024-03-29",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001260473.pdf",
+      "sha256": "88309c362a23aac08fce7947bb4aadcc892531164ad7d56a37188ca01be1d95a",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-fee-notice",
+        "r6-calculation-note"
+      ],
+      "applicabilityNote": "別掲の正誤資料と組み合わせる",
+      "correctionNote": "r6-fee-notice、r6-calculation-noteを補足（別掲の正誤資料と組み合わせる）"
+    },
+    {
+      "documentId": "r6-qa-v2",
+      "title": "令和6年度障害福祉サービス等報酬改定等に関するQ&A VOL.2",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-05",
+      "publishedAt": "2024-04-05",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001250243.pdf",
+      "sha256": "bd773dfe577b8a83fd99b28fd10f8cdc1b55d47114a03fd64c128777e54e6b8d",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-qa-v1"
+      ],
+      "applicabilityNote": "別掲の正誤資料と組み合わせる",
+      "correctionNote": "r6-qa-v1を補足（別掲の正誤資料と組み合わせる）"
+    },
+    {
+      "documentId": "r6-qa-v3",
+      "title": "令和6年度障害福祉サービス等報酬改定等に関するQ&A VOL.3",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-05-10",
+      "publishedAt": "2024-05-10",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001253308.pdf",
+      "sha256": "8968925cfae7a563d68fa2b7131e19c7746e30e3a65b91b37ff7c3812c90e2b4",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-qa-v2"
+      ],
+      "applicabilityNote": "取得時点でB型項目の別掲正誤なし",
+      "correctionNote": "r6-qa-v2を補足（取得時点でB型項目の別掲正誤なし）"
+    },
+    {
+      "documentId": "r6-qa-v5",
+      "title": "令和6年度障害福祉サービス等報酬改定等に関するQ&A VOL.5",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-08-29",
+      "publishedAt": "2024-08-29",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001297221.pdf",
+      "sha256": "5a5c07db593c2d75a14fa12714ed9ed112d62a00feb3ffd7855cc7e1f6ee5eb7",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-qa-v3"
+      ],
+      "applicabilityNote": "B型に適用される食事提供体制加算等を確認",
+      "correctionNote": "r6-qa-v3を補足（B型に適用される食事提供体制加算等を確認）"
+    },
+    {
+      "documentId": "r6-qa-v6",
+      "title": "令和6年度障害福祉サービス等報酬改定等に関するQ&A VOL.6",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-10-11",
+      "publishedAt": "2024-10-11",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001316215.pdf",
+      "sha256": "14346b90b13893e201bcad9f1db325becf5b109353b92b0ace362987ffd55802",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-qa-v5"
+      ],
+      "applicabilityNote": "B型に適用される送迎加算を確認",
+      "correctionNote": "r6-qa-v5を補足（B型に適用される送迎加算を確認）"
+    },
+    {
+      "documentId": "r6-qa-v7",
+      "title": "令和6年度障害福祉サービス等報酬改定等に関するQ&A VOL.7",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2025-01-24",
+      "publishedAt": "2025-01-24",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001385141.pdf",
+      "sha256": "943ed022a46f706adc23e2a6c40724acf7c994c4549d0b1df709c335c46215f5",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-qa-v6"
+      ],
+      "applicabilityNote": "就労移行支援体制加算を確認",
+      "correctionNote": "r6-qa-v6を補足（就労移行支援体制加算を確認）"
+    },
+    {
+      "documentId": "r6-qa-v8",
+      "title": "令和6年度障害福祉サービス等報酬改定等に関するQ&A VOL.8",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2025-03-31",
+      "publishedAt": "2025-03-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001471548.pdf",
+      "sha256": "09187ef8d8f88edf95e3454fec96eb39c1e455a7fd72f76eae871fab6c40b340",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-qa-v7",
+        "r6-employment-guidance-r6"
+      ],
+      "applicabilityNote": "施設外就労と基本報酬を確認",
+      "correctionNote": "r6-qa-v7、r6-employment-guidance-r6を補足（施設外就労と基本報酬を確認）"
+    },
+    {
+      "documentId": "r6-calculation-corr-1",
+      "title": "令和6年度障害福祉サービス等報酬改定関連通知の正誤について",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-04",
+      "publishedAt": "2024-04-04",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001241205.pdf",
+      "sha256": "e17e55bd7698a0343bf7c688afb7ca1a8447aa27dbd8a20070e6c9e95a8cecdb",
+      "supersedes": null,
+      "corrects": [
+        "r6-calculation-note"
+      ],
+      "supplements": null,
+      "applicabilityNote": "B型に適用される共通・個別訂正を含む",
+      "correctionNote": "r6-calculation-noteを訂正（B型に適用される共通・個別訂正を含む）"
+    },
+    {
+      "documentId": "r6-calculation-corr-3",
+      "title": "同正誤について（その3）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-06-04",
+      "publishedAt": "2024-06-04",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001260426.pdf",
+      "sha256": "d179e42bc7001da63e2f720148e7ceeec0ad35086a6707acea394eb887880332",
+      "supersedes": null,
+      "corrects": [
+        "r6-calculation-note"
+      ],
+      "supplements": null,
+      "applicabilityNote": "B型項目の訂正を含む",
+      "correctionNote": "r6-calculation-noteを訂正（B型項目の訂正を含む）"
+    },
+    {
+      "documentId": "r6-calculation-corr-5",
+      "title": "同正誤について（その5）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-06-14",
+      "publishedAt": "2024-06-14",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001264340.pdf",
+      "sha256": "8d0bc5bdb3895eda2c6b127a87f54bed5f52a361836de0d2e4684a8bd10fb43b",
+      "supersedes": null,
+      "corrects": [
+        "r6-calculation-note"
+      ],
+      "supplements": null,
+      "applicabilityNote": "情報公表未報告・業務継続計画未策定等の訂正を含む",
+      "correctionNote": "r6-calculation-noteを訂正（情報公表未報告・業務継続計画未策定等の訂正を含む）"
+    },
+    {
+      "documentId": "r6-calculation-corr-6",
+      "title": "同正誤について（その6）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-08-29",
+      "publishedAt": "2024-08-29",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001297223.pdf",
+      "sha256": "ae8d1a2ca574cad9870e628818e6a536b87ab4a4117e468b49e2004cc04e406c",
+      "supersedes": null,
+      "corrects": [
+        "r6-calculation-note"
+      ],
+      "supplements": null,
+      "applicabilityNote": "目標工賃達成加算の年度・例示を訂正",
+      "correctionNote": "r6-calculation-noteを訂正（目標工賃達成加算の年度・例示を訂正）"
+    },
+    {
+      "documentId": "r6-calculation-corr-7",
+      "title": "同正誤について（その7）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2025-01-29",
+      "publishedAt": "2025-01-29",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001389280.pdf",
+      "sha256": "3ac7bf7826e25b41f06842916a24222a7d6af95037ba0ec5b50cf5346ee0fb98",
+      "supersedes": null,
+      "corrects": [
+        "r6-calculation-note"
+      ],
+      "supplements": null,
+      "applicabilityNote": "B型項目の訂正を含む",
+      "correctionNote": "r6-calculation-noteを訂正（B型項目の訂正を含む）"
+    },
+    {
+      "documentId": "r6-calculation-corr-8",
+      "title": "同正誤について（その8）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2025-05-23",
+      "publishedAt": "2025-05-23",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001494351.pdf",
+      "sha256": "e82f8627753508f381fd1cd226830ce78379143b68c86e2ceeb5694236085433",
+      "supersedes": null,
+      "corrects": [
+        "r6-calculation-note"
+      ],
+      "supplements": null,
+      "applicabilityNote": "B型の処遇改善加算に関する訂正を含む",
+      "correctionNote": "r6-calculation-noteを訂正（B型の処遇改善加算に関する訂正を含む）"
+    },
+    {
+      "documentId": "r6-qa-corr-1",
+      "title": "Q&A VOL.1の正誤について",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-05",
+      "publishedAt": "2024-04-05",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001241668.pdf",
+      "sha256": "81db930576745d6b7b53e82e0105805ec182f9d294118a6f822f9b8b3a3ad246",
+      "supersedes": null,
+      "corrects": [
+        "r6-qa-v1"
+      ],
+      "supplements": null,
+      "applicabilityNote": "目標工賃達成加算の訂正",
+      "correctionNote": "r6-qa-v1を訂正（目標工賃達成加算の訂正）"
+    },
+    {
+      "documentId": "r6-qa-corr-2",
+      "title": "Q&A VOL.1の正誤（その2）及びVOL.2の正誤について",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-26",
+      "publishedAt": "2024-04-26",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001250239.pdf",
+      "sha256": "ee37c492b6989ad874f4be0f8febddab2ff351e6fe5bb0afff04223a7e2df8df",
+      "supersedes": null,
+      "corrects": [
+        "r6-qa-v1",
+        "r6-qa-v2"
+      ],
+      "supplements": null,
+      "applicabilityNote": "目標工賃達成加算・平均工賃算定の訂正を含む",
+      "correctionNote": "r6-qa-v1、r6-qa-v2を訂正（目標工賃達成加算・平均工賃算定の訂正を含む）"
+    },
+    {
+      "documentId": "r6-qa-corr-3",
+      "title": "Q&A VOL.1の正誤（その3）について",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-06-04",
+      "publishedAt": "2024-06-04",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001260428.pdf",
+      "sha256": "0a5b18d0d1f413d1599861db90d4735bb8a39c99cb6d48e4e0e45fa090f7c57a",
+      "supersedes": null,
+      "corrects": [
+        "r6-qa-v1"
+      ],
+      "supplements": null,
+      "applicabilityNote": "目標工賃達成加算の確定訂正",
+      "correctionNote": "r6-qa-v1を訂正（目標工賃達成加算の確定訂正）"
+    },
+    {
+      "documentId": "r6-capability-202404",
+      "title": "体制等状況一覧表（令和6年4月〜）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001253260.xlsx",
+      "sha256": "fa24cd44e81cf1f1118b4a4c8a0b28bce31ee5227f13b9f8baa260ea6f223531",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "2024-04、2024-05サービス月に使用",
+      "correctionNote": null
+    },
+    {
+      "documentId": "r6-capability-202406",
+      "title": "体制等状況一覧表（令和6年6月〜）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-06-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001253309.xlsx",
+      "sha256": "d1edf9715b8c41660d6e4278ebd886861d0758c75109e4efc594f5d70f197c50",
+      "supersedes": [
+        "r6-capability-202404"
+      ],
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "2025-01-31確定コードと併用",
+      "correctionNote": "r6-capability-202404を置換（2025-01-31確定コードと併用）"
+    },
+    {
+      "documentId": "r6-reward-structure",
+      "title": "障害福祉サービス費等の報酬算定構造（令和6年4月、6月施行分）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": "2024-03-29",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/2024040100006.pdf",
+      "sha256": "451a5013d0d0f8009d5021bafc259c37c6d156bd9e5eaccd38cbfc166a22f1f9",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-fee-notice"
+      ],
+      "applicabilityNote": "2024-06-01施行分を含む。基本報酬・加算・減算を告示と相互照合",
+      "correctionNote": "r6-fee-noticeを補足（2024-06-01施行分を含む。基本報酬・加算・減算を告示と相互照合）"
+    },
+    {
+      "documentId": "r6-service-codes-1-pdf",
+      "title": "介護給付費等単位数サービスコード（令和6年4月、6月施行分・分割1・確定版PDF）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": "2025-01-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/0131001.pdf",
+      "sha256": "59a7ef23aac84a325705943d3278ad0556471cd1725c51a1ece6b03e76b3b1bf",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-fee-notice",
+        "r6-reward-structure"
+      ],
+      "applicabilityNote": "2024-06-01施行分を含む。分割1にB型シートはなく、B型マスタの入力には使用しない",
+      "correctionNote": "r6-fee-notice、r6-reward-structureを補足（2024-06-01施行分を含む。分割1にB型シートはなく、B型マスタの入力には使用しない）"
+    },
+    {
+      "documentId": "r6-service-codes-1-xlsx",
+      "title": "介護給付費等単位数サービスコード（令和6年4月、6月施行分・分割1・確定版Excel）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": "2025-01-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/0131002.xlsx",
+      "sha256": "5518200dbf66c6f7dcda29ed6a451add32cf1ca6c2623ef3772179a097ffdd6a",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-service-codes-1-pdf"
+      ],
+      "applicabilityNote": "2024-06-01施行分を含む。分割1にB型シートはなく、B型マスタの入力には使用しない",
+      "correctionNote": "r6-service-codes-1-pdfを補足（2024-06-01施行分を含む。分割1にB型シートはなく、B型マスタの入力には使用しない）"
+    },
+    {
+      "documentId": "r6-service-codes-2-pdf",
+      "title": "介護給付費等単位数サービスコード（令和6年4月、6月施行分・分割2・確定版PDF）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": "2025-01-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/20241129007.pdf",
+      "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-fee-notice",
+        "r6-reward-structure"
+      ],
+      "applicabilityNote": "2024-06-01施行分を含む。就労継続支援B型サービスコード表を収載",
+      "correctionNote": "r6-fee-notice、r6-reward-structureを補足（2024-06-01施行分を含む。就労継続支援B型サービスコード表を収載）"
+    },
+    {
+      "documentId": "r6-service-codes-2-xlsx",
+      "title": "介護給付費等単位数サービスコード（令和6年4月、6月施行分・分割2・確定版Excel）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": "2025-01-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/20241129010.xlsx",
+      "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-service-codes-2-pdf"
+      ],
+      "applicabilityNote": "2024-06-01施行分を含む。ワークブック順38〜41がB型の基本、定員超過、生活支援員等欠員、サービス管理責任者欠員。マスタ転記の正本",
+      "correctionNote": "r6-service-codes-2-pdfを補足（2024-06-01施行分を含む。ワークブック順38〜41がB型の基本、定員超過、生活支援員等欠員、サービス管理責任者欠員。マスタ転記の正本）"
+    },
+    {
+      "documentId": "r6-claim-decision-202404-pdf",
+      "title": "請求サービスコードと決定サービスコード対応表（令和6年4月版・確定版PDF）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": "2025-01-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/20241129012.pdf",
+      "sha256": "b2591a682b95cc3120fe2d24fdc8d6686fadadefc5ba1e2264310e41dadfb971",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "Excelと同一版",
+      "correctionNote": null
+    },
+    {
+      "documentId": "r6-claim-decision-202404-xls",
+      "title": "同対応表（令和6年4月版・確定版Excel）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": "2025-01-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/20241129013.xls",
+      "sha256": "1853640e49de6c671c182460435431e24acbc3a57587ce0285b714386ae55797",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-claim-decision-202404-pdf"
+      ],
+      "applicabilityNote": "マスタ転記の正本",
+      "correctionNote": "r6-claim-decision-202404-pdfを補足（マスタ転記の正本）"
+    },
+    {
+      "documentId": "r6-claim-decision-202406-pdf",
+      "title": "請求サービスコードと決定サービスコード対応表（令和6年6月版・確定版PDF）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-06-01",
+      "publishedAt": "2025-01-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/20241129015.pdf",
+      "sha256": "6a9219573228846f496b11dbdd81bf557c039db381c4515c654c2c9bded45de5",
+      "supersedes": [
+        "r6-claim-decision-202404-pdf"
+      ],
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "Excelと同一版",
+      "correctionNote": "r6-claim-decision-202404-pdfを置換（Excelと同一版）"
+    },
+    {
+      "documentId": "r6-claim-decision-202406-xls",
+      "title": "同対応表（令和6年6月版・確定版Excel）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2024-06-01",
+      "publishedAt": "2025-01-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/20241129016.xls",
+      "sha256": "f361e7a518439c825e84d5cc0165afab8d17410dddebc6afb4e00832f6345c98",
+      "supersedes": [
+        "r6-claim-decision-202404-xls"
+      ],
+      "corrects": null,
+      "supplements": [
+        "r6-claim-decision-202406-pdf"
+      ],
+      "applicabilityNote": "マスタ転記の正本",
+      "correctionNote": "r6-claim-decision-202404-xlsを置換。r6-claim-decision-202406-pdfを補足（マスタ転記の正本）"
+    },
+    {
+      "documentId": "r8-grant-decision-administration-202606",
+      "title": "介護給付費等に係る支給決定事務等について（事務処理要領・最終改正令和8年6月）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001470632.pdf",
+      "sha256": "d6e1672245370d2d7bb9a4258622ae3e631d0a6144c8e0c9ea51e2018a146f1e",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "effectiveAtは「最終改正 令和8年6月」を月初に正規化。physical pages 112〜113の受給者証上限の認定・適用期間、pages 173〜186（特に182〜186）の上限額管理、結果1〜3、管理結果後利用者負担額、合計、成人を含む徴収優先順に使用。page 112は制度額を別の利用者負担マニュアル参照とするため、本資料を制度額そのものの根拠にしない。令和8年5月以前に遡及適用しない",
+      "correctionNote": null
+    },
+    {
+      "documentId": "r8-revision-overview",
+      "title": "令和8年度障害福祉サービス等報酬改定における改定事項について",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-02-18",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001680064.pdf",
+      "sha256": "91bb6b34e19617ff7deac20406875fa977e3788cabfe2ed0ef7e95a79cd23900",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "告示・通知で確定値を照合",
+      "correctionNote": null
+    },
+    {
+      "documentId": "r8-fee-notice",
+      "title": "指定障害福祉サービス等及び基準該当障害福祉サービスに要する費用の額の算定に関する基準等の一部を改正する告示（令和8年こども家庭庁・厚生労働省告示第5号）",
+      "publisher": "こども家庭庁・厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-03-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001684450.pdf",
+      "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+      "supersedes": [
+        "r6-fee-notice"
+      ],
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "通知・構造表と相互照合",
+      "correctionNote": "r6-fee-noticeを置換（通知・構造表と相互照合）"
+    },
+    {
+      "documentId": "r8-calculation-note",
+      "title": "指定障害福祉サービス等の費用算定基準等の制定に伴う実施上の留意事項について",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-05-28",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001705650.pdf",
+      "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+      "supersedes": [
+        "r6-calculation-note"
+      ],
+      "corrects": null,
+      "supplements": [
+        "r8-fee-notice"
+      ],
+      "applicabilityNote": "2026-05-28改正を含む現行ファイル",
+      "correctionNote": "r6-calculation-noteを置換。r8-fee-noticeを補足（2026-05-28改正を含む現行ファイル）"
+    },
+    {
+      "documentId": "r8-b-reward-band-guide",
+      "title": "別添資料 就労継続支援B型の基本報酬区分の基準の見直しについて",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-03-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001683311.pdf",
+      "sha256": "96b002a6aecf76cbf2141fc53aee1c803e7cf78ba2dca52adbf755190e59ab5e",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r8-fee-notice",
+        "r8-calculation-note"
+      ],
+      "applicabilityNote": "報酬算定構造で確定値を照合",
+      "correctionNote": "r8-fee-notice、r8-calculation-noteを補足（報酬算定構造で確定値を照合）"
+    },
+    {
+      "documentId": "r8-employment-transition-guide",
+      "title": "別紙6 就労移行支援体制加算の見直し",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-03-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001683303.pdf",
+      "sha256": "4bae0d014086f89d400c442ed7413142a6feb4c4bdbcbfd69d06832d90885047",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r8-fee-notice"
+      ],
+      "applicabilityNote": "告示・サービスコードと併用する補助資料",
+      "correctionNote": "r8-fee-noticeを補足（告示・サービスコードと併用する補助資料）"
+    },
+    {
+      "documentId": "r8-qa-v1",
+      "title": "令和8年度障害福祉サービス等報酬改定等に関するQ&A VOL.1",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-03-31",
+      "publishedAt": "2026-03-31",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001683290.pdf",
+      "sha256": "e2b95e451418c928e6e2ec7e05360d1810079fa81fa70acfe76fe91126276e78",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r8-fee-notice",
+        "r8-calculation-note"
+      ],
+      "applicabilityNote": "取得時点で別掲正誤なし",
+      "correctionNote": "r8-fee-notice、r8-calculation-noteを補足（取得時点で別掲正誤なし）"
+    },
+    {
+      "documentId": "r8-amendment-qa",
+      "title": "実施上の留意事項通知等の発出に伴うQ&A",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-05-28",
+      "publishedAt": "2026-05-28",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001705652.pdf",
+      "sha256": "68811f40164727ffa7165d53bd6a090363f23a7cf5aaacd2302ded41add2ad35",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r8-calculation-note",
+        "r8-qa-v1"
+      ],
+      "applicabilityNote": "人員欠如の共通取扱い。B型にも適用",
+      "correctionNote": "r8-calculation-note、r8-qa-v1を補足（人員欠如の共通取扱い。B型にも適用）"
+    },
+    {
+      "documentId": "r8-capability-202606",
+      "title": "体制状況一覧表（令和8年6月版）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-04-13",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001689932.xlsx",
+      "sha256": "84ff0b3b34c2ef857a1bcec221b8c276c177678b403ca6e171b2a08a6d8a150b",
+      "supersedes": [
+        "r6-capability-202406"
+      ],
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "修正箇所資料と一組で使用",
+      "correctionNote": "r6-capability-202406を置換（修正箇所資料と一組で使用）"
+    },
+    {
+      "documentId": "r8-capability-correction",
+      "title": "体制状況一覧表（令和8年6月版）（修正箇所）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-04-13",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001689933.pdf",
+      "sha256": "06414c8aad4c014f44fd211dac141d152f30135fb622cdd32874e1c6bccbd980",
+      "supersedes": null,
+      "corrects": [
+        "r8-capability-202606"
+      ],
+      "supplements": null,
+      "applicabilityNote": "単独マスタにせず掲載Excelの検証根拠とする",
+      "correctionNote": "r8-capability-202606を訂正（単独マスタにせず掲載Excelの検証根拠とする）"
+    },
+    {
+      "documentId": "r8-reward-structure",
+      "title": "障害福祉サービス費等の報酬算定構造（令和8年6月施行分）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001663319.pdf",
+      "sha256": "8c2638482364d57c7a42c87f5a4ff0dc9a58b0f32c1908ac3702e2a1c35a2b49",
+      "supersedes": [
+        "r6-reward-structure"
+      ],
+      "corrects": null,
+      "supplements": [
+        "r8-fee-notice"
+      ],
+      "applicabilityNote": "B型のR8対象行だけを適用条件で選択",
+      "correctionNote": "r6-reward-structureを置換。r8-fee-noticeを補足（B型のR8対象行だけを適用条件で選択）"
+    },
+    {
+      "documentId": "r8-service-codes-1-pdf",
+      "title": "介護給付費等単位数サービスコード（令和8年6月施行分・分割1・PDF）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-04-28",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001696433.pdf",
+      "sha256": "db9c20a55c40f831537b9d59eaa02d54906544432397e8f1914d0098b2578760",
+      "supersedes": [
+        "r6-service-codes-1-pdf"
+      ],
+      "corrects": null,
+      "supplements": [
+        "r8-reward-structure"
+      ],
+      "applicabilityNote": "分割1にB型シートはなく、B型マスタの入力には使用しない",
+      "correctionNote": "r6-service-codes-1-pdfを置換。r8-reward-structureを補足（分割1にB型シートはなく、B型マスタの入力には使用しない）"
+    },
+    {
+      "documentId": "r8-service-codes-1-xlsx",
+      "title": "介護給付費等単位数サービスコード（令和8年6月施行分・分割1・Excel）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-04-28",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001696436.xlsx",
+      "sha256": "b0d5495bdc684cd5c3e6e4f8c97dc247f169df7fd628660e085014564f266908",
+      "supersedes": [
+        "r6-service-codes-1-xlsx"
+      ],
+      "corrects": null,
+      "supplements": [
+        "r8-service-codes-1-pdf"
+      ],
+      "applicabilityNote": "分割1にB型シートはなく、B型マスタの入力には使用しない",
+      "correctionNote": "r6-service-codes-1-xlsxを置換。r8-service-codes-1-pdfを補足（分割1にB型シートはなく、B型マスタの入力には使用しない）"
+    },
+    {
+      "documentId": "r8-service-codes-2-pdf",
+      "title": "介護給付費等単位数サービスコード（令和8年6月施行分・分割2・PDF）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-04-28",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001696434.pdf",
+      "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+      "supersedes": [
+        "r6-service-codes-2-pdf"
+      ],
+      "corrects": null,
+      "supplements": [
+        "r8-reward-structure"
+      ],
+      "applicabilityNote": "就労継続支援B型サービスコード表を収載",
+      "correctionNote": "r6-service-codes-2-pdfを置換。r8-reward-structureを補足（就労継続支援B型サービスコード表を収載）"
+    },
+    {
+      "documentId": "r8-service-codes-2-xlsx",
+      "title": "介護給付費等単位数サービスコード（令和8年6月施行分・分割2・Excel）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-04-28",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001696437.xlsx",
+      "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+      "supersedes": [
+        "r6-service-codes-2-xlsx"
+      ],
+      "corrects": null,
+      "supplements": [
+        "r8-service-codes-2-pdf"
+      ],
+      "applicabilityNote": "ワークブック順38〜41がB型の基本、定員超過、生活支援員等欠員、サービス管理責任者欠員。マスタ転記の正本",
+      "correctionNote": "r6-service-codes-2-xlsxを置換。r8-service-codes-2-pdfを補足（ワークブック順38〜41がB型の基本、定員超過、生活支援員等欠員、サービス管理責任者欠員。マスタ転記の正本）"
+    },
+    {
+      "documentId": "r8-claim-decision-pdf",
+      "title": "請求サービスコードと決定サービスコード対応表（令和8年6月版PDF）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-04-28",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001696448.pdf",
+      "sha256": "26d10690efee3b26a21d219e32ffdc92892cad6044d4414864c853e09e15033e",
+      "supersedes": [
+        "r6-claim-decision-202406-pdf"
+      ],
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "「決定サービスごとの設定内容は変更なし」とは別資料",
+      "correctionNote": "r6-claim-decision-202406-pdfを置換（「決定サービスごとの設定内容は変更なし」とは別資料）"
+    },
+    {
+      "documentId": "r8-claim-decision-xls",
+      "title": "請求サービスコードと決定サービスコード対応表（令和8年6月版Excel）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-04-28",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001696450.xls",
+      "sha256": "dd11bfc99831aab4d0ec6eaef1e97fc52cbaf7f15c036f6edd114fa36fd249b2",
+      "supersedes": [
+        "r6-claim-decision-202406-xls"
+      ],
+      "corrects": null,
+      "supplements": [
+        "r8-claim-decision-pdf"
+      ],
+      "applicabilityNote": "マスタ転記の正本",
+      "correctionNote": "r6-claim-decision-202406-xlsを置換。r8-claim-decision-pdfを補足（マスタ転記の正本）"
+    }
+  ],
+  "releases": [
+    {
+      "masterVersion": "claim-master-r6-04",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": "2024-05",
+      "sourceDocumentIds": [
+        "mhlw-unit-price-notice-observed-946c3d96",
+        "r6-revision-overview",
+        "r6-fee-notice",
+        "r6-calculation-note",
+        "r6-employment-guidance-r6",
+        "r6-employment-guidance",
+        "r6-employment-guidance-corr-4",
+        "r6-qa-v1",
+        "r6-qa-v2",
+        "r6-qa-v3",
+        "r6-qa-v5",
+        "r6-qa-v6",
+        "r6-qa-v7",
+        "r6-qa-v8",
+        "r6-calculation-corr-1",
+        "r6-calculation-corr-3",
+        "r6-calculation-corr-5",
+        "r6-calculation-corr-6",
+        "r6-calculation-corr-7",
+        "r6-calculation-corr-8",
+        "r6-qa-corr-1",
+        "r6-qa-corr-2",
+        "r6-qa-corr-3",
+        "r6-capability-202404",
+        "r6-reward-structure",
+        "r6-service-codes-2-pdf",
+        "r6-service-codes-2-xlsx",
+        "r6-claim-decision-202404-pdf",
+        "r6-claim-decision-202404-xls",
+        "r6-disability-support-guide-202404",
+        "r6-claim-handbook-202405"
+      ]
+    },
+    {
+      "masterVersion": "claim-master-r6-06",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2026-05",
+      "sourceDocumentIds": [
+        "mhlw-unit-price-notice-observed-946c3d96",
+        "r6-revision-overview",
+        "r6-fee-notice",
+        "r6-calculation-note",
+        "r6-employment-guidance-r6",
+        "r6-employment-guidance",
+        "r6-employment-guidance-corr-4",
+        "r6-qa-v1",
+        "r6-qa-v2",
+        "r6-qa-v3",
+        "r6-qa-v5",
+        "r6-qa-v6",
+        "r6-qa-v7",
+        "r6-qa-v8",
+        "r6-calculation-corr-1",
+        "r6-calculation-corr-3",
+        "r6-calculation-corr-5",
+        "r6-calculation-corr-6",
+        "r6-calculation-corr-7",
+        "r6-calculation-corr-8",
+        "r6-qa-corr-1",
+        "r6-qa-corr-2",
+        "r6-qa-corr-3",
+        "r6-capability-202406",
+        "r6-reward-structure",
+        "r6-service-codes-2-pdf",
+        "r6-service-codes-2-xlsx",
+        "r6-claim-decision-202406-pdf",
+        "r6-claim-decision-202406-xls",
+        "r6-disability-support-guide-202404"
+      ]
+    },
+    {
+      "masterVersion": "claim-master-r8-06",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceDocumentIds": [
+        "mhlw-unit-price-notice-observed-946c3d96",
+        "r6-revision-overview",
+        "r8-revision-overview",
+        "r8-fee-notice",
+        "r8-calculation-note",
+        "r8-b-reward-band-guide",
+        "r8-employment-transition-guide",
+        "r8-qa-v1",
+        "r8-amendment-qa",
+        "r8-capability-202606",
+        "r8-capability-correction",
+        "r8-reward-structure",
+        "r8-service-codes-2-pdf",
+        "r8-service-codes-2-xlsx",
+        "r8-claim-decision-pdf",
+        "r8-claim-decision-xls",
+        "r6-disability-support-guide-202404",
+        "r8-grant-decision-administration-202606"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tsumugi.local/schema/claim-master-file.schema.json",
+  "title": "Tsumugi claim master file",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "masterKind", "entries"],
+  "properties": {
+    "schemaVersion": { "const": "1" },
+    "masterKind": {
+      "type": "string",
+      "enum": [
+        "basic-rewards",
+        "additions",
+        "region-unit-prices",
+        "burden-caps",
+        "transition-rules",
+        "service-codes"
+      ]
+    },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "effectiveFrom", "effectiveTo", "sourceDocumentId", "values"],
+      "properties": {
+        "key": { "type": "string", "minLength": 1 },
+        "effectiveFrom": { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+        "effectiveTo": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+        },
+        "sourceDocumentId": { "type": "string", "minLength": 1 },
+        "values": {
+          "type": "object",
+          "minProperties": 1
+        }
+      }
+    }
+  }
+}
