@@ -4,7 +4,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Tsumugi.Infrastructure.Tests;
 
@@ -36,14 +37,6 @@ internal static class ExternalSpecificationLiteralGuard
     private const string DomainDirectory = "src/Tsumugi.Domain/";
     private const string ApplicationDirectory = "src/Tsumugi.Application/";
     private const string InfrastructureCsvDirectory = "src/Tsumugi.Infrastructure.Csv/";
-
-    private static readonly Regex CSharpStringLiteralPattern = new(
-        """(?<raw>(?<delimiter>"{3,})(?<rawValue>[\s\S]*?)\k<delimiter>)|(?<verbatim>@"(?<verbatimValue>(?:""|[^"])*)")|(?<regular>"(?<regularValue>(?:\\.|[^"\\])*)")""",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
-    private static readonly Regex CSharpNumberLiteralPattern = new(
-        """(?<![\p{L}\p{N}_.])(?<number>\d[\d_]*(?:\.\d[\d_]*)?(?:[eE][+-]?\d[\d_]*)?)(?<suffix>[uUlLfFdDmM]{0,2})(?![\p{L}\p{N}_.])""",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     public static IReadOnlyList<Violation> ScanProduction()
     {
@@ -457,7 +450,7 @@ internal static class ExternalSpecificationLiteralGuard
             var isOutsideInfrastructureCsv =
                 !sourceFile.RelativePath.StartsWith(InfrastructureCsvDirectory, StringComparison.Ordinal);
 
-            foreach (var sourceLiteral in EnumerateCSharpLiterals(sourceFile.Text))
+            foreach (var sourceLiteral in EnumerateCSharpLiterals(sourceFile, violations))
             {
                 if (isClaimLayer)
                 {
@@ -503,461 +496,96 @@ internal static class ExternalSpecificationLiteralGuard
         }
     }
 
-    private static List<SourceLiteral> EnumerateCSharpLiterals(string text)
+    private static List<SourceLiteral> EnumerateCSharpLiterals(
+        SourceFile sourceFile,
+        ICollection<Violation> violations)
     {
-        var literals = new List<SourceLiteral>();
-        var codeWithoutComments = StripComments(text);
-        var codeWithoutStrings = codeWithoutComments.ToCharArray();
+        var syntaxTree = CSharpSyntaxTree.ParseText(
+            sourceFile.Text,
+            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview),
+            path: sourceFile.RelativePath);
+        var errors = syntaxTree.GetDiagnostics()
+            .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+            .ToArray();
 
-        foreach (Match match in CSharpStringLiteralPattern.Matches(codeWithoutComments))
+        foreach (var diagnostic in errors)
         {
-            var value = match.Groups["raw"].Success
-                ? match.Groups["rawValue"].Value
-                : match.Groups["verbatim"].Success
-                    ? match.Groups["verbatimValue"].Value.Replace("\"\"", "\"", StringComparison.Ordinal)
-                    : Regex.Unescape(match.Groups["regularValue"].Value);
-            literals.Add(new SourceLiteral(
-                LiteralKind.String,
-                value,
-                GetLineNumber(codeWithoutComments, match.Index)));
-            BlankExceptNewLines(codeWithoutStrings, match.Index, match.Length);
+            var lineNumber = diagnostic.Location.IsInSource
+                ? diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1
+                : 1;
+            violations.Add(new Violation(
+                sourceFile.RelativePath,
+                lineNumber,
+                "csharp-parse",
+                diagnostic.Id + ": " + diagnostic.GetMessage(CultureInfo.InvariantCulture),
+                sourceFile.RelativePath + "#syntax"));
         }
 
-        var numericSource = new string(codeWithoutStrings);
-        foreach (Match match in CSharpNumberLiteralPattern.Matches(numericSource))
+        if (errors.Length > 0) return [];
+
+        return syntaxTree.GetRoot()
+            .DescendantTokens()
+            .Select(token => ToSourceLiteral(syntaxTree, token))
+            .OfType<SourceLiteral>()
+            .ToList();
+    }
+
+    private static SourceLiteral? ToSourceLiteral(SyntaxTree syntaxTree, SyntaxToken token)
+    {
+        var lineNumber = syntaxTree.GetLineSpan(token.Span).StartLinePosition.Line + 1;
+        if (token.IsKind(SyntaxKind.NumericLiteralToken))
         {
-            literals.Add(new SourceLiteral(
+            return new SourceLiteral(
                 LiteralKind.Number,
-                match.Groups["number"].Value.Replace("_", string.Empty, StringComparison.Ordinal),
-                GetLineNumber(numericSource, match.Index)));
+                NormalizeCSharpNumber(token),
+                lineNumber);
         }
 
-        foreach (var hole in EnumerateInterpolationHoles(codeWithoutComments))
-        {
-            literals.AddRange(EnumerateCSharpLiterals(hole.Text)
-                .Select(literal => literal with
-                {
-                    LineNumber = literal.LineNumber + hole.LineOffset,
-                }));
-        }
-
-        return literals;
+        return IsStringLiteralToken(token.Kind())
+            ? new SourceLiteral(LiteralKind.String, token.ValueText, lineNumber)
+            : null;
     }
 
-    private static List<InterpolationHole> EnumerateInterpolationHoles(string text)
+    private static bool IsStringLiteralToken(SyntaxKind kind) =>
+        kind is SyntaxKind.StringLiteralToken
+            or SyntaxKind.SingleLineRawStringLiteralToken
+            or SyntaxKind.MultiLineRawStringLiteralToken
+            or SyntaxKind.Utf8StringLiteralToken
+            or SyntaxKind.Utf8SingleLineRawStringLiteralToken
+            or SyntaxKind.Utf8MultiLineRawStringLiteralToken;
+
+    private static string NormalizeCSharpNumber(SyntaxToken token) =>
+        token.Value switch
+        {
+            float value => value.ToString("R", CultureInfo.InvariantCulture),
+            double value => value.ToString("R", CultureInfo.InvariantCulture),
+            decimal value => value.ToString("G29", CultureInfo.InvariantCulture),
+            IFormattable value => value.ToString(null, CultureInfo.InvariantCulture),
+            _ => token.ValueText,
+        };
+
+    private static string NormalizeCatalogNumber(string literal)
     {
-        var holes = new List<InterpolationHole>();
-        var index = 0;
-        while (index < text.Length)
+        var unsignedLiteral = literal.Length > 0 && literal[0] == '-'
+            ? literal[1..]
+            : literal;
+        if (decimal.TryParse(
+                unsignedLiteral,
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out var decimalValue))
         {
-            if (TryReadInterpolatedStringStart(text, index, out var interpolation))
-            {
-                index = interpolation.QuoteIndex + interpolation.QuoteCount;
-                while (index < text.Length)
-                {
-                    if (IsInterpolationClosingDelimiter(text, index, interpolation))
-                    {
-                        index += interpolation.QuoteCount;
-                        break;
-                    }
-
-                    if (!interpolation.IsRaw &&
-                        !interpolation.IsVerbatim &&
-                        text[index] == '\\' &&
-                        index + 1 < text.Length)
-                    {
-                        index += 2;
-                        continue;
-                    }
-
-                    if (interpolation.IsVerbatim &&
-                        text[index] == '"' &&
-                        index + 1 < text.Length &&
-                        text[index + 1] == '"')
-                    {
-                        index += 2;
-                        continue;
-                    }
-
-                    var braceCount = interpolation.IsRaw ? interpolation.DollarCount : 1;
-                    if (text[index] == '{' &&
-                        CountRun(text, index, '{') >= braceCount &&
-                        (interpolation.IsRaw || !StartsWith(text, index, "{{")))
-                    {
-                        var holeStart = index + braceCount;
-                        var holeEnd = FindInterpolationHoleEnd(text, holeStart, braceCount);
-                        if (holeEnd < 0)
-                        {
-                            index = text.Length;
-                            break;
-                        }
-
-                        var holeText = text[holeStart..holeEnd];
-                        var expressionLength = GetInterpolationExpressionLength(holeText);
-                        holes.Add(new InterpolationHole(
-                            holeText[..expressionLength],
-                            GetLineNumber(text, holeStart) - 1));
-                        index = holeEnd + braceCount;
-                        continue;
-                    }
-
-                    if (!interpolation.IsRaw &&
-                        (StartsWith(text, index, "{{") || StartsWith(text, index, "}}")))
-                    {
-                        index += 2;
-                        continue;
-                    }
-
-                    index++;
-                }
-
-                continue;
-            }
-
-            if (text[index] == '"')
-            {
-                var quoteCount = CountRun(text, index, '"');
-                index = quoteCount >= 3
-                    ? SkipRawString(text, index, quoteCount)
-                    : SkipQuotedLiteral(text, index, '"', isVerbatim: false);
-                continue;
-            }
-
-            if (text[index] == '@' && index + 1 < text.Length && text[index + 1] == '"')
-            {
-                index = SkipQuotedLiteral(text, index + 1, '"', isVerbatim: true);
-                continue;
-            }
-
-            if (text[index] == '\'')
-            {
-                index = SkipQuotedLiteral(text, index, '\'', isVerbatim: false);
-                continue;
-            }
-
-            index++;
+            return decimalValue.ToString("G29", CultureInfo.InvariantCulture);
         }
 
-        return holes;
+        return double.TryParse(
+            unsignedLiteral,
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out var doubleValue)
+            ? doubleValue.ToString("R", CultureInfo.InvariantCulture)
+            : unsignedLiteral;
     }
-
-    private static bool TryReadInterpolatedStringStart(
-        string text,
-        int index,
-        out InterpolatedStringStart interpolation)
-    {
-        interpolation = default;
-        var dollarCount = 0;
-        var isVerbatim = false;
-        var quoteIndex = index;
-
-        if (text[index] == '$')
-        {
-            dollarCount = CountRun(text, index, '$');
-            quoteIndex += dollarCount;
-            if (quoteIndex < text.Length && text[quoteIndex] == '@')
-            {
-                if (dollarCount != 1) return false;
-                isVerbatim = true;
-                quoteIndex++;
-            }
-        }
-        else if (text[index] == '@' &&
-                 index + 2 < text.Length &&
-                 text[index + 1] == '$')
-        {
-            dollarCount = 1;
-            isVerbatim = true;
-            quoteIndex = index + 2;
-        }
-        else
-        {
-            return false;
-        }
-
-        if (quoteIndex >= text.Length || text[quoteIndex] != '"') return false;
-        var quoteCount = CountRun(text, quoteIndex, '"');
-        if (quoteCount == 2 || isVerbatim && quoteCount != 1) return false;
-
-        interpolation = new InterpolatedStringStart(
-            quoteIndex,
-            quoteCount,
-            dollarCount,
-            isVerbatim,
-            quoteCount >= 3);
-        return true;
-    }
-
-    private static bool IsInterpolationClosingDelimiter(
-        string text,
-        int index,
-        InterpolatedStringStart interpolation)
-    {
-        if (text[index] != '"') return false;
-        if (interpolation.IsRaw)
-        {
-            return CountRun(text, index, '"') >= interpolation.QuoteCount;
-        }
-
-        return !interpolation.IsVerbatim ||
-               index + 1 >= text.Length ||
-               text[index + 1] != '"';
-    }
-
-    private static int FindInterpolationHoleEnd(
-        string text,
-        int startIndex,
-        int closingBraceCount)
-    {
-        var nestedBraceDepth = 0;
-        var index = startIndex;
-        while (index < text.Length)
-        {
-            if (text[index] == '"')
-            {
-                var quoteCount = CountRun(text, index, '"');
-                index = quoteCount >= 3
-                    ? SkipRawString(text, index, quoteCount)
-                    : SkipQuotedLiteral(text, index, '"', isVerbatim: false);
-                continue;
-            }
-
-            if (text[index] == '@' && index + 1 < text.Length && text[index + 1] == '"')
-            {
-                index = SkipQuotedLiteral(text, index + 1, '"', isVerbatim: true);
-                continue;
-            }
-
-            if (text[index] == '\'')
-            {
-                index = SkipQuotedLiteral(text, index, '\'', isVerbatim: false);
-                continue;
-            }
-
-            if (text[index] == '{')
-            {
-                nestedBraceDepth++;
-                index++;
-                continue;
-            }
-
-            if (text[index] == '}')
-            {
-                if (nestedBraceDepth == 0 &&
-                    CountRun(text, index, '}') >= closingBraceCount)
-                {
-                    return index;
-                }
-
-                if (nestedBraceDepth > 0) nestedBraceDepth--;
-            }
-
-            index++;
-        }
-
-        return -1;
-    }
-
-    private static int GetInterpolationExpressionLength(string hole)
-    {
-        var parenthesesDepth = 0;
-        var bracketsDepth = 0;
-        var bracesDepth = 0;
-        var conditionalDepth = 0;
-        var index = 0;
-
-        while (index < hole.Length)
-        {
-            if (hole[index] == '"')
-            {
-                var quoteCount = CountRun(hole, index, '"');
-                index = quoteCount >= 3
-                    ? SkipRawString(hole, index, quoteCount)
-                    : SkipQuotedLiteral(hole, index, '"', isVerbatim: false);
-                continue;
-            }
-
-            if (hole[index] == '@' && index + 1 < hole.Length && hole[index + 1] == '"')
-            {
-                index = SkipQuotedLiteral(hole, index + 1, '"', isVerbatim: true);
-                continue;
-            }
-
-            if (hole[index] == '\'')
-            {
-                index = SkipQuotedLiteral(hole, index, '\'', isVerbatim: false);
-                continue;
-            }
-
-            switch (hole[index])
-            {
-                case '(':
-                    parenthesesDepth++;
-                    break;
-                case ')':
-                    if (parenthesesDepth > 0) parenthesesDepth--;
-                    break;
-                case '[':
-                    bracketsDepth++;
-                    break;
-                case ']':
-                    if (bracketsDepth > 0) bracketsDepth--;
-                    break;
-                case '{':
-                    bracesDepth++;
-                    break;
-                case '}':
-                    if (bracesDepth > 0) bracesDepth--;
-                    break;
-            }
-
-            var isTopLevel = parenthesesDepth == 0 && bracketsDepth == 0 && bracesDepth == 0;
-            if (!isTopLevel)
-            {
-                index++;
-                continue;
-            }
-
-            if (hole[index] == '?')
-            {
-                if (index + 1 < hole.Length && hole[index + 1] == '[')
-                {
-                    bracketsDepth++;
-                    index += 2;
-                    continue;
-                }
-
-                if (index + 1 < hole.Length && hole[index + 1] is '?' or '.')
-                {
-                    index += 2;
-                    continue;
-                }
-
-                conditionalDepth++;
-                index++;
-                continue;
-            }
-
-            if (hole[index] == ':')
-            {
-                if (index + 1 < hole.Length && hole[index + 1] == ':' ||
-                    index > 0 && hole[index - 1] == ':')
-                {
-                    index++;
-                    continue;
-                }
-
-                if (conditionalDepth == 0) return index;
-                conditionalDepth--;
-            }
-
-            index++;
-        }
-
-        return hole.Length;
-    }
-
-    private static string StripComments(string text)
-    {
-        var result = text.ToCharArray();
-        var index = 0;
-        while (index < text.Length)
-        {
-            if (text[index] == '"')
-            {
-                var quoteCount = CountRun(text, index, '"');
-                index = quoteCount >= 3
-                    ? SkipRawString(text, index, quoteCount)
-                    : SkipQuotedLiteral(text, index, '"', isVerbatim: false);
-                continue;
-            }
-
-            if (text[index] == '@' && index + 1 < text.Length && text[index + 1] == '"')
-            {
-                index = SkipQuotedLiteral(text, index + 1, '"', isVerbatim: true);
-                continue;
-            }
-
-            if (text[index] == '\'')
-            {
-                index = SkipQuotedLiteral(text, index, '\'', isVerbatim: false);
-                continue;
-            }
-
-            if (StartsWith(text, index, "//"))
-            {
-                var end = text.IndexOf('\n', index);
-                end = end < 0 ? text.Length : end;
-                BlankExceptNewLines(result, index, end - index);
-                index = end;
-                continue;
-            }
-
-            if (StartsWith(text, index, "/*"))
-            {
-                var closing = text.IndexOf("*/", index + 2, StringComparison.Ordinal);
-                var end = closing < 0 ? text.Length : closing + 2;
-                BlankExceptNewLines(result, index, end - index);
-                index = end;
-                continue;
-            }
-
-            index++;
-        }
-
-        return new string(result);
-    }
-
-    private static int SkipRawString(string text, int index, int quoteCount)
-    {
-        var delimiter = new string('"', quoteCount);
-        var end = text.IndexOf(delimiter, index + quoteCount, StringComparison.Ordinal);
-        return end < 0 ? text.Length : end + quoteCount;
-    }
-
-    private static int SkipQuotedLiteral(
-        string text,
-        int quoteIndex,
-        char delimiter,
-        bool isVerbatim)
-    {
-        var index = quoteIndex + 1;
-        while (index < text.Length)
-        {
-            if (text[index] == delimiter)
-            {
-                if (isVerbatim && index + 1 < text.Length && text[index + 1] == delimiter)
-                {
-                    index += 2;
-                    continue;
-                }
-
-                return index + 1;
-            }
-
-            if (!isVerbatim && text[index] == '\\' && index + 1 < text.Length)
-            {
-                index += 2;
-                continue;
-            }
-
-            index++;
-        }
-
-        return text.Length;
-    }
-
-    private static void BlankExceptNewLines(char[] text, int index, int length)
-    {
-        var end = index + length;
-        for (var position = index; position < end; position++)
-        {
-            if (text[position] is not '\r' and not '\n') text[position] = ' ';
-        }
-    }
-
-    private static string NormalizeCatalogNumber(string literal) =>
-        literal.Length > 0 && literal[0] == '-' ? literal[1..] : literal;
 
     private static int FindElementOffset(string text, JsonElement element, int startIndex)
     {
@@ -983,17 +611,6 @@ internal static class ExternalSpecificationLiteralGuard
         }
         return count;
     }
-
-    private static int CountRun(string text, int index, char character)
-    {
-        var count = 0;
-        while (index + count < text.Length && text[index + count] == character) count++;
-        return count;
-    }
-
-    private static bool StartsWith(string text, int index, string value) =>
-        index + value.Length <= text.Length &&
-        text.AsSpan(index, value.Length).SequenceEqual(value.AsSpan());
 
     private static bool IsExcludedPath(string path) =>
         ContainsDirectory(path, "obj") ||
@@ -1040,13 +657,4 @@ internal static class ExternalSpecificationLiteralGuard
         LiteralKind Kind,
         string MatchValue,
         int LineNumber);
-
-    private sealed record InterpolationHole(string Text, int LineOffset);
-
-    private readonly record struct InterpolatedStringStart(
-        int QuoteIndex,
-        int QuoteCount,
-        int DollarCount,
-        bool IsVerbatim,
-        bool IsRaw);
 }

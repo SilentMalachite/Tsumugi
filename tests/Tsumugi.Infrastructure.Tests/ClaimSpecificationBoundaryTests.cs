@@ -53,6 +53,25 @@ public sealed class ClaimSpecificationBoundaryTests
         violation.CatalogPath.Should().EndWith("#/entries/0/values/nested/code");
     }
 
+    [Theory]
+    [InlineData("\"\"\"NESTED-CODE\"\"\"")]
+    [InlineData("\"NESTED-CODE\"u8")]
+    [InlineData("\"\"\"NESTED-CODE\"\"\"u8")]
+    public void Scan_detects_raw_and_utf8_master_string_literal_tokens(string literal)
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.Write(
+            "src/Tsumugi.Application/Claims/CompilerStringTokens.cs",
+            "namespace Tsumugi.Application.Claims; internal static class CompilerStringTokens { " +
+            "internal static object Value => " + literal + "; }");
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-literal" && v.Literal == "NESTED-CODE");
+
+        violation.LineNumber.Should().Be(1);
+    }
+
     [Fact]
     public void Scan_detects_master_number_literal_inside_interpolation_hole()
     {
@@ -101,6 +120,18 @@ public sealed class ClaimSpecificationBoundaryTests
     }
 
     [Fact]
+    public void Scan_ignores_format_after_nullable_generic_expression()
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.Write(
+            "src/Tsumugi.Application/Claims/NullableGenericFormat.cs",
+            "namespace Tsumugi.Application.Claims; internal static class NullableGenericFormat { " +
+            "internal static string Value => $\"{Echo<string?>(\"SAFE\"):777}\"; }");
+
+        fixture.Scan().Should().BeEmpty();
+    }
+
+    [Fact]
     public void Scan_detects_master_number_used_as_interpolation_alignment()
     {
         using var fixture = new SpecificationFixture();
@@ -133,10 +164,10 @@ public sealed class ClaimSpecificationBoundaryTests
     }
 
     [Theory]
-    [InlineData("true ? 777 : 0:000")]
+    [InlineData("(true ? 777 : 0):000")]
     [InlineData("new[] { 777, 1 }[0]:000")]
     [InlineData("Echo(\"a:b,c\", 777):000")]
-    [InlineData("':' == ':' ? 777 : 0:000")]
+    [InlineData("(':' == ':' ? 777 : 0):000")]
     [InlineData("matrix?[0, 777]:000")]
     public void Scan_keeps_literals_inside_interpolation_expression_delimiters(string hole)
     {
@@ -268,6 +299,23 @@ public sealed class ClaimSpecificationBoundaryTests
         violation.RelativePath.Should().Be("src/Tsumugi.Domain/Catalogs/broken.json");
         violation.LineNumber.Should().BeGreaterThan(0);
         violation.ToString().Should().Contain("broken.json");
+    }
+
+    [Fact]
+    public void Scan_fails_closed_for_invalid_csharp_and_names_the_file()
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/Broken.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal class Broken { string Value = \"unterminated; }");
+
+        var violations = fixture.Scan()
+            .Where(v => v.Rule == "csharp-parse")
+            .ToArray();
+
+        violations.Should().NotBeEmpty()
+            .And.OnlyContain(v => v.RelativePath == "src/Tsumugi.Domain/Logic/Claim/Broken.cs");
+        violations.Should().OnlyContain(v => v.LineNumber > 0 && v.Literal.StartsWith("CS", StringComparison.Ordinal));
     }
 
     private sealed class SpecificationFixture : IDisposable
