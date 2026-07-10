@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "specificationVersion": "common-r7-10",
+  "encoding": "CP932",
+  "lineEnding": "CRLF",
+  "records": [
+    {
+      "recordId": "common:outer:control",
+      "exchangeInformationId": "outer",
+      "innerRecordType": "control",
+      "order": 1,
+      "sourceDocumentId": "common-r7-10",
+      "sourcePage": 5,
+      "fields": [
+        {
+          "fieldId": "common:outer:control:001",
+          "position": 1,
+          "officialName": "レコード種別",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "common-r7-10 physical page 5 field definition or common code list"
+        },
+        {
+          "fieldId": "common:outer:control:002",
+          "position": 2,
+          "officialName": "レコード番号（連番）",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 9,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "common:outer:control:003",
+          "position": 3,
+          "officialName": "ボリューム通番",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "common:outer:control:004",
+          "position": 4,
+          "officialName": "レコード件数",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 9,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "common:outer:control:005",
+          "position": 5,
+          "officialName": "データ種別",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "common:outer:control:006",
+          "position": 6,
+          "officialName": "市町村番号",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "common-r7-10 physical page 5 field definition or common code list"
+        },
+        {
+          "fieldId": "common:outer:control:007",
+          "position": 7,
+          "officialName": "事業所番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "common:outer:control:008",
+          "position": 8,
+          "officialName": "都道府県番号",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "common-r7-10 physical page 5 field definition or common code list"
+        },
+        {
+          "fieldId": "common:outer:control:009",
+          "position": 9,
+          "officialName": "媒体区分",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ]
+        },
+        {
+          "fieldId": "common:outer:control:010",
+          "position": 10,
+          "officialName": "処理対象年月",
+          "requiredWhen": "always",
+          "dataType": "yearMonth",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "common:outer:control:011",
+          "position": 11,
+          "officialName": "予備",
+          "requiredWhen": "must be empty",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "common:outer:control:012",
+          "position": 12,
+          "officialName": "ブランク",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 2,
+          "quoteRule": "crlf",
+          "allowedCodes": []
+        }
+      ]
+    },
+    {
+      "recordId": "common:outer:data",
+      "exchangeInformationId": "outer",
+      "innerRecordType": "data",
+      "order": 2,
+      "sourceDocumentId": "common-r7-10",
+      "sourcePage": 5,
+      "fields": [
+        {
+          "fieldId": "common:outer:data:001",
+          "position": 1,
+          "officialName": "レコード種別",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "2"
+          ],
+          "allowedCodesSource": "common-r7-10 physical page 5 field definition or common code list"
+        },
+        {
+          "fieldId": "common:outer:data:002",
+          "position": 2,
+          "officialName": "レコード番号（連番）",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 9,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "common:outer:data:003",
+          "position": 3,
+          "officialName": "データ",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 822,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "common:outer:data:004",
+          "position": 4,
+          "officialName": "ブランク",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 2,
+          "quoteRule": "crlf",
+          "allowedCodes": []
+        }
+      ]
+    },
+    {
+      "recordId": "common:outer:end",
+      "exchangeInformationId": "outer",
+      "innerRecordType": "end",
+      "order": 3,
+      "sourceDocumentId": "common-r7-10",
+      "sourcePage": 5,
+      "fields": [
+        {
+          "fieldId": "common:outer:end:001",
+          "position": 1,
+          "officialName": "レコード種別",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "3"
+          ],
+          "allowedCodesSource": "common-r7-10 physical page 5 field definition or common code list"
+        },
+        {
+          "fieldId": "common:outer:end:002",
+          "position": 2,
+          "officialName": "レコード番号（連番）",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 9,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "common:outer:end:003",
+          "position": 3,
+          "officialName": "ブランク",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 2,
+          "quoteRule": "crlf",
+          "allowedCodes": []
+        }
+      ]
+    }
+  ]
+}

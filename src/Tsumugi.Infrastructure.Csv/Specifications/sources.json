@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "sourceDocumentId": "interface-index-r7-10",
+      "title": "障害者総合支援給付審査支払等システム関係資料 インタフェース仕様書索引",
+      "version": "令和7年10月掲載索引",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000045136.html",
+      "sha256": "921c9eaba31b0a005b442154f0a04362bbff84481cddf3e10245a02c1397151a",
+      "sizeBytes": 15202
+    },
+    {
+      "sourceDocumentId": "common-r7-10",
+      "title": "インタフェース仕様書 共通編",
+      "version": "令和7年10月",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001565560.pdf",
+      "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+      "sizeBytes": 482854,
+      "pageCount": 63
+    },
+    {
+      "sourceDocumentId": "provider-r7-10",
+      "title": "インタフェース仕様書 事業所編",
+      "version": "令和7年10月",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001565561.pdf",
+      "sha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+      "sizeBytes": 1725930,
+      "pageCount": 340
+    },
+    {
+      "sourceDocumentId": "r1-structure-page-observed-a814e583",
+      "title": "報酬算定構造・サービスコード表等 平成31年10月施行分",
+      "version": "2019-10 observed bytes",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000174644_00006.html",
+      "sha256": "a814e5834ada2944d74c860f81cdca7da887a9b084bd57560f6ad9ce82ffcae4",
+      "sizeBytes": 9794
+    },
+    {
+      "sourceDocumentId": "claim-forms-r1-10-xls",
+      "title": "請求書明細書 障害福祉命令様式",
+      "version": "平成31年10月施行分",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/000535460.xls",
+      "sha256": "bb10270da47e2f45d1527286e0c962fbe496e84513df64468dead363872b65da",
+      "sizeBytes": 238592,
+      "sourceSheets": [
+        "様式第一",
+        "様式第二"
+      ]
+    },
+    {
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "title": "請求書明細書 記載例",
+      "version": "平成31年10月施行分",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/000535462.pdf",
+      "sha256": "8d6dd7dd6458ccd2b6a0ce4050eeeb8da2b9eb5849deecc91c1095779a6bd6aa",
+      "sizeBytes": 280226,
+      "pageCount": 18,
+      "applicablePages": [
+        1,
+        2
+      ]
+    },
+    {
+      "sourceDocumentId": "r3-structure-page-observed-ec199786",
+      "title": "報酬算定構造・サービスコード表等 令和3年4月施行分",
+      "version": "2021-04 observed bytes",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000174644_00016.html",
+      "sha256": "ec1997867f087eeba77cd2c07b69696d7df84b0745f65f16bc2c5a6a7225dab6",
+      "sizeBytes": 14453
+    },
+    {
+      "sourceDocumentId": "r4-structure-page-observed-e6a9105b",
+      "title": "報酬算定構造・サービスコード表等 令和4年10月施行分",
+      "version": "2022-10 observed bytes",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000174644_00017.html",
+      "sha256": "e6a9105b786cb649bc858714bd1f8fa20ecd553e287bb1fd9b3c3994b8216c31",
+      "sizeBytes": 11414
+    },
+    {
+      "sourceDocumentId": "r6-structure-page-observed-8a9858bf",
+      "title": "報酬算定構造・サービスコード表等 令和6年4月・6月施行分",
+      "version": "2025-01-31 observed bytes",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000174644_00018.html",
+      "sha256": "8a9858bf575af9bb57a3a5df61428e66e8d903bf984de9f6b46b3fd47631a0c7",
+      "sizeBytes": 57638
+    },
+    {
+      "sourceDocumentId": "service-performance-r6-04-xls",
+      "title": "サービス提供実績記録票 障害福祉様式",
+      "version": "令和6年4月・6月施行分",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/0329006.xls",
+      "sha256": "0c3e74eab4cef91021da4a973f667e4858374a6376c3cc7d8b4137e20e99bf49",
+      "sizeBytes": 863744,
+      "sourceSheets": [
+        "就労継続支援"
+      ]
+    },
+    {
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "title": "サービス提供実績記録票 記載例",
+      "version": "2025-01-31確定分",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/20241129005.pdf",
+      "sha256": "2afb44f72d04fe6c376d115641cc542e7d82545284dd9eb40f5b66e14dbbc1d9",
+      "sizeBytes": 1401207,
+      "pageCount": 25,
+      "applicablePages": [
+        12
+      ]
+    },
+    {
+      "sourceDocumentId": "r8-structure-page-observed-13da3c44",
+      "title": "報酬算定構造・サービスコード表等 令和8年6月施行分",
+      "version": "2026-06 observed bytes",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000174644_00022.html",
+      "sha256": "13da3c44eb9e9485c38fda878bb1fe966407e7331609f87123ba2b2778a32083",
+      "sizeBytes": 51888
+    },
+    {
+      "sourceDocumentId": "r8-grant-decision-administration-202606",
+      "title": "介護給付費等に係る支給決定事務等について",
+      "version": "最終改正令和8年6月",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/12200000/001470632.pdf",
+      "sha256": "d6e1672245370d2d7bb9a4258622ae3e631d0a6144c8e0c9ea51e2018a146f1e",
+      "sizeBytes": 1998305,
+      "pageCount": 262,
+      "applicablePages": [
+        234,
+        235
+      ]
+    }
+  ]
+}

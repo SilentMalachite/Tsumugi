@@ -1,0 +1,946 @@
+{
+  "schemaVersion": 1,
+  "specificationVersion": "report-field-mapping-r8-06",
+  "mappings": [
+    {
+      "fieldId": "report:service-performance:header:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "explicitInput",
+      "inputContract": "ServiceProvisionMonth",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:003"
+    },
+    {
+      "fieldId": "report:service-performance:header:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "Certificate.CertificateNumber",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:006"
+    },
+    {
+      "fieldId": "report:service-performance:header:003",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "Recipient.KanjiName"
+    },
+    {
+      "fieldId": "report:service-performance:header:004",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "Office.OfficeNumber",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:005"
+    },
+    {
+      "fieldId": "report:service-performance:header:005",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "Office.Name"
+    },
+    {
+      "fieldId": "report:service-performance:header:006",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "ContractedProvider.ContractedSupplyDays"
+    },
+    {
+      "fieldId": "report:service-performance:daily:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "DailyRecord.ServiceDate",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:009"
+    },
+    {
+      "fieldId": "report:service-performance:daily:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model"
+    },
+    {
+      "fieldId": "report:service-performance:daily:003",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "DailyRecord.Attendance",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:036"
+    },
+    {
+      "fieldId": "report:service-performance:daily:004",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "DailyRecord",
+      "targetProperty": "ServiceStartTime",
+      "migrationRequired": true,
+      "uiSurface": "DailyRecordView",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:014"
+    },
+    {
+      "fieldId": "report:service-performance:daily:005",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "DailyRecord",
+      "targetProperty": "ServiceEndTime",
+      "migrationRequired": true,
+      "uiSurface": "DailyRecordView",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:015"
+    },
+    {
+      "fieldId": "report:service-performance:daily:006",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "DailyRecord.Transport",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:021"
+    },
+    {
+      "fieldId": "report:service-performance:daily:007",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "DailyRecord.Transport",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:022"
+    },
+    {
+      "fieldId": "report:service-performance:daily:008",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "DailyRecord",
+      "targetProperty": "SpecialVisitSupportMinutes",
+      "migrationRequired": true,
+      "uiSurface": "DailyRecordView",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:027"
+    },
+    {
+      "fieldId": "report:service-performance:daily:009",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "DailyRecord.MealProvided",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:032"
+    },
+    {
+      "fieldId": "report:service-performance:daily:010",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "DailyRecord",
+      "targetProperty": "MedicalCoordinationType",
+      "migrationRequired": true,
+      "uiSurface": "DailyRecordView",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:074"
+    },
+    {
+      "fieldId": "report:service-performance:daily:011",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "DailyRecord",
+      "targetProperty": "TrialUseSupportType",
+      "migrationRequired": true,
+      "uiSurface": "DailyRecordView",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:083"
+    },
+    {
+      "fieldId": "report:service-performance:daily:012",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "DailyRecord",
+      "targetProperty": "RegionalCollaborationApplied",
+      "migrationRequired": true,
+      "uiSurface": "DailyRecordView",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:096"
+    },
+    {
+      "fieldId": "report:service-performance:daily:013",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "DailyRecord",
+      "targetProperty": "EmergencyAdmissionApplied",
+      "migrationRequired": true,
+      "uiSurface": "DailyRecordView",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:108"
+    },
+    {
+      "fieldId": "report:service-performance:daily:014",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "DailyRecord",
+      "targetProperty": "IntensiveSupportApplied",
+      "migrationRequired": true,
+      "uiSurface": "DailyRecordView",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:107"
+    },
+    {
+      "fieldId": "report:service-performance:daily:015",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "DailyRecord",
+      "targetProperty": "OffsiteSupportApplied",
+      "migrationRequired": true,
+      "uiSurface": "DailyRecordView",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:029"
+    },
+    {
+      "fieldId": "report:service-performance:daily:016",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "DailyRecord",
+      "targetProperty": "RecipientConfirmation",
+      "migrationRequired": true,
+      "uiSurface": "DailyRecordView"
+    },
+    {
+      "fieldId": "report:service-performance:daily:017",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "DailyRecord.Note",
+      "sameMeaningAsCsvFieldId": "provider:J611:02:035"
+    },
+    {
+      "fieldId": "report:service-performance:totals:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model"
+    },
+    {
+      "fieldId": "report:service-performance:totals:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:034"
+    },
+    {
+      "fieldId": "report:service-performance:totals:003",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:052"
+    },
+    {
+      "fieldId": "report:service-performance:totals:004",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:045"
+    },
+    {
+      "fieldId": "report:service-performance:totals:005",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:117"
+    },
+    {
+      "fieldId": "report:service-performance:totals:006",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:125"
+    },
+    {
+      "fieldId": "report:service-performance:totals:007",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:152"
+    },
+    {
+      "fieldId": "report:service-performance:totals:008",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:168"
+    },
+    {
+      "fieldId": "report:service-performance:totals:009",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:167"
+    },
+    {
+      "fieldId": "report:service-performance:totals:010",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:053"
+    },
+    {
+      "fieldId": "report:service-performance:totals:011",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:054"
+    },
+    {
+      "fieldId": "report:service-performance:totals:012",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model"
+    },
+    {
+      "fieldId": "report:service-performance:initial-addition:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:070"
+    },
+    {
+      "fieldId": "report:service-performance:initial-addition:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:071"
+    },
+    {
+      "fieldId": "report:service-performance:initial-addition:003",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:072"
+    },
+    {
+      "fieldId": "report:service-performance:intensive-support:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "IntensiveSupportEpisode",
+      "targetProperty": "StartDate",
+      "migrationRequired": true,
+      "uiSurface": "DailyRecordView",
+      "sameMeaningAsCsvFieldId": "provider:J611:01:156"
+    },
+    {
+      "fieldId": "report:service-performance:pagination:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model"
+    },
+    {
+      "fieldId": "report:service-performance:pagination:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "explicitInput",
+      "inputContract": "ClaimDate"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "Certificate.Municipality"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:003",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "Office.OfficeNumber",
+      "sameMeaningAsCsvFieldId": "provider:J111:01:005"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:004",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "Office",
+      "targetProperty": "PostalCode",
+      "migrationRequired": true,
+      "uiSurface": "OfficeView"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:005",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "Office",
+      "targetProperty": "Address",
+      "migrationRequired": true,
+      "uiSurface": "OfficeView"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:006",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "Office",
+      "targetProperty": "PhoneNumber",
+      "migrationRequired": true,
+      "uiSurface": "OfficeView"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:007",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "Office.Name"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:008",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "Office",
+      "targetProperty": "RepresentativeTitleAndName",
+      "migrationRequired": true,
+      "uiSurface": "OfficeView"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:009",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "explicitInput",
+      "inputContract": "ServiceProvisionMonth",
+      "sameMeaningAsCsvFieldId": "provider:J111:01:003"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:010",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J111:01:006"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:claim-lines:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J111:02:006"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:claim-lines:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J111:02:008"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:claim-lines:003",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J111:02:009"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:claim-lines:004",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J111:02:010"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:claim-lines:005",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J111:02:011"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:claim-lines:006",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J111:02:013"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:claim-lines:007",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J111:02:014"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:totals:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:totals:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J111:01:017"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:totals:003",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J111:01:018"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:totals:004",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J111:01:019"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:totals:005",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J111:01:020"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:totals:006",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J111:01:022"
+    },
+    {
+      "fieldId": "report:benefit-claim-form:totals:007",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J111:01:023"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "Certificate",
+      "targetProperty": "MunicipalityNumber",
+      "migrationRequired": true,
+      "uiSurface": "CertificateView",
+      "sameMeaningAsCsvFieldId": "provider:J121:01:004"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "explicitInput",
+      "inputContract": "ServiceProvisionMonth",
+      "sameMeaningAsCsvFieldId": "provider:J121:01:003"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:003",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "Certificate",
+      "targetProperty": "SubsidyMunicipalityNumber",
+      "migrationRequired": true,
+      "uiSurface": "CertificateView",
+      "sameMeaningAsCsvFieldId": "provider:J121:01:007"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:004",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "Office.OfficeNumber",
+      "sameMeaningAsCsvFieldId": "provider:J121:01:005"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:005",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "Office.Name"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:006",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "Certificate.CertificateNumber",
+      "sameMeaningAsCsvFieldId": "provider:J121:01:006"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:007",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "Recipient.KanjiName"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:008",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:009",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "Office.RegionGrade",
+      "sameMeaningAsCsvFieldId": "provider:J121:01:010"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:010",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:01:011"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:011",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "Certificate.MonthlyCostCap",
+      "sameMeaningAsCsvFieldId": "provider:J121:01:012"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:012",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:01:013"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:upper-limit-management:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "sameMeaningAsCsvFieldId": "provider:J121:01:015",
+      "targetModel": "Certificate",
+      "targetProperty": "UpperLimitManagementProviderNumber",
+      "migrationRequired": true,
+      "uiSurface": "CertificateView"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:upper-limit-management:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "existing",
+      "modelPath": "Certificate.UpperLimitManagementProvider"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:upper-limit-management:003",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "ClaimInput",
+      "targetProperty": "UpperLimitManagementResult",
+      "migrationRequired": true,
+      "uiSurface": "ClaimInputView",
+      "sameMeaningAsCsvFieldId": "provider:J121:01:016"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:upper-limit-management:004",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "Phase 3-1 AC3-8",
+      "status": "missing",
+      "targetModel": "ClaimInput",
+      "targetProperty": "UpperLimitManagedAmountYen",
+      "migrationRequired": true,
+      "uiSurface": "ClaimInputView",
+      "sameMeaningAsCsvFieldId": "provider:J121:01:017"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:service-period:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:02:007"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:service-period:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:02:008"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:service-period:003",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:02:009"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:service-period:004",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:02:010"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:service-period:005",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:02:011"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:claim-lines:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:claim-lines:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:03:007"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:claim-lines:003",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:03:008"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:claim-lines:004",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:03:009"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:claim-lines:005",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:03:010"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:claim-lines:006",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:03:011"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:007"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:009"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:003",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:010"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:004",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:011"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:005",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:013"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:006",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:014"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:007",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:015"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:008",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:016"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:009",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:017"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:010",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:018"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:011",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:019"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:012",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:020"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:013",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:021"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:014",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:022"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:015",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:025"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:special-benefit:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:026"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:special-benefit:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:027"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:special-benefit:003",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:028"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:special-benefit:004",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model",
+      "sameMeaningAsCsvFieldId": "provider:J121:04:029"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:pagination:001",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model"
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:pagination:002",
+      "requiredCondition": "when the official form condition applies",
+      "notes": "",
+      "status": "generated",
+      "generatorRule": "render the value deterministically from the selected claim context, official master, and calculated artifact model"
+    }
+  ]
+}

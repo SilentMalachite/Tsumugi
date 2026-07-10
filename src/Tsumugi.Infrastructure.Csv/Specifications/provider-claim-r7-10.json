@@ -1,0 +1,4745 @@
+{
+  "schemaVersion": 1,
+  "specificationVersion": "provider-claim-r7-10",
+  "serviceScope": "就労継続支援B型",
+  "records": [
+    {
+      "recordId": "provider:J111:01",
+      "exchangeInformationId": "J111",
+      "innerRecordType": "01",
+      "order": 1,
+      "sourceDocumentId": "provider-r7-10",
+      "sourcePage": 17,
+      "fields": [
+        {
+          "fieldId": "provider:J111:01:001",
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "J111"
+          ]
+        },
+        {
+          "fieldId": "provider:J111:01:002",
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "01"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 17 field definition"
+        },
+        {
+          "fieldId": "provider:J111:01:003",
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "requiredWhen": "always",
+          "dataType": "yearMonth",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:004",
+          "position": 4,
+          "officialName": "市町村番号",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 17 field definition"
+        },
+        {
+          "fieldId": "provider:J111:01:005",
+          "position": 5,
+          "officialName": "事業所番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:006",
+          "position": 6,
+          "officialName": "請求金額",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:007",
+          "position": 7,
+          "officialName": "小計 介護給付費等・特例介護給付費等 件数",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:008",
+          "position": 8,
+          "officialName": "小計 介護給付費等・特例介護給付費等 単位数",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 9,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:009",
+          "position": 9,
+          "officialName": "小計 介護給付費等・特例介護給付費等 費用合計",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:010",
+          "position": 10,
+          "officialName": "小計 介護給付費等・特例介護給付費等 給付費請求額",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:011",
+          "position": 11,
+          "officialName": "小計 介護給付費等・特例介護給付費等 特別対策費請求額",
+          "requiredWhen": "when the official J111 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:012",
+          "position": 12,
+          "officialName": "小計 介護給付費等・特例介護給付費等 利用者負担額",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:013",
+          "position": 13,
+          "officialName": "小計 介護給付費等・特例介護給付費等 自治体助成額",
+          "requiredWhen": "when the official J111 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:014",
+          "position": 14,
+          "officialName": "小計 特定障害者特別給付費・高額障害福祉サービス費 件数",
+          "requiredWhen": "when the official J111 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:015",
+          "position": 15,
+          "officialName": "小計 特定障害者特別給付費・高額障害福祉サービス費 費用合計",
+          "requiredWhen": "when the official J111 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:016",
+          "position": 16,
+          "officialName": "小計 特定障害者特別給付費・高額障害福祉サービス費 給付費請求額",
+          "requiredWhen": "when the official J111 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:017",
+          "position": 17,
+          "officialName": "合計 件数",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:018",
+          "position": 18,
+          "officialName": "合計 単位数",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 9,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:019",
+          "position": 19,
+          "officialName": "合計 費用合計",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:020",
+          "position": 20,
+          "officialName": "合計 給付費請求額",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:021",
+          "position": 21,
+          "officialName": "合計 特別対策費請求額",
+          "requiredWhen": "when the official J111 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:022",
+          "position": 22,
+          "officialName": "合計 利用者負担額",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:01:023",
+          "position": 23,
+          "officialName": "合計 自治体助成額",
+          "requiredWhen": "when the official J111 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J111:02",
+      "exchangeInformationId": "J111",
+      "innerRecordType": "02",
+      "order": 2,
+      "sourceDocumentId": "provider-r7-10",
+      "sourcePage": 18,
+      "fields": [
+        {
+          "fieldId": "provider:J111:02:001",
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "J111"
+          ]
+        },
+        {
+          "fieldId": "provider:J111:02:002",
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "02"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 18 field definition"
+        },
+        {
+          "fieldId": "provider:J111:02:003",
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "requiredWhen": "always",
+          "dataType": "yearMonth",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:02:004",
+          "position": 4,
+          "officialName": "市町村番号",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 18 field definition"
+        },
+        {
+          "fieldId": "provider:J111:02:005",
+          "position": 5,
+          "officialName": "事業所番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:02:006",
+          "position": 6,
+          "officialName": "給付種別",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 18 field definition"
+        },
+        {
+          "fieldId": "provider:J111:02:007",
+          "position": 7,
+          "officialName": "サービス種類コード",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:02:008",
+          "position": 8,
+          "officialName": "件数",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:02:009",
+          "position": 9,
+          "officialName": "単位数",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 9,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:02:010",
+          "position": 10,
+          "officialName": "費用合計",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:02:011",
+          "position": 11,
+          "officialName": "給付費請求額",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:02:012",
+          "position": 12,
+          "officialName": "特別対策費請求額",
+          "requiredWhen": "when the official J111 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:02:013",
+          "position": 13,
+          "officialName": "利用者負担額",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J111:02:014",
+          "position": 14,
+          "officialName": "自治体助成額",
+          "requiredWhen": "when the official J111 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J121:01",
+      "exchangeInformationId": "J121",
+      "innerRecordType": "01",
+      "order": 3,
+      "sourceDocumentId": "provider-r7-10",
+      "sourcePage": 20,
+      "fields": [
+        {
+          "fieldId": "provider:J121:01:001",
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "J121"
+          ]
+        },
+        {
+          "fieldId": "provider:J121:01:002",
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "01"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 20 field definition"
+        },
+        {
+          "fieldId": "provider:J121:01:003",
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "requiredWhen": "always",
+          "dataType": "yearMonth",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:004",
+          "position": 4,
+          "officialName": "市町村番号",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 20 field definition"
+        },
+        {
+          "fieldId": "provider:J121:01:005",
+          "position": 5,
+          "officialName": "事業所番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:006",
+          "position": 6,
+          "officialName": "受給者証番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:007",
+          "position": 7,
+          "officialName": "助成自治体番号",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "code",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 20 field definition"
+        },
+        {
+          "fieldId": "provider:J121:01:008",
+          "position": 8,
+          "officialName": "支給決定者氏名カナ",
+          "requiredWhen": "optional",
+          "dataType": "text",
+          "maxBytes": 25,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:009",
+          "position": 9,
+          "officialName": "支給決定児童氏名カナ",
+          "requiredWhen": "optional",
+          "dataType": "text",
+          "maxBytes": 25,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:010",
+          "position": 10,
+          "officialName": "地域区分コード",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 20 field definition"
+        },
+        {
+          "fieldId": "provider:J121:01:011",
+          "position": 11,
+          "officialName": "就労継続支援A型事業者負担 減免措置実施",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 20 field definition with form 1701 restriction"
+        },
+        {
+          "fieldId": "provider:J121:01:012",
+          "position": 12,
+          "officialName": "利用者負担上限月額①",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:013",
+          "position": 13,
+          "officialName": "就労継続支援A型減免対象者",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 20 field definition with form 1701 restriction"
+        },
+        {
+          "fieldId": "provider:J121:01:014",
+          "position": 14,
+          "officialName": "障害支援区分コード",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "text",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:015",
+          "position": 15,
+          "officialName": "上限額管理事業所 指定事業所番号",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:016",
+          "position": 16,
+          "officialName": "管理結果",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 20 field definition with form 1701 restriction"
+        },
+        {
+          "fieldId": "provider:J121:01:017",
+          "position": 17,
+          "officialName": "上限額管理事業所 管理結果額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:018",
+          "position": 18,
+          "officialName": "日 加 中 算 支 欄 援 / 指定事業所番号",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:019",
+          "position": 19,
+          "officialName": "当該事業所への 通所日数",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:020",
+          "position": 20,
+          "officialName": "請 求 額 集 計 欄 合 計 / 給付単位数",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 9,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:021",
+          "position": 21,
+          "officialName": "総費用額",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:022",
+          "position": 22,
+          "officialName": "上限月額調整（① ②の内少ない数）",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:023",
+          "position": 23,
+          "officialName": "請 求 額 集 計 欄 合 計 / A 型 減 免 / 事業者減免額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:024",
+          "position": 24,
+          "officialName": "減免後利用者 負担額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:025",
+          "position": 25,
+          "officialName": "調整後利用者 負担額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:026",
+          "position": 26,
+          "officialName": "上限額管理後 利用者負担額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:027",
+          "position": 27,
+          "officialName": "決定利用者負担額",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:028",
+          "position": 28,
+          "officialName": "請 求 額 / 給付費",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:029",
+          "position": 29,
+          "officialName": "高額障害福祉 サービス費",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:030",
+          "position": 30,
+          "officialName": "特別対策費",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "yearMonth",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:031",
+          "position": 31,
+          "officialName": "自治体助成分 請求額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:032",
+          "position": 32,
+          "officialName": "特 定 障 給 （ 合 害 付 計 者 費 ） 特 別 / 算定日額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:033",
+          "position": 33,
+          "officialName": "日数",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:034",
+          "position": 34,
+          "officialName": "給付費請求額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:01:035",
+          "position": 35,
+          "officialName": "実費算定額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J121:02",
+      "exchangeInformationId": "J121",
+      "innerRecordType": "02",
+      "order": 4,
+      "sourceDocumentId": "provider-r7-10",
+      "sourcePage": 22,
+      "fields": [
+        {
+          "fieldId": "provider:J121:02:001",
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "J121"
+          ]
+        },
+        {
+          "fieldId": "provider:J121:02:002",
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "02"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 22 field definition"
+        },
+        {
+          "fieldId": "provider:J121:02:003",
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "requiredWhen": "always",
+          "dataType": "yearMonth",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:02:004",
+          "position": 4,
+          "officialName": "市町村番号",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 22 field definition"
+        },
+        {
+          "fieldId": "provider:J121:02:005",
+          "position": 5,
+          "officialName": "事業所番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:02:006",
+          "position": 6,
+          "officialName": "受給者証番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:02:007",
+          "position": 7,
+          "officialName": "サービス種類コード",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:02:008",
+          "position": 8,
+          "officialName": "サービス開始日等 開始年月日",
+          "requiredWhen": "always",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:02:009",
+          "position": 9,
+          "officialName": "終了年月日",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:02:010",
+          "position": 10,
+          "officialName": "利用日数",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:02:011",
+          "position": 11,
+          "officialName": "入院日数",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:02:012",
+          "position": 12,
+          "officialName": "外泊日数",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J121:03",
+      "exchangeInformationId": "J121",
+      "innerRecordType": "03",
+      "order": 5,
+      "sourceDocumentId": "provider-r7-10",
+      "sourcePage": 31,
+      "fields": [
+        {
+          "fieldId": "provider:J121:03:001",
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "J121"
+          ]
+        },
+        {
+          "fieldId": "provider:J121:03:002",
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "03"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 31 field definition"
+        },
+        {
+          "fieldId": "provider:J121:03:003",
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "requiredWhen": "always",
+          "dataType": "yearMonth",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:03:004",
+          "position": 4,
+          "officialName": "市町村番号",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 31 field definition"
+        },
+        {
+          "fieldId": "provider:J121:03:005",
+          "position": 5,
+          "officialName": "事業所番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:03:006",
+          "position": 6,
+          "officialName": "受給者証番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:03:007",
+          "position": 7,
+          "officialName": "サービスコード",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:03:008",
+          "position": 8,
+          "officialName": "単位数",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:03:009",
+          "position": 9,
+          "officialName": "回数",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:03:010",
+          "position": 10,
+          "officialName": "サービス単位数",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 9,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:03:011",
+          "position": 11,
+          "officialName": "摘要",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "text",
+          "maxBytes": 100,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J121:04",
+      "exchangeInformationId": "J121",
+      "innerRecordType": "04",
+      "order": 6,
+      "sourceDocumentId": "provider-r7-10",
+      "sourcePage": 32,
+      "fields": [
+        {
+          "fieldId": "provider:J121:04:001",
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "J121"
+          ]
+        },
+        {
+          "fieldId": "provider:J121:04:002",
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "04"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 32 field definition"
+        },
+        {
+          "fieldId": "provider:J121:04:003",
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "requiredWhen": "always",
+          "dataType": "yearMonth",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:004",
+          "position": 4,
+          "officialName": "市町村番号",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 32 field definition"
+        },
+        {
+          "fieldId": "provider:J121:04:005",
+          "position": 5,
+          "officialName": "事業所番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:006",
+          "position": 6,
+          "officialName": "受給者証番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:007",
+          "position": 7,
+          "officialName": "サービス種類コード",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:008",
+          "position": 8,
+          "officialName": "請 求 額 集 計 欄 / 集計欄分類番号",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 32 field definition with form 1701 restriction"
+        },
+        {
+          "fieldId": "provider:J121:04:009",
+          "position": 9,
+          "officialName": "サービス利用日数",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:010",
+          "position": 10,
+          "officialName": "給付単位数",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 9,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:011",
+          "position": 11,
+          "officialName": "単位数単価",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:012",
+          "position": 12,
+          "officialName": "給付率",
+          "requiredWhen": "always",
+          "dataType": "yearMonth",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:013",
+          "position": 13,
+          "officialName": "総費用額",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:014",
+          "position": 14,
+          "officialName": "１割相当額 （サービス提供年月 が平成24年3月以 前：給付率に基づく 請求額）",
+          "requiredWhen": "always",
+          "dataType": "yearMonth",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:015",
+          "position": 15,
+          "officialName": "利用者負担額② （サービス提供年月 が平成24年3月以 前：給付率に基づく 利用者負担額②）",
+          "requiredWhen": "always",
+          "dataType": "yearMonth",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:016",
+          "position": 16,
+          "officialName": "上限月額調整（① ②の内少ない数）",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:017",
+          "position": 17,
+          "officialName": "A 型 減免 / 事業者減免 額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:018",
+          "position": 18,
+          "officialName": "請 求 額 集 計 欄 / A 型 減免 / 減免後利用 者負担額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:019",
+          "position": 19,
+          "officialName": "調整後利用者 負担額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:020",
+          "position": 20,
+          "officialName": "上限額管理後 利用者負担額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:021",
+          "position": 21,
+          "officialName": "決定利用者負担額",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:022",
+          "position": 22,
+          "officialName": "請 求 額 / 給付費",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:023",
+          "position": 23,
+          "officialName": "高額障害福 祉サービス 費",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:024",
+          "position": 24,
+          "officialName": "特別対策費",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "yearMonth",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:025",
+          "position": 25,
+          "officialName": "自治体助成分 請求額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:026",
+          "position": 26,
+          "officialName": "特 定 障 害 者 特 別 給 付 費 / 算定日額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:027",
+          "position": 27,
+          "officialName": "日数",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:028",
+          "position": 28,
+          "officialName": "給付費請求額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:029",
+          "position": 29,
+          "officialName": "実費算定額",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:030",
+          "position": 30,
+          "officialName": "利 用 日 数 管 理 票 / 対象期間（開始）",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "yearMonth",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:031",
+          "position": 31,
+          "officialName": "対象期間（終了）",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "yearMonth",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:032",
+          "position": 32,
+          "officialName": "当月の利用日数",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:04:033",
+          "position": 33,
+          "officialName": "原則日数の総和",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J121:05",
+      "exchangeInformationId": "J121",
+      "innerRecordType": "05",
+      "order": 7,
+      "sourceDocumentId": "provider-r7-10",
+      "sourcePage": 38,
+      "fields": [
+        {
+          "fieldId": "provider:J121:05:001",
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "J121"
+          ]
+        },
+        {
+          "fieldId": "provider:J121:05:002",
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "05"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 38 field definition"
+        },
+        {
+          "fieldId": "provider:J121:05:003",
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "requiredWhen": "always",
+          "dataType": "yearMonth",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:05:004",
+          "position": 4,
+          "officialName": "市町村番号",
+          "requiredWhen": "always",
+          "dataType": "code",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 38 field definition"
+        },
+        {
+          "fieldId": "provider:J121:05:005",
+          "position": 5,
+          "officialName": "事業所番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:05:006",
+          "position": 6,
+          "officialName": "受給者証番号",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:05:007",
+          "position": 7,
+          "officialName": "決定サービスコード",
+          "requiredWhen": "always",
+          "dataType": "text",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:05:008",
+          "position": 8,
+          "officialName": "契約支給量",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:05:009",
+          "position": 9,
+          "officialName": "契約開始年月日",
+          "requiredWhen": "always",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:05:010",
+          "position": 10,
+          "officialName": "契約終了年月日",
+          "requiredWhen": "when the official J121 condition applies",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J121:05:011",
+          "position": 11,
+          "officialName": "事業者記入欄番号",
+          "requiredWhen": "always",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J611:01",
+      "exchangeInformationId": "J611",
+      "innerRecordType": "01",
+      "order": 8,
+      "sourceDocumentId": "provider-r7-10",
+      "sourcePage": 60,
+      "fields": [
+        {
+          "fieldId": "provider:J611:01:001",
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "requiredWhen": "always for form 1701",
+          "dataType": "text",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "J611"
+          ]
+        },
+        {
+          "fieldId": "provider:J611:01:002",
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "requiredWhen": "always for form 1701",
+          "dataType": "code",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "01"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 60 field definition"
+        },
+        {
+          "fieldId": "provider:J611:01:003",
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "requiredWhen": "always for form 1701",
+          "dataType": "yearMonth",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:004",
+          "position": 4,
+          "officialName": "市町村番号",
+          "requiredWhen": "always for form 1701",
+          "dataType": "code",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 60 field definition"
+        },
+        {
+          "fieldId": "provider:J611:01:005",
+          "position": 5,
+          "officialName": "事業所番号",
+          "requiredWhen": "always for form 1701",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:006",
+          "position": 6,
+          "officialName": "受給者証番号",
+          "requiredWhen": "always for form 1701",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:007",
+          "position": 7,
+          "officialName": "様式種別番号",
+          "requiredWhen": "always for form 1701",
+          "dataType": "code",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1701"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 60 field definition"
+        },
+        {
+          "fieldId": "provider:J611:01:008",
+          "position": 8,
+          "officialName": "補 足 給 付 関 係 情 報 / 補足給付適用の有無",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 60 field definition"
+        },
+        {
+          "fieldId": "provider:J611:01:009",
+          "position": 9,
+          "officialName": "補足給付額（円／日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:010",
+          "position": 10,
+          "officialName": "食費の単価 朝食（円／日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:011",
+          "position": 11,
+          "officialName": "食費の単価 昼食（円／日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:012",
+          "position": 12,
+          "officialName": "食費の単価 夕食（円／日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:013",
+          "position": 13,
+          "officialName": "食費の単価 一日（円／日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:014",
+          "position": 14,
+          "officialName": "光熱水費の単価 一日（円／日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:015",
+          "position": 15,
+          "officialName": "光熱水費の単価 一月（円／月）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:016",
+          "position": 16,
+          "officialName": "合 計 １ / 内訳 １００％",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:017",
+          "position": 17,
+          "officialName": "内訳 ７０％",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:018",
+          "position": 18,
+          "officialName": "内訳 重訪",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:019",
+          "position": 19,
+          "officialName": "合 計 １ / 合計 算定時間数計",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:020",
+          "position": 20,
+          "officialName": "合 計 ２ / 内訳 １００％",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:021",
+          "position": 21,
+          "officialName": "内訳 ７０％",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:022",
+          "position": 22,
+          "officialName": "内訳 重訪",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:023",
+          "position": 23,
+          "officialName": "合計 算定時間数計",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:024",
+          "position": 24,
+          "officialName": "合 計 ３ / 内訳 １００％",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:025",
+          "position": 25,
+          "officialName": "内訳 ９０％",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:026",
+          "position": 26,
+          "officialName": "合計 算定時間数計",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:027",
+          "position": 27,
+          "officialName": "合 計 ４ / 内訳 １００％",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:028",
+          "position": 28,
+          "officialName": "合 計 ４ / 内訳 ９０％",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:029",
+          "position": 29,
+          "officialName": "合計 算定時間数計",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:030",
+          "position": 30,
+          "officialName": "合 計 ５ / 内訳 １００％",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:031",
+          "position": 31,
+          "officialName": "内訳 ９０％",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:032",
+          "position": 32,
+          "officialName": "合計 算定回数計",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:033",
+          "position": 33,
+          "officialName": "提 供 実 績 の 合 計 / 算定 移動介護分",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:034",
+          "position": 34,
+          "officialName": "実績 送迎加算（回）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:035",
+          "position": 35,
+          "officialName": "実績 家庭連携加算（回） （サービス提供回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:036",
+          "position": 36,
+          "officialName": "実績 家庭連携加算（回） （算定回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:037",
+          "position": 37,
+          "officialName": "合計 算定日数（日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:038",
+          "position": 38,
+          "officialName": "夜間支援体制加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:039",
+          "position": 39,
+          "officialName": "日中支援加算（回） （サービス提供回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:040",
+          "position": 40,
+          "officialName": "日中支援加算（回） （算定回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:041",
+          "position": 41,
+          "officialName": "通所型（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:042",
+          "position": 42,
+          "officialName": "訪問型 １時間未満（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:043",
+          "position": 43,
+          "officialName": "訪問型 １時間以上（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:044",
+          "position": 44,
+          "officialName": "短期滞在加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:045",
+          "position": 45,
+          "officialName": "提 供 実 績 の 合 計 / 食事提供加算（回）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:046",
+          "position": 46,
+          "officialName": "入院・外泊時加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:047",
+          "position": 47,
+          "officialName": "入院時支援特別加算（回） （サービス提供回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:048",
+          "position": 48,
+          "officialName": "入院時支援特別加算（回） （算定回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:049",
+          "position": 49,
+          "officialName": "自立生活支援加算（Ⅱ）（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:050",
+          "position": 50,
+          "officialName": "自活訓練加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:051",
+          "position": 51,
+          "officialName": "訪問支援特別加算（回） （サービス提供回数）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:052",
+          "position": 52,
+          "officialName": "訪問支援特別加算（回） （算定回数）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:053",
+          "position": 53,
+          "officialName": "施設外支援 当月（日）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:054",
+          "position": 54,
+          "officialName": "施設外支援 累計（日／１８０日）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:055",
+          "position": 55,
+          "officialName": "帰宅時支援加算（回） （サービス提供回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:056",
+          "position": 56,
+          "officialName": "帰宅時支援加算（回） （算定回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:057",
+          "position": 57,
+          "officialName": "実 費 算 定 の 合 計 / 朝食（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:058",
+          "position": 58,
+          "officialName": "昼食（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:059",
+          "position": 59,
+          "officialName": "夕食（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:060",
+          "position": 60,
+          "officialName": "光熱水費（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:061",
+          "position": 61,
+          "officialName": "各小計 食事（円）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 7,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:062",
+          "position": 62,
+          "officialName": "各小計 光熱水費（円）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 7,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:063",
+          "position": 63,
+          "officialName": "実費合計額（円）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:064",
+          "position": 64,
+          "officialName": "入 所 時 特 別 支 援 加 算 / 利用開始日（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:065",
+          "position": 65,
+          "officialName": "３０日目（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:066",
+          "position": 66,
+          "officialName": "当月算定日数（日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:067",
+          "position": 67,
+          "officialName": "退 所 時 特 別 支 援 加 算 / 入所中算定日（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:068",
+          "position": 68,
+          "officialName": "退所日（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:069",
+          "position": 69,
+          "officialName": "退所後算定日（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:070",
+          "position": 70,
+          "officialName": "初 期 加 算 / 利用開始日（年月日）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:071",
+          "position": 71,
+          "officialName": "３０日目（年月日）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:072",
+          "position": 72,
+          "officialName": "当月算定日数（日）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:073",
+          "position": 73,
+          "officialName": "地 域 移 行 加 算 / 入所中算定日（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:074",
+          "position": 74,
+          "officialName": "退所日（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:075",
+          "position": 75,
+          "officialName": "退所後算定日（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:076",
+          "position": 76,
+          "officialName": "重 度 包 括 / 実績単位数（単位）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:077",
+          "position": 77,
+          "officialName": "実績割合（％）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:078",
+          "position": 78,
+          "officialName": "支給決定量（単位）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:079",
+          "position": 79,
+          "officialName": "重 度 包 括 / 報酬請求額（円）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 7,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:080",
+          "position": 80,
+          "officialName": "利用者負担上限月額（円）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:081",
+          "position": 81,
+          "officialName": "利用者負担額（円）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:082",
+          "position": 82,
+          "officialName": "共同生活援助合計日数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:083",
+          "position": 83,
+          "officialName": "短期入所合計日数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:084",
+          "position": 84,
+          "officialName": "その他サービス合計時間数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:085",
+          "position": 85,
+          "officialName": "当該月の日数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:086",
+          "position": 86,
+          "officialName": "サービス担当者会議開催日",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 65 field definition"
+        },
+        {
+          "fieldId": "provider:J611:01:087",
+          "position": 87,
+          "officialName": "重 度 訪 問 介 護 （ 様 式 ３ － ２ ） 集 計 欄 / 第１時間帯 早朝",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:088",
+          "position": 88,
+          "officialName": "第１時間帯 日中",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:089",
+          "position": 89,
+          "officialName": "第１時間帯 夜間",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:090",
+          "position": 90,
+          "officialName": "第１時間帯 深夜",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:091",
+          "position": 91,
+          "officialName": "第２時間帯 早朝",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:092",
+          "position": 92,
+          "officialName": "第２時間帯 日中",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:093",
+          "position": 93,
+          "officialName": "第２時間帯 夜間",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:094",
+          "position": 94,
+          "officialName": "第２時間帯 深夜",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:095",
+          "position": 95,
+          "officialName": "第３時間帯 早朝",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:096",
+          "position": 96,
+          "officialName": "第３時間帯 日中",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:097",
+          "position": 97,
+          "officialName": "第３時間帯 夜間",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:098",
+          "position": 98,
+          "officialName": "第３時間帯 深夜",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:099",
+          "position": 99,
+          "officialName": "第４時間帯 早朝",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:100",
+          "position": 100,
+          "officialName": "第４時間帯 日中",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:101",
+          "position": 101,
+          "officialName": "重 度 訪 問 介 護 （ 様 式 ３ － ２ ） 集 計 欄 / 第４時間帯 夜間",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:102",
+          "position": 102,
+          "officialName": "第４時間帯 深夜",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:103",
+          "position": 103,
+          "officialName": "第５時間帯 早朝",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:104",
+          "position": 104,
+          "officialName": "第５時間帯 日中",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:105",
+          "position": 105,
+          "officialName": "第５時間帯 夜間",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:106",
+          "position": 106,
+          "officialName": "第５時間帯 深夜",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:107",
+          "position": 107,
+          "officialName": "第６時間帯 早朝",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:108",
+          "position": 108,
+          "officialName": "第６時間帯 日中",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:109",
+          "position": 109,
+          "officialName": "第６時間帯 夜間",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:110",
+          "position": 110,
+          "officialName": "第６時間帯 深夜",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:111",
+          "position": 111,
+          "officialName": "施設種類",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "text",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:112",
+          "position": 112,
+          "officialName": "提 供 実 績 の 合 計 ２ / 緊急時対応加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:113",
+          "position": 113,
+          "officialName": "初回加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:114",
+          "position": 114,
+          "officialName": "福祉専門職員等連携加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:115",
+          "position": 115,
+          "officialName": "行動障害支援連携加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:116",
+          "position": 116,
+          "officialName": "行動障害支援指導連携加算 （回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:117",
+          "position": 117,
+          "officialName": "医療連携体制加算（回）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:118",
+          "position": 118,
+          "officialName": "緊急短期入所受入加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:119",
+          "position": 119,
+          "officialName": "単独型加算(一定の条件を満た す場合）（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:120",
+          "position": 120,
+          "officialName": "重度障害者支援加算(一定の条 件を満たす場合）（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:121",
+          "position": 121,
+          "officialName": "提 供 実 績 の 合 計 ２ / 家族支援加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:122",
+          "position": 122,
+          "officialName": "同行支援（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:123",
+          "position": 123,
+          "officialName": "特別地域加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:124",
+          "position": 124,
+          "officialName": "低所得者利用加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:125",
+          "position": 125,
+          "officialName": "体験利用支援加算（回）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:126",
+          "position": 126,
+          "officialName": "定員超過特例加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:127",
+          "position": 127,
+          "officialName": "通勤訓練加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:128",
+          "position": 128,
+          "officialName": "地域移行加算(回)",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:129",
+          "position": 129,
+          "officialName": "地域移行促進加算(回)",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:130",
+          "position": 130,
+          "officialName": "住居外利用（日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:131",
+          "position": 131,
+          "officialName": "合 計 １ / 内訳 生活援助",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:132",
+          "position": 132,
+          "officialName": "合 計 ２ / 内訳 ９０％",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:133",
+          "position": 133,
+          "officialName": "内訳 生活援助",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:134",
+          "position": 134,
+          "officialName": "合 計 ３ / 内訳 生活援助",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:135",
+          "position": 135,
+          "officialName": "合 計 ４ / 内訳 生活援助",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:136",
+          "position": 136,
+          "officialName": "合 計 ５ / 内訳 生活援助",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:137",
+          "position": 137,
+          "officialName": "重 度 包 括 / 共同生活援助合計単位数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:138",
+          "position": 138,
+          "officialName": "短期入所合計単位数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:139",
+          "position": 139,
+          "officialName": "その他サービス合計単位数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:140",
+          "position": 140,
+          "officialName": "移 保 行 育 支 ・ 援 教 加 育 算 等 / 移行日（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:141",
+          "position": 141,
+          "officialName": "移行後算定日（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:142",
+          "position": 142,
+          "officialName": "通 所 施 加 設 算 移 行 支 援 / 移行日（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:143",
+          "position": 143,
+          "officialName": "算定日（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:144",
+          "position": 144,
+          "officialName": "提 供 実 績 の 合 計 ３ / 緊急時支援加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:145",
+          "position": 145,
+          "officialName": "支援計画会議実施加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:146",
+          "position": 146,
+          "officialName": "定着支援連携促進加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:147",
+          "position": 147,
+          "officialName": "移動介護緊急時支援加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:148",
+          "position": 148,
+          "officialName": "日常生活支援情報提供加算 （回）（サービス提供回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:149",
+          "position": 149,
+          "officialName": "日常生活支援情報提供加算 （回）（算定回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:150",
+          "position": 150,
+          "officialName": "地域居住支援体制強化推進加 算（回）（サービス提供回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:151",
+          "position": 151,
+          "officialName": "地域居住支援体制強化推進加 算（回）（算定回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:152",
+          "position": 152,
+          "officialName": "地域協働加算（回）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:153",
+          "position": 153,
+          "officialName": "支援レポート共有日（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:154",
+          "position": 154,
+          "officialName": "入院開始日（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:155",
+          "position": 155,
+          "officialName": "移行支援住居入居日（年月日）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:156",
+          "position": 156,
+          "officialName": "集中的支援加算 支援開始日（年月日）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "date",
+          "maxBytes": 8,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:157",
+          "position": 157,
+          "officialName": "提 供 実 績 の 合 計 ４ / 有資格者支援加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:158",
+          "position": 158,
+          "officialName": "通院支援加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:159",
+          "position": 159,
+          "officialName": "入浴支援加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:160",
+          "position": 160,
+          "officialName": "喀痰吸引等実施加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:161",
+          "position": 161,
+          "officialName": "専門的支援加算（支援実施時） （回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:162",
+          "position": 162,
+          "officialName": "通所自立支援加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:163",
+          "position": 163,
+          "officialName": "子育てサポート加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:164",
+          "position": 164,
+          "officialName": "訪問支援員特別加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:165",
+          "position": 165,
+          "officialName": "多職種連携支援加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:166",
+          "position": 166,
+          "officialName": "強度行動障害児支援加算（支援 実施時）（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:167",
+          "position": 167,
+          "officialName": "集中的支援加算（回）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:168",
+          "position": 168,
+          "officialName": "緊急時受入加算（回）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:169",
+          "position": 169,
+          "officialName": "自立生活支援加算（Ⅰ）（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:170",
+          "position": 170,
+          "officialName": "延長支援加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:171",
+          "position": 171,
+          "officialName": "要支援児童加算（Ⅱ）（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:01:172",
+          "position": 172,
+          "officialName": "自立サポート加算（回）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J611:02",
+      "exchangeInformationId": "J611",
+      "innerRecordType": "02",
+      "order": 9,
+      "sourceDocumentId": "provider-r7-10",
+      "sourcePage": 72,
+      "fields": [
+        {
+          "fieldId": "provider:J611:02:001",
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "requiredWhen": "always for form 1701",
+          "dataType": "text",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "J611"
+          ]
+        },
+        {
+          "fieldId": "provider:J611:02:002",
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "requiredWhen": "always for form 1701",
+          "dataType": "code",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "02"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 72 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:003",
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "requiredWhen": "always for form 1701",
+          "dataType": "yearMonth",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:004",
+          "position": 4,
+          "officialName": "市町村番号",
+          "requiredWhen": "always for form 1701",
+          "dataType": "code",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 72 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:005",
+          "position": 5,
+          "officialName": "事業所番号",
+          "requiredWhen": "always for form 1701",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:006",
+          "position": 6,
+          "officialName": "受給者証番号",
+          "requiredWhen": "always for form 1701",
+          "dataType": "text",
+          "maxBytes": 10,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:007",
+          "position": 7,
+          "officialName": "様式種別番号",
+          "requiredWhen": "always for form 1701",
+          "dataType": "code",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1701"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 72 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:008",
+          "position": 8,
+          "officialName": "提供通番",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:009",
+          "position": 9,
+          "officialName": "日付",
+          "requiredWhen": "always for form 1701",
+          "dataType": "code",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20",
+            "21",
+            "22",
+            "23",
+            "24",
+            "25",
+            "26",
+            "27",
+            "28",
+            "29",
+            "30",
+            "31"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 72 field definition; day must also exist in ServiceProvisionMonth"
+        },
+        {
+          "fieldId": "provider:J611:02:010",
+          "position": 10,
+          "officialName": "サービス提供回数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:011",
+          "position": 11,
+          "officialName": "サービス内容",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "text",
+          "maxBytes": 6,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:012",
+          "position": 12,
+          "officialName": "ヘルパー資格",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "11",
+            "12",
+            "13",
+            "15",
+            "16",
+            "17",
+            "21",
+            "22"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 72 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:013",
+          "position": 13,
+          "officialName": "運転フラグ",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 72 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:014",
+          "position": 14,
+          "officialName": "開始時間",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:015",
+          "position": 15,
+          "officialName": "終了時間",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:016",
+          "position": 16,
+          "officialName": "算定時間数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:017",
+          "position": 17,
+          "officialName": "乗降（回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:018",
+          "position": 18,
+          "officialName": "移動",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:019",
+          "position": 19,
+          "officialName": "派遣人数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:020",
+          "position": 20,
+          "officialName": "前月からの継続サービス",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 73 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:021",
+          "position": 21,
+          "officialName": "送迎加算 往",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:022",
+          "position": 22,
+          "officialName": "送迎加算 復",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:023",
+          "position": 23,
+          "officialName": "家庭連携加算 （サービス提供時間数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:024",
+          "position": 24,
+          "officialName": "家庭連携加算 （算定時間数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:025",
+          "position": 25,
+          "officialName": "自活訓練加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 73 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:026",
+          "position": 26,
+          "officialName": "短期滞在加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 73 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:027",
+          "position": 27,
+          "officialName": "訪問支援特別加算 （サービス提供時間数）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:028",
+          "position": 28,
+          "officialName": "訪問支援特別加算 （算定時間数）",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:029",
+          "position": 29,
+          "officialName": "施設外支援",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 73 field definition with form 1701 restriction"
+        },
+        {
+          "fieldId": "provider:J611:02:030",
+          "position": 30,
+          "officialName": "退所時特別支援加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 73 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:031",
+          "position": 31,
+          "officialName": "地域移行加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 73 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:032",
+          "position": 32,
+          "officialName": "食事提供加算",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 73 field definition with form 1701 restriction"
+        },
+        {
+          "fieldId": "provider:J611:02:033",
+          "position": 33,
+          "officialName": "入院・外泊時加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 73 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:034",
+          "position": 34,
+          "officialName": "提供形態",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 73 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:035",
+          "position": 35,
+          "officialName": "備考",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "text",
+          "maxBytes": 100,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:036",
+          "position": 36,
+          "officialName": "サービス提供の状況",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "8"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 73 field definition with form 1701 restriction"
+        },
+        {
+          "fieldId": "provider:J611:02:037",
+          "position": 37,
+          "officialName": "夜間支援体制加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 73 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:038",
+          "position": 38,
+          "officialName": "入院時支援特別加算 （サービス提供回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 74 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:039",
+          "position": 39,
+          "officialName": "入院時支援特別加算 （算定回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 74 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:040",
+          "position": 40,
+          "officialName": "帰宅時支援加算 （サービス提供回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 74 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:041",
+          "position": 41,
+          "officialName": "帰宅時支援加算 （算定回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 74 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:042",
+          "position": 42,
+          "officialName": "自立生活支援加算（Ⅱ）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 74 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:043",
+          "position": 43,
+          "officialName": "日中支援加算 （サービス提供回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 74 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:044",
+          "position": 44,
+          "officialName": "日中支援加算 （算定回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 74 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:045",
+          "position": 45,
+          "officialName": "算定日数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 74 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:046",
+          "position": 46,
+          "officialName": "自立訓練 訪問型時間数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:047",
+          "position": 47,
+          "officialName": "実 費 算 定 / 朝食",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 74 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:048",
+          "position": 48,
+          "officialName": "昼食",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 74 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:049",
+          "position": 49,
+          "officialName": "夕食",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 74 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:050",
+          "position": 50,
+          "officialName": "光熱水費",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 74 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:051",
+          "position": 51,
+          "officialName": "重 度 包 括 / 適用単価",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 3,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:052",
+          "position": 52,
+          "officialName": "基本単位数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:053",
+          "position": 53,
+          "officialName": "加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 75 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:054",
+          "position": 54,
+          "officialName": "加算後単位数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:055",
+          "position": 55,
+          "officialName": "単位数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 4,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:056",
+          "position": 56,
+          "officialName": "重 度 包 括 / 1日計",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 5,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:057",
+          "position": 57,
+          "officialName": "重 度 訪 問 （ 様 式 ３ － ２ ） / １時間（１３時間）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 75 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:058",
+          "position": 58,
+          "officialName": "２時間（１４時間）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 75 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:059",
+          "position": 59,
+          "officialName": "３時間（１５時間）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 75 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:060",
+          "position": 60,
+          "officialName": "４時間（１６時間）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 75 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:061",
+          "position": 61,
+          "officialName": "５時間（１７時間）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 75 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:062",
+          "position": 62,
+          "officialName": "６時間（１８時間）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 75 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:063",
+          "position": 63,
+          "officialName": "７時間（１９時間）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 75 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:064",
+          "position": 64,
+          "officialName": "８時間（２０時間）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 75 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:065",
+          "position": 65,
+          "officialName": "９時間（２１時間）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 75 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:066",
+          "position": 66,
+          "officialName": "１０時間（２２時間）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 75 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:067",
+          "position": 67,
+          "officialName": "１１時間（２３時間）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 75 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:068",
+          "position": 68,
+          "officialName": "１２時間（２４時間）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 75 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:069",
+          "position": 69,
+          "officialName": "緊急時対応加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 75 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:070",
+          "position": 70,
+          "officialName": "初回加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 76 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:071",
+          "position": 71,
+          "officialName": "福祉専門職員等連携加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 76 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:072",
+          "position": 72,
+          "officialName": "行動障害支援連携加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 76 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:073",
+          "position": 73,
+          "officialName": "行動障害支援指導連携加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 76 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:074",
+          "position": 74,
+          "officialName": "医療連携体制加算",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "6"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 76 field definition with form 1701 restriction"
+        },
+        {
+          "fieldId": "provider:J611:02:075",
+          "position": 75,
+          "officialName": "緊急短期入所受入加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 76 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:076",
+          "position": 76,
+          "officialName": "単独型加算(一定の条件を満 たす場合）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 76 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:077",
+          "position": 77,
+          "officialName": "重度障害者支援加算(一定 の条件を満たす場合）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 76 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:078",
+          "position": 78,
+          "officialName": "家族支援加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 76 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:079",
+          "position": 79,
+          "officialName": "利用人数",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:080",
+          "position": 80,
+          "officialName": "同行支援",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 76 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:081",
+          "position": 81,
+          "officialName": "特別地域加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 76 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:082",
+          "position": 82,
+          "officialName": "低所得者利用加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 76 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:083",
+          "position": 83,
+          "officialName": "体験利用支援加算",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition with form 1701 restriction"
+        },
+        {
+          "fieldId": "provider:J611:02:084",
+          "position": 84,
+          "officialName": "定員超過特例加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:085",
+          "position": 85,
+          "officialName": "通勤訓練加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:086",
+          "position": 86,
+          "officialName": "地域移行促進加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:087",
+          "position": 87,
+          "officialName": "住居外利用",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:088",
+          "position": 88,
+          "officialName": "緊急時支援加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:089",
+          "position": 89,
+          "officialName": "支援計画会議実施加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:090",
+          "position": 90,
+          "officialName": "定着支援連携促進加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:091",
+          "position": 91,
+          "officialName": "移動介護緊急時支援加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:092",
+          "position": 92,
+          "officialName": "日常生活支援情報提供加算 （サービス提供回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:093",
+          "position": 93,
+          "officialName": "日常生活支援情報提供加算 （算定回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:094",
+          "position": 94,
+          "officialName": "地域居住支援体制強化推進 加算（サービス提供回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:095",
+          "position": 95,
+          "officialName": "地域居住支援体制強化推進 加算（算定回数）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:096",
+          "position": 96,
+          "officialName": "地域協働加算",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition with form 1701 restriction"
+        },
+        {
+          "fieldId": "provider:J611:02:097",
+          "position": 97,
+          "officialName": "有資格者支援加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:098",
+          "position": 98,
+          "officialName": "通院支援加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:099",
+          "position": 99,
+          "officialName": "入浴支援加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:100",
+          "position": 100,
+          "officialName": "喀痰吸引等実施加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:101",
+          "position": 101,
+          "officialName": "専門的支援加算（支援実施 時）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 77 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:102",
+          "position": 102,
+          "officialName": "通所自立支援加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "numeric",
+          "maxBytes": 2,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": []
+        },
+        {
+          "fieldId": "provider:J611:02:103",
+          "position": 103,
+          "officialName": "子育てサポート加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 78 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:104",
+          "position": 104,
+          "officialName": "訪問支援員特別加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 78 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:105",
+          "position": 105,
+          "officialName": "多職種連携支援加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 78 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:106",
+          "position": 106,
+          "officialName": "強度行動障害児支援加算 （支援実施時）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 78 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:107",
+          "position": 107,
+          "officialName": "集中的支援加算",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 78 field definition with form 1701 restriction"
+        },
+        {
+          "fieldId": "provider:J611:02:108",
+          "position": 108,
+          "officialName": "緊急時受入加算",
+          "requiredWhen": "when form 1701 records the item",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 78 field definition with form 1701 restriction"
+        },
+        {
+          "fieldId": "provider:J611:02:109",
+          "position": 109,
+          "officialName": "退居後支援",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 78 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:110",
+          "position": 110,
+          "officialName": "自立生活支援加算（Ⅰ）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [
+            "1",
+            "2"
+          ],
+          "allowedCodesSource": "provider-r7-10 physical page 78 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:111",
+          "position": 111,
+          "officialName": "延長支援加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 78 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:112",
+          "position": 112,
+          "officialName": "要支援児童加算（Ⅱ）",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 78 field definition"
+        },
+        {
+          "fieldId": "provider:J611:02:113",
+          "position": 113,
+          "officialName": "自立サポート加算",
+          "requiredWhen": "must be empty for form 1701",
+          "dataType": "code",
+          "maxBytes": 1,
+          "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
+          "allowedCodes": [],
+          "allowedCodesSource": "provider-r7-10 physical page 78 field definition"
+        }
+      ]
+    }
+  ]
+}

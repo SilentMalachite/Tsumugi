@@ -1,0 +1,1136 @@
+{
+  "schemaVersion": 1,
+  "specificationVersion": "report-fields-r8-06",
+  "fields": [
+    {
+      "fieldId": "report:service-performance:header:001",
+      "artifactId": "service-performance",
+      "section": "header",
+      "position": 1,
+      "officialName": "サービス提供年月",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:header:002",
+      "artifactId": "service-performance",
+      "section": "header",
+      "position": 2,
+      "officialName": "受給者証番号",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:header:003",
+      "artifactId": "service-performance",
+      "section": "header",
+      "position": 3,
+      "officialName": "支給決定障害者氏名",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:header:004",
+      "artifactId": "service-performance",
+      "section": "header",
+      "position": 4,
+      "officialName": "事業所番号",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:header:005",
+      "artifactId": "service-performance",
+      "section": "header",
+      "position": 5,
+      "officialName": "事業者及びその事業所",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:header:006",
+      "artifactId": "service-performance",
+      "section": "header",
+      "position": 6,
+      "officialName": "契約支給量",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:001",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 1,
+      "officialName": "日付",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:002",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 2,
+      "officialName": "曜日",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:003",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 3,
+      "officialName": "サービス提供の状況",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:004",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 4,
+      "officialName": "開始時間",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:005",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 5,
+      "officialName": "終了時間",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:006",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 6,
+      "officialName": "送迎加算 往",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:007",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 7,
+      "officialName": "送迎加算 復",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:008",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 8,
+      "officialName": "訪問支援特別加算 時間数",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:009",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 9,
+      "officialName": "食事提供体制加算",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:010",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 10,
+      "officialName": "医療連携体制加算",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:011",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 11,
+      "officialName": "体験利用支援加算",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:012",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 12,
+      "officialName": "地域協働加算",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:013",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 13,
+      "officialName": "緊急時受入加算",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:014",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 14,
+      "officialName": "集中的支援加算",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:015",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 15,
+      "officialName": "施設外支援",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:016",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 16,
+      "officialName": "利用者確認欄",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:daily:017",
+      "artifactId": "service-performance",
+      "section": "daily",
+      "position": 17,
+      "officialName": "備考",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:totals:001",
+      "artifactId": "service-performance",
+      "section": "totals",
+      "position": 1,
+      "officialName": "サービス提供日数 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:totals:002",
+      "artifactId": "service-performance",
+      "section": "totals",
+      "position": 2,
+      "officialName": "送迎加算 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:totals:003",
+      "artifactId": "service-performance",
+      "section": "totals",
+      "position": 3,
+      "officialName": "訪問支援特別加算 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:totals:004",
+      "artifactId": "service-performance",
+      "section": "totals",
+      "position": 4,
+      "officialName": "食事提供体制加算 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:totals:005",
+      "artifactId": "service-performance",
+      "section": "totals",
+      "position": 5,
+      "officialName": "医療連携体制加算 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:totals:006",
+      "artifactId": "service-performance",
+      "section": "totals",
+      "position": 6,
+      "officialName": "体験利用支援加算 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:totals:007",
+      "artifactId": "service-performance",
+      "section": "totals",
+      "position": 7,
+      "officialName": "地域協働加算 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:totals:008",
+      "artifactId": "service-performance",
+      "section": "totals",
+      "position": 8,
+      "officialName": "緊急時受入加算 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:totals:009",
+      "artifactId": "service-performance",
+      "section": "totals",
+      "position": 9,
+      "officialName": "集中的支援加算 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:totals:010",
+      "artifactId": "service-performance",
+      "section": "totals",
+      "position": 10,
+      "officialName": "施設外支援 当月",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:totals:011",
+      "artifactId": "service-performance",
+      "section": "totals",
+      "position": 11,
+      "officialName": "施設外支援 累計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:totals:012",
+      "artifactId": "service-performance",
+      "section": "totals",
+      "position": 12,
+      "officialName": "施設外支援 上限",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:initial-addition:001",
+      "artifactId": "service-performance",
+      "section": "initial-addition",
+      "position": 1,
+      "officialName": "利用開始日",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:initial-addition:002",
+      "artifactId": "service-performance",
+      "section": "initial-addition",
+      "position": 2,
+      "officialName": "30日目",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:initial-addition:003",
+      "artifactId": "service-performance",
+      "section": "initial-addition",
+      "position": 3,
+      "officialName": "当月算定日数",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:intensive-support:001",
+      "artifactId": "service-performance",
+      "section": "intensive-support",
+      "position": 1,
+      "officialName": "支援開始日",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:pagination:001",
+      "artifactId": "service-performance",
+      "section": "pagination",
+      "position": 1,
+      "officialName": "枚中",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:service-performance:pagination:002",
+      "artifactId": "service-performance",
+      "section": "pagination",
+      "position": 2,
+      "officialName": "枚目",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "service-performance-examples-r6-04-pdf",
+      "sourcePage": 12
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:001",
+      "artifactId": "benefit-claim-form",
+      "section": "header",
+      "position": 1,
+      "officialName": "請求年月日",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:002",
+      "artifactId": "benefit-claim-form",
+      "section": "header",
+      "position": 2,
+      "officialName": "請求先",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:003",
+      "artifactId": "benefit-claim-form",
+      "section": "header",
+      "position": 3,
+      "officialName": "指定事業所番号",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:004",
+      "artifactId": "benefit-claim-form",
+      "section": "header",
+      "position": 4,
+      "officialName": "郵便番号",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:005",
+      "artifactId": "benefit-claim-form",
+      "section": "header",
+      "position": 5,
+      "officialName": "住所（所在地）",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:006",
+      "artifactId": "benefit-claim-form",
+      "section": "header",
+      "position": 6,
+      "officialName": "電話番号",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:007",
+      "artifactId": "benefit-claim-form",
+      "section": "header",
+      "position": 7,
+      "officialName": "名称",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:008",
+      "artifactId": "benefit-claim-form",
+      "section": "header",
+      "position": 8,
+      "officialName": "職・氏名",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:009",
+      "artifactId": "benefit-claim-form",
+      "section": "header",
+      "position": 9,
+      "officialName": "サービス提供年月",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:header:010",
+      "artifactId": "benefit-claim-form",
+      "section": "header",
+      "position": 10,
+      "officialName": "請求金額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:claim-lines:001",
+      "artifactId": "benefit-claim-form",
+      "section": "claim-lines",
+      "position": 1,
+      "officialName": "区分",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:claim-lines:002",
+      "artifactId": "benefit-claim-form",
+      "section": "claim-lines",
+      "position": 2,
+      "officialName": "件数",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:claim-lines:003",
+      "artifactId": "benefit-claim-form",
+      "section": "claim-lines",
+      "position": 3,
+      "officialName": "単位数",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:claim-lines:004",
+      "artifactId": "benefit-claim-form",
+      "section": "claim-lines",
+      "position": 4,
+      "officialName": "費用合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:claim-lines:005",
+      "artifactId": "benefit-claim-form",
+      "section": "claim-lines",
+      "position": 5,
+      "officialName": "給付費請求額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:claim-lines:006",
+      "artifactId": "benefit-claim-form",
+      "section": "claim-lines",
+      "position": 6,
+      "officialName": "利用者負担額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:claim-lines:007",
+      "artifactId": "benefit-claim-form",
+      "section": "claim-lines",
+      "position": 7,
+      "officialName": "自治体助成額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:totals:001",
+      "artifactId": "benefit-claim-form",
+      "section": "totals",
+      "position": 1,
+      "officialName": "区分 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:totals:002",
+      "artifactId": "benefit-claim-form",
+      "section": "totals",
+      "position": 2,
+      "officialName": "件数 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:totals:003",
+      "artifactId": "benefit-claim-form",
+      "section": "totals",
+      "position": 3,
+      "officialName": "単位数 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:totals:004",
+      "artifactId": "benefit-claim-form",
+      "section": "totals",
+      "position": 4,
+      "officialName": "費用合計 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:totals:005",
+      "artifactId": "benefit-claim-form",
+      "section": "totals",
+      "position": 5,
+      "officialName": "給付費請求額 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:totals:006",
+      "artifactId": "benefit-claim-form",
+      "section": "totals",
+      "position": 6,
+      "officialName": "利用者負担額 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-form:totals:007",
+      "artifactId": "benefit-claim-form",
+      "section": "totals",
+      "position": 7,
+      "officialName": "自治体助成額 合計",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 1
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:001",
+      "artifactId": "benefit-claim-detail",
+      "section": "header",
+      "position": 1,
+      "officialName": "市町村番号",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:002",
+      "artifactId": "benefit-claim-detail",
+      "section": "header",
+      "position": 2,
+      "officialName": "サービス提供年月",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:003",
+      "artifactId": "benefit-claim-detail",
+      "section": "header",
+      "position": 3,
+      "officialName": "助成自治体番号",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:004",
+      "artifactId": "benefit-claim-detail",
+      "section": "header",
+      "position": 4,
+      "officialName": "指定事業所番号",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:005",
+      "artifactId": "benefit-claim-detail",
+      "section": "header",
+      "position": 5,
+      "officialName": "事業者及びその事業所の名称",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:006",
+      "artifactId": "benefit-claim-detail",
+      "section": "header",
+      "position": 6,
+      "officialName": "受給者証番号",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:007",
+      "artifactId": "benefit-claim-detail",
+      "section": "header",
+      "position": 7,
+      "officialName": "支給決定障害者等氏名",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:008",
+      "artifactId": "benefit-claim-detail",
+      "section": "header",
+      "position": 8,
+      "officialName": "障害児氏名",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:009",
+      "artifactId": "benefit-claim-detail",
+      "section": "header",
+      "position": 9,
+      "officialName": "地域区分",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:010",
+      "artifactId": "benefit-claim-detail",
+      "section": "header",
+      "position": 10,
+      "officialName": "就労継続支援A型事業者負担減免措置実施",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:011",
+      "artifactId": "benefit-claim-detail",
+      "section": "header",
+      "position": 11,
+      "officialName": "利用者負担上限月額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:header:012",
+      "artifactId": "benefit-claim-detail",
+      "section": "header",
+      "position": 12,
+      "officialName": "就労継続支援A型減免対象者",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:upper-limit-management:001",
+      "artifactId": "benefit-claim-detail",
+      "section": "upper-limit-management",
+      "position": 1,
+      "officialName": "管理事業所 指定事業所番号",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:upper-limit-management:002",
+      "artifactId": "benefit-claim-detail",
+      "section": "upper-limit-management",
+      "position": 2,
+      "officialName": "管理事業所 事業所名称",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:upper-limit-management:003",
+      "artifactId": "benefit-claim-detail",
+      "section": "upper-limit-management",
+      "position": 3,
+      "officialName": "管理結果",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:upper-limit-management:004",
+      "artifactId": "benefit-claim-detail",
+      "section": "upper-limit-management",
+      "position": 4,
+      "officialName": "管理結果額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:service-period:001",
+      "artifactId": "benefit-claim-detail",
+      "section": "service-period",
+      "position": 1,
+      "officialName": "サービス種別",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:service-period:002",
+      "artifactId": "benefit-claim-detail",
+      "section": "service-period",
+      "position": 2,
+      "officialName": "開始年月日",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:service-period:003",
+      "artifactId": "benefit-claim-detail",
+      "section": "service-period",
+      "position": 3,
+      "officialName": "終了年月日",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:service-period:004",
+      "artifactId": "benefit-claim-detail",
+      "section": "service-period",
+      "position": 4,
+      "officialName": "利用日数",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:service-period:005",
+      "artifactId": "benefit-claim-detail",
+      "section": "service-period",
+      "position": 5,
+      "officialName": "入院日数",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:claim-lines:001",
+      "artifactId": "benefit-claim-detail",
+      "section": "claim-lines",
+      "position": 1,
+      "officialName": "サービス内容",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:claim-lines:002",
+      "artifactId": "benefit-claim-detail",
+      "section": "claim-lines",
+      "position": 2,
+      "officialName": "サービスコード",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:claim-lines:003",
+      "artifactId": "benefit-claim-detail",
+      "section": "claim-lines",
+      "position": 3,
+      "officialName": "単位数",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:claim-lines:004",
+      "artifactId": "benefit-claim-detail",
+      "section": "claim-lines",
+      "position": 4,
+      "officialName": "回数",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:claim-lines:005",
+      "artifactId": "benefit-claim-detail",
+      "section": "claim-lines",
+      "position": 5,
+      "officialName": "サービス単位数",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:claim-lines:006",
+      "artifactId": "benefit-claim-detail",
+      "section": "claim-lines",
+      "position": 6,
+      "officialName": "摘要",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:001",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 1,
+      "officialName": "サービス種類コード",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:002",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 2,
+      "officialName": "サービス利用日数",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:003",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 3,
+      "officialName": "給付単位数",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:004",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 4,
+      "officialName": "単位数単価",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:005",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 5,
+      "officialName": "総費用額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:006",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 6,
+      "officialName": "1割相当額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:007",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 7,
+      "officialName": "利用者負担額2",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:008",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 8,
+      "officialName": "上限月額調整",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:009",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 9,
+      "officialName": "A型減免 事業者減免額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:010",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 10,
+      "officialName": "A型減免 減免後利用者負担額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:011",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 11,
+      "officialName": "調整後利用者負担額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:012",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 12,
+      "officialName": "上限額管理後利用者負担額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:013",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 13,
+      "officialName": "決定利用者負担額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:014",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 14,
+      "officialName": "給付費請求額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:summary:015",
+      "artifactId": "benefit-claim-detail",
+      "section": "summary",
+      "position": 15,
+      "officialName": "自治体助成分請求額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:special-benefit:001",
+      "artifactId": "benefit-claim-detail",
+      "section": "special-benefit",
+      "position": 1,
+      "officialName": "算定日額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:special-benefit:002",
+      "artifactId": "benefit-claim-detail",
+      "section": "special-benefit",
+      "position": 2,
+      "officialName": "日数",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:special-benefit:003",
+      "artifactId": "benefit-claim-detail",
+      "section": "special-benefit",
+      "position": 3,
+      "officialName": "給付費請求額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:special-benefit:004",
+      "artifactId": "benefit-claim-detail",
+      "section": "special-benefit",
+      "position": 4,
+      "officialName": "実費算定額",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:pagination:001",
+      "artifactId": "benefit-claim-detail",
+      "section": "pagination",
+      "position": 1,
+      "officialName": "枚中",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    },
+    {
+      "fieldId": "report:benefit-claim-detail:pagination:002",
+      "artifactId": "benefit-claim-detail",
+      "section": "pagination",
+      "position": 2,
+      "officialName": "枚目",
+      "requiredWhen": "when the official form condition applies",
+      "sourceDocumentId": "claim-examples-r1-10-pdf",
+      "sourcePage": 2
+    }
+  ]
+}
