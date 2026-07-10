@@ -150,9 +150,9 @@ public sealed class ClaimFieldMappingCompletenessTests
             .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal)
             .Should().BeEquivalentTo(new Dictionary<string, int>
             {
-                ["generated"] = 66,
+                ["generated"] = 67,
                 ["existing"] = 21,
-                ["missing"] = 22,
+                ["missing"] = 21,
                 ["explicitInput"] = 4,
             });
         mappings.Count(item => item.TryGetProperty("sameMeaningAsCsvFieldId", out _)).Should().Be(89);
@@ -167,8 +167,16 @@ public sealed class ClaimFieldMappingCompletenessTests
         AssertMapping(mappings, "report:benefit-claim-form:header:008", "missing", "RepresentativeTitleAndName");
         AssertMapping(mappings, "report:benefit-claim-detail:upper-limit-management:001", "missing", "UpperLimitManagementProviderNumber");
         AssertMapping(mappings, "report:benefit-claim-detail:upper-limit-management:002", "existing", "Certificate.UpperLimitManagementProvider");
-        AssertMapping(mappings, "report:benefit-claim-detail:summary:007", "missing", "MunicipalityDeterminedUserChargeYen");
         AssertMapping(mappings, "report:benefit-claim-detail:summary:015", "missing", "MunicipalSubsidyAmountYen");
+        var statutoryUserCharge = mappings.Single(item =>
+            item.GetProperty("fieldId").GetString() == "report:benefit-claim-detail:summary:007");
+        statutoryUserCharge.GetProperty("status").GetString().Should().Be("generated");
+        statutoryUserCharge.GetProperty("sameMeaningAsCsvFieldId").GetString().Should()
+            .Be("provider:J121:04:015");
+        statutoryUserCharge.GetProperty("sourceFieldIds").EnumerateArray()
+            .Select(field => field.GetString()).Should().Equal("provider:J121:04:015");
+        statutoryUserCharge.GetProperty("generatorRule").GetString().Should()
+            .ContainAll("render(", "provider:J121:04:015");
         failures.Should().BeEmpty(string.Join(Environment.NewLine, failures));
     }
 
@@ -195,6 +203,8 @@ public sealed class ClaimFieldMappingCompletenessTests
         missing.Should().BeEmpty($"human mapping document omitted: {string.Join(", ", missing)}");
         documented.Should().HaveCount(556).And.OnlyHaveUniqueItems(
             "the human table must contain exactly one first-column row for every CSV and report field");
+        document.Should().NotContain("MunicipalityDeterminedUserChargeYen",
+            "item 15 is generated from item 14 and must not remain in the Phase 3-1 missing list");
     }
 
     [Fact]

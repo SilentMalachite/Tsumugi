@@ -124,6 +124,11 @@ public sealed class CsvSpecificationCompletenessTests
             .Be("code", "the official two-byte item is day-of-month, not an eight-byte calendar date");
         AssertAllowedCodes(allFields, "provider:J611:02:009",
             Enumerable.Range(1, 31).Select(day => day.ToString()).ToArray());
+        AssertOfficialFieldShape(allFields, "provider:J121:01:030", "numeric", 10);
+        AssertOfficialFieldShape(allFields, "provider:J121:04:012", "numeric", 3);
+        AssertOfficialFieldShape(allFields, "provider:J121:04:014", "numeric", 10);
+        AssertOfficialFieldShape(allFields, "provider:J121:04:015", "numeric", 6);
+        AssertOfficialFieldShape(allFields, "provider:J121:04:024", "numeric", 10);
         failures.Should().BeEmpty(string.Join(Environment.NewLine, failures));
     }
 
@@ -192,9 +197,9 @@ public sealed class CsvSpecificationCompletenessTests
             .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal)
             .Should().BeEquivalentTo(new Dictionary<string, int>
             {
-                ["generated"] = 374,
+                ["generated"] = 375,
                 ["existing"] = 28,
-                ["missing"] = 31,
+                ["missing"] = 30,
                 ["explicitInput"] = 10,
             });
         AssertMapping(mappings, "provider:J121:01:008", "existing", "Recipient.KanaName");
@@ -203,9 +208,20 @@ public sealed class CsvSpecificationCompletenessTests
         AssertMapping(mappings, "provider:J121:01:013", "generated", "value=1");
         AssertMapping(mappings, "provider:J121:01:015", "missing", "UpperLimitManagementProviderNumber");
         AssertMapping(mappings, "provider:J121:01:017", "missing", "UpperLimitManagedAmountYen");
-        AssertMapping(mappings, "provider:J121:04:015", "missing", "MunicipalityDeterminedUserChargeYen");
         AssertMapping(mappings, "provider:J121:04:025", "missing", "MunicipalSubsidyAmountYen");
         AssertMapping(mappings, "provider:J121:04:030", "missing", "ExceptionalUsageStartMonth");
+        var statutoryUserCharge = mappings.Single(item =>
+            item.GetProperty("fieldId").GetString() == "provider:J121:04:015");
+        statutoryUserCharge.GetProperty("status").GetString().Should().Be("generated",
+            "physical page 32 item 15 copies the one-tenth amount from item 14");
+        statutoryUserCharge.GetProperty("sourceFieldIds").EnumerateArray()
+            .Select(field => field.GetString()).Should().Equal("provider:J121:04:014");
+        statutoryUserCharge.GetProperty("generatorRule").GetString().Should()
+            .ContainAll("copy(", "provider:J121:04:014");
+        mappings.Where(item =>
+                item.TryGetProperty("targetProperty", out var target)
+                && target.GetString() == "MunicipalityDeterminedUserChargeYen")
+            .Should().BeEmpty();
         AssertMapping(mappings, "provider:J611:02:021", "existing", "DailyRecord.Transport");
         AssertMapping(mappings, "provider:J611:02:022", "existing", "DailyRecord.Transport");
         AssertMapping(mappings, "provider:J611:02:032", "existing", "DailyRecord.MealProvided");
@@ -398,6 +414,16 @@ public sealed class CsvSpecificationCompletenessTests
         var actual = fields[fieldId].GetProperty("allowedCodes").EnumerateArray()
             .Select(code => code.GetString()).ToArray();
         actual.Should().Equal(expected, fieldId);
+    }
+
+    private static void AssertOfficialFieldShape(
+        Dictionary<string, JsonElement> fields,
+        string fieldId,
+        string expectedDataType,
+        int expectedMaxBytes)
+    {
+        fields[fieldId].GetProperty("dataType").GetString().Should().Be(expectedDataType, fieldId);
+        fields[fieldId].GetProperty("maxBytes").GetInt32().Should().Be(expectedMaxBytes, fieldId);
     }
 
     private static void AssertModelPathExists(string modelPath)

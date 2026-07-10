@@ -931,12 +931,12 @@
     {
       "fieldId": "provider:J121:04:015",
       "requiredCondition": "always",
-      "notes": "Phase 3-1 AC3-8; provider-r7-10 p32 item15 note6",
-      "status": "missing",
-      "targetModel": "Certificate",
-      "targetProperty": "MunicipalityDeterminedUserChargeYen",
-      "migrationRequired": true,
-      "uiSurface": "CertificateView"
+      "notes": "provider-r7-10 physical page 32 item 15 copies item 14",
+      "status": "generated",
+      "sourceFieldIds": [
+        "provider:J121:04:014"
+      ],
+      "generatorRule": "copy(target=provider:J121:04:015;field=provider:J121:04:014;source=provider-r7-10:p32:item15)"
     },
     {
       "fieldId": "provider:J121:04:016",
