@@ -6,7 +6,7 @@
 
 請求確定後に`Office`、`Recipient`、受給者証、日次記録又は報酬マスタが訂正されても、確定請求は自動で変わってはならない。一方、再確定、取下げ、制度改定、アプリ更新及びsnapshot schema更新後も、確定時の入力、規則、版及び出典を検証し、既存の確定請求から帳票とCSVを再生成できる必要がある。
 
-既存の`AppendOnlyChainPolicy`は`OriginId`が直前レコードを指すhop-by-hop連鎖である。請求は全`Correct`／`Cancel`が初代`New.Id`を直接指すroot-origin lineageとするため、このpolicyを流用できない。また`CreatedAt`はwall clockであり、SQLite上の順序、時計の単調性又は一意性を保証しない。現行`IUnitOfWork.SaveChangesAsync`だけでは履歴読込から保存までが同一transactionにならず、並行確定とcommit結果不明後の再送を安全に扱えない。
+既存の`AppendOnlyChainPolicy`は`OriginId`が直前レコードを指すhop-by-hop連鎖である。請求は全`Correct`／`Cancel`が初代`New.Id`を直接指すroot-origin lineageとするため、このpolicyを流用できない。また`CreatedAt`はwall clockであり、SQLite上の順序、時計の単調性又は一意性を保証しない。現行`IUnitOfWork.SaveChangesAsync`だけでは履歴読込から保存までが同一transactionにならない。さらに本番Avaloniaアプリは長寿命の1 scope／1 scoped `TsumugiDbContext`を使うため、そのcontextを並行finalizationに共有するとEF Coreの同時使用違反とtracker汚染が生じる。
 
 2026-06-29付けPhase 3-1〜3-3計画にある、`Cancel`が直近recordを参照する例、明細行単位の`ClaimDetail`、帳票／CSV生成時に現行`Office`や`Recipient`等を再読込する例は採用しない。現行化済みPhase 3設計、ADR 0020、0024、0025及び本ADRを優先する。
 
@@ -103,25 +103,30 @@ UTF-8、BOMなし、indent／改行なし、`JavaScriptEncoder.UnsafeRelaxedJson
 
 2つのenvelopeはescaped JSON文字列又は再serializeした近似値ではなく、DBへ保存するcanonical JSONのUTF-8 bytesをそのままoperation JSONのobject値へ埋め込む。新規batch／detail ID、`CreatedAt`及び`Revision`はtransaction取得後に採番され、再試行で変わり得るためhash入力へ含めない。`rootBatchId`は`New`ではnull、`Correct`／`Cancel`では初代`New.Id`とする。
 
-operation ID再送時は保存済み`OperationPayloadSchemaVersion`でcanonicalizerを選び、batch＋全detailsからpayloadを再構築する。再計算hash、保存hash、要求hash、office、month、kind、root、expected head及び`CreatedBy`が全て一致すれば追記せず既存aggregateを返す。一つでも異なればoperation ID衝突又は保存済みsnapshot破損として拒否する。未知operation schemaをv1又は現在版として解釈せずフェイルクローズする。
+operation ID再送時は`IClaimFinalizationOperationRegistry`から保存済み`OperationPayloadSchemaVersion`のreaderを選び、batch＋全detailsからpayloadを再構築する。再計算hash、保存hash、要求hash、office、month、kind、root、expected head及び`CreatedBy`が全て一致すれば追記せず既存aggregateを返す。一つでも異なればoperation ID衝突又は保存済みsnapshot破損として拒否する。未知operation schemaをv1又は現在版として解釈せずフェイルクローズする。
+
+保存行が1件でも残るoperation schemaはcanonicalizer／reader registryから削除せず、別の意味へ変更しない。registryはDI登録時にimmutableなentry集合として構築し、実行中にwrite可否やreaderを差し替えない。v2以降を追加してもv1 aggregateの再構築とhash照合を回帰テストで維持する。停止できるのは旧operation schemaによる新規writeだけである。
 
 ### 4. 並行確定、precondition及びtransaction
 
-確定操作はInfrastructureが所有する単一の明示transactionで次を実行する。
+`IClaimFinalizationStore`はscoped `TsumugiDbContext`をconstructor injectionしない。`IDbContextFactory<TsumugiDbContext>`から`CommitAsync`呼出しごとにoperation-local context／connectionを生成し、success、idempotent replay、validation rejection、busy、constraint error及びcommit failureの全経路で`await using`により破棄する。同じDI解決済みstoreへ同時に複数回`CommitAsync`してもcontext／ChangeTrackerを共有しない。
 
-1. SQLiteのwrite lockを先に取得する非deferred transactionを開始する。現行providerでは`Microsoft.Data.Sqlite.SqliteConnection.BeginTransaction(deferred: false)`相当を使い、EF Core contextを同transactionへ参加させる。
-2. 同じoperation IDのaggregateを読込み、あれば前節の再送同一性を検証して既存結果を返す。
-3. 対象office／monthの全batch＋全detailsを読込み、`Revision`とaggregateを検証する。
+確定操作はoperation-local contextが所有する単一の明示transactionで次を実行する。
+
+1. local contextのconnectionを開き、SQLiteのwrite lockを先に取得する非deferred transactionを開始する。現行providerでは`Microsoft.Data.Sqlite.SqliteConnection.BeginTransaction(deferred: false)`を使い、`Database.UseTransaction`でlocal contextを同transactionへ参加させる。
+2. 同じoperation IDのaggregateを読込み、あればoperation registryとsnapshot codec registryで再送同一性を検証して既存結果を返す。replayでは行も監査も追加しない。
+3. 対象office／monthの全batch＋全detailsを読込み、`Revision`と全aggregate不変条件を検証する。
 4. `New`はexpected headなし／履歴なし、`Correct`／`Cancel`は要求したhead ID＋revisionが最大revision recordと一致することを確認する。
-5. `Revision = max + 1`を採番し、batch、全details及びPIIを含まない`AuditEntry`を追跡して1回の`SaveChanges`で保存し、commitする。
+5. `Revision = max + 1`を採番してcandidate batch／detailsを生成する。既存headers＋candidate headerを`ClaimBatchPolicy.ValidateHistory`へ渡し、既存aggregates＋candidate aggregateをaggregate validatorへ渡す。どちらか一方でも失敗した場合はAdd／Saveしない。
+6. 成功する新規appendだけ、`IClaimAuditEntryFactory`でcompactな`AuditEntry`を生成する。candidate batch、details、auditをlocal contextへAddし、1回の`SaveChanges`で保存してcommitする。
 
 並行する異なる操作はwrite lockで直列化され、後続操作は先行commit後のheadを検証する。`ClaimBatches(OfficeId, ServiceMonthKey) WHERE Kind = 1`、`FinalizationOperationId`及び`(OfficeId, ServiceMonthKey, Revision)`の3つのbatch unique indexを二重防御とする。
 
-SQLite busy又はconstraint errorではtransaction全体をrollbackし、ChangeTrackerを破棄する。自動再試行は同じoperation IDと同じpayloadでtransaction全体を最初から行う。commit結果不明時も同じoperation IDで再送して既存aggregateを回収する。失敗した`New`を暗黙に`Correct`へ、失敗した`Correct`を別の`Correct`へ変換してはならない。
+validation rejection、SQLite busy、constraint error又はrollbackでは永続`AuditEntry`を作らず、PII-freeのtyped exceptionを返す。別transactionで失敗監査を追記する方式は採用しない。自動再試行は同じoperation IDと同じpayloadでtransaction全体を最初から行う。commit結果不明時も同じoperation IDで再送して既存aggregateを回収する。失敗した`New`を暗黙に`Correct`へ、失敗した`Correct`を別の`Correct`へ変換してはならない。
 
 ### 5. 受給者単位のsnapshot
 
-`ClaimDetail`は明細行単位ではなく受給者単位とし、1つのbatch内で各`RecipientId`を最大1件とする。次を保持する。
+`ClaimDetail`は明細行単位ではなく受給者単位とし、1つのbatch内で各`RecipientId`を最大1件とする。全`ClaimDetail.CreatedBy`は親`ClaimBatch.CreatedBy`と完全一致しなければならない。operation payloadがheaderの`createdBy`だけを保持できるのは、このaggregate不変条件を保存前と全読込時に検証するためである。次を保持する。
 
 ```text
 ClaimBatchId / RecipientId / SnapshotSchemaVersion
@@ -140,17 +145,21 @@ Entity.Id / CreatedAt / CreatedBy / ConcurrencyToken
 
 4つのsnapshot版はheader、全details及びsnapshot JSON内で一致しなければならない。ADR 0020の未登録source、ADR 0024の未登録CSV仕様版、ADR 0025の未登録rule／stepへフォールバックしない。Phase 3-1では不可変の型付きrecordからだけsnapshot JSONを生成する。Domain entityは文字列、版及び非負合計を検証するが、JSONの意味は解釈しない。
 
+`ClaimFinalizationDraft`はraw JSON／`string`／任意`byte[]`を受けず、detailごとに2つの`ValidatedClaimSnapshotEnvelope`だけを受ける。このopaque immutable型はcanonical UTF-8 bytesをconstructor時と取得時にdeep copyし、`SnapshotSchemaVersion`、validation codec identity、payload hash及び内部validation markerを保持する。public constructor／raw factoryを置かず、Phase 3-1の型付きcodec／validatorだけが内部factoryから生成できる。Phase 3-0 productionのcodec registryは空であり、production生成経路を持たない。テストだけは`InternalsVisibleTo`と専用test codec factoryを使う。
+
+storeは保存前とreplay時にcodec registryを使い、marker identity、schema／codec identity、canonical bytes、envelope内部hash及びoperation hashとの一致を再検査する。incoming draftは渡されたopaque envelopeのmarkerを検証する。保存済みreplayはregistry readerがDBのcanonical bytesを再検証して新しい内部marker付きenvelopeへ復元する。新規candidateにはread／write有効なcodec、保存済みreplayにはread有効なcodecを要求する。未知codec、偽造marker、呼出後に変更されたbytes、raw JSON及びhash不一致をappend-only DBへ保存せず、write停止済み旧codecの保存aggregateはread supportで再検証する。
+
 ### 6. 決定論的JSONとschema互換性
 
 各snapshot JSONは次のenvelopeとする。
 
 ```json
-{"schemaVersion":"claim-snapshot-v1","payloadSha256":"64 lowercase hex characters","payload":{}}
+{"schemaVersion":"claim-snapshot-v1","validationCodecId":"claim-snapshot-codec-v1","payloadSha256":"64 lowercase hex characters","payload":{}}
 ```
 
 `payloadSha256`はcanonical payloadのUTF-8 bytesに対するSHA-256である。schema別codecはUTF-8／BOMなし／indentなし、固定property順、nullとdefaultを含む固定property集合、安定keyによる配列順、二進浮動小数を経由しないdecimal scale、InvariantCulture／UTCの年月日時表現を固定する。未知・重複property、非有限値、範囲外値、trailing token及び非canonicalな保存bytesを拒否する。
 
-`SnapshotSchemaVersion`列、両envelopeのschema、選択codec及び`SnapshotApplicationVersion`互換表が一致しなければならない。version dispatcher／codec registryは、一度リリースしたschemaの型付きreader、canonicalizer及びvalidatorを別の意味へ変更しない。既知旧版は旧codecでhash、deserialize及び意味を検証して帳票／CSV入力へ復元する。
+`SnapshotSchemaVersion`列、両envelopeの`schemaVersion`／`validationCodecId`、選択codec及び`SnapshotApplicationVersion`互換表が一致しなければならない。version dispatcher／codec registryはDI登録時にimmutableなentry集合として構築し、一度リリースしたschema／codec identityの型付きreader、canonicalizer及びvalidatorを別の意味へ変更しない。既知旧版は旧codecでhash、deserialize及び意味を検証して帳票／CSV入力へ復元する。
 
 未知schema、既知版のhash不一致、deserialize失敗、非canonical bytes、schema／版／合計不一致又はcodec欠落はフェイルクローズする。JSON本文を修復、既定値補完、現行schemaとして再解釈又は下層データから再計算してはならない。
 
@@ -203,11 +212,15 @@ builder.HasIndex(x => new { x.ClaimBatchId, x.RecipientId })
 
 ### 9. 型付き請求監査と例外
 
-請求経路は一般`IAuditTrail`を直接呼ばず、`IClaimAuditTrail.RecordAsync(string actor, ClaimAuditPayload payload, CancellationToken)`だけを使う。`actor`は一般`IAuditTrail`のactor引数へだけ渡し、summaryへ含めない。adapterのsafe formatterだけが一般`IAuditTrail.RecordAsync`の`summary`を生成でき、呼出元から自由文字列summaryを受け取らない。payloadはbatch／operation／office／recipient ID、service month、kind、root、revision、expected head、5版、snapshot／operation schema、source ID、hash、件数及び閉じたevent／error codeだけを持つ。
+請求経路は一般`IAuditTrail`を直接呼ばない。Applicationのpure `IClaimAuditEntryFactory.Create(Guid auditEntryId, string actor, ClaimAuditPayload payload, DateTimeOffset occurredAt)`だけが`AuditEntry`を生成し、finalization storeがoperation-local contextへ直接Addする。factoryはDbContext、Repository、clock、ID generator又は自由文字列summaryを受けない。
+
+`ClaimAuditPayload`は成功した新規append用の固定fieldだけを持つ。`eventCode`、target batch ID、operation ID、office ID、service month、kind、revision、root ID及びoperation hash以外をsummaryへ出力しない。actorは`AuditEntry.Actor`／`CreatedBy`へだけ設定する。5つのversion、snapshot／operation schema、source ID、recipient ID、JSON path及び合計は正本のbatch／snapshotに残し、summaryへ詰め込まない。
+
+safe formatterは固定key順、改行なしでsummaryを作り、最長の全allowlist値でも512文字以下であることを境界テストで証明する。既存`AuditEntryConfiguration.Summary.HasMaxLength(512)`を変更せず、監査用migrationを追加しない。
 
 請求例外は閉じた`ClaimErrorCode`と、値を保持できない`ClaimJsonPath`型を使う。pathはschema property tokenと配列indexだけから構成し、入力値、自由記述又は表示文言を埋め込めない。氏名、受給者証番号、住所、障害情報、snapshot JSON本文、個々の入力値、金額又は保存先を監査と例外へ含めない。
 
-監査追記はsnapshotと同じtransactionで保存する。validation failureもtyped adapterを通し、error code、値なしpath、version及びhashだけを記録する。hashは署名ではなく決定論と破損検出の識別子として扱う。
+成功した新規appendの監査だけをsnapshotと同じtransactionで保存する。replay、validation rejection、busy、constraint error及びrollbackは監査行を増やさない。失敗は閉じたerror codeと値なしpathを持つtyped exceptionとして呼出元へ返し、別監査transactionを開始しない。hashは署名ではなく決定論と破損検出の識別子として扱う。
 
 ## Alternatives
 
@@ -234,8 +247,9 @@ builder.HasIndex(x => new { x.ClaimBatchId, x.RecipientId })
 ## Consequences
 
 - Phase 3-0のDomain／EF／Repositoryは`Revision`、expected head、5版、operation schema／ID／hash、3つのbatch unique index及びdetail unique indexを実装する。
+- finalization storeはoperation-local context factoryを使うため、デスクトップの長寿命scoped contextとtrackerを共有しない。
 - Phase 3-1は型付きsnapshot record、全旧版を保持するcodec／validator registry及びvalidated aggregate serviceを追加してから`CloseClaimUseCase`を公開する。
-- append-only旧行が残る限り旧schemaのreader／validator／rendererを削除できない。明示`Correct`後も履歴検証に必要であり、新規writeだけを停止できる。
+- append-only旧行が残る限り旧snapshot codec／validator／rendererと旧operation canonicalizer／readerを削除できない。明示`Correct`又はoperation v2導入後も履歴・再送検証に必要であり、新規writeだけを停止できる。
 - JSONと版を重複保持するためDB容量は増えるが、帳票／CSV生成が下層テーブルと現在のmasterから独立する。
 - `Cancel`後は通常出力できない。履歴参照は監査用途に限定する。
 
@@ -245,11 +259,15 @@ builder.HasIndex(x => new { x.ClaimBatchId, x.RecipientId })
 - CreatedAt逆転又は同値でもRevision順だけを使い、同一RevisionをCreatedAt／Idで救済しない。
 - `claim-finalization-operation-v1`の全property、順序、値表現、detail順及びcanonical envelope bytesをgolden testで固定する。
 - 同一operation ID・同一payloadの再送は同じaggregateを返し、異なるpayload又は保存aggregateからの再構築hash不一致を拒否する。
+- operation v2追加後もv1 aggregateをv1 readerで再構築し、v1 readerのwrite supportだけを停止できる。
 - 並行確定は非deferred transaction内でexpected head再検証とRevision採番を行い、同一revisionをDBでも拒否する。
+- 同じDI解決済みstoreへの並行呼出が呼出単位のDbContext／connectionを使い、success／replay／failure後に全contextをdisposeする。
 - New partial、operation ID、office／month／revision、batch／recipient detailの4 unique indexと3つのRestrict FKをSQLiteで検証する。
-- Cancelはdetailなし／全合計0／snapshot4版コピー、Correctは完全snapshot、header／detailの4版と合計が一致する。
+- Cancelはdetailなし／全合計0／snapshot4版コピー、Correctは完全snapshot、header／detailの4版、合計及び`CreatedBy`が一致する。
+- candidate生成後かつSave前に既存history＋candidateをpolicy／aggregate validatorへ通し、Cancel後candidateを拒否する。
+- raw JSONをdraftへ渡せず、未知codec、偽造marker、変更bytes又はhash不一致のopaque envelopeをstoreが拒否する。
 - 現行版と既知旧版をregistryで読め、未知版、hash不一致、deserialize失敗、未知rule／step／sourceをfail-closedにする。
 - 旧schemaをCorrectへ変換した後も旧historyのcodec／validator／renderer read testを維持する。
 - raw Repositoryだけでは実効版を返さず、Phase 3-1のvalidated aggregate serviceだけが全batch＋details検証後に返す。
 - 帳票／CSV生成時に下層repositoryを呼ばず、同じsnapshot入力から同じbytesを返す。
-- 請求監査がtyped adapterだけを通り、自由summary、PII、JSON本文、入力値及び金額を出力できないことを検証する。
+- 成功appendだけpure audit factoryの512文字以下summaryを同transactionへ保存し、replay／rejection／busy／rollbackで監査行を増やさない。自由summary、PII、JSON本文、入力値、版／source一覧及び金額を出力できないことも検証する。

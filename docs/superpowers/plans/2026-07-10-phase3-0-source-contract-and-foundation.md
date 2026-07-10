@@ -87,8 +87,23 @@ src/Tsumugi.Domain/
   Entities/ClaimDetail.cs
 
 src/Tsumugi.Application/Abstractions/
+  ClaimBatchAggregate.cs
+  ClaimFinalizationDraft.cs
   IClaimMasterProvider.cs
   IClaimBatchRepository.cs
+  IClaimFinalizationStore.cs
+  IClaimSnapshotValidationCodecRegistry.cs
+
+src/Tsumugi.Application/Claim/
+  ValidatedClaimSnapshotEnvelope.cs
+  IClaimFinalizationOperationRegistry.cs
+  ClaimFinalizationOperationRegistry.cs
+  ClaimFinalizationOperationV1.cs
+
+src/Tsumugi.Application/Audit/
+  ClaimAuditPayload.cs
+  IClaimAuditEntryFactory.cs
+  ClaimAuditEntryFactory.cs
 ```
 
 ### Infrastructure / CSV
@@ -106,6 +121,8 @@ src/Tsumugi.Infrastructure/
   ClaimMasters/Seed/transition-rules.json
   ClaimMasters/Seed/service-codes.json
   Persistence/ClaimBatchRepository.cs
+  Persistence/ClaimFinalizationStore.cs
+  Persistence/UnavailableClaimSnapshotValidationCodecRegistry.cs
   Persistence/Configurations/ClaimBatchConfiguration.cs
   Persistence/Configurations/ClaimDetailConfiguration.cs
   Migrations/<timestamp>_AddClaimBatchAndDetail.cs
@@ -141,12 +158,19 @@ tests/Tsumugi.Infrastructure.Csv.Tests/
   CsvSpecificationCompletenessTests.cs
   ClaimFieldMappingCompletenessTests.cs
 
+tests/Tsumugi.Application.Tests/
+  Claim/ValidatedClaimSnapshotEnvelopeTests.cs
+  Claim/ClaimFinalizationOperationV1Tests.cs
+  Claim/ClaimFinalizationOperationRegistryTests.cs
+  Audit/ClaimAuditEntryFactoryTests.cs
+
 tests/Tsumugi.Infrastructure.Tests/
   ClaimMasters/JsonClaimMasterProviderTests.cs
   ClaimSpecificationBoundaryTests.cs
   ExternalSpecificationLiteralGuard.cs
   Persistence/ClaimBatchRepositoryTests.cs
-  ClaimBatchDuplicateNewIndexTests.cs
+  Persistence/ClaimFinalizationStoreTests.cs
+  ClaimBatchUniqueConstraintTests.cs
   AppendOnlyGuardPhase3Tests.cs
   ClaimBatchMigrationTests.cs
   OfflineComplianceTests.cs
@@ -159,6 +183,7 @@ tests/Tsumugi.App.Tests/
   CompositionRootTests.cs
 
 Tsumugi.sln
+src/Tsumugi.Application/Tsumugi.Application.csproj
 src/Tsumugi.Infrastructure/Tsumugi.Infrastructure.csproj
 src/Tsumugi.Infrastructure/DependencyInjection.cs
 src/Tsumugi.Infrastructure/Persistence/TsumugiDbContext.cs
@@ -608,19 +633,19 @@ git commit -m "docs(phase3-0/AC3-0-1): define claim rounding stages"
 
 - [ ] **Step 1: 履歴規律を記述する**
 
-`(OfficeId, ServiceMonth)`ごとに初回`New`は1件、再確定は`Correct`、取下げは`Cancel`とする。全`Correct`／`Cancel`の`OriginId`は初代`New.Id`を指す。
+`(OfficeId, ServiceMonth)`ごとに初回`New`は1件、再確定は`Correct`、取下げは`Cancel`とする。全`Correct`／`Cancel`の`OriginId`は初代`New.Id`を指す。追記順はtransaction内採番の1始まり連続`Revision`だけを権威とする。
 
 - [ ] **Step 2: 実効版の決定規則を記述する**
 
-`CreatedAt`昇順、同時刻は`Id`昇順で決定論的に並べ、末尾が`Cancel`なら実効版なしとする。孤立したCorrect／Cancel、異なる初代Newへの参照、Cancel後のCorrect、複数Cancelは不正履歴としてフェイルクローズする。
+`Revision`昇順で検証し、最大Revisionが`Cancel`なら実効版なしとする。欠番／重複Revision、孤立したCorrect／Cancel、異なる初代Newへの参照、expected head不一致、Cancel後record、複数Cancelは不正履歴としてフェイルクローズする。`CreatedAt`／`Id`で順序を決めたり不正Revisionを救済したりしない。
 
 - [ ] **Step 3: スナップショット形式を決定する**
 
-`ClaimDetail`は受給者単位とし、`SnapshotSchemaVersion`、`InputSnapshotJson`、`CalculationSnapshotJson`、合計を保持する。JSONはPhase 3-1の型付きrecordから決定論的に生成し、帳票・CSVは確定時JSONだけを読む。下層データを再読込しない。
+`ClaimDetail`は受給者単位とし、`SnapshotSchemaVersion`、`ClaimMasterVersion`、`CsvSpecificationVersion`、`ReportSpecificationVersion`、`SnapshotApplicationVersion`、`InputSnapshotJson`、`CalculationSnapshotJson`、合計を保持する。raw JSONはfinalization draftへ渡さず、Phase 3-1の型付きcodec／validatorだけが作るopaque `ValidatedClaimSnapshotEnvelope`から保存する。帳票・CSVは確定時JSONだけを読み、下層データを再読込しない。
 
 - [ ] **Step 4: DB制約を記述する**
 
-`(OfficeId, ServiceMonthKey) WHERE Kind = 1`のpartial unique index、`ClaimDetails(ClaimBatchId, RecipientId)` unique index、FKの`DeleteBehavior.Restrict`、AppendOnlyGuardを決定する。
+New partial、`FinalizationOperationId`、`(OfficeId, ServiceMonthKey, Revision)`、`ClaimDetails(ClaimBatchId, RecipientId)`の4 unique index、Detail／Origin／ExpectedHeadの3 `DeleteBehavior.Restrict` FK、snapshot4版＋`OperationApplicationVersion`、operation schema／ID／hash列及びAppendOnlyGuardを決定する。
 
 - [ ] **Step 5: 検査とコミット**
 
@@ -1082,19 +1107,27 @@ git commit -m "feat(phase3-0/AC3-0-4): persist append-only claim snapshots"
 ### Task 15: ClaimBatchRepositoryをTDDで実装する
 
 **Files:**
+- Modify: `src/Tsumugi.Application/Tsumugi.Application.csproj`
 - Create: `src/Tsumugi.Application/Abstractions/ClaimBatchAggregate.cs`
 - Create: `src/Tsumugi.Application/Abstractions/ClaimFinalizationDraft.cs`
 - Create: `src/Tsumugi.Application/Abstractions/IClaimBatchRepository.cs`
 - Create: `src/Tsumugi.Application/Abstractions/IClaimFinalizationStore.cs`
+- Create: `src/Tsumugi.Application/Abstractions/IClaimSnapshotValidationCodecRegistry.cs`
+- Create: `src/Tsumugi.Application/Claim/ValidatedClaimSnapshotEnvelope.cs`
+- Create: `src/Tsumugi.Application/Claim/IClaimFinalizationOperationRegistry.cs`
+- Create: `src/Tsumugi.Application/Claim/ClaimFinalizationOperationRegistry.cs`
 - Create: `src/Tsumugi.Application/Claim/ClaimFinalizationOperationV1.cs`
 - Create: `src/Tsumugi.Application/Audit/ClaimAuditPayload.cs`
-- Create: `src/Tsumugi.Application/Audit/IClaimAuditTrail.cs`
-- Create: `src/Tsumugi.Application/Audit/ClaimAuditTrail.cs`
+- Create: `src/Tsumugi.Application/Audit/IClaimAuditEntryFactory.cs`
+- Create: `src/Tsumugi.Application/Audit/ClaimAuditEntryFactory.cs`
 - Create: `src/Tsumugi.Infrastructure/Persistence/ClaimBatchRepository.cs`
 - Create: `src/Tsumugi.Infrastructure/Persistence/ClaimFinalizationStore.cs`
+- Create: `src/Tsumugi.Infrastructure/Persistence/UnavailableClaimSnapshotValidationCodecRegistry.cs`
 - Modify: `src/Tsumugi.Infrastructure/DependencyInjection.cs`
+- Create: `tests/Tsumugi.Application.Tests/Claim/ValidatedClaimSnapshotEnvelopeTests.cs`
 - Create: `tests/Tsumugi.Application.Tests/Claim/ClaimFinalizationOperationV1Tests.cs`
-- Create: `tests/Tsumugi.Application.Tests/Audit/ClaimAuditTrailTests.cs`
+- Create: `tests/Tsumugi.Application.Tests/Claim/ClaimFinalizationOperationRegistryTests.cs`
+- Create: `tests/Tsumugi.Application.Tests/Audit/ClaimAuditEntryFactoryTests.cs`
 - Create: `tests/Tsumugi.Infrastructure.Tests/Persistence/ClaimBatchRepositoryTests.cs`
 - Create: `tests/Tsumugi.Infrastructure.Tests/Persistence/ClaimFinalizationStoreTests.cs`
 - Modify: `tests/Tsumugi.App.Tests/CompositionRootTests.cs`
@@ -1119,9 +1152,15 @@ public interface IClaimFinalizationStore
 }
 ```
 
-`ClaimFinalizationDraft`はADR 0026のoperation payload全項目とcanonical envelope文字列を持つが、batch／detail ID、`CreatedAt`、`Revision`及びoperation hashを持たない。storeがtransaction内でこれらを生成する。`ClaimExpectedHead`はbatch ID＋Revisionの組とし、Newではnull、Correct／Cancelでは必須とする。
+`ClaimFinalizationDraft`はADR 0026のoperation payload全項目を持つが、raw JSON／`string`／任意`byte[]`を受けない。各detailの入力／算定snapshotはopaque immutable `ValidatedClaimSnapshotEnvelope`だけを受ける。batch／detail ID、`CreatedAt`、`Revision`及びoperation hashはstoreがtransaction内で生成する。`ClaimExpectedHead`はbatch ID＋Revisionの組とし、Newではnull、Correct／Cancelでは必須とする。
+
+`ValidatedClaimSnapshotEnvelope`はcanonical UTF-8 bytesを入力時と取得時にdeep copyし、schema、codec identity、payload hash及び内部validation markerを保持する。public constructor／raw factoryを持たせず、Application csprojの`InternalsVisibleTo`はApplication.Tests／Infrastructure.Testsのtest factoryだけに許可する。productionではPhase 3-1の型付きcodec／validatorだけが内部factoryを呼ぶ。Phase 3-0はproduction codecを登録しない`UnavailableClaimSnapshotValidationCodecRegistry`を使うため、productionにsnapshot生成経路はない。
+
+`IClaimFinalizationOperationRegistry`はoperation schemaごとにwrite canonicalizerとread/rebuild readerを分離して返す。v1 readerは保存行が残る限り保持し、v2登録後もv1 replayを再構築する。
 
 `ClaimFinalizationResult`は`BatchId`、`Revision`、`IsReplay`を返す。通常の`IUnitOfWork`をfinalizationに流用せず、storeが読込、採番、batch＋details＋audit保存及びcommitを1 transactionで所有する。
+
+`ClaimFinalizationStore`はscoped `TsumugiDbContext`又はscoped `IClaimBatchRepository`をinjectしない。raw Repositoryは通常のread用途だけに残し、finalization storeはfactoryで生成したlocal contextから同等のaggregate queryを行う。
 
 - [ ] **Step 2: 失敗テストを書く**
 
@@ -1131,41 +1170,49 @@ public interface IClaimFinalizationStore
 - `FindByOperationIdAsync`はheaderだけでなく全detailsを返す
 - raw Repositoryに`GetEffectiveAsync`、headerだけのeffective API又はcodec検証済みを示すAPIが存在しない
 - Revision欠番、重複、Cancel終端違反等のraw不正履歴をRepositoryが`CreatedAt`／`Id`並べ替えで救済しない
+- `ClaimFinalizationDraft`にraw JSON／string／byte[]を受けるpublic APIがなく、`ValidatedClaimSnapshotEnvelope`にpublic constructor／raw factoryがない
+- envelopeがbytesを入力時／取得時にdeep copyし、test codec marker、`schemaVersion`、`validationCodecId`及びpayload hashを保持する
 - `ClaimFinalizationOperationV1`がADR 0026の全property順、GUID／month／null表現、小文字D形式RecipientIdのUTF-8 ordinal順、2つのcanonical envelope raw bytesをgolden bytesで固定する
 - operation hashからbatch／detail ID、CreatedAt、Revisionが除外され、5版、expected head、全合計及びenvelope bytesのどれか1つを変えるとhashが変わる
 - 保存aggregateから再構築したoperation bytes／hashが元draftと一致する
-- `ClaimAuditPayload`以外から請求summaryを作れず、safe formatterがallowlist fieldだけを出力する
-- `ClaimErrorCode`が閉じたenum、`ClaimJsonPath`がproperty token／array indexだけを持ち、氏名、受給者証番号、JSON本文、入力値及び金額をsummary／例外へ出さない
+- operation registryへv2 writerを追加しv1 writeを停止した後も、v1 readerで保存aggregateを再構築できる
+- `ClaimAuditPayload`以外から請求summaryを作れず、pure factoryが固定順compact allowlistだけで`AuditEntry`を作る
+- 最長field値でもsummaryが512文字以下で、版／source一覧、氏名、受給者証番号、JSON本文、入力値及び金額を含まない
+- `ClaimErrorCode`が閉じたenum、`ClaimJsonPath`がproperty token／array indexだけを持つ
 
 - [ ] **Step 3: 赤を確認する**
 
 ```bash
-dotnet test tests/Tsumugi.Application.Tests/Tsumugi.Application.Tests.csproj --filter "FullyQualifiedName~ClaimFinalizationOperationV1Tests|FullyQualifiedName~ClaimAuditTrailTests" -v normal
+dotnet test tests/Tsumugi.Application.Tests/Tsumugi.Application.Tests.csproj --filter "FullyQualifiedName~ValidatedClaimSnapshotEnvelopeTests|FullyQualifiedName~ClaimFinalizationOperationV1Tests|FullyQualifiedName~ClaimFinalizationOperationRegistryTests|FullyQualifiedName~ClaimAuditEntryFactoryTests" -v normal
 dotnet test tests/Tsumugi.Infrastructure.Tests/Tsumugi.Infrastructure.Tests.csproj --filter "FullyQualifiedName~ClaimBatchRepositoryTests" -v normal
 ```
 
 Expected: aggregate／operation canonicalizer／typed audit未定義でFAIL。
 
-- [ ] **Step 4: raw Repositoryとoperation canonicalizerを実装する**
+- [ ] **Step 4: raw Repository、opaque envelope、operation registry、audit factoryを実装する**
 
 `ListHistoryAggregatesAsync`はOffice／ServiceMonthで全batchを取得し、対象batch IDの全detailsも取得してaggregate化する。SQL又はmemoryのどちらでも`CreatedAt`／`Id`順を使わずRevision順だけを使う。`FindByOperationIdAsync`もdetailsを必ず含める。
 
-`ClaimFinalizationOperationV1`はADR 0026の`claim-finalization-operation-v1`だけを扱い、BOM／indent／改行なし、`JavaScriptEncoder.UnsafeRelaxedJsonEscaping`の`Utf8JsonWriter`へpropertyを固定順で書く。版／schema IDのASCIIと`createdBy`のNFCを検証する。2つのsnapshot envelopeは保存するcanonical UTF-8 bytesを`WriteRawValue`相当でobject値へ埋め込み、escaped JSON文字列へしない。現在のアプリ既定版への置換や未知propertyの透過をしない。
+`ClaimFinalizationOperationV1`はADR 0026の`claim-finalization-operation-v1`だけを扱い、BOM／indent／改行なし、`JavaScriptEncoder.UnsafeRelaxedJsonEscaping`の`Utf8JsonWriter`へpropertyを固定順で書く。版／schema IDのASCIIと`createdBy`のNFCを検証する。2つのopaque envelopeから取得したcanonical UTF-8 copyを`WriteRawValue`相当でobject値へ埋め込み、escaped JSON文字列へしない。現在のアプリ既定版への置換や未知propertyの透過をしない。
 
-`ClaimAuditTrail`はtyped payloadだけを受け、safe formatterで既存一般`IAuditTrail`へ委譲する。ここまで実装後、Step 3の2コマンドを再実行して緑を確認する。
+`ClaimFinalizationOperationRegistry`はv1のwriterとreaderをimmutable entry集合として登録し、write停止とread保持を別flagで表す。実行中にentryを変更しない。`ClaimAuditEntryFactory`はDbContextや一般`IAuditTrail`に依存せず、success appendのtyped payloadからsummary 512文字以下の`AuditEntry`を返す。ここまで実装後、Step 3の2コマンドを再実行して緑を確認する。
 
 - [ ] **Step 5: nondeferred finalization storeの失敗テストを書く**
 
-一時SQLiteと2 contextを使い、次を検証する。
+複数connectionで共有できる一時ファイルSQLite、recording `IDbContextFactory`及びtest-only snapshot codec registryを使い、次を検証する。
 
 - 空履歴へNewをcommitするとRevision 1、次のCorrect／Cancelはtransaction内`max+1`
 - `CreatedAt`が逆転してもRevision採番とhead判定が変わらない
-- expected head ID又はRevision不一致、Cancel後Correct、複数Cancel、版／合計／detail不一致をrollbackする
-- 並行New、並行Correct／Cancelがnondeferred transactionで直列化され、同じRevisionをcommitしない
+- expected head ID又はRevision不一致、Cancel後Correct／Cancel、複数Cancel、版／合計／detail不一致をSave前に拒否する
+- Revision採番とcandidate生成後、既存headers＋candidateを`ClaimBatchPolicy.ValidateHistory`、既存aggregates＋candidateをaggregate validatorへ渡してからAddする
+- tamperした`ClaimDetail.CreatedBy != ClaimBatch.CreatedBy`を全読込時に拒否する
+- 同じDI解決済みstoreへの並行New、並行Correct／Cancelが呼出しごとのcontext／connectionで直列化され、同じRevisionをcommitしない
 - 同一operation ID＋同一payload再送は同じBatchId／Revisionを`IsReplay=true`で返し、行とauditを増やさない
 - 同一operation IDの異なるpayload、又は保存aggregateからの再構築hash不一致を拒否する
+- unknown／write-disabled codec、偽造marker、呼出後のbytes変更、schema／codec identity／envelope hash不一致を新規candidateで拒否し、read-enabled／write-disabled旧codecはreplayで許可する
 - Cancelはsnapshot4版をheadからコピーし、`OperationApplicationVersion`だけ要求実行版を使う
-- audit追加失敗、SQLite busy又はconstraint errorでbatch／details／auditを全rollbackしChangeTrackerをclearする
+- success appendだけcompact auditを1件保存し、replay、validation rejection、SQLite busy、constraint error、audit factory failure又はrollbackでは監査行を増やさない
+- success、replay、全failure経路でoperation-local contextをdisposeし、長寿命scoped contextのChangeTrackerへ何も追加しない
 
 Run: `dotnet test tests/Tsumugi.Infrastructure.Tests/Tsumugi.Infrastructure.Tests.csproj --filter "FullyQualifiedName~ClaimFinalizationStoreTests" -v normal`
 
@@ -1175,26 +1222,27 @@ Expected: store未実装でFAIL。
 
 `ClaimFinalizationStore.CommitAsync`は次の順を固定する。
 
-1. `SqliteConnection.BeginTransaction(deferred: false)`でwrite lockを取得しEF contextを参加させる。
-2. operation IDを全details付きで検索し、存在すれば保存`OperationPayloadSchemaVersion`でcanonicalizerを選んでaggregateから再構築し、同一時だけ既存結果を返す。未知schemaは拒否する。
-3. office／monthの全aggregateを読み、headerは`ClaimBatchPolicy.ValidateHistory`、detailsはID、重複recipient、4版、合計及びCancel空集合を検証する。Phase 3-0ではcodec／envelope内部hashを検証済みとは呼ばない。
+1. injected scoped contextを使わず、`IDbContextFactory<TsumugiDbContext>.CreateDbContextAsync`でoperation-local contextを`await using`生成する。`Database.OpenConnectionAsync`後、contextの`SqliteConnection.BeginTransaction(deferred: false)`でwrite lockを取得し、`Database.UseTransactionAsync`で参加させる。
+2. operation IDを全details付きで検索する。存在すれば保存`OperationPayloadSchemaVersion`のread entryをoperation registryから選び、snapshot codecのread entryでenvelopesを再検証し、aggregateを再構築して同一時だけ既存結果を返す。未知schema／codecは拒否し、replay auditは追加しない。
+3. office／monthの全aggregateを読み、headerは`ClaimBatchPolicy.ValidateHistory`、detailsはID、重複recipient、`CreatedBy`、4版、合計、Cancel空集合及びenvelope codec／hashを検証する。
 4. expected headを最大Revision recordと照合し、`Revision=max+1`を採番する。
-5. operation v1 bytes／hashを作り、batch／detailsを生成する。
-6. `IClaimAuditTrail.RecordAsync(draft.CreatedBy, ClaimAuditPayload, ct)`でtyped auditを同じcontextへ追加する。actorは一般監査のactor引数だけに渡しsummaryへ含めない。
-7. 1回の`SaveChangesAsync`後にcommitする。失敗時はrollbackしてChangeTrackerをclearする。
+5. incoming opaque envelopesをcodec registryで再検証する。新規writeにはread／write有効codecを要求し、operation registryのwrite entryでoperation bytes／hashを作ってcandidate batch／detailsを生成する。
+6. 既存headers＋candidateを`ClaimBatchPolicy.ValidateHistory`、既存aggregates＋candidateをaggregate validatorへ渡す。Save前検証が全て通るまでlocal contextへAddしない。
+7. `IClaimAuditEntryFactory.Create(Guid.NewGuid(), draft.CreatedBy, ClaimAuditPayload, now)`でsuccess auditを生成し、candidate batch／details／auditをlocal contextへAddする。1回の`SaveChangesAsync`後にcommitする。
+8. success、replay又は例外の全経路でtransaction、connection、contextをdisposeする。validation rejection、busy、constraint error又はrollbackでは監査行を別transactionへ保存しない。
 
-請求コードから一般`IAuditTrail.RecordAsync`へ自由summaryを渡すことを禁止する。`ClaimAuditTrail`だけがtyped payloadをsafe formatして既存一般契約へ委譲する。現行`IAuditTrail`のsignatureは変更しない。
+請求コードから一般`IAuditTrail.RecordAsync`へ自由summaryを渡すことを禁止する。pure factoryが作った`AuditEntry`だけをstoreのlocal contextへAddする。既存`IAuditTrail`、`AuditEntryConfiguration`及びmigrationは変更しない。
 
 - [ ] **Step 7: DIへ登録する**
 
-`IClaimBatchRepository`、`IClaimFinalizationStore`、`IClaimAuditTrail`をscoped登録する。
+現行`AddDbContext<TsumugiDbContext>`を`AddDbContextFactory<TsumugiDbContext>`へ置き換え、既存scoped context解決を維持しつつ`IDbContextFactory<TsumugiDbContext>`を登録する。`IClaimBatchRepository`はscoped、`IClaimFinalizationStore`、`IClaimFinalizationOperationRegistry`、`IClaimAuditEntryFactory`及びPhase 3-0の`IClaimSnapshotValidationCodecRegistry` unavailable実装はsingleton登録する。storeはscoped contextをconstructor依存に持たない。
 
-`CompositionRootTests`は3抽象を同一scopeから解決でき、finalization storeとtyped auditが同じscoped `TsumugiDbContext`を使うことを検証する。
+`CompositionRootTests`はfactoryと各抽象を解決でき、同じstore instanceから複数operation-local contextを作れること、scoped `TsumugiDbContext`をstoreがcaptureしないこと、Phase 3-0 codec registryがproduction envelopeを生成できないことを検証する。
 
 - [ ] **Step 8: 緑を確認する**
 
 ```bash
-dotnet test tests/Tsumugi.Application.Tests/Tsumugi.Application.Tests.csproj --filter "FullyQualifiedName~ClaimFinalizationOperationV1Tests|FullyQualifiedName~ClaimAuditTrailTests" -v normal
+dotnet test tests/Tsumugi.Application.Tests/Tsumugi.Application.Tests.csproj --filter "FullyQualifiedName~ValidatedClaimSnapshotEnvelopeTests|FullyQualifiedName~ClaimFinalizationOperationV1Tests|FullyQualifiedName~ClaimFinalizationOperationRegistryTests|FullyQualifiedName~ClaimAuditEntryFactoryTests" -v normal
 dotnet test tests/Tsumugi.Infrastructure.Tests/Tsumugi.Infrastructure.Tests.csproj --filter "FullyQualifiedName~ClaimBatchRepositoryTests|FullyQualifiedName~ClaimFinalizationStoreTests" -v normal
 dotnet test tests/Tsumugi.App.Tests/Tsumugi.App.Tests.csproj --filter "FullyQualifiedName~CompositionRootTests" -v normal
 ```
@@ -1203,14 +1251,14 @@ Expected: PASS。
 
 - [ ] **Step 9: Phase 3-1へのvalidated aggregate境界を固定する**
 
-Phase 3-0のraw Repository／storeはsnapshot codec registryを持たないため、帳票／CSV consumerへ実効aggregateを公開しない。Phase 3-1は全history＋全detailsを読み、既知旧版を含むcodec／validator registryでcanonical bytes、envelope hash、schema、snapshot4版、rule／step／source及び合計を検証する`IValidatedClaimSnapshotReader`を追加する。このserviceだけが最大Revisionの実効aggregateを返し、末尾Cancelならnull、未知旧版又は破損時はfail-closedとする。
+Phase 3-0のraw Repositoryはsnapshotを検証済みと呼ばず、production finalization storeには全writeを拒否するunavailable codec registryだけを登録する。帳票／CSV consumerへ実効aggregateを公開しない。Phase 3-1は全history＋全detailsを読み、既知旧版を含むcodec／validator registryでcanonical bytes、envelope hash、schema、snapshot4版、rule／step／source及び合計を検証する`IValidatedClaimSnapshotReader`を追加する。このserviceだけが最大Revisionの実効aggregateを返し、末尾Cancelならnull、未知旧版又は破損時はfail-closedとする。
 
-append-only旧行が残る限り旧codec／validator／renderer read supportを削除せず、write supportだけを停止可能とする。この条件をPhase 3-1再計画の着手条件へ引き継ぐ。
+append-only旧行が残る限り旧snapshot codec／validator／rendererと旧operation canonicalizer／readerのread supportを削除せず、write supportだけを停止可能とする。Phase 3-1はproduction codec identity／marker factoryを登録し、raw JSON APIを追加しない。この条件をPhase 3-1再計画の着手条件へ引き継ぐ。
 
 - [ ] **Step 10: コミット**
 
 ```bash
-git add src/Tsumugi.Application/Abstractions/ClaimBatchAggregate.cs src/Tsumugi.Application/Abstractions/ClaimFinalizationDraft.cs src/Tsumugi.Application/Abstractions/IClaimBatchRepository.cs src/Tsumugi.Application/Abstractions/IClaimFinalizationStore.cs src/Tsumugi.Application/Claim/ClaimFinalizationOperationV1.cs src/Tsumugi.Application/Audit/ClaimAuditPayload.cs src/Tsumugi.Application/Audit/IClaimAuditTrail.cs src/Tsumugi.Application/Audit/ClaimAuditTrail.cs src/Tsumugi.Infrastructure/Persistence/ClaimBatchRepository.cs src/Tsumugi.Infrastructure/Persistence/ClaimFinalizationStore.cs src/Tsumugi.Infrastructure/DependencyInjection.cs tests/Tsumugi.Application.Tests/Claim/ClaimFinalizationOperationV1Tests.cs tests/Tsumugi.Application.Tests/Audit/ClaimAuditTrailTests.cs tests/Tsumugi.Infrastructure.Tests/Persistence/ClaimBatchRepositoryTests.cs tests/Tsumugi.Infrastructure.Tests/Persistence/ClaimFinalizationStoreTests.cs tests/Tsumugi.App.Tests/CompositionRootTests.cs
+git add src/Tsumugi.Application/Tsumugi.Application.csproj src/Tsumugi.Application/Abstractions/ClaimBatchAggregate.cs src/Tsumugi.Application/Abstractions/ClaimFinalizationDraft.cs src/Tsumugi.Application/Abstractions/IClaimBatchRepository.cs src/Tsumugi.Application/Abstractions/IClaimFinalizationStore.cs src/Tsumugi.Application/Abstractions/IClaimSnapshotValidationCodecRegistry.cs src/Tsumugi.Application/Claim/ValidatedClaimSnapshotEnvelope.cs src/Tsumugi.Application/Claim/IClaimFinalizationOperationRegistry.cs src/Tsumugi.Application/Claim/ClaimFinalizationOperationRegistry.cs src/Tsumugi.Application/Claim/ClaimFinalizationOperationV1.cs src/Tsumugi.Application/Audit/ClaimAuditPayload.cs src/Tsumugi.Application/Audit/IClaimAuditEntryFactory.cs src/Tsumugi.Application/Audit/ClaimAuditEntryFactory.cs src/Tsumugi.Infrastructure/Persistence/ClaimBatchRepository.cs src/Tsumugi.Infrastructure/Persistence/ClaimFinalizationStore.cs src/Tsumugi.Infrastructure/Persistence/UnavailableClaimSnapshotValidationCodecRegistry.cs src/Tsumugi.Infrastructure/DependencyInjection.cs tests/Tsumugi.Application.Tests/Claim/ValidatedClaimSnapshotEnvelopeTests.cs tests/Tsumugi.Application.Tests/Claim/ClaimFinalizationOperationV1Tests.cs tests/Tsumugi.Application.Tests/Claim/ClaimFinalizationOperationRegistryTests.cs tests/Tsumugi.Application.Tests/Audit/ClaimAuditEntryFactoryTests.cs tests/Tsumugi.Infrastructure.Tests/Persistence/ClaimBatchRepositoryTests.cs tests/Tsumugi.Infrastructure.Tests/Persistence/ClaimFinalizationStoreTests.cs tests/Tsumugi.App.Tests/CompositionRootTests.cs
 git commit -m "feat(phase3-0/AC3-0-4): add claim snapshot repository"
 ```
 
