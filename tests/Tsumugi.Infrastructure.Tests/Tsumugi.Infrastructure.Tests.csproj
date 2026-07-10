@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Tsumugi.App\Tsumugi.App.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\src\Tsumugi.Infrastructure\Tsumugi.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Tsumugi.Infrastructure.Csv\Tsumugi.Infrastructure.Csv.csproj" />
     <ProjectReference Include="..\..\src\Tsumugi.Infrastructure.Reporting\Tsumugi.Infrastructure.Reporting.csproj" />

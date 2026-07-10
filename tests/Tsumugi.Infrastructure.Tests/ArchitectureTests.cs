@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using FluentAssertions;
 using Xunit;
 
@@ -66,6 +67,11 @@ public sealed class ArchitectureTests
     {
         var asm = typeof(Tsumugi.Infrastructure.Persistence.TsumugiDbContext).Assembly;
         AssertDoesNotReference(asm, ForbiddenForInfrastructure);
+        AssertInfrastructureProjectDoesNotReferenceCsv();
+
+        typeof(ArchitectureTests).Assembly.GetReferencedAssemblies().Should().NotContain(
+            reference => reference.Name == "Tsumugi.App",
+            because: "AppはInfrastructure.Testsのbuild依存だけでcompile時のAssemblyRefにしてはならない");
     }
 
     [Fact]
@@ -95,6 +101,51 @@ public sealed class ArchitectureTests
         var asm = LocateAssembly("Tsumugi.Infrastructure.Csv");
         AssertDoesNotReference(asm, ForbiddenForCsv);
         AssertReferencesOnlyBclApplicationAndDomain(asm);
+        AssertProductionAssemblyCatalogMatchesSrcProjects();
+        AssertCsvProjectReferencesOnlyApplicationAndDomain();
+    }
+
+    private static void AssertProductionAssemblyCatalogMatchesSrcProjects()
+    {
+        var discoveredAssemblies = DiscoverProductionProjectAssemblyNames();
+
+        InlineDataCoverage.AllProductionAssemblies.Should().BeEquivalentTo(
+            discoveredAssemblies,
+            options => options.WithoutStrictOrdering(),
+            because: "本番projectを追加したら全アセンブリ検査のInlineDataにも追加する必要がある");
+        InlineDataCoverage.NonUiProductionAssemblies.Should().BeEquivalentTo(
+            discoveredAssemblies.Where(name => name != "Tsumugi.App"),
+            options => options.WithoutStrictOrdering(),
+            because: "Assembly.Load検査はUIを除く全本番projectを対象にする必要がある");
+    }
+
+    private static void AssertCsvProjectReferencesOnlyApplicationAndDomain()
+    {
+        var csvProject = LocateProductionProject("Tsumugi.Infrastructure.Csv");
+        var expectedReferences = new[]
+        {
+            LocateProductionProject("Tsumugi.Application"),
+            LocateProductionProject("Tsumugi.Domain"),
+        };
+
+        ReadNormalizedProjectReferences(csvProject).Should().BeEquivalentTo(
+            expectedReferences,
+            options => options.WithoutStrictOrdering(),
+            because: "Csv projectのProjectReferenceはApplicationとDomainだけに限定する");
+        ReadPackageReferences(csvProject).Should().BeEmpty(
+            because: "Csv projectは外部PackageReferenceを持てない");
+        ReadDirectAssemblyReferences(csvProject).Should().BeEmpty(
+            because: "Csv projectは直接Referenceを持てない");
+    }
+
+    private static void AssertInfrastructureProjectDoesNotReferenceCsv()
+    {
+        var infrastructureProject = LocateProductionProject("Tsumugi.Infrastructure");
+        var csvProject = LocateProductionProject("Tsumugi.Infrastructure.Csv");
+
+        ReadNormalizedProjectReferences(infrastructureProject).Should().NotContain(
+            csvProject,
+            because: "永続化InfrastructureからCsvへの逆参照は禁止する");
     }
 
     /// <summary>
@@ -118,19 +169,113 @@ public sealed class ArchitectureTests
 
     private static void AssertReferencesOnlyBclApplicationAndDomain(Assembly assembly)
     {
+        var trustedPlatformAssemblies = GetTrustedPlatformAssemblyNames();
         var unexpectedReferences = assembly
             .GetReferencedAssemblies()
             .Select(reference => reference.Name ?? string.Empty)
             .Where(name =>
                 name is not "Tsumugi.Application" and not "Tsumugi.Domain"
-                && name is not "mscorlib" and not "netstandard" and not "Microsoft.CSharp"
-                && name is not "System"
-                && !name.StartsWith("System.", StringComparison.Ordinal)
-                && !name.StartsWith("Microsoft.Win32.", StringComparison.Ordinal))
+                && !trustedPlatformAssemblies.Contains(name))
             .ToArray();
 
         unexpectedReferences.Should().BeEmpty(
             because: "Csv は BCL、Tsumugi.Application、Tsumugi.Domain だけを参照できる");
+    }
+
+    private static string[] DiscoverProductionProjectAssemblyNames()
+    {
+        var sourceRoot = Path.Combine(TsumugiAssemblyLocator.FindSolutionRoot(), "src");
+        return Directory
+            .EnumerateDirectories(sourceRoot, "Tsumugi.*", SearchOption.TopDirectoryOnly)
+            .SelectMany(directory => Directory.EnumerateFiles(directory, "*.csproj", SearchOption.TopDirectoryOnly))
+            .Select(ReadAssemblyName)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    private static string LocateProductionProject(string assemblyName)
+    {
+        var projectPath = Path.Combine(
+            TsumugiAssemblyLocator.FindSolutionRoot(),
+            "src",
+            assemblyName,
+            $"{assemblyName}.csproj");
+
+        File.Exists(projectPath).Should().BeTrue(
+            because: $"本番project {assemblyName} がsrc直下に存在する必要がある");
+        return Path.GetFullPath(projectPath);
+    }
+
+    private static string ReadAssemblyName(string projectPath)
+    {
+        var assemblyName = LoadProject(projectPath)
+            .Descendants()
+            .FirstOrDefault(element => element.Name.LocalName == "AssemblyName")?
+            .Value
+            .Trim();
+
+        return string.IsNullOrWhiteSpace(assemblyName)
+            ? Path.GetFileNameWithoutExtension(projectPath)
+            : assemblyName;
+    }
+
+    private static string[] ReadNormalizedProjectReferences(string projectPath)
+    {
+        var projectDirectory = Path.GetDirectoryName(projectPath)
+            ?? throw new InvalidDataException($"projectの親directoryを取得できない: {projectPath}");
+
+        return LoadProject(projectPath)
+            .Descendants()
+            .Where(element => element.Name.LocalName == "ProjectReference")
+            .Select(element => element.Attribute("Include")?.Value)
+            .Select(include => include ?? throw new InvalidDataException(
+                $"IncludeのないProjectReference: {projectPath}"))
+            .Select(include => include
+                .Replace('\\', Path.DirectorySeparatorChar)
+                .Replace('/', Path.DirectorySeparatorChar))
+            .Select(include => Path.GetFullPath(Path.Combine(projectDirectory, include)))
+            .OrderBy(path => path, StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    private static string[] ReadPackageReferences(string projectPath) =>
+        ReadReferenceIncludes(projectPath, "PackageReference");
+
+    private static string[] ReadDirectAssemblyReferences(string projectPath) =>
+        ReadReferenceIncludes(projectPath, "Reference");
+
+    private static string[] ReadReferenceIncludes(string projectPath, string elementName) =>
+        LoadProject(projectPath)
+            .Descendants()
+            .Where(element => element.Name.LocalName == elementName)
+            .Select(element => element.Attribute("Include")?.Value ?? string.Empty)
+            .ToArray();
+
+    private static XDocument LoadProject(string projectPath) =>
+        XDocument.Load(projectPath, LoadOptions.None);
+
+    private static HashSet<string> GetTrustedPlatformAssemblyNames()
+    {
+        var trustedPlatformAssemblyPaths =
+            AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
+        trustedPlatformAssemblyPaths.Should().NotBeNullOrWhiteSpace(
+            because: ".NET runtimeの実BCL assembly集合を取得できる必要がある");
+
+        var sharedFrameworkDirectory = Path.GetDirectoryName(typeof(object).Assembly.Location)
+            ?? throw new InvalidDataException(".NET shared framework directoryを取得できない");
+        var pathComparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+
+        return trustedPlatformAssemblyPaths!
+            .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
+            .Where(path => string.Equals(
+                Path.GetDirectoryName(Path.GetFullPath(path)),
+                sharedFrameworkDirectory,
+                pathComparison))
+            .Select(path => Path.GetFileNameWithoutExtension(path)
+                ?? throw new InvalidDataException($"BCL assembly名を取得できない: {path}"))
+            .ToHashSet(StringComparer.Ordinal);
     }
 
     private static Assembly LocateAssembly(string assemblyName)
