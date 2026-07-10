@@ -78,6 +78,8 @@ public static class ClaimMasterCatalogPolicy
                     nameof(sources));
             }
         }
+
+        ValidateSupersedesAcyclic(sources);
     }
 
     private static void ValidateReleases(
@@ -147,6 +149,54 @@ public static class ClaimMasterCatalogPolicy
                     $"請求マスタ版 '{current.Version}' と '{next.Version}' の間に暗黙の空白月 {expectedNext} があります。明示的なUnavailable版が必要です。",
                     nameof(releases));
             }
+        }
+
+        var last = ordered[^1];
+        if (last.EffectiveTo is { } lastEnd)
+        {
+            throw new ArgumentException(
+                $"最後の請求マスタ版 '{last.Version}' は {lastEnd} で終了できません。open-endedにしてください。",
+                nameof(releases));
+        }
+    }
+
+    private static void ValidateSupersedesAcyclic(
+        IReadOnlyCollection<ClaimSourceDocument> sources)
+    {
+        var sourcesById = sources.ToDictionary(
+            source => source.DocumentId,
+            StringComparer.Ordinal);
+        var visiting = new HashSet<string>(StringComparer.Ordinal);
+        var visited = new HashSet<string>(StringComparer.Ordinal);
+        var path = new List<string>();
+
+        foreach (var source in sources)
+            Visit(source);
+
+        void Visit(ClaimSourceDocument source)
+        {
+            if (visited.Contains(source.DocumentId))
+                return;
+
+            if (!visiting.Add(source.DocumentId))
+            {
+                var cycleStart = path.FindIndex(id =>
+                    string.Equals(id, source.DocumentId, StringComparison.Ordinal));
+                var cycle = path
+                    .Skip(cycleStart)
+                    .Append(source.DocumentId);
+                throw new ArgumentException(
+                    $"出典supersedesにcycleがあります: {string.Join(" -> ", cycle)}。",
+                    nameof(sources));
+            }
+
+            path.Add(source.DocumentId);
+            if (source.Supersedes is { } supersedes)
+                Visit(sourcesById[supersedes]);
+
+            path.RemoveAt(path.Count - 1);
+            visiting.Remove(source.DocumentId);
+            visited.Add(source.DocumentId);
         }
     }
 

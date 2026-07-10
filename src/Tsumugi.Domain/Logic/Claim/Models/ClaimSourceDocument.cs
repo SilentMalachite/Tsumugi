@@ -24,11 +24,29 @@ public sealed record ClaimSourceDocument
         string? supersedes,
         string? notes)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(documentId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(title);
-        ArgumentException.ThrowIfNullOrWhiteSpace(publisher);
+        ValidateRequiredText(documentId, nameof(documentId));
+        ValidateRequiredText(title, nameof(title));
+        ValidateRequiredText(publisher, nameof(publisher));
 
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)
+        if (effectiveAt == default)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(effectiveAt),
+                effectiveAt,
+                $"出典 '{documentId}' のeffectiveAtをdefaultにできません。");
+        }
+
+        if (retrievedAt == default)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(retrievedAt),
+                retrievedAt,
+                $"出典 '{documentId}' のretrievedAtをdefaultにできません。");
+        }
+
+        if (string.IsNullOrWhiteSpace(url)
+            || HasOuterWhitespace(url)
+            || !Uri.TryCreate(url, UriKind.Absolute, out var uri)
             || !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
         {
             throw new ArgumentException(
@@ -45,9 +63,15 @@ public sealed record ClaimSourceDocument
                 nameof(sha256));
         }
 
-        if (supersedes is not null && string.IsNullOrWhiteSpace(supersedes))
-            throw new ArgumentException($"出典 '{documentId}' のsupersedesを空白にできません。", nameof(supersedes));
-        if (notes is not null && string.IsNullOrWhiteSpace(notes))
+        if (supersedes is not null
+            && (string.IsNullOrWhiteSpace(supersedes) || HasOuterWhitespace(supersedes)))
+        {
+            throw new ArgumentException(
+                $"出典 '{documentId}' のsupersedesを空白にできません。",
+                nameof(supersedes));
+        }
+
+        if (notes is not null && (string.IsNullOrWhiteSpace(notes) || HasOuterWhitespace(notes)))
             throw new ArgumentException($"出典 '{documentId}' のnotesを空白にできません。", nameof(notes));
 
         DocumentId = documentId;
@@ -60,4 +84,13 @@ public sealed record ClaimSourceDocument
         Supersedes = supersedes;
         Notes = notes;
     }
+
+    private static void ValidateRequiredText(string value, string parameterName)
+    {
+        if (string.IsNullOrWhiteSpace(value) || HasOuterWhitespace(value))
+            throw new ArgumentException("値を空白にできず、前後に空白を含められません。", parameterName);
+    }
+
+    private static bool HasOuterWhitespace(string value)
+        => value.Length != value.Trim().Length;
 }

@@ -36,8 +36,12 @@ public sealed record ClaimMasterRelease
         var sourceIds = sourceDocumentIds.ToImmutableArray();
         if (sourceIds.IsEmpty)
             throw new ArgumentException($"請求マスタ版 '{version}' には出典document IDが必要です。", nameof(sourceDocumentIds));
-        if (sourceIds.Any(string.IsNullOrWhiteSpace))
-            throw new ArgumentException($"請求マスタ版 '{version}' の出典document IDを空白にできません。", nameof(sourceDocumentIds));
+        if (sourceIds.Any(id => string.IsNullOrWhiteSpace(id) || id.Length != id.Trim().Length))
+        {
+            throw new ArgumentException(
+                $"請求マスタ版 '{version}' の出典document IDを空白にできず、前後に空白を含められません。",
+                nameof(sourceDocumentIds));
+        }
 
         var duplicateId = sourceIds
             .GroupBy(id => id, StringComparer.Ordinal)
@@ -53,6 +57,30 @@ public sealed record ClaimMasterRelease
         EffectiveFrom = effectiveFrom;
         EffectiveTo = effectiveTo;
         SourceDocumentIds = sourceIds;
+    }
+
+    public bool Equals(ClaimMasterRelease? other)
+    {
+        if (ReferenceEquals(this, other))
+            return true;
+
+        return other is not null
+            && Version.Equals(other.Version)
+            && EffectiveFrom.Equals(other.EffectiveFrom)
+            && Nullable.Equals(EffectiveTo, other.EffectiveTo)
+            && SourceDocumentIds.SequenceEqual(other.SourceDocumentIds, StringComparer.Ordinal);
+    }
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Version);
+        hash.Add(EffectiveFrom);
+        hash.Add(EffectiveTo);
+        foreach (var sourceDocumentId in SourceDocumentIds)
+            hash.Add(sourceDocumentId, StringComparer.Ordinal);
+
+        return hash.ToHashCode();
     }
 
     private static void ValidateMonth(

@@ -77,4 +77,32 @@ public sealed class ServiceMonthTests
 
         conversions.Should().BeEmpty();
     }
+
+    [Fact]
+    public void Default_value_fails_closed_for_public_contract()
+    {
+        var invalid = default(ServiceMonth);
+        var valid = new ServiceMonth(2026, 6);
+        Action[] actions =
+        [
+            () => _ = invalid.Year,
+            () => _ = invalid.Month,
+            () => _ = invalid.ToInt(),
+            () => _ = invalid.ToString(),
+            () => _ = invalid.CompareTo(valid),
+            () => _ = valid.CompareTo(invalid),
+            () => _ = invalid.Equals(valid),
+            () => _ = valid.Equals(invalid),
+            () => _ = invalid.GetHashCode(),
+            () => _ = invalid == default,
+            () => _ = invalid != valid,
+            () => _ = invalid < valid,
+            () => _ = invalid <= valid,
+            () => _ = invalid > valid,
+            () => _ = invalid >= valid,
+        ];
+
+        foreach (var action in actions)
+            action.Should().Throw<InvalidOperationException>();
+    }
 }
