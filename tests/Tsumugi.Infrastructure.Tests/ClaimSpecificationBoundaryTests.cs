@@ -88,18 +88,48 @@ public sealed class ClaimSpecificationBoundaryTests
         violation.LineNumber.Should().Be(1);
     }
 
-    [Theory]
-    [InlineData("42:777")]
-    [InlineData("42,777")]
-    public void Scan_ignores_master_numbers_used_only_as_interpolation_format_or_alignment(string hole)
+    [Fact]
+    public void Scan_ignores_master_numbers_used_only_as_interpolation_format()
     {
         using var fixture = new SpecificationFixture();
         fixture.Write(
             "src/Tsumugi.Domain/Logic/Claim/InterpolatedFormat.cs",
             "namespace Tsumugi.Domain.Logic.Claim; internal static class InterpolatedFormat { " +
-            "internal static string Value => $\"{" + hole + "}\"; }");
+            "internal static string Value => $\"{42:777}\"; }");
 
         fixture.Scan().Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Scan_detects_master_number_used_as_interpolation_alignment()
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/InterpolatedAlignment.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal static class InterpolatedAlignment { " +
+            "internal static string Value => $\"{42,777}\"; }");
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-literal" && v.Literal == "777");
+
+        violation.LineNumber.Should().Be(1);
+    }
+
+    [Fact]
+    public void Scan_detects_master_string_inside_generic_call_in_interpolation_hole()
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.Write(
+            "src/Tsumugi.Application/Claims/InterpolatedGeneric.cs",
+            "namespace Tsumugi.Application.Claims; internal static class InterpolatedGeneric { " +
+            "internal static string Value => $\"{Echo<int, string>(\"NESTED-CODE\")}\"; }");
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-literal" && v.Literal == "NESTED-CODE");
+
+        violation.LineNumber.Should().Be(1);
     }
 
     [Theory]

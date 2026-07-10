@@ -818,8 +818,6 @@ internal static class ExternalSpecificationLiteralGuard
                 continue;
             }
 
-            if (hole[index] == ',') return index;
-
             if (hole[index] == '?')
             {
                 if (index + 1 < hole.Length && hole[index + 1] == '[')
