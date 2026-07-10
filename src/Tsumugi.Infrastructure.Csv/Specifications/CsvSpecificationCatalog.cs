@@ -26,8 +26,8 @@ public sealed record CsvSpecificationCatalog
         Version = version;
         CommonRecords = CopyOrderedRecords(commonRecords);
         ProviderRecords = CopyOrderedRecords(providerRecords);
-        MappingByFieldId = CopyDictionary(mappingByFieldId);
-        SourcesById = CopyDictionary(sourcesById);
+        MappingByFieldId = CopyDictionary(mappingByFieldId, CopyMapping);
+        SourcesById = CopyDictionary(sourcesById, CopySource);
 
         ValidateSources();
         ValidateUniqueRecordIds();
@@ -54,14 +54,57 @@ public sealed record CsvSpecificationCatalog
             {
                 Fields = Array.AsReadOnly(record.Fields
                     .OrderBy(field => field.Position)
+                    .Select(field => field with
+                    {
+                        AllowedCodes = CopyList(field.AllowedCodes),
+                    })
                     .ToArray()),
             })
             .ToArray());
 
     private static ReadOnlyDictionary<string, TValue> CopyDictionary<TValue>(
-        IReadOnlyDictionary<string, TValue> source) =>
+        IReadOnlyDictionary<string, TValue> source,
+        Func<TValue, TValue> copyValue) =>
         new ReadOnlyDictionary<string, TValue>(
-            source.ToDictionary(item => item.Key, item => item.Value, StringComparer.Ordinal));
+            source.ToDictionary(
+                item => item.Key,
+                item => copyValue(item.Value),
+                StringComparer.Ordinal));
+
+    private static ReadOnlyCollection<T> CopyList<T>(IReadOnlyList<T> source) =>
+        Array.AsReadOnly(source.ToArray());
+
+    private static CsvFieldMapping CopyMapping(CsvFieldMapping mapping) =>
+        mapping with
+        {
+            SourceContracts = mapping.SourceContracts is null
+                ? null
+                : Array.AsReadOnly(mapping.SourceContracts
+                    .Select(sourceContract => sourceContract.Clone())
+                    .ToArray()),
+            SourceFieldIds = mapping.SourceFieldIds is null
+                ? null
+                : CopyList(mapping.SourceFieldIds),
+        };
+
+    private static CsvSourceDocument CopySource(CsvSourceDocument source) =>
+        source with
+        {
+            SourceSheets = source.SourceSheets is null
+                ? null
+                : CopyList(source.SourceSheets),
+            ApplicablePages = source.ApplicablePages is null
+                ? null
+                : CopyList(source.ApplicablePages),
+            ApplicablePageTextSha256 = source.ApplicablePageTextSha256 is null
+                ? null
+                : new ReadOnlyDictionary<string, string>(
+                    source.ApplicablePageTextSha256.ToDictionary(
+                        item => item.Key,
+                        item => item.Value,
+                        StringComparer.Ordinal)),
+            LiveCheck = source.LiveCheck?.Clone(),
+        };
 
     private void ValidateSources()
     {
@@ -236,15 +279,39 @@ public sealed record CsvSpecificationCatalog
                 $"fieldId '{field.FieldId}' required condition differs from its mapping.");
         }
 
+        var hasGeneratorRule = mapping.GeneratorRule is not null;
+        var hasModelPath = mapping.ModelPath is not null;
+        var hasInputContract = mapping.InputContract is not null;
+        var hasMigrationContract = mapping.MigrationRequired is not null
+            || mapping.TargetModel is not null
+            || mapping.TargetProperty is not null
+            || mapping.UiSurface is not null;
+        var hasDependencies = mapping.SourceContracts is not null
+            || mapping.SourceFieldIds is not null;
         var validStatus = mapping.Status switch
         {
-            "generated" => !string.IsNullOrWhiteSpace(mapping.GeneratorRule),
-            "existing" => !string.IsNullOrWhiteSpace(mapping.ModelPath),
-            "explicitInput" => !string.IsNullOrWhiteSpace(mapping.InputContract),
+            "generated" => !string.IsNullOrWhiteSpace(mapping.GeneratorRule)
+                && !hasModelPath
+                && !hasInputContract
+                && !hasMigrationContract,
+            "existing" => !string.IsNullOrWhiteSpace(mapping.ModelPath)
+                && !hasGeneratorRule
+                && !hasInputContract
+                && !hasMigrationContract
+                && !hasDependencies,
+            "explicitInput" => !string.IsNullOrWhiteSpace(mapping.InputContract)
+                && !hasGeneratorRule
+                && !hasModelPath
+                && !hasMigrationContract
+                && !hasDependencies,
             "missing" => mapping.MigrationRequired is true
                 && !string.IsNullOrWhiteSpace(mapping.TargetModel)
                 && !string.IsNullOrWhiteSpace(mapping.TargetProperty)
-                && !string.IsNullOrWhiteSpace(mapping.UiSurface),
+                && !string.IsNullOrWhiteSpace(mapping.UiSurface)
+                && !hasGeneratorRule
+                && !hasModelPath
+                && !hasInputContract
+                && !hasDependencies,
             _ => false,
         };
         if (!validStatus)

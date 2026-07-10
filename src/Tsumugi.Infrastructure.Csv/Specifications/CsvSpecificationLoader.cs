@@ -10,6 +10,7 @@ public sealed class CsvSpecificationLoader
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
+        AllowDuplicateProperties = false,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = false,
         RespectNullableAnnotations = true,
@@ -148,7 +149,7 @@ public sealed class CsvSpecificationLoader
             StringComparer.Ordinal);
         foreach (var source in sourceFile.Sources.Where(source => source.LiveCheck.HasValue))
         {
-            RejectUnknownProperties(
+            ValidateLiveCheck(
                 source.LiveCheck!.Value,
                 liveCheckProperties,
                 $"sourceDocumentId '{source.SourceDocumentId}' liveCheck");
@@ -168,13 +169,128 @@ public sealed class CsvSpecificationLoader
         foreach (var mapping in mappingFile.Mappings.Where(mapping =>
                      mapping.SourceContracts is not null))
         {
+            var context = $"fieldId '{mapping.FieldId}' sourceContract";
+            if (mapping.SourceContracts!.Count == 0)
+            {
+                throw new JsonException($"{context} array must not be empty.");
+            }
+
             foreach (var sourceContract in mapping.SourceContracts!)
             {
-                RejectUnknownProperties(
+                ValidateSourceContract(
                     sourceContract,
                     sourceContractProperties,
-                    $"fieldId '{mapping.FieldId}' sourceContract");
+                    context);
             }
+        }
+    }
+
+    private static void ValidateLiveCheck(
+        JsonElement liveCheck,
+        HashSet<string> allowedProperties,
+        string context)
+    {
+        RejectUnknownProperties(liveCheck, allowedProperties, context);
+        RequireNonBlankString(liveCheck, "checkedAt", context);
+        RequireLowercaseSha256(liveCheck, "responseSha256", context);
+
+        var httpStatus = RequireProperty(liveCheck, "httpStatus", context);
+        if (!httpStatus.TryGetInt32(out _))
+        {
+            throw new JsonException($"{context} property 'httpStatus' must be an integer.");
+        }
+
+        var responseSizeBytes = RequireProperty(liveCheck, "responseSizeBytes", context);
+        if (!responseSizeBytes.TryGetInt64(out var sizeBytes) || sizeBytes <= 0)
+        {
+            throw new JsonException(
+                $"{context} property 'responseSizeBytes' must be a positive integer.");
+        }
+    }
+
+    private static void ValidateSourceContract(
+        JsonElement sourceContract,
+        HashSet<string> allowedProperties,
+        string context)
+    {
+        RejectUnknownProperties(sourceContract, allowedProperties, context);
+        foreach (var propertyName in new[]
+                 {
+                     "contractId",
+                     "itemType",
+                     "dateProperty",
+                     "lineKindProperty",
+                     "aggregation",
+                 })
+        {
+            RequireNonBlankString(sourceContract, propertyName, context);
+        }
+
+        var includedLineKinds = RequireProperty(
+            sourceContract,
+            "includedLineKinds",
+            context);
+        if (includedLineKinds.ValueKind != JsonValueKind.Array
+            || includedLineKinds.GetArrayLength() == 0
+            || includedLineKinds.EnumerateArray().Any(lineKind =>
+                lineKind.ValueKind != JsonValueKind.String
+                || string.IsNullOrWhiteSpace(lineKind.GetString())))
+        {
+            throw new JsonException(
+                $"{context} property 'includedLineKinds' must be a non-empty string array.");
+        }
+
+        if (sourceContract.TryGetProperty("window", out var window)
+            && (window.ValueKind != JsonValueKind.String
+                || string.IsNullOrWhiteSpace(window.GetString())))
+        {
+            throw new JsonException($"{context} property 'window' must be a non-empty string.");
+        }
+    }
+
+    private static JsonElement RequireProperty(
+        JsonElement element,
+        string propertyName,
+        string context)
+    {
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            throw new JsonException($"{context} is missing property '{propertyName}'.");
+        }
+
+        return property;
+    }
+
+    private static void RequireNonBlankString(
+        JsonElement element,
+        string propertyName,
+        string context)
+    {
+        var property = RequireProperty(element, propertyName, context);
+        if (property.ValueKind != JsonValueKind.String
+            || string.IsNullOrWhiteSpace(property.GetString()))
+        {
+            throw new JsonException(
+                $"{context} property '{propertyName}' must be a non-empty string.");
+        }
+    }
+
+    private static void RequireLowercaseSha256(
+        JsonElement element,
+        string propertyName,
+        string context)
+    {
+        var property = RequireProperty(element, propertyName, context);
+        var value = property.ValueKind == JsonValueKind.String
+            ? property.GetString()
+            : null;
+        if (value is null
+            || value.Length != 64
+            || value.Any(character => character is not (>= '0' and <= '9')
+                and not (>= 'a' and <= 'f')))
+        {
+            throw new JsonException(
+                $"{context} property '{propertyName}' must be lowercase hexadecimal sha256.");
         }
     }
 

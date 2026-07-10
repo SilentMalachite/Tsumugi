@@ -7,6 +7,62 @@ namespace Tsumugi.Infrastructure.Csv.Tests;
 
 public sealed class CsvSpecificationLoaderTests
 {
+    public static TheoryData<string, string> ConflictingMappingSources => new()
+    {
+        {
+            "generated",
+            "\"generatorRule\":\"const(value=1)\",\"modelPath\":\"Office.OfficeNumber\""
+        },
+        {
+            "existing",
+            "\"modelPath\":\"Office.OfficeNumber\",\"generatorRule\":\"const(value=1)\""
+        },
+        {
+            "explicitInput",
+            "\"inputContract\":\"ProcessingMonth\",\"migrationRequired\":true"
+        },
+        {
+            "missing",
+            "\"migrationRequired\":true,\"targetModel\":\"Certificate\",\"targetProperty\":\"MunicipalityNumber\",\"uiSurface\":\"CertificateView\",\"inputContract\":\"ProcessingMonth\""
+        },
+        {
+            "existing",
+            "\"modelPath\":\"Office.OfficeNumber\",\"sourceFieldIds\":[\"common:field:001\"]"
+        },
+        {
+            "existing",
+            "\"modelPath\":\"Office.OfficeNumber\",\"sourceContracts\":[{\"contractId\":\"Claim.Lines\",\"itemType\":\"Line\",\"dateProperty\":\"Date\",\"lineKindProperty\":\"Kind\",\"includedLineKinds\":[\"Main\"],\"aggregation\":\"countDistinctDate\"}]"
+        },
+        {
+            "generated",
+            "\"generatorRule\":\"const(value=1)\",\"migrationRequired\":true,\"targetModel\":\"Certificate\",\"targetProperty\":\"MunicipalityNumber\",\"uiSurface\":\"CertificateView\""
+        },
+        {
+            "generated",
+            "\"generatorRule\":\"const(value=1)\",\"modelPath\":\"\""
+        },
+    };
+
+    public static TheoryData<string> InvalidLiveChecks => new()
+    {
+        "{}",
+        "{\"checkedAt\":\"2026-07-10\",\"httpStatus\":404,\"responseSha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}",
+        "{\"checkedAt\":1,\"httpStatus\":\"404\",\"responseSha256\":true,\"responseSizeBytes\":\"1\"}",
+        "{\"checkedAt\":\"\",\"httpStatus\":404,\"responseSha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"responseSizeBytes\":1}",
+        "{\"checkedAt\":\"2026-07-10\",\"httpStatus\":404,\"responseSha256\":\"ABCDEF\",\"responseSizeBytes\":1}",
+        "{\"checkedAt\":\"2026-07-10\",\"httpStatus\":404,\"responseSha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"responseSizeBytes\":0}",
+    };
+
+    public static TheoryData<string> InvalidSourceContracts => new()
+    {
+        "[]",
+        "[{}]",
+        "[{\"contractId\":\"Claim.Lines\",\"itemType\":\"Line\",\"dateProperty\":\"Date\",\"lineKindProperty\":\"Kind\",\"includedLineKinds\":[\"Main\"]}]",
+        "[{\"contractId\":1,\"itemType\":\"Line\",\"dateProperty\":\"Date\",\"lineKindProperty\":\"Kind\",\"includedLineKinds\":\"Main\",\"aggregation\":true}]",
+        "[{\"contractId\":\"Claim.Lines\",\"itemType\":\"Line\",\"dateProperty\":\"Date\",\"lineKindProperty\":\"Kind\",\"includedLineKinds\":[],\"aggregation\":\"countDistinctDate\"}]",
+        "[{\"contractId\":\"Claim.Lines\",\"itemType\":\"Line\",\"dateProperty\":\"Date\",\"lineKindProperty\":\"Kind\",\"includedLineKinds\":[\"Main\"],\"aggregation\":\"countDistinctDate\",\"window\":\"\"}]",
+    };
+
     [Fact]
     public void LoadEmbedded_returns_ordered_records_fields_and_total_mapping()
     {
@@ -183,6 +239,138 @@ public sealed class CsvSpecificationLoaderTests
             .WithMessage("*fieldId*common:field:001*common:field:unknown*");
     }
 
+    [Fact]
+    public void Load_rejects_duplicate_top_level_property()
+    {
+        var common = SpecificationJson(
+            records: RecordJson("common:record", "common:field:001"))
+            .Replace(
+                "\"schemaVersion\": 1,",
+                "\"schemaVersion\": 1, \"schemaVersion\": 1,",
+                StringComparison.Ordinal);
+
+        var action = () => Load(common: common);
+
+        action.Should().Throw<JsonException>().WithMessage("*schemaVersion*");
+    }
+
+    [Fact]
+    public void Load_rejects_duplicate_nested_property()
+    {
+        var record = RecordJson("common:record", "common:field:001")
+            .Replace(
+                "\"position\": 1,",
+                "\"position\": 1, \"position\": 1,",
+                StringComparison.Ordinal);
+        var common = SpecificationJson(records: record);
+
+        var action = () => Load(common: common);
+
+        action.Should().Throw<JsonException>().WithMessage("*position*");
+    }
+
+    [Fact]
+    public void Catalog_does_not_change_when_caller_collections_are_mutated()
+    {
+        var fixture = CreateMutableCatalog();
+        using var sourceContractDocument = fixture.SourceContractDocument;
+
+        fixture.AllowedCodes.Add("2");
+        fixture.SourceFieldIds.Clear();
+        fixture.SourceContracts.Clear();
+        fixture.SourceSheets.Add("changed");
+        fixture.ApplicablePages.Clear();
+        fixture.ApplicablePageTextSha256["1"] = new string('f', 64);
+
+        var field = fixture.Catalog.CommonRecords.Single().Fields.Single();
+        var mapping = fixture.Catalog.MappingByFieldId["common:field:001"];
+        var source = fixture.Catalog.SourcesById["source:official"];
+        field.AllowedCodes.Should().Equal("1");
+        mapping.SourceFieldIds.Should().Equal("common:field:001");
+        mapping.SourceContracts.Should().ContainSingle();
+        source.SourceSheets.Should().Equal("official sheet");
+        source.ApplicablePages.Should().Equal(1);
+        source.ApplicablePageTextSha256.Should().Contain("1", new string('0', 64));
+    }
+
+    [Fact]
+    public void Catalog_nested_collections_are_read_only()
+    {
+        var fixture = CreateMutableCatalog();
+        using var sourceContractDocument = fixture.SourceContractDocument;
+        var field = fixture.Catalog.CommonRecords.Single().Fields.Single();
+        var mapping = fixture.Catalog.MappingByFieldId["common:field:001"];
+        var source = fixture.Catalog.SourcesById["source:official"];
+
+        var mutations = new Action[]
+        {
+            () => ((IList<string>)field.AllowedCodes).Add("2"),
+            () => ((IList<string>)mapping.SourceFieldIds!).Add("common:field:002"),
+            () => ((IList<JsonElement>)mapping.SourceContracts!).Add(default),
+            () => ((IList<string>)source.SourceSheets!).Add("changed"),
+            () => ((IList<int>)source.ApplicablePages!).Add(2),
+            () => ((IDictionary<string, string>)source.ApplicablePageTextSha256!)["1"] = new string('f', 64),
+        };
+
+        foreach (var mutation in mutations)
+        {
+            mutation.Should().Throw<NotSupportedException>();
+        }
+    }
+
+    [Fact]
+    public void Catalog_clones_source_contract_json_elements()
+    {
+        var fixture = CreateMutableCatalog();
+
+        fixture.SourceContractDocument.Dispose();
+
+        fixture.Catalog.MappingByFieldId["common:field:001"].SourceContracts![0]
+            .GetProperty("contractId").GetString().Should().Be("Claim.Lines");
+        fixture.Catalog.SourcesById["source:official"].LiveCheck!.Value
+            .GetProperty("httpStatus").GetInt32().Should().Be(404);
+    }
+
+    [Theory]
+    [MemberData(nameof(ConflictingMappingSources))]
+    public void Load_rejects_conflicting_mapping_source_properties(
+        string status,
+        string sourceProperties)
+    {
+        var mapping = MappingJson(MappingItemWithSourcesJson(
+            "common:field:001", status, sourceProperties));
+
+        var action = () => Load(mapping: mapping);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*fieldId*common:field:001*status*");
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidLiveChecks))]
+    public void Load_rejects_invalid_live_check_shape(string liveCheck)
+    {
+        var sources = SourcesJson(SourceJson(
+            extraProperty: $",\"liveCheck\":{liveCheck}"));
+
+        var action = () => Load(sources: sources);
+
+        action.Should().Throw<JsonException>().WithMessage("*source:official*liveCheck*");
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidSourceContracts))]
+    public void Load_rejects_invalid_source_contract_shape(string sourceContracts)
+    {
+        var mapping = MappingJson(MappingItemJson(
+            "common:field:001",
+            extraProperty: $",\"sourceContracts\":{sourceContracts}"));
+
+        var action = () => Load(mapping: mapping);
+
+        action.Should().Throw<JsonException>().WithMessage("*common:field:001*sourceContract*");
+    }
+
     private static CsvSpecificationCatalog Load(
         string? common = null,
         string? provider = null,
@@ -272,6 +460,20 @@ public sealed class CsvSpecificationLoaderTests
         }
         """;
 
+    private static string MappingItemWithSourcesJson(
+        string fieldId,
+        string status,
+        string sourceProperties) =>
+        $$"""
+        {
+          "fieldId": "{{fieldId}}",
+          "requiredCondition": "always",
+          "notes": "generated for test",
+          "status": "{{status}}",
+          {{sourceProperties}}
+        }
+        """;
+
     private static string SourcesJson(params string[] sources) =>
         $$"""
         {
@@ -294,4 +496,109 @@ public sealed class CsvSpecificationLoaderTests
           "sizeBytes": 1{{extraProperty}}
         }
         """;
+
+    private static MutableCatalogFixture CreateMutableCatalog()
+    {
+        var allowedCodes = new List<string> { "1" };
+        var sourceFieldIds = new List<string> { "common:field:001" };
+        var sourceContractDocument = JsonDocument.Parse("""
+            {
+              "sourceContract": {
+                "contractId": "Claim.Lines",
+                "itemType": "Line",
+                "dateProperty": "Date",
+                "lineKindProperty": "Kind",
+                "includedLineKinds": ["Main"],
+                "aggregation": "countDistinctDate"
+              },
+              "liveCheck": {
+                "checkedAt": "2026-07-10",
+                "httpStatus": 404,
+                "responseSha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+                "responseSizeBytes": 1
+              }
+            }
+            """);
+        var sourceContracts = new List<JsonElement>
+        {
+            sourceContractDocument.RootElement.GetProperty("sourceContract"),
+        };
+        var sourceSheets = new List<string> { "official sheet" };
+        var applicablePages = new List<int> { 1 };
+        var applicablePageTextSha256 = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["1"] = new string('0', 64),
+        };
+        var field = new CsvFieldSpecification(
+            "common:field:001",
+            1,
+            "official field",
+            "always",
+            "code",
+            1,
+            "quote",
+            allowedCodes,
+            1,
+            "source page 1");
+        var record = new CsvRecordSpecification(
+            "common:record",
+            "J121",
+            "01",
+            1,
+            "source:official",
+            1,
+            new List<CsvFieldSpecification> { field });
+        var mapping = new CsvFieldMapping(
+            "common:field:001",
+            "always",
+            "test",
+            "generated",
+            GeneratorRule: "const(value=1)",
+            SourceContracts: sourceContracts,
+            SourceFieldIds: sourceFieldIds);
+        var source = new CsvSourceDocument(
+            "source:official",
+            "official source",
+            "r7-10",
+            "2026-07-10",
+            "https://www.mhlw.go.jp/example.pdf",
+            new string('0', 64),
+            1,
+            SourceSheets: sourceSheets,
+            ApplicablePages: applicablePages,
+            ApplicablePageTextSha256: applicablePageTextSha256,
+            LiveCheck: sourceContractDocument.RootElement.GetProperty("liveCheck"));
+        var catalog = new CsvSpecificationCatalog(
+            "r7-10",
+            new List<CsvRecordSpecification> { record },
+            new List<CsvRecordSpecification>(),
+            new Dictionary<string, CsvFieldMapping>(StringComparer.Ordinal)
+            {
+                [mapping.FieldId] = mapping,
+            },
+            new Dictionary<string, CsvSourceDocument>(StringComparer.Ordinal)
+            {
+                [source.SourceDocumentId] = source,
+            });
+
+        return new MutableCatalogFixture(
+            catalog,
+            allowedCodes,
+            sourceFieldIds,
+            sourceContracts,
+            sourceSheets,
+            applicablePages,
+            applicablePageTextSha256,
+            sourceContractDocument);
+    }
+
+    private sealed record MutableCatalogFixture(
+        CsvSpecificationCatalog Catalog,
+        List<string> AllowedCodes,
+        List<string> SourceFieldIds,
+        List<JsonElement> SourceContracts,
+        List<string> SourceSheets,
+        List<int> ApplicablePages,
+        Dictionary<string, string> ApplicablePageTextSha256,
+        JsonDocument SourceContractDocument);
 }
