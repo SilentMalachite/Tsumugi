@@ -8,9 +8,10 @@
       "section": "header",
       "position": 1,
       "officialName": "サービス提供年月",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance header row 1"
     },
     {
       "fieldId": "report:service-performance:header:002",
@@ -18,9 +19,10 @@
       "section": "header",
       "position": 2,
       "officialName": "受給者証番号",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance header row 2"
     },
     {
       "fieldId": "report:service-performance:header:003",
@@ -28,9 +30,10 @@
       "section": "header",
       "position": 3,
       "officialName": "支給決定障害者氏名",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance header row 3"
     },
     {
       "fieldId": "report:service-performance:header:004",
@@ -38,9 +41,10 @@
       "section": "header",
       "position": 4,
       "officialName": "事業所番号",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance header row 4"
     },
     {
       "fieldId": "report:service-performance:header:005",
@@ -48,9 +52,10 @@
       "section": "header",
       "position": 5,
       "officialName": "事業者及びその事業所",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance header row 5"
     },
     {
       "fieldId": "report:service-performance:header:006",
@@ -58,9 +63,10 @@
       "section": "header",
       "position": 6,
       "officialName": "契約支給量",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance header row 6"
     },
     {
       "fieldId": "report:service-performance:daily:001",
@@ -68,9 +74,10 @@
       "section": "daily",
       "position": 1,
       "officialName": "日付",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(service-performance.daily)",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 1"
     },
     {
       "fieldId": "report:service-performance:daily:002",
@@ -78,9 +85,10 @@
       "section": "daily",
       "position": 2,
       "officialName": "曜日",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(service-performance.daily)",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 2"
     },
     {
       "fieldId": "report:service-performance:daily:003",
@@ -88,9 +96,10 @@
       "section": "daily",
       "position": 3,
       "officialName": "サービス提供の状況",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(service-performance.daily)",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 3"
     },
     {
       "fieldId": "report:service-performance:daily:004",
@@ -98,9 +107,10 @@
       "section": "daily",
       "position": 4,
       "officialName": "開始時間",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.ServiceStartTime))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 4"
     },
     {
       "fieldId": "report:service-performance:daily:005",
@@ -108,9 +118,10 @@
       "section": "daily",
       "position": 5,
       "officialName": "終了時間",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.ServiceEndTime))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 5"
     },
     {
       "fieldId": "report:service-performance:daily:006",
@@ -118,9 +129,10 @@
       "section": "daily",
       "position": 6,
       "officialName": "送迎加算 往",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.Transport))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 6"
     },
     {
       "fieldId": "report:service-performance:daily:007",
@@ -128,9 +140,10 @@
       "section": "daily",
       "position": 7,
       "officialName": "送迎加算 復",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.Transport))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 7"
     },
     {
       "fieldId": "report:service-performance:daily:008",
@@ -138,9 +151,10 @@
       "section": "daily",
       "position": 8,
       "officialName": "訪問支援特別加算 時間数",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelNonZero(DailyRecord.SpecialVisitSupportMinutes))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 8"
     },
     {
       "fieldId": "report:service-performance:daily:009",
@@ -148,9 +162,10 @@
       "section": "daily",
       "position": 9,
       "officialName": "食事提供体制加算",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.MealProvided))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 9"
     },
     {
       "fieldId": "report:service-performance:daily:010",
@@ -158,9 +173,10 @@
       "section": "daily",
       "position": 10,
       "officialName": "医療連携体制加算",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.MedicalCoordinationType))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 10"
     },
     {
       "fieldId": "report:service-performance:daily:011",
@@ -168,9 +184,10 @@
       "section": "daily",
       "position": 11,
       "officialName": "体験利用支援加算",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.TrialUseSupportType))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 11"
     },
     {
       "fieldId": "report:service-performance:daily:012",
@@ -178,9 +195,10 @@
       "section": "daily",
       "position": 12,
       "officialName": "地域協働加算",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.RegionalCollaborationApplied))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 12"
     },
     {
       "fieldId": "report:service-performance:daily:013",
@@ -188,9 +206,10 @@
       "section": "daily",
       "position": 13,
       "officialName": "緊急時受入加算",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.EmergencyAdmissionApplied))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 13"
     },
     {
       "fieldId": "report:service-performance:daily:014",
@@ -198,9 +217,10 @@
       "section": "daily",
       "position": 14,
       "officialName": "集中的支援加算",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.IntensiveSupportApplied))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 14"
     },
     {
       "fieldId": "report:service-performance:daily:015",
@@ -208,9 +228,10 @@
       "section": "daily",
       "position": 15,
       "officialName": "施設外支援",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.OffsiteSupportApplied))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 15"
     },
     {
       "fieldId": "report:service-performance:daily:016",
@@ -218,9 +239,10 @@
       "section": "daily",
       "position": 16,
       "officialName": "利用者確認欄",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(service-performance.daily)",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 16"
     },
     {
       "fieldId": "report:service-performance:daily:017",
@@ -228,9 +250,10 @@
       "section": "daily",
       "position": 17,
       "officialName": "備考",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.Note))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 17"
     },
     {
       "fieldId": "report:service-performance:totals:001",
@@ -238,9 +261,10 @@
       "section": "totals",
       "position": 1,
       "officialName": "サービス提供日数 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(service-performance.daily)",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 1"
     },
     {
       "fieldId": "report:service-performance:totals:002",
@@ -248,9 +272,10 @@
       "section": "totals",
       "position": 2,
       "officialName": "送迎加算 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.Transport))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 2"
     },
     {
       "fieldId": "report:service-performance:totals:003",
@@ -258,9 +283,10 @@
       "section": "totals",
       "position": 3,
       "officialName": "訪問支援特別加算 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelNonZero(DailyRecord.SpecialVisitSupportMinutes))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 3"
     },
     {
       "fieldId": "report:service-performance:totals:004",
@@ -268,9 +294,10 @@
       "section": "totals",
       "position": 4,
       "officialName": "食事提供体制加算 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.MealProvided))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 4"
     },
     {
       "fieldId": "report:service-performance:totals:005",
@@ -278,9 +305,10 @@
       "section": "totals",
       "position": 5,
       "officialName": "医療連携体制加算 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.MedicalCoordinationType))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 5"
     },
     {
       "fieldId": "report:service-performance:totals:006",
@@ -288,9 +316,10 @@
       "section": "totals",
       "position": 6,
       "officialName": "体験利用支援加算 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.TrialUseSupportType))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 6"
     },
     {
       "fieldId": "report:service-performance:totals:007",
@@ -298,9 +327,10 @@
       "section": "totals",
       "position": 7,
       "officialName": "地域協働加算 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.RegionalCollaborationApplied))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 7"
     },
     {
       "fieldId": "report:service-performance:totals:008",
@@ -308,9 +338,10 @@
       "section": "totals",
       "position": 8,
       "officialName": "緊急時受入加算 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.EmergencyAdmissionApplied))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 8"
     },
     {
       "fieldId": "report:service-performance:totals:009",
@@ -318,9 +349,10 @@
       "section": "totals",
       "position": 9,
       "officialName": "集中的支援加算 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.IntensiveSupportApplied))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 9"
     },
     {
       "fieldId": "report:service-performance:totals:010",
@@ -328,9 +360,10 @@
       "section": "totals",
       "position": 10,
       "officialName": "施設外支援 当月",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.OffsiteSupportApplied))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 10"
     },
     {
       "fieldId": "report:service-performance:totals:011",
@@ -338,9 +371,10 @@
       "section": "totals",
       "position": 11,
       "officialName": "施設外支援 累計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelTrue(DailyRecord.OffsiteSupportApplied))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 11"
     },
     {
       "fieldId": "report:service-performance:totals:012",
@@ -348,9 +382,10 @@
       "section": "totals",
       "position": 12,
       "officialName": "施設外支援 上限",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(service-performance.daily)",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 12"
     },
     {
       "fieldId": "report:service-performance:initial-addition:001",
@@ -358,9 +393,10 @@
       "section": "initial-addition",
       "position": 1,
       "officialName": "利用開始日",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "modelPresent(ClaimCalculation.InitialAdditionStartDate)",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance initial-addition row 1"
     },
     {
       "fieldId": "report:service-performance:initial-addition:002",
@@ -368,9 +404,10 @@
       "section": "initial-addition",
       "position": 2,
       "officialName": "30日目",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "modelPresent(ClaimCalculation.InitialAdditionStartDate)",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance initial-addition row 2"
     },
     {
       "fieldId": "report:service-performance:initial-addition:003",
@@ -378,9 +415,10 @@
       "section": "initial-addition",
       "position": 3,
       "officialName": "当月算定日数",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "modelPresent(ClaimCalculation.InitialAdditionStartDate)",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance initial-addition row 3"
     },
     {
       "fieldId": "report:service-performance:intensive-support:001",
@@ -388,9 +426,10 @@
       "section": "intensive-support",
       "position": 1,
       "officialName": "支援開始日",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "modelPresent(IntensiveSupportEpisode.StartDate)",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance intensive-support row 1"
     },
     {
       "fieldId": "report:service-performance:pagination:001",
@@ -398,9 +437,10 @@
       "section": "pagination",
       "position": 1,
       "officialName": "枚中",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance pagination row 1"
     },
     {
       "fieldId": "report:service-performance:pagination:002",
@@ -408,9 +448,10 @@
       "section": "pagination",
       "position": 2,
       "officialName": "枚目",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
-      "sourcePage": 12
+      "sourcePage": 12,
+      "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance pagination row 2"
     },
     {
       "fieldId": "report:benefit-claim-form:header:001",
@@ -418,9 +459,10 @@
       "section": "header",
       "position": 1,
       "officialName": "請求年月日",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form header row 1"
     },
     {
       "fieldId": "report:benefit-claim-form:header:002",
@@ -428,9 +470,10 @@
       "section": "header",
       "position": 2,
       "officialName": "請求先",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form header row 2"
     },
     {
       "fieldId": "report:benefit-claim-form:header:003",
@@ -438,9 +481,10 @@
       "section": "header",
       "position": 3,
       "officialName": "指定事業所番号",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form header row 3"
     },
     {
       "fieldId": "report:benefit-claim-form:header:004",
@@ -448,9 +492,10 @@
       "section": "header",
       "position": 4,
       "officialName": "郵便番号",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form header row 4"
     },
     {
       "fieldId": "report:benefit-claim-form:header:005",
@@ -458,9 +503,10 @@
       "section": "header",
       "position": 5,
       "officialName": "住所（所在地）",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form header row 5"
     },
     {
       "fieldId": "report:benefit-claim-form:header:006",
@@ -468,9 +514,10 @@
       "section": "header",
       "position": 6,
       "officialName": "電話番号",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form header row 6"
     },
     {
       "fieldId": "report:benefit-claim-form:header:007",
@@ -478,9 +525,10 @@
       "section": "header",
       "position": 7,
       "officialName": "名称",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form header row 7"
     },
     {
       "fieldId": "report:benefit-claim-form:header:008",
@@ -488,9 +536,10 @@
       "section": "header",
       "position": 8,
       "officialName": "職・氏名",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form header row 8"
     },
     {
       "fieldId": "report:benefit-claim-form:header:009",
@@ -498,9 +547,10 @@
       "section": "header",
       "position": 9,
       "officialName": "サービス提供年月",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form header row 9"
     },
     {
       "fieldId": "report:benefit-claim-form:header:010",
@@ -508,9 +558,10 @@
       "section": "header",
       "position": 10,
       "officialName": "請求金額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form header row 10"
     },
     {
       "fieldId": "report:benefit-claim-form:claim-lines:001",
@@ -518,9 +569,10 @@
       "section": "claim-lines",
       "position": 1,
       "officialName": "区分",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-form.claim-lines)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form claim-lines row 1"
     },
     {
       "fieldId": "report:benefit-claim-form:claim-lines:002",
@@ -528,9 +580,10 @@
       "section": "claim-lines",
       "position": 2,
       "officialName": "件数",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-form.claim-lines)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form claim-lines row 2"
     },
     {
       "fieldId": "report:benefit-claim-form:claim-lines:003",
@@ -538,9 +591,10 @@
       "section": "claim-lines",
       "position": 3,
       "officialName": "単位数",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-form.claim-lines)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form claim-lines row 3"
     },
     {
       "fieldId": "report:benefit-claim-form:claim-lines:004",
@@ -548,9 +602,10 @@
       "section": "claim-lines",
       "position": 4,
       "officialName": "費用合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-form.claim-lines)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form claim-lines row 4"
     },
     {
       "fieldId": "report:benefit-claim-form:claim-lines:005",
@@ -558,9 +613,10 @@
       "section": "claim-lines",
       "position": 5,
       "officialName": "給付費請求額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-form.claim-lines)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form claim-lines row 5"
     },
     {
       "fieldId": "report:benefit-claim-form:claim-lines:006",
@@ -568,9 +624,10 @@
       "section": "claim-lines",
       "position": 6,
       "officialName": "利用者負担額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-form.claim-lines)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form claim-lines row 6"
     },
     {
       "fieldId": "report:benefit-claim-form:claim-lines:007",
@@ -578,9 +635,10 @@
       "section": "claim-lines",
       "position": 7,
       "officialName": "自治体助成額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-form.claim-lines)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form claim-lines row 7"
     },
     {
       "fieldId": "report:benefit-claim-form:totals:001",
@@ -588,9 +646,10 @@
       "section": "totals",
       "position": 1,
       "officialName": "区分 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form totals row 1"
     },
     {
       "fieldId": "report:benefit-claim-form:totals:002",
@@ -598,9 +657,10 @@
       "section": "totals",
       "position": 2,
       "officialName": "件数 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form totals row 2"
     },
     {
       "fieldId": "report:benefit-claim-form:totals:003",
@@ -608,9 +668,10 @@
       "section": "totals",
       "position": 3,
       "officialName": "単位数 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form totals row 3"
     },
     {
       "fieldId": "report:benefit-claim-form:totals:004",
@@ -618,9 +679,10 @@
       "section": "totals",
       "position": 4,
       "officialName": "費用合計 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form totals row 4"
     },
     {
       "fieldId": "report:benefit-claim-form:totals:005",
@@ -628,9 +690,10 @@
       "section": "totals",
       "position": 5,
       "officialName": "給付費請求額 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form totals row 5"
     },
     {
       "fieldId": "report:benefit-claim-form:totals:006",
@@ -638,9 +701,10 @@
       "section": "totals",
       "position": 6,
       "officialName": "利用者負担額 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form totals row 6"
     },
     {
       "fieldId": "report:benefit-claim-form:totals:007",
@@ -648,9 +712,10 @@
       "section": "totals",
       "position": 7,
       "officialName": "自治体助成額 合計",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 1
+      "sourcePage": 1,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 1 benefit-claim-form totals row 7"
     },
     {
       "fieldId": "report:benefit-claim-detail:header:001",
@@ -658,9 +723,10 @@
       "section": "header",
       "position": 1,
       "officialName": "市町村番号",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail header row 1"
     },
     {
       "fieldId": "report:benefit-claim-detail:header:002",
@@ -668,9 +734,10 @@
       "section": "header",
       "position": 2,
       "officialName": "サービス提供年月",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail header row 2"
     },
     {
       "fieldId": "report:benefit-claim-detail:header:003",
@@ -678,9 +745,10 @@
       "section": "header",
       "position": 3,
       "officialName": "助成自治体番号",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "modelPresent(Certificate.SubsidyMunicipalityNumber)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail header row 3"
     },
     {
       "fieldId": "report:benefit-claim-detail:header:004",
@@ -688,9 +756,10 @@
       "section": "header",
       "position": 4,
       "officialName": "指定事業所番号",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail header row 4"
     },
     {
       "fieldId": "report:benefit-claim-detail:header:005",
@@ -698,9 +767,10 @@
       "section": "header",
       "position": 5,
       "officialName": "事業者及びその事業所の名称",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail header row 5"
     },
     {
       "fieldId": "report:benefit-claim-detail:header:006",
@@ -708,9 +778,10 @@
       "section": "header",
       "position": 6,
       "officialName": "受給者証番号",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail header row 6"
     },
     {
       "fieldId": "report:benefit-claim-detail:header:007",
@@ -718,9 +789,10 @@
       "section": "header",
       "position": 7,
       "officialName": "支給決定障害者等氏名",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail header row 7"
     },
     {
       "fieldId": "report:benefit-claim-detail:header:008",
@@ -728,9 +800,10 @@
       "section": "header",
       "position": 8,
       "officialName": "障害児氏名",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "never",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail header row 8"
     },
     {
       "fieldId": "report:benefit-claim-detail:header:009",
@@ -738,9 +811,10 @@
       "section": "header",
       "position": 9,
       "officialName": "地域区分",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail header row 9"
     },
     {
       "fieldId": "report:benefit-claim-detail:header:010",
@@ -748,9 +822,10 @@
       "section": "header",
       "position": 10,
       "officialName": "就労継続支援A型事業者負担減免措置実施",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "never",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail header row 10"
     },
     {
       "fieldId": "report:benefit-claim-detail:header:011",
@@ -758,9 +833,10 @@
       "section": "header",
       "position": 11,
       "officialName": "利用者負担上限月額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail header row 11"
     },
     {
       "fieldId": "report:benefit-claim-detail:header:012",
@@ -768,9 +844,10 @@
       "section": "header",
       "position": 12,
       "officialName": "就労継続支援A型減免対象者",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "never",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail header row 12"
     },
     {
       "fieldId": "report:benefit-claim-detail:upper-limit-management:001",
@@ -778,9 +855,10 @@
       "section": "upper-limit-management",
       "position": 1,
       "officialName": "管理事業所 指定事業所番号",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "modelPresent(Certificate.UpperLimitManagementProviderNumber)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail upper-limit-management row 1"
     },
     {
       "fieldId": "report:benefit-claim-detail:upper-limit-management:002",
@@ -788,9 +866,10 @@
       "section": "upper-limit-management",
       "position": 2,
       "officialName": "管理事業所 事業所名称",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "modelPresent(Certificate.UpperLimitManagementProviderNumber)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail upper-limit-management row 2"
     },
     {
       "fieldId": "report:benefit-claim-detail:upper-limit-management:003",
@@ -798,9 +877,10 @@
       "section": "upper-limit-management",
       "position": 3,
       "officialName": "管理結果",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "modelPresent(Certificate.UpperLimitManagementProviderNumber)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail upper-limit-management row 3"
     },
     {
       "fieldId": "report:benefit-claim-detail:upper-limit-management:004",
@@ -808,9 +888,10 @@
       "section": "upper-limit-management",
       "position": 4,
       "officialName": "管理結果額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "modelPresent(Certificate.UpperLimitManagementProviderNumber)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail upper-limit-management row 4"
     },
     {
       "fieldId": "report:benefit-claim-detail:service-period:001",
@@ -818,9 +899,10 @@
       "section": "service-period",
       "position": 1,
       "officialName": "サービス種別",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-detail.service-period)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail service-period row 1"
     },
     {
       "fieldId": "report:benefit-claim-detail:service-period:002",
@@ -828,9 +910,10 @@
       "section": "service-period",
       "position": 2,
       "officialName": "開始年月日",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-detail.service-period)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail service-period row 2"
     },
     {
       "fieldId": "report:benefit-claim-detail:service-period:003",
@@ -838,9 +921,10 @@
       "section": "service-period",
       "position": 3,
       "officialName": "終了年月日",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "all(rowPresent(benefit-claim-detail.service-period);modelPresent(ContractedProvider.TerminationDate))",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail service-period row 3"
     },
     {
       "fieldId": "report:benefit-claim-detail:service-period:004",
@@ -848,9 +932,10 @@
       "section": "service-period",
       "position": 4,
       "officialName": "利用日数",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-detail.service-period)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail service-period row 4"
     },
     {
       "fieldId": "report:benefit-claim-detail:service-period:005",
@@ -858,9 +943,10 @@
       "section": "service-period",
       "position": 5,
       "officialName": "入院日数",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "never",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail service-period row 5"
     },
     {
       "fieldId": "report:benefit-claim-detail:claim-lines:001",
@@ -868,9 +954,10 @@
       "section": "claim-lines",
       "position": 1,
       "officialName": "サービス内容",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-detail.claim-lines)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail claim-lines row 1"
     },
     {
       "fieldId": "report:benefit-claim-detail:claim-lines:002",
@@ -878,9 +965,10 @@
       "section": "claim-lines",
       "position": 2,
       "officialName": "サービスコード",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-detail.claim-lines)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail claim-lines row 2"
     },
     {
       "fieldId": "report:benefit-claim-detail:claim-lines:003",
@@ -888,9 +976,10 @@
       "section": "claim-lines",
       "position": 3,
       "officialName": "単位数",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-detail.claim-lines)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail claim-lines row 3"
     },
     {
       "fieldId": "report:benefit-claim-detail:claim-lines:004",
@@ -898,9 +987,10 @@
       "section": "claim-lines",
       "position": 4,
       "officialName": "回数",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-detail.claim-lines)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail claim-lines row 4"
     },
     {
       "fieldId": "report:benefit-claim-detail:claim-lines:005",
@@ -908,9 +998,10 @@
       "section": "claim-lines",
       "position": 5,
       "officialName": "サービス単位数",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-detail.claim-lines)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail claim-lines row 5"
     },
     {
       "fieldId": "report:benefit-claim-detail:claim-lines:006",
@@ -918,9 +1009,10 @@
       "section": "claim-lines",
       "position": 6,
       "officialName": "摘要",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "rowPresent(benefit-claim-detail.claim-lines)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail claim-lines row 6"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:001",
@@ -928,9 +1020,10 @@
       "section": "summary",
       "position": 1,
       "officialName": "サービス種類コード",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 1"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:002",
@@ -938,9 +1031,10 @@
       "section": "summary",
       "position": 2,
       "officialName": "サービス利用日数",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 2"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:003",
@@ -948,9 +1042,10 @@
       "section": "summary",
       "position": 3,
       "officialName": "給付単位数",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 3"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:004",
@@ -958,9 +1053,10 @@
       "section": "summary",
       "position": 4,
       "officialName": "単位数単価",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 4"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:005",
@@ -968,9 +1064,10 @@
       "section": "summary",
       "position": 5,
       "officialName": "総費用額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 5"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:006",
@@ -978,9 +1075,10 @@
       "section": "summary",
       "position": 6,
       "officialName": "1割相当額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 6"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:007",
@@ -988,9 +1086,10 @@
       "section": "summary",
       "position": 7,
       "officialName": "利用者負担額2",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 7"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:008",
@@ -998,9 +1097,10 @@
       "section": "summary",
       "position": 8,
       "officialName": "上限月額調整",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 8"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:009",
@@ -1008,9 +1108,10 @@
       "section": "summary",
       "position": 9,
       "officialName": "A型減免 事業者減免額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "never",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 9"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:010",
@@ -1018,9 +1119,10 @@
       "section": "summary",
       "position": 10,
       "officialName": "A型減免 減免後利用者負担額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "never",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 10"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:011",
@@ -1028,9 +1130,10 @@
       "section": "summary",
       "position": 11,
       "officialName": "調整後利用者負担額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "fieldNonZero(report:benefit-claim-detail:summary:011)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 11"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:012",
@@ -1038,9 +1141,10 @@
       "section": "summary",
       "position": 12,
       "officialName": "上限額管理後利用者負担額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "modelPresent(ClaimInput.UpperLimitManagedAmountYen)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 12"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:013",
@@ -1048,9 +1152,10 @@
       "section": "summary",
       "position": 13,
       "officialName": "決定利用者負担額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 13"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:014",
@@ -1058,9 +1163,10 @@
       "section": "summary",
       "position": 14,
       "officialName": "給付費請求額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 14"
     },
     {
       "fieldId": "report:benefit-claim-detail:summary:015",
@@ -1068,9 +1174,10 @@
       "section": "summary",
       "position": 15,
       "officialName": "自治体助成分請求額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "modelPresent(ClaimInput.MunicipalSubsidyAmountYen)",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail summary row 15"
     },
     {
       "fieldId": "report:benefit-claim-detail:special-benefit:001",
@@ -1078,9 +1185,10 @@
       "section": "special-benefit",
       "position": 1,
       "officialName": "算定日額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "never",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail special-benefit row 1"
     },
     {
       "fieldId": "report:benefit-claim-detail:special-benefit:002",
@@ -1088,9 +1196,10 @@
       "section": "special-benefit",
       "position": 2,
       "officialName": "日数",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "never",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail special-benefit row 2"
     },
     {
       "fieldId": "report:benefit-claim-detail:special-benefit:003",
@@ -1098,9 +1207,10 @@
       "section": "special-benefit",
       "position": 3,
       "officialName": "給付費請求額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "never",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail special-benefit row 3"
     },
     {
       "fieldId": "report:benefit-claim-detail:special-benefit:004",
@@ -1108,9 +1218,10 @@
       "section": "special-benefit",
       "position": 4,
       "officialName": "実費算定額",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "never",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail special-benefit row 4"
     },
     {
       "fieldId": "report:benefit-claim-detail:pagination:001",
@@ -1118,9 +1229,10 @@
       "section": "pagination",
       "position": 1,
       "officialName": "枚中",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail pagination row 1"
     },
     {
       "fieldId": "report:benefit-claim-detail:pagination:002",
@@ -1128,9 +1240,10 @@
       "section": "pagination",
       "position": 2,
       "officialName": "枚目",
-      "requiredWhen": "when the official form condition applies",
+      "requiredWhen": "always",
       "sourceDocumentId": "claim-examples-r1-10-pdf",
-      "sourcePage": 2
+      "sourcePage": 2,
+      "requiredWhenSource": "claim-examples-r1-10-pdf physical page 2 benefit-claim-detail pagination row 2"
     }
   ]
 }

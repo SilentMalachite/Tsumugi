@@ -4,7 +4,7 @@
 
 就労継続支援B型の国保連提出CSVは、令和7年10月版インタフェース仕様書の共通編と事業所編を正本とする。CSVはCP932（共通編の表記はシフトJIS）、CRLF、カンマ区切りで生成する。文字列、数値、コード値、漢字は、カンマ、ダブルコーテーション、空白または漢字を含む場合にダブルコーテーションで囲み、値中のダブルコーテーションは二重化する。
 
-ファイルは外側のコントロールレコード、データレコード、エンドレコードの3種類から構成する。コントロールレコードは1件、データレコードはJ111、J121、J611の内側レコード件数分、エンドレコードは1件とする。外側データレコードの「データ」の`maxBytes`は、対象9レコードの公式最大バイト数と区切りカンマを合計した最大値822 bytesである。引用符と改行はこの値に含めない。
+ファイルは外側のコントロールレコード、データレコード、エンドレコードの3種類から構成する。コントロールレコードは1件、データレコードはJ111、J121、J611の内側レコード件数分、エンドレコードは1件とする。外側19項目の定義表は共通編physical page 6であり、physical page 5はファイル形式と3レコード構成の説明である。外側19項目の定義表は共通編physical page 6であり、physical page 5はファイル形式と3レコード構成の説明である。外側19項目の定義表は共通編physical page 6であり、physical page 5はファイル形式と3レコード構成の説明である。外側19項目の定義表は共通編physical page 6であり、physical page 5はファイル形式と3レコード構成の説明である。外側データレコードの「データ」の`maxBytes`は、対象9レコードの公式最大バイト数と区切りカンマを合計した最大値822 bytesである。引用符と改行はこの値に含めない。
 
 `ProcessingMonth`は外側コントロールレコードの「処理対象年月」専用の明示入力とする。内側レコードの「サービス提供年月」は別の`ServiceProvisionMonth`明示入力とし、翌月であることを推測して自動設定しない。過月請求、再請求、取消では両者が一致も連続もしないためである。
 
@@ -22,6 +22,8 @@
 | J611 | 01 | サービス提供実績記録票 基本情報 | 172 | 60 |
 | J611 | 02 | サービス提供実績記録票 明細情報 | 113 | 72 |
 
+表のpageは各record定義の開始pageである。field単位ではJ121-01の項番1〜22をphysical page 20、23〜35をpage 21、J121-04の項番1〜17をpage 32、18〜33をpage 33として保持する。J611-01の定義はphysical pages 60〜69、様式1701必須表はpages 83〜86、J611-02の定義はpages 72〜78、様式1701必須表はpages 87〜89である。`sourcePage`は定義page、`requiredWhenSource`は必須表pageを分離して保持する。
+
 共通編19項目と事業所編424項目の合計443項目を`field-mapping-r7-10.json`で全域写像にする。各項目の入力源は`existing`、`missing`、`explicitInput`、`generated`のいずれか一つである。J611の使用可否は令和7年10月以降の様式1701必須項目表に従い、使用しない列は空項目を決定論的に生成する。自由記述からの推定、複数候補、空のモデルパスは認めない。
 
 請求帳票はCSV列から生成しない。実績記録票41項目、介護給付費・訓練等給付費等請求書24項目、同明細書48項目を公式様式・記載例から独立して棚卸しし、合計113項目を`report-fields-r8-06.json`に固定する。同義のCSV項目は`sameMeaningAsCsvFieldId`で参照するだけとする。
@@ -33,6 +35,25 @@
 - 実績記録票は令和6年4月・6月施行分の障害福祉様式Excelと2025年1月31日確定記載例を正本にする。令和8年6月ページが「変更なし」としているため、様式17を令和8年6月にも継続適用する。
 - 令和8年6月の支給決定事務要領physical pages 234〜235で、様式17のB型固有欄と記載条件を照合する。
 - `000535461.xls`は障害児命令様式であり、成人の就労継続支援B型帳票inventoryへ混入させない。
+
+
+## 条件DSLと生成式
+
+`requiredWhen`は次の閉じた文法だけを許可する。引数区切りは`;`とし、`all`、`any`、`not`は再帰的に同じconditionを取る。
+
+```text
+condition := always | optional | never
+           | recordPresent(recordId) | rowPresent(reportSection)
+           | fieldPresent(fieldId) | fieldNonZero(fieldId) | fieldEquals(fieldId;value)
+           | modelPresent(modelPath) | modelTrue(modelPath) | modelNonZero(modelPath)
+           | inputPresent(inputContract)
+           | serviceProvisionMonthBefore(YYYYMM) | processingMonthBefore(YYYYMM)
+           | all(condition;condition...) | any(condition;condition...) | not(condition)
+```
+
+`always`は公式表の`◎`、`optional`は`△`、条件式は`○`を具体的な入力・算定結果へ展開したもの、`never`はJ121または様式1701列が空白の項目である。各fieldは`requiredWhenSource`に必須表のphysical page、項番、様式1701列を保持する。注記だけ、または「該当時」という自然文はconditionとして扱わない。
+
+`generatorRule`は`operation(target=fieldId;具体入力;source=sourceDocumentId:pN:itemN)`の形式とする。operationは`aggregate`、`calendarDay`、`conditional`、`const`、`constEmpty`、`copy`、`count`、`difference`、`format`、`lookup`、`max`、`min`、`multiply`、`payload`、`recordCount`、`render`、`roundDown`、`sequence`、`sum`の閉集合である。全generated項目は一意のtarget、公式source、具体的なfield/model/selectorと演算を持ち、共通の自由記述規則へフォールバックしない。
 
 ## 出典
 

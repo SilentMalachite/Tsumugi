@@ -188,12 +188,24 @@ public sealed class CsvSpecificationCompletenessTests
         }
 
         mappings.Length.Should().Be(443);
+        mappings.GroupBy(item => item.GetProperty("status").GetString()!)
+            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal)
+            .Should().BeEquivalentTo(new Dictionary<string, int>
+            {
+                ["generated"] = 374,
+                ["existing"] = 28,
+                ["missing"] = 31,
+                ["explicitInput"] = 10,
+            });
         AssertMapping(mappings, "provider:J121:01:008", "existing", "Recipient.KanaName");
-        AssertMapping(mappings, "provider:J121:01:011", "generated", "set 1");
+        AssertMapping(mappings, "provider:J121:01:011", "generated", "value=1");
         AssertMapping(mappings, "provider:J121:01:012", "existing", "Certificate.MonthlyCostCap");
-        AssertMapping(mappings, "provider:J121:01:013", "generated", "set 1");
+        AssertMapping(mappings, "provider:J121:01:013", "generated", "value=1");
         AssertMapping(mappings, "provider:J121:01:015", "missing", "UpperLimitManagementProviderNumber");
         AssertMapping(mappings, "provider:J121:01:017", "missing", "UpperLimitManagedAmountYen");
+        AssertMapping(mappings, "provider:J121:04:015", "missing", "MunicipalityDeterminedUserChargeYen");
+        AssertMapping(mappings, "provider:J121:04:025", "missing", "MunicipalSubsidyAmountYen");
+        AssertMapping(mappings, "provider:J121:04:030", "missing", "ExceptionalUsageStartMonth");
         AssertMapping(mappings, "provider:J611:02:021", "existing", "DailyRecord.Transport");
         AssertMapping(mappings, "provider:J611:02:022", "existing", "DailyRecord.Transport");
         AssertMapping(mappings, "provider:J611:02:032", "existing", "DailyRecord.MealProvided");
@@ -276,6 +288,63 @@ public sealed class CsvSpecificationCompletenessTests
         }
     }
 
+    [Fact]
+    public void Csv_conditions_and_generator_rules_are_machine_decidable_and_field_specific()
+    {
+        using var common = ReadEmbeddedJson("common-r7-10.json");
+        using var provider = ReadEmbeddedJson("provider-claim-r7-10.json");
+        using var mapping = ReadEmbeddedJson("field-mapping-r7-10.json");
+
+        var records = common.RootElement.GetProperty("records").EnumerateArray()
+            .Concat(provider.RootElement.GetProperty("records").EnumerateArray())
+            .ToArray();
+        var fieldIds = records.SelectMany(record => record.GetProperty("fields").EnumerateArray())
+            .Select(field => field.GetProperty("fieldId").GetString()!)
+            .ToHashSet(StringComparer.Ordinal);
+        var recordIds = records.Select(record => record.GetProperty("recordId").GetString()!)
+            .ToHashSet(StringComparer.Ordinal);
+        var failures = new List<string>();
+
+        foreach (var record in records)
+        {
+            foreach (var field in record.GetProperty("fields").EnumerateArray())
+            {
+                var fieldId = field.GetProperty("fieldId").GetString()!;
+                ValidateCondition(field.GetProperty("requiredWhen").GetString()!, fieldId, fieldIds, recordIds, failures);
+                RequireNonBlank(field, fieldId, "requiredWhenSource", failures);
+                if (!field.TryGetProperty("sourcePage", out var sourcePage) || sourcePage.GetInt32() <= 0)
+                {
+                    failures.Add($"{fieldId}: field-level sourcePage is required");
+                }
+            }
+        }
+
+        var generated = mapping.RootElement.GetProperty("mappings").EnumerateArray()
+            .Where(item => item.GetProperty("status").GetString() == "generated")
+            .ToArray();
+        AssertDeterministicGeneratorRules(generated,
+            fieldIds.Concat(recordIds).ToHashSet(StringComparer.Ordinal), failures);
+
+        common.RootElement.GetProperty("records").EnumerateArray()
+            .Should().OnlyContain(record => record.GetProperty("sourcePage").GetInt32() == 6,
+                "all 19 outer CSV field definitions are on physical page 6; page 5 only describes framing");
+        generated.Single(item => item.GetProperty("fieldId").GetString() == "provider:J111:01:006")
+            .GetProperty("generatorRule").GetString().Should()
+            .ContainAll("provider:J111:01:020", "provider:J111:01:021", "provider:J111:01:023", "sum(");
+        generated.Single(item => item.GetProperty("fieldId").GetString() == "provider:J121:02:008")
+            .GetProperty("generatorRule").GetString().Should()
+            .ContainAll("min(", "DailyRecord.ServiceDate", "p23:B-type-setting");
+        generated.Single(item => item.GetProperty("fieldId").GetString() == "provider:J121:04:012")
+            .GetProperty("generatorRule").GetString().Should()
+            .ContainAll("const(", "value=0", "serviceProvisionMonthFrom201204");
+        generated.Single(item => item.GetProperty("fieldId").GetString() == "provider:J121:04:014")
+            .GetProperty("generatorRule").GetString().Should().Contain("provider:J121:04:013/10");
+        generated.Single(item => item.GetProperty("fieldId").GetString() == "provider:J121:04:016")
+            .GetProperty("generatorRule").GetString().Should()
+            .ContainAll("provider:J121:01:012", "provider:J121:04:015", "min(");
+        failures.Should().BeEmpty(string.Join(Environment.NewLine, failures));
+    }
+
     private static JsonDocument ReadEmbeddedJson(string fileName)
     {
         var resourceName = CsvAssembly.GetManifestResourceNames()
@@ -352,5 +421,170 @@ public sealed class CsvSpecificationCompletenessTests
         {
             failures.Add($"{fieldId}: {property} is required");
         }
+    }
+
+    internal static void ValidateCondition(
+        string condition,
+        string fieldId,
+        IReadOnlySet<string> fieldIds,
+        IReadOnlySet<string> recordIds,
+        List<string> failures)
+    {
+        foreach (var phrase in new[]
+                 {
+                     "when the official", "when form", "must be empty", "condition applies",
+                 })
+        {
+            if (condition.Contains(phrase, StringComparison.OrdinalIgnoreCase))
+            {
+                failures.Add($"{fieldId}: generic requiredWhen phrase: {condition}");
+                return;
+            }
+        }
+
+        if (condition is "always" or "optional" or "never")
+        {
+            return;
+        }
+
+        var open = condition.IndexOf('(');
+        if (open <= 0 || !condition.EndsWith(')'))
+        {
+            failures.Add($"{fieldId}: unparseable condition: {condition}");
+            return;
+        }
+
+        var operation = condition[..open];
+        var arguments = SplitTopLevel(condition[(open + 1)..^1]);
+        var unary = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "recordPresent", "rowPresent", "modelPresent", "modelTrue", "modelNonZero",
+            "inputPresent", "fieldPresent", "fieldNonZero", "serviceProvisionMonthBefore",
+            "processingMonthBefore", "not",
+        };
+        if (operation is "all" or "any")
+        {
+            if (arguments.Count < 2)
+            {
+                failures.Add($"{fieldId}: {operation} requires at least two conditions");
+            }
+            foreach (var argument in arguments)
+            {
+                ValidateCondition(argument, fieldId, fieldIds, recordIds, failures);
+            }
+            return;
+        }
+
+        if (operation == "fieldEquals")
+        {
+            if (arguments.Count != 2 || !fieldIds.Contains(arguments[0]) || string.IsNullOrWhiteSpace(arguments[1]))
+            {
+                failures.Add($"{fieldId}: invalid fieldEquals condition: {condition}");
+            }
+            return;
+        }
+
+        if (!unary.Contains(operation) || arguments.Count != 1)
+        {
+            failures.Add($"{fieldId}: undefined condition operator: {condition}");
+            return;
+        }
+
+        if (operation == "recordPresent" && !recordIds.Contains(arguments[0]))
+        {
+            failures.Add($"{fieldId}: unresolved record condition reference: {arguments[0]}");
+        }
+        else if ((operation is "fieldPresent" or "fieldNonZero") && !fieldIds.Contains(arguments[0]))
+        {
+            failures.Add($"{fieldId}: unresolved field condition reference: {arguments[0]}");
+        }
+        else if (operation == "not")
+        {
+            ValidateCondition(arguments[0], fieldId, fieldIds, recordIds, failures);
+        }
+        else if (operation is "serviceProvisionMonthBefore" or "processingMonthBefore"
+                 && (!int.TryParse(arguments[0], out _) || arguments[0].Length != 6))
+        {
+            failures.Add($"{fieldId}: invalid month condition: {condition}");
+        }
+    }
+
+    internal static void AssertDeterministicGeneratorRules(
+        IReadOnlyCollection<JsonElement> generated,
+        IReadOnlySet<string> allFieldIds,
+        List<string> failures)
+    {
+        var rules = new List<string>();
+        var allowedOperations = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "aggregate", "calendarDay", "conditional", "const", "constEmpty", "copy", "count",
+            "difference", "format", "lookup", "max", "min", "multiply", "payload", "recordCount",
+            "render", "roundDown", "sequence", "sum",
+        };
+        foreach (var item in generated)
+        {
+            var fieldId = item.GetProperty("fieldId").GetString()!;
+            var rule = item.GetProperty("generatorRule").GetString()!;
+            rules.Add(rule);
+            foreach (var phrase in new[]
+                     {
+                         "derive the value", "derive the official", "derive the outer", "render the value",
+                         "effective contracts, daily records", "claim context", "selected claim context",
+                     })
+            {
+                if (rule.Contains(phrase, StringComparison.OrdinalIgnoreCase))
+                {
+                    failures.Add($"{fieldId}: generic generatorRule: {rule}");
+                }
+            }
+
+            var open = rule.IndexOf('(');
+            var operation = open > 0 && rule.EndsWith(')') ? rule[..open] : string.Empty;
+            if (!allowedOperations.Contains(operation))
+            {
+                failures.Add($"{fieldId}: undefined generator operation: {rule}");
+            }
+            if (!rule.Contains($"target={fieldId}", StringComparison.Ordinal))
+            {
+                failures.Add($"{fieldId}: generatorRule must identify its target");
+            }
+            if (!rule.Contains("source=", StringComparison.Ordinal))
+            {
+                failures.Add($"{fieldId}: generatorRule must identify its official source");
+            }
+
+            foreach (System.Text.RegularExpressions.Match match in
+                     System.Text.RegularExpressions.Regex.Matches(rule, @"(?:common|provider|report):[A-Za-z0-9:-]+"))
+            {
+                var reference = match.Value;
+                if (reference != fieldId && !allFieldIds.Contains(reference))
+                {
+                    failures.Add($"{fieldId}: unresolved formula field reference: {reference}");
+                }
+            }
+        }
+
+        foreach (var duplicate in Duplicates(rules))
+        {
+            failures.Add($"generatorRule is reused instead of field-specific: {duplicate}");
+        }
+    }
+
+    private static List<string> SplitTopLevel(string input)
+    {
+        var result = new List<string>();
+        var depth = 0;
+        var start = 0;
+        for (var index = 0; index < input.Length; index++)
+        {
+            depth += input[index] == '(' ? 1 : input[index] == ')' ? -1 : 0;
+            if (input[index] == ';' && depth == 0)
+            {
+                result.Add(input[start..index]);
+                start = index + 1;
+            }
+        }
+        result.Add(input[start..]);
+        return result;
     }
 }

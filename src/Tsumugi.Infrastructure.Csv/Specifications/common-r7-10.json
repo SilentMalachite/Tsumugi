@@ -10,7 +10,7 @@
       "innerRecordType": "control",
       "order": 1,
       "sourceDocumentId": "common-r7-10",
-      "sourcePage": 5,
+      "sourcePage": 6,
       "fields": [
         {
           "fieldId": "common:outer:control:001",
@@ -23,7 +23,9 @@
           "allowedCodes": [
             "1"
           ],
-          "allowedCodesSource": "common-r7-10 physical page 5 field definition or common code list"
+          "allowedCodesSource": "common-r7-10 physical page 6 field definition or common code list",
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 1"
         },
         {
           "fieldId": "common:outer:control:002",
@@ -33,7 +35,9 @@
           "dataType": "numeric",
           "maxBytes": 9,
           "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
-          "allowedCodes": []
+          "allowedCodes": [],
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 2"
         },
         {
           "fieldId": "common:outer:control:003",
@@ -43,7 +47,9 @@
           "dataType": "numeric",
           "maxBytes": 3,
           "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
-          "allowedCodes": []
+          "allowedCodes": [],
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 3"
         },
         {
           "fieldId": "common:outer:control:004",
@@ -53,7 +59,9 @@
           "dataType": "numeric",
           "maxBytes": 9,
           "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
-          "allowedCodes": []
+          "allowedCodes": [],
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 4"
         },
         {
           "fieldId": "common:outer:control:005",
@@ -63,7 +71,9 @@
           "dataType": "text",
           "maxBytes": 3,
           "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
-          "allowedCodes": []
+          "allowedCodes": [],
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 5"
         },
         {
           "fieldId": "common:outer:control:006",
@@ -74,7 +84,9 @@
           "maxBytes": 6,
           "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
           "allowedCodes": [],
-          "allowedCodesSource": "common-r7-10 physical page 5 field definition or common code list"
+          "allowedCodesSource": "common-r7-10 physical page 6 field definition or common code list",
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 6"
         },
         {
           "fieldId": "common:outer:control:007",
@@ -84,7 +96,9 @@
           "dataType": "text",
           "maxBytes": 10,
           "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
-          "allowedCodes": []
+          "allowedCodes": [],
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 7"
         },
         {
           "fieldId": "common:outer:control:008",
@@ -95,7 +109,9 @@
           "maxBytes": 2,
           "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
           "allowedCodes": [],
-          "allowedCodesSource": "common-r7-10 physical page 5 field definition or common code list"
+          "allowedCodesSource": "common-r7-10 physical page 6 field definition or common code list",
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 8"
         },
         {
           "fieldId": "common:outer:control:009",
@@ -107,7 +123,9 @@
           "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
           "allowedCodes": [
             "1"
-          ]
+          ],
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 9"
         },
         {
           "fieldId": "common:outer:control:010",
@@ -117,17 +135,21 @@
           "dataType": "yearMonth",
           "maxBytes": 6,
           "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
-          "allowedCodes": []
+          "allowedCodes": [],
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 10"
         },
         {
           "fieldId": "common:outer:control:011",
           "position": 11,
           "officialName": "予備",
-          "requiredWhen": "must be empty",
+          "requiredWhen": "never",
           "dataType": "numeric",
           "maxBytes": 6,
           "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
-          "allowedCodes": []
+          "allowedCodes": [],
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 11"
         },
         {
           "fieldId": "common:outer:control:012",
@@ -137,7 +159,9 @@
           "dataType": "text",
           "maxBytes": 2,
           "quoteRule": "crlf",
-          "allowedCodes": []
+          "allowedCodes": [],
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 12"
         }
       ]
     },
@@ -147,7 +171,7 @@
       "innerRecordType": "data",
       "order": 2,
       "sourceDocumentId": "common-r7-10",
-      "sourcePage": 5,
+      "sourcePage": 6,
       "fields": [
         {
           "fieldId": "common:outer:data:001",
@@ -160,7 +184,9 @@
           "allowedCodes": [
             "2"
           ],
-          "allowedCodesSource": "common-r7-10 physical page 5 field definition or common code list"
+          "allowedCodesSource": "common-r7-10 physical page 6 field definition or common code list",
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 1"
         },
         {
           "fieldId": "common:outer:data:002",
@@ -170,7 +196,9 @@
           "dataType": "numeric",
           "maxBytes": 9,
           "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
-          "allowedCodes": []
+          "allowedCodes": [],
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 2"
         },
         {
           "fieldId": "common:outer:data:003",
@@ -180,7 +208,9 @@
           "dataType": "text",
           "maxBytes": 822,
           "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
-          "allowedCodes": []
+          "allowedCodes": [],
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 3"
         },
         {
           "fieldId": "common:outer:data:004",
@@ -190,7 +220,9 @@
           "dataType": "text",
           "maxBytes": 2,
           "quoteRule": "crlf",
-          "allowedCodes": []
+          "allowedCodes": [],
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 4"
         }
       ]
     },
@@ -200,7 +232,7 @@
       "innerRecordType": "end",
       "order": 3,
       "sourceDocumentId": "common-r7-10",
-      "sourcePage": 5,
+      "sourcePage": 6,
       "fields": [
         {
           "fieldId": "common:outer:end:001",
@@ -213,7 +245,9 @@
           "allowedCodes": [
             "3"
           ],
-          "allowedCodesSource": "common-r7-10 physical page 5 field definition or common code list"
+          "allowedCodesSource": "common-r7-10 physical page 6 field definition or common code list",
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 1"
         },
         {
           "fieldId": "common:outer:end:002",
@@ -223,7 +257,9 @@
           "dataType": "numeric",
           "maxBytes": 9,
           "quoteRule": "quote when comma, double quote, space, or kanji is present; double embedded double quote",
-          "allowedCodes": []
+          "allowedCodes": [],
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 2"
         },
         {
           "fieldId": "common:outer:end:003",
@@ -233,7 +269,9 @@
           "dataType": "text",
           "maxBytes": 2,
           "quoteRule": "crlf",
-          "allowedCodes": []
+          "allowedCodes": [],
+          "sourcePage": 6,
+          "requiredWhenSource": "common-r7-10 physical page 6 item 3"
         }
       ]
     }

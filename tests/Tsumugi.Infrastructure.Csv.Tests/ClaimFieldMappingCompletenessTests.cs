@@ -32,6 +32,10 @@ public sealed class ClaimFieldMappingCompletenessTests
         var sourceIds = sources.RootElement.GetProperty("sources").EnumerateArray()
             .Select(source => source.GetProperty("sourceDocumentId").GetString()!)
             .ToHashSet(StringComparer.Ordinal);
+        var requiredConditions = fields.ToDictionary(
+            field => field.GetProperty("fieldId").GetString()!,
+            field => field.GetProperty("requiredWhen").GetString()!,
+            StringComparer.Ordinal);
 
         var failures = new List<string>();
         failures.AddRange(Duplicates(fieldIds).Select(id => $"duplicate report fieldId: {id}"));
@@ -87,6 +91,8 @@ public sealed class ClaimFieldMappingCompletenessTests
         {
             var fieldId = item.GetProperty("fieldId").GetString()!;
             var status = item.GetProperty("status").GetString();
+            item.GetProperty("requiredCondition").GetString().Should().Be(requiredConditions[fieldId],
+                $"{fieldId} report mapping condition drifted from the independent report inventory");
             var requiredProperty = status switch
             {
                 "existing" => "modelPath",
@@ -140,6 +146,15 @@ public sealed class ClaimFieldMappingCompletenessTests
 
         fields.Length.Should().Be(113);
         mappings.Length.Should().Be(113);
+        mappings.GroupBy(item => item.GetProperty("status").GetString()!)
+            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal)
+            .Should().BeEquivalentTo(new Dictionary<string, int>
+            {
+                ["generated"] = 66,
+                ["existing"] = 21,
+                ["missing"] = 22,
+                ["explicitInput"] = 4,
+            });
         mappings.Count(item => item.TryGetProperty("sameMeaningAsCsvFieldId", out _)).Should().Be(89);
         AssertMapping(mappings, "report:service-performance:daily:006", "existing", "DailyRecord.Transport");
         AssertMapping(mappings, "report:service-performance:daily:007", "existing", "DailyRecord.Transport");
@@ -152,6 +167,8 @@ public sealed class ClaimFieldMappingCompletenessTests
         AssertMapping(mappings, "report:benefit-claim-form:header:008", "missing", "RepresentativeTitleAndName");
         AssertMapping(mappings, "report:benefit-claim-detail:upper-limit-management:001", "missing", "UpperLimitManagementProviderNumber");
         AssertMapping(mappings, "report:benefit-claim-detail:upper-limit-management:002", "existing", "Certificate.UpperLimitManagementProvider");
+        AssertMapping(mappings, "report:benefit-claim-detail:summary:007", "missing", "MunicipalityDeterminedUserChargeYen");
+        AssertMapping(mappings, "report:benefit-claim-detail:summary:015", "missing", "MunicipalSubsidyAmountYen");
         failures.Should().BeEmpty(string.Join(Environment.NewLine, failures));
     }
 
@@ -168,8 +185,67 @@ public sealed class ClaimFieldMappingCompletenessTests
             .Concat(reportMapping.RootElement.GetProperty("mappings").EnumerateArray())
             .Select(item => item.GetProperty("fieldId").GetString()!);
 
-        var missing = fieldIds.Where(fieldId => !document.Contains(fieldId, StringComparison.Ordinal)).ToArray();
+        var expected = fieldIds.ToHashSet(StringComparer.Ordinal);
+        var documented = System.Text.RegularExpressions.Regex.Matches(
+                document, @"^\|\s*((?:common|provider|report):[^| ]+)\s*\|",
+                System.Text.RegularExpressions.RegexOptions.Multiline)
+            .Select(match => match.Groups[1].Value)
+            .ToArray();
+        var missing = expected.Except(documented).ToArray();
         missing.Should().BeEmpty($"human mapping document omitted: {string.Join(", ", missing)}");
+        documented.Should().HaveCount(556).And.OnlyHaveUniqueItems(
+            "the human table must contain exactly one first-column row for every CSV and report field");
+    }
+
+    [Fact]
+    public void Report_conditions_and_generator_rules_are_machine_decidable_and_field_specific()
+    {
+        using var inventory = ReadSpecData("report-fields-r8-06.json");
+        using var mapping = ReadSpecData("report-field-mapping-r8-06.json");
+        using var common = ReadEmbeddedJson("common-r7-10.json");
+        using var provider = ReadEmbeddedJson("provider-claim-r7-10.json");
+
+        var csvRecords = common.RootElement.GetProperty("records").EnumerateArray()
+            .Concat(provider.RootElement.GetProperty("records").EnumerateArray())
+            .ToArray();
+        var reportFields = inventory.RootElement.GetProperty("fields").EnumerateArray().ToArray();
+        var fieldIds = csvRecords.SelectMany(record => record.GetProperty("fields").EnumerateArray())
+            .Select(field => field.GetProperty("fieldId").GetString()!)
+            .Concat(reportFields.Select(field => field.GetProperty("fieldId").GetString()!))
+            .ToHashSet(StringComparer.Ordinal);
+        var recordIds = csvRecords.Select(record => record.GetProperty("recordId").GetString()!)
+            .ToHashSet(StringComparer.Ordinal);
+        var failures = new List<string>();
+
+        foreach (var field in reportFields)
+        {
+            var fieldId = field.GetProperty("fieldId").GetString()!;
+            CsvSpecificationCompletenessTests.ValidateCondition(
+                field.GetProperty("requiredWhen").GetString()!, fieldId, fieldIds, recordIds, failures);
+            foreach (var property in new[] { "requiredWhenSource" })
+            {
+                if (!field.TryGetProperty(property, out var value)
+                    || value.ValueKind != JsonValueKind.String
+                    || string.IsNullOrWhiteSpace(value.GetString()))
+                {
+                    failures.Add($"{fieldId}: {property} is required");
+                }
+            }
+        }
+
+        reportFields.Where(field => field.GetProperty("artifactId").GetString() == "service-performance")
+            .Should().OnlyContain(field => field.GetProperty("sourcePage").GetInt32() == 12);
+        reportFields.Where(field => field.GetProperty("artifactId").GetString() == "benefit-claim-form")
+            .Should().OnlyContain(field => field.GetProperty("sourcePage").GetInt32() == 1);
+        reportFields.Where(field => field.GetProperty("artifactId").GetString() == "benefit-claim-detail")
+            .Should().OnlyContain(field => field.GetProperty("sourcePage").GetInt32() == 2);
+
+        var generated = mapping.RootElement.GetProperty("mappings").EnumerateArray()
+            .Where(item => item.GetProperty("status").GetString() == "generated")
+            .ToArray();
+        CsvSpecificationCompletenessTests.AssertDeterministicGeneratorRules(generated,
+            fieldIds.Concat(recordIds).ToHashSet(StringComparer.Ordinal), failures);
+        failures.Should().BeEmpty(string.Join(Environment.NewLine, failures));
     }
 
     private static JsonDocument ReadSpecData(string fileName)

@@ -7,42 +7,42 @@
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "const(target=common:outer:control:001;value=1;source=common-r7-10:p6:item1)"
     },
     {
       "fieldId": "common:outer:control:002",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "sequence(target=common:outer:control:002;selector=file.records;start=1;source=common-r7-10:p6:item2)"
     },
     {
       "fieldId": "common:outer:control:003",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "const(target=common:outer:control:003;value=0;source=common-r7-10:p6:item3)"
     },
     {
       "fieldId": "common:outer:control:004",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "recordCount(target=common:outer:control:004;selector=outer.data;source=common-r7-10:p6:item4)"
     },
     {
       "fieldId": "common:outer:control:005",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "lookup(target=common:outer:control:005;selector=firstThreeCharactersOfInnerExchangeInformationId;source=common-r7-10:p6:item5)"
     },
     {
       "fieldId": "common:outer:control:006",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "const(target=common:outer:control:006;value=0;reason=sender-is-provider;source=common-r7-10:p6:item6)"
     },
     {
       "fieldId": "common:outer:control:007",
@@ -56,14 +56,14 @@
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "const(target=common:outer:control:008;value=0;reason=sender-is-provider;source=common-r7-10:p6:item8)"
     },
     {
       "fieldId": "common:outer:control:009",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "const(target=common:outer:control:009;value=1;meaning=transmission;source=common-r7-10:p6:item9)"
     },
     {
       "fieldId": "common:outer:control:010",
@@ -74,80 +74,80 @@
     },
     {
       "fieldId": "common:outer:control:011",
-      "requiredCondition": "must be empty",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "constEmpty(target=common:outer:control:011;reason=official-B-type-or-form1701-column-not-used;source=common-r7-10:p6:item11)"
     },
     {
       "fieldId": "common:outer:control:012",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "const(target=common:outer:control:012;value=CRLF;source=common-r7-10:p6:item12)"
     },
     {
       "fieldId": "common:outer:data:001",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "const(target=common:outer:data:001;value=2;source=common-r7-10:p6:item1)"
     },
     {
       "fieldId": "common:outer:data:002",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "sequence(target=common:outer:data:002;selector=file.records;start=1;source=common-r7-10:p6:item2)"
     },
     {
       "fieldId": "common:outer:data:003",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "payload(target=common:outer:data:003;selector=one-inner-provider-record-without-CRLF;source=common-r7-10:p6:item3)"
     },
     {
       "fieldId": "common:outer:data:004",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "const(target=common:outer:data:004;value=CRLF;source=common-r7-10:p6:item4)"
     },
     {
       "fieldId": "common:outer:end:001",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "const(target=common:outer:end:001;value=3;source=common-r7-10:p6:item1)"
     },
     {
       "fieldId": "common:outer:end:002",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "sequence(target=common:outer:end:002;selector=file.records;value=outerDataRecordCountPlus2;source=common-r7-10:p6:item2)"
     },
     {
       "fieldId": "common:outer:end:003",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the outer record value from the selected provider records and common R7-10 framing rules"
+      "generatorRule": "const(target=common:outer:end:003;value=CRLF;source=common-r7-10:p6:item3)"
     },
     {
       "fieldId": "provider:J111:01:001",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J111:01:001;value=J111;source=provider-r7-10:p17:item1)"
     },
     {
       "fieldId": "provider:J111:01:002",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J111:01:002;value=01;source=provider-r7-10:p17:item2)"
     },
     {
       "fieldId": "provider:J111:01:003",
@@ -178,140 +178,140 @@
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:006;fields=provider:J111:01:020,provider:J111:01:021,provider:J111:01:023;source=provider-r7-10:p17:item6)"
     },
     {
       "fieldId": "provider:J111:01:007",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:007;field=provider:J111:02:008;filter=benefitType1;source=provider-r7-10:p17:item7)"
     },
     {
       "fieldId": "provider:J111:01:008",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:008;field=provider:J111:02:009;filter=benefitType1;source=provider-r7-10:p17:item8)"
     },
     {
       "fieldId": "provider:J111:01:009",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:009;field=provider:J111:02:010;filter=benefitType1;source=provider-r7-10:p17:item9)"
     },
     {
       "fieldId": "provider:J111:01:010",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:010;field=provider:J111:02:011;filter=benefitType1;source=provider-r7-10:p17:item10)"
     },
     {
       "fieldId": "provider:J111:01:011",
-      "requiredCondition": "when the official J111 condition applies",
+      "requiredCondition": "all(serviceProvisionMonthBefore(201304);processingMonthBefore(201312);fieldNonZero(provider:J111:02:012))",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:011;field=provider:J111:02:012;filter=benefitType1-and-requiredCondition;source=provider-r7-10:p17:item11)"
     },
     {
       "fieldId": "provider:J111:01:012",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:012;field=provider:J111:02:013;filter=benefitType1;source=provider-r7-10:p17:item12)"
     },
     {
       "fieldId": "provider:J111:01:013",
-      "requiredCondition": "when the official J111 condition applies",
+      "requiredCondition": "fieldNonZero(provider:J111:02:014)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:013;field=provider:J111:02:014;filter=benefitType1;source=provider-r7-10:p17:item13)"
     },
     {
       "fieldId": "provider:J111:01:014",
-      "requiredCondition": "when the official J111 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J111:01:014;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p17:item14)"
     },
     {
       "fieldId": "provider:J111:01:015",
-      "requiredCondition": "when the official J111 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J111:01:015;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p17:item15)"
     },
     {
       "fieldId": "provider:J111:01:016",
-      "requiredCondition": "when the official J111 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J111:01:016;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p17:item16)"
     },
     {
       "fieldId": "provider:J111:01:017",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:017;fields=provider:J111:01:007,provider:J111:01:014;source=provider-r7-10:p17:item17)"
     },
     {
       "fieldId": "provider:J111:01:018",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:018;field=provider:J111:02:009;filter=all-benefit-types;source=provider-r7-10:p17:item18)"
     },
     {
       "fieldId": "provider:J111:01:019",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:019;fields=provider:J111:01:009,provider:J111:01:015;source=provider-r7-10:p17:item19)"
     },
     {
       "fieldId": "provider:J111:01:020",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:020;fields=provider:J111:01:010,provider:J111:01:016;source=provider-r7-10:p17:item20)"
     },
     {
       "fieldId": "provider:J111:01:021",
-      "requiredCondition": "when the official J111 condition applies",
+      "requiredCondition": "all(serviceProvisionMonthBefore(201304);processingMonthBefore(201312);fieldNonZero(provider:J111:02:012))",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:021;field=provider:J111:02:012;filter=requiredCondition;source=provider-r7-10:p17:item21)"
     },
     {
       "fieldId": "provider:J111:01:022",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:022;field=provider:J111:02:013;filter=all-benefit-types;source=provider-r7-10:p17:item22)"
     },
     {
       "fieldId": "provider:J111:01:023",
-      "requiredCondition": "when the official J111 condition applies",
+      "requiredCondition": "fieldNonZero(provider:J111:02:014)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:01:023;field=provider:J111:02:014;filter=all-benefit-types;source=provider-r7-10:p17:item23)"
     },
     {
       "fieldId": "provider:J111:02:001",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J111:02:001;value=J111;source=provider-r7-10:p18:item1)"
     },
     {
       "fieldId": "provider:J111:02:002",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J111:02:002;value=02;source=provider-r7-10:p18:item2)"
     },
     {
       "fieldId": "provider:J111:02:003",
@@ -342,77 +342,77 @@
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "const(target=provider:J111:02:006;value=1;meaning=care-and-training-benefit-for-B-type;source=provider-r7-10:p18:item6)"
     },
     {
       "fieldId": "provider:J111:02:007",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "const(target=provider:J111:02:007;value=46;meaning=B-type-service-code;source=provider-r7-10:p18:item7)"
     },
     {
       "fieldId": "provider:J111:02:008",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "count(target=provider:J111:02:008;selector=provider:J121:01;groupBy=benefitType,serviceType;source=provider-r7-10:p18:item8)"
     },
     {
       "fieldId": "provider:J111:02:009",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:02:009;field=provider:J121:01:020;groupBy=benefitType,serviceType;source=provider-r7-10:p18:item9)"
     },
     {
       "fieldId": "provider:J111:02:010",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:02:010;field=provider:J121:01:021;groupBy=benefitType,serviceType;source=provider-r7-10:p18:item10)"
     },
     {
       "fieldId": "provider:J111:02:011",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:02:011;field=provider:J121:01:028;groupBy=benefitType,serviceType;source=provider-r7-10:p18:item11)"
     },
     {
       "fieldId": "provider:J111:02:012",
-      "requiredCondition": "when the official J111 condition applies",
+      "requiredCondition": "all(serviceProvisionMonthBefore(201304);processingMonthBefore(201312);fieldNonZero(provider:J121:01:030))",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:02:012;field=provider:J121:01:030;groupBy=benefitType,serviceType;source=provider-r7-10:p18:item12)"
     },
     {
       "fieldId": "provider:J111:02:013",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:02:013;field=provider:J121:01:027;groupBy=benefitType,serviceType;source=provider-r7-10:p18:item13)"
     },
     {
       "fieldId": "provider:J111:02:014",
-      "requiredCondition": "when the official J111 condition applies",
+      "requiredCondition": "fieldNonZero(provider:J121:01:031)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J111:02:014;field=provider:J121:01:031;groupBy=benefitType,serviceType;source=provider-r7-10:p18:item14)"
     },
     {
       "fieldId": "provider:J121:01:001",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J121:01:001;value=J121;source=provider-r7-10:p20:item1)"
     },
     {
       "fieldId": "provider:J121:01:002",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J121:01:002;value=01;source=provider-r7-10:p20:item2)"
     },
     {
       "fieldId": "provider:J121:01:003",
@@ -447,7 +447,7 @@
     },
     {
       "fieldId": "provider:J121:01:007",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "modelPresent(Certificate.SubsidyMunicipalityNumber)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "Certificate",
@@ -464,24 +464,24 @@
     },
     {
       "fieldId": "provider:J121:01:009",
-      "requiredCondition": "optional",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "constEmpty(target=provider:J121:01:009;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p20:item9)"
     },
     {
       "fieldId": "provider:J121:01:010",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "lookup(target=provider:J121:01:010;selector=RegionalClassificationMaster.byOfficeAndServiceProvisionMonth;source=provider-r7-10:p20:item10)"
     },
     {
       "fieldId": "provider:J121:01:011",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "set 1 (無し) because the supported service is 就労継続支援B型, not A型"
+      "generatorRule": "const(target=provider:J121:01:011;value=1;meaning=no-A-type-provider-reduction;source=provider-r7-10:p20:item11)"
     },
     {
       "fieldId": "provider:J121:01:012",
@@ -495,18 +495,18 @@
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "set 1 (無し) because the supported service is 就労継続支援B型, not A型"
+      "generatorRule": "const(target=provider:J121:01:013;value=1;meaning=not-A-type-reduction-recipient;source=provider-r7-10:p20:item13)"
     },
     {
       "fieldId": "provider:J121:01:014",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "constEmpty(target=provider:J121:01:014;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p20:item14)"
     },
     {
       "fieldId": "provider:J121:01:015",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "modelPresent(Certificate.UpperLimitManagementProviderNumber)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "Certificate",
@@ -516,7 +516,7 @@
     },
     {
       "fieldId": "provider:J121:01:016",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "modelPresent(ClaimInput.UpperLimitManagementResult)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "ClaimInput",
@@ -526,7 +526,7 @@
     },
     {
       "fieldId": "provider:J121:01:017",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "modelPresent(ClaimInput.UpperLimitManagedAmountYen)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "ClaimInput",
@@ -536,143 +536,143 @@
     },
     {
       "fieldId": "provider:J121:01:018",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "constEmpty(target=provider:J121:01:018;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p20:item18)"
     },
     {
       "fieldId": "provider:J121:01:019",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:01:019;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p20:item19)"
     },
     {
       "fieldId": "provider:J121:01:020",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J121:01:020;field=provider:J121:04:010;groupBy=recipient;source=provider-r7-10:p20:item20)"
     },
     {
       "fieldId": "provider:J121:01:021",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J121:01:021;field=provider:J121:04:013;groupBy=recipient;source=provider-r7-10:p20:item21)"
     },
     {
       "fieldId": "provider:J121:01:022",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J121:01:022;field=provider:J121:04:016;groupBy=recipient;source=provider-r7-10:p20:item22)"
     },
     {
       "fieldId": "provider:J121:01:023",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:01:023;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p21:item23)"
     },
     {
       "fieldId": "provider:J121:01:024",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:01:024;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p21:item24)"
     },
     {
       "fieldId": "provider:J121:01:025",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "fieldNonZero(provider:J121:01:025)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J121:01:025;field=provider:J121:04:019;groupBy=recipient;source=provider-r7-10:p21:item25)"
     },
     {
       "fieldId": "provider:J121:01:026",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "modelPresent(ClaimInput.UpperLimitManagedAmountYen)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J121:01:026;field=provider:J121:04:020;groupBy=recipient;source=provider-r7-10:p21:item26)"
     },
     {
       "fieldId": "provider:J121:01:027",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J121:01:027;field=provider:J121:04:021;groupBy=recipient;source=provider-r7-10:p21:item27)"
     },
     {
       "fieldId": "provider:J121:01:028",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "sum(target=provider:J121:01:028;field=provider:J121:04:022;groupBy=recipient;source=provider-r7-10:p21:item28)"
     },
     {
       "fieldId": "provider:J121:01:029",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:01:029;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p21:item29)"
     },
     {
       "fieldId": "provider:J121:01:030",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "all(serviceProvisionMonthBefore(201304);processingMonthBefore(201312);fieldNonZero(provider:J121:01:030))",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "sum(target=provider:J121:01:030;field=provider:J121:04:024;groupBy=recipient;source=provider-r7-10:p21:item30)"
     },
     {
       "fieldId": "provider:J121:01:031",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "modelPresent(Certificate.SubsidyMunicipalityNumber)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J121:01:031;field=provider:J121:04:025;groupBy=recipient;source=provider-r7-10:p21:item31)"
     },
     {
       "fieldId": "provider:J121:01:032",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:01:032;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p21:item32)"
     },
     {
       "fieldId": "provider:J121:01:033",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:01:033;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p21:item33)"
     },
     {
       "fieldId": "provider:J121:01:034",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:01:034;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p21:item34)"
     },
     {
       "fieldId": "provider:J121:01:035",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:01:035;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p21:item35)"
     },
     {
       "fieldId": "provider:J121:02:001",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J121:02:001;value=J121;source=provider-r7-10:p22:item1)"
     },
     {
       "fieldId": "provider:J121:02:002",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J121:02:002;value=02;source=provider-r7-10:p22:item2)"
     },
     {
       "fieldId": "provider:J121:02:003",
@@ -710,56 +710,56 @@
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "const(target=provider:J121:02:007;value=46;meaning=B-type-service-code;source=provider-r7-10:p22:item7)"
     },
     {
       "fieldId": "provider:J121:02:008",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "min(target=provider:J121:02:008;selector=DailyRecord.ServiceDate;filter=first-service-date-in-effective-continuous-contract;lowerBound=20060401;source=provider-r7-10:p22:item8+p23:B-type-setting)"
     },
     {
       "fieldId": "provider:J121:02:009",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "fieldPresent(provider:J121:02:009)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "max(target=provider:J121:02:009;selector=DailyRecord.ServiceDate;filter=last-service-date-when-continuous-contract-ends-in-month;source=provider-r7-10:p22:item9+p25:B-type-setting)"
     },
     {
       "fieldId": "provider:J121:02:010",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "count(target=provider:J121:02:010;selector=DailyRecord.ServiceDate;distinct=true;include=service-or-addition;exclude=absence-only-for-months-from-201504;source=provider-r7-10:p22:item10)"
     },
     {
       "fieldId": "provider:J121:02:011",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:02:011;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p22:item11)"
     },
     {
       "fieldId": "provider:J121:02:012",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:02:012;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p22:item12)"
     },
     {
       "fieldId": "provider:J121:03:001",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J121:03:001;value=J121;source=provider-r7-10:p31:item1)"
     },
     {
       "fieldId": "provider:J121:03:002",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J121:03:002;value=03;source=provider-r7-10:p31:item2)"
     },
     {
       "fieldId": "provider:J121:03:003",
@@ -797,49 +797,49 @@
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "resolve the official code from the effective claim master and calculated claim line"
+      "generatorRule": "copy(target=provider:J121:03:007;selector=ClaimServiceLine.ServiceCode;source=provider-r7-10:p31:item7)"
     },
     {
       "fieldId": "provider:J121:03:008",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "copy(target=provider:J121:03:008;selector=ClaimServiceLine.UnitCount;source=provider-r7-10:p31:item8)"
     },
     {
       "fieldId": "provider:J121:03:009",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "copy(target=provider:J121:03:009;selector=ClaimServiceLine.Count;source=provider-r7-10:p31:item9)"
     },
     {
       "fieldId": "provider:J121:03:010",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "multiply(target=provider:J121:03:010;fields=provider:J121:03:008,provider:J121:03:009;source=provider-r7-10:p31:item10)"
     },
     {
       "fieldId": "provider:J121:03:011",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "modelPresent(ClaimServiceLine.SummaryNote)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "copy(target=provider:J121:03:011;selector=ClaimServiceLine.SummaryNote;source=provider-r7-10:p31:item11)"
     },
     {
       "fieldId": "provider:J121:04:001",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J121:04:001;value=J121;source=provider-r7-10:p32:item1)"
     },
     {
       "fieldId": "provider:J121:04:002",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J121:04:002;value=04;source=provider-r7-10:p32:item2)"
     },
     {
       "fieldId": "provider:J121:04:003",
@@ -877,203 +877,221 @@
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "const(target=provider:J121:04:007;value=46;meaning=B-type-service-code;source=provider-r7-10:p32:item7)"
     },
     {
       "fieldId": "provider:J121:04:008",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "set 1 because B型 does not use the alternate child-transition unit-price classification"
+      "generatorRule": "const(target=provider:J121:04:008;value=1;meaning=B-type-normal-unit-price-classification;source=provider-r7-10:p32:item8)"
     },
     {
       "fieldId": "provider:J121:04:009",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "count(target=provider:J121:04:009;selector=DailyRecord.serviceProvided;distinctBy=ServiceDate;source=provider-r7-10:p32:item9)"
     },
     {
       "fieldId": "provider:J121:04:010",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "sum(target=provider:J121:04:010;field=provider:J121:03:010;groupBy=serviceType;source=provider-r7-10:p32:item10)"
     },
     {
       "fieldId": "provider:J121:04:011",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "lookup(target=provider:J121:04:011;selector=UnitPriceMaster.byRegionServiceTypeAndServiceProvisionMonth;source=provider-r7-10:p32:item11)"
     },
     {
       "fieldId": "provider:J121:04:012",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "const(target=provider:J121:04:012;value=0;reason=serviceProvisionMonthFrom201204;source=provider-r7-10:p32:item12)"
     },
     {
       "fieldId": "provider:J121:04:013",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "roundDown(target=provider:J121:04:013;expression=provider:J121:04:010*provider:J121:04:011/1000;source=provider-r7-10:p32:item13)"
     },
     {
       "fieldId": "provider:J121:04:014",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "roundDown(target=provider:J121:04:014;expression=provider:J121:04:013/10;source=provider-r7-10:p32:item14)"
     },
     {
       "fieldId": "provider:J121:04:015",
       "requiredCondition": "always",
-      "notes": "",
-      "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "notes": "Phase 3-1 AC3-8; provider-r7-10 p32 item15 note6",
+      "status": "missing",
+      "targetModel": "Certificate",
+      "targetProperty": "MunicipalityDeterminedUserChargeYen",
+      "migrationRequired": true,
+      "uiSurface": "CertificateView"
     },
     {
       "fieldId": "provider:J121:04:016",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "min(target=provider:J121:04:016;fields=provider:J121:01:012,provider:J121:04:015;source=provider-r7-10:p32:item16)"
     },
     {
       "fieldId": "provider:J121:04:017",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:04:017;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p32:item17)"
     },
     {
       "fieldId": "provider:J121:04:018",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:04:018;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p33:item18)"
     },
     {
       "fieldId": "provider:J121:04:019",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "fieldNonZero(provider:J121:04:019)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "copy(target=provider:J121:04:019;field=provider:J121:04:016;reason=B-type-has-no-A-type-reduction;source=provider-r7-10:p33:item19)"
     },
     {
       "fieldId": "provider:J121:04:020",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "modelPresent(ClaimInput.UpperLimitManagedAmountYen)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "copy(target=provider:J121:04:020;selector=ClaimInput.UpperLimitManagedAmountYen;source=provider-r7-10:p33:item20)"
     },
     {
       "fieldId": "provider:J121:04:021",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "conditional(target=provider:J121:04:021;condition=modelPresent(ClaimInput.UpperLimitManagedAmountYen);whenTrue=provider:J121:04:020;whenFalse=provider:J121:04:019;source=provider-r7-10:p33:item21)"
     },
     {
       "fieldId": "provider:J121:04:022",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "difference(target=provider:J121:04:022;minuend=provider:J121:04:013;subtrahend=provider:J121:04:021;source=provider-r7-10:p33:item22)"
     },
     {
       "fieldId": "provider:J121:04:023",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:04:023;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p33:item23)"
     },
     {
       "fieldId": "provider:J121:04:024",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "all(serviceProvisionMonthBefore(201304);processingMonthBefore(201312);fieldNonZero(provider:J121:04:024))",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "copy(target=provider:J121:04:024;selector=ClaimCalculation.SpecialMeasuresYen;filter=historic-requiredCondition;source=provider-r7-10:p33:item24)"
     },
     {
       "fieldId": "provider:J121:04:025",
-      "requiredCondition": "when the official J121 condition applies",
-      "notes": "",
-      "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "requiredCondition": "modelPresent(Certificate.SubsidyMunicipalityNumber)",
+      "notes": "Phase 3-1 AC3-8; provider-r7-10 p33 item25 and p36 note2",
+      "status": "missing",
+      "targetModel": "ClaimInput",
+      "targetProperty": "MunicipalSubsidyAmountYen",
+      "migrationRequired": true,
+      "uiSurface": "ClaimPreparationView"
     },
     {
       "fieldId": "provider:J121:04:026",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:04:026;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p33:item26)"
     },
     {
       "fieldId": "provider:J121:04:027",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:04:027;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p33:item27)"
     },
     {
       "fieldId": "provider:J121:04:028",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:04:028;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p33:item28)"
     },
     {
       "fieldId": "provider:J121:04:029",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "constEmpty(target=provider:J121:04:029;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p33:item29)"
     },
     {
       "fieldId": "provider:J121:04:030",
-      "requiredCondition": "when the official J121 condition applies",
-      "notes": "",
-      "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "requiredCondition": "modelPresent(ClaimInput.ExceptionalUsageStartMonth)",
+      "notes": "Phase 3-1 AC3-8; provider-r7-10 p33 item30 and p37 note4",
+      "status": "missing",
+      "targetModel": "ClaimInput",
+      "targetProperty": "ExceptionalUsageStartMonth",
+      "migrationRequired": true,
+      "uiSurface": "ClaimPreparationView"
     },
     {
       "fieldId": "provider:J121:04:031",
-      "requiredCondition": "when the official J121 condition applies",
-      "notes": "",
-      "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "requiredCondition": "modelPresent(ClaimInput.ExceptionalUsageEndMonth)",
+      "notes": "Phase 3-1 AC3-8; provider-r7-10 p33 item31 and p37 note4",
+      "status": "missing",
+      "targetModel": "ClaimInput",
+      "targetProperty": "ExceptionalUsageEndMonth",
+      "migrationRequired": true,
+      "uiSurface": "ClaimPreparationView"
     },
     {
       "fieldId": "provider:J121:04:032",
-      "requiredCondition": "when the official J121 condition applies",
-      "notes": "",
-      "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "requiredCondition": "modelNonZero(ClaimInput.ExceptionalUsageDays)",
+      "notes": "Phase 3-1 AC3-8; provider-r7-10 p33 item32 and p37 note4",
+      "status": "missing",
+      "targetModel": "ClaimInput",
+      "targetProperty": "ExceptionalUsageDays",
+      "migrationRequired": true,
+      "uiSurface": "ClaimPreparationView"
     },
     {
       "fieldId": "provider:J121:04:033",
-      "requiredCondition": "when the official J121 condition applies",
-      "notes": "",
-      "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "requiredCondition": "modelNonZero(ClaimInput.StandardUsageDayTotal)",
+      "notes": "Phase 3-1 AC3-8; provider-r7-10 p33 item33 and p37 note4",
+      "status": "missing",
+      "targetModel": "ClaimInput",
+      "targetProperty": "StandardUsageDayTotal",
+      "migrationRequired": true,
+      "uiSurface": "ClaimPreparationView"
     },
     {
       "fieldId": "provider:J121:05:001",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J121:05:001;value=J121;source=provider-r7-10:p38:item1)"
     },
     {
       "fieldId": "provider:J121:05:002",
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J121:05:002;value=05;source=provider-r7-10:p38:item2)"
     },
     {
       "fieldId": "provider:J121:05:003",
@@ -1111,7 +1129,7 @@
       "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "resolve the official code from the effective claim master and calculated claim line"
+      "generatorRule": "const(target=provider:J121:05:007;value=461000;meaning=B-type-basic-decision-code;source=provider-r7-10:p38:item7)"
     },
     {
       "fieldId": "provider:J121:05:008",
@@ -1129,7 +1147,7 @@
     },
     {
       "fieldId": "provider:J121:05:010",
-      "requiredCondition": "when the official J121 condition applies",
+      "requiredCondition": "modelPresent(ContractedProvider.TerminationDate)",
       "notes": "",
       "status": "existing",
       "modelPath": "ContractedProvider.TerminationDate"
@@ -1146,28 +1164,28 @@
     },
     {
       "fieldId": "provider:J611:01:001",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J611:01:001;value=J611;source=provider-r7-10:p60:item1)"
     },
     {
       "fieldId": "provider:J611:01:002",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J611:01:002;value=01;source=provider-r7-10:p60:item2)"
     },
     {
       "fieldId": "provider:J611:01:003",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "",
       "status": "explicitInput",
       "inputContract": "ServiceProvisionMonth"
     },
     {
       "fieldId": "provider:J611:01:004",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "Certificate",
@@ -1177,1064 +1195,1064 @@
     },
     {
       "fieldId": "provider:J611:01:005",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "",
       "status": "existing",
       "modelPath": "Office.OfficeNumber"
     },
     {
       "fieldId": "provider:J611:01:006",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "",
       "status": "existing",
       "modelPath": "Certificate.CertificateNumber"
     },
     {
       "fieldId": "provider:J611:01:007",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J611:01:007;value=1701;source=provider-r7-10:p60:item7)"
     },
     {
       "fieldId": "provider:J611:01:008",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:008;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p60:item8)"
     },
     {
       "fieldId": "provider:J611:01:009",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:009;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p60:item9)"
     },
     {
       "fieldId": "provider:J611:01:010",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:010;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p60:item10)"
     },
     {
       "fieldId": "provider:J611:01:011",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:011;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p60:item11)"
     },
     {
       "fieldId": "provider:J611:01:012",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:012;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p60:item12)"
     },
     {
       "fieldId": "provider:J611:01:013",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:013;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p60:item13)"
     },
     {
       "fieldId": "provider:J611:01:014",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:014;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p60:item14)"
     },
     {
       "fieldId": "provider:J611:01:015",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:015;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p60:item15)"
     },
     {
       "fieldId": "provider:J611:01:016",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:016;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p60:item16)"
     },
     {
       "fieldId": "provider:J611:01:017",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:017;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p60:item17)"
     },
     {
       "fieldId": "provider:J611:01:018",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:018;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p60:item18)"
     },
     {
       "fieldId": "provider:J611:01:019",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:019;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p61:item19)"
     },
     {
       "fieldId": "provider:J611:01:020",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:020;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p61:item20)"
     },
     {
       "fieldId": "provider:J611:01:021",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:021;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p61:item21)"
     },
     {
       "fieldId": "provider:J611:01:022",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:022;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p61:item22)"
     },
     {
       "fieldId": "provider:J611:01:023",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:023;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p61:item23)"
     },
     {
       "fieldId": "provider:J611:01:024",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:024;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p61:item24)"
     },
     {
       "fieldId": "provider:J611:01:025",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:025;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p61:item25)"
     },
     {
       "fieldId": "provider:J611:01:026",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:026;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p61:item26)"
     },
     {
       "fieldId": "provider:J611:01:027",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:027;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p61:item27)"
     },
     {
       "fieldId": "provider:J611:01:028",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:028;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item28)"
     },
     {
       "fieldId": "provider:J611:01:029",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:029;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item29)"
     },
     {
       "fieldId": "provider:J611:01:030",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:030;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item30)"
     },
     {
       "fieldId": "provider:J611:01:031",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:031;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item31)"
     },
     {
       "fieldId": "provider:J611:01:032",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:032;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item32)"
     },
     {
       "fieldId": "provider:J611:01:033",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:033;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item33)"
     },
     {
       "fieldId": "provider:J611:01:034",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelTrue(DailyRecord.Transport)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "count(target=provider:J611:01:034;selector=DailyRecord.Transport;directions=outbound,return;source=provider-r7-10:p62:item34)"
     },
     {
       "fieldId": "provider:J611:01:035",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:035;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item35)"
     },
     {
       "fieldId": "provider:J611:01:036",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:036;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item36)"
     },
     {
       "fieldId": "provider:J611:01:037",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:037;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item37)"
     },
     {
       "fieldId": "provider:J611:01:038",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:038;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item38)"
     },
     {
       "fieldId": "provider:J611:01:039",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:039;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item39)"
     },
     {
       "fieldId": "provider:J611:01:040",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:040;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item40)"
     },
     {
       "fieldId": "provider:J611:01:041",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:041;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item41)"
     },
     {
       "fieldId": "provider:J611:01:042",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:042;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item42)"
     },
     {
       "fieldId": "provider:J611:01:043",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:043;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item43)"
     },
     {
       "fieldId": "provider:J611:01:044",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:044;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p62:item44)"
     },
     {
       "fieldId": "provider:J611:01:045",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelTrue(DailyRecord.MealProvided)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "count(target=provider:J611:01:045;selector=DailyRecord.MealProvided;value=true;source=provider-r7-10:p63:item45)"
     },
     {
       "fieldId": "provider:J611:01:046",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:046;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item46)"
     },
     {
       "fieldId": "provider:J611:01:047",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:047;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item47)"
     },
     {
       "fieldId": "provider:J611:01:048",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:048;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item48)"
     },
     {
       "fieldId": "provider:J611:01:049",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:049;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item49)"
     },
     {
       "fieldId": "provider:J611:01:050",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:050;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item50)"
     },
     {
       "fieldId": "provider:J611:01:051",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelNonZero(DailyRecord.SpecialVisitSupportMinutes)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "count(target=provider:J611:01:051;selector=DailyRecord.SpecialVisitSupportMinutes;measure=serviceOccurrences;source=provider-r7-10:p63:item51)"
     },
     {
       "fieldId": "provider:J611:01:052",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelNonZero(DailyRecord.SpecialVisitSupportMinutes)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "count(target=provider:J611:01:052;selector=DailyRecord.SpecialVisitSupportMinutes;measure=billableOccurrences;source=provider-r7-10:p63:item52)"
     },
     {
       "fieldId": "provider:J611:01:053",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelTrue(DailyRecord.OffsiteSupportApplied)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "count effective DailyRecord entries whose OffsiteSupportApplied input is true in ServiceProvisionMonth"
+      "generatorRule": "count(target=provider:J611:01:053;selector=DailyRecord.OffsiteSupportApplied;window=ServiceProvisionMonth;source=provider-r7-10:p63:item53)"
     },
     {
       "fieldId": "provider:J611:01:054",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelTrue(DailyRecord.OffsiteSupportApplied)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "accumulate effective OffsiteSupportApplied days in the official 180-day window"
+      "generatorRule": "count(target=provider:J611:01:054;selector=DailyRecord.OffsiteSupportApplied;window=official180DayWindow;source=provider-r7-10:p63:item54)"
     },
     {
       "fieldId": "provider:J611:01:055",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:055;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item55)"
     },
     {
       "fieldId": "provider:J611:01:056",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:056;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item56)"
     },
     {
       "fieldId": "provider:J611:01:057",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:057;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item57)"
     },
     {
       "fieldId": "provider:J611:01:058",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:058;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item58)"
     },
     {
       "fieldId": "provider:J611:01:059",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:059;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item59)"
     },
     {
       "fieldId": "provider:J611:01:060",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:060;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item60)"
     },
     {
       "fieldId": "provider:J611:01:061",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:061;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item61)"
     },
     {
       "fieldId": "provider:J611:01:062",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:062;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item62)"
     },
     {
       "fieldId": "provider:J611:01:063",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:063;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item63)"
     },
     {
       "fieldId": "provider:J611:01:064",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:064;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p64:item64)"
     },
     {
       "fieldId": "provider:J611:01:065",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:065;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p64:item65)"
     },
     {
       "fieldId": "provider:J611:01:066",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:066;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p64:item66)"
     },
     {
       "fieldId": "provider:J611:01:067",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:067;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p64:item67)"
     },
     {
       "fieldId": "provider:J611:01:068",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:068;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p64:item68)"
     },
     {
       "fieldId": "provider:J611:01:069",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:069;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p64:item69)"
     },
     {
       "fieldId": "provider:J611:01:070",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelPresent(ClaimCalculation.InitialAdditionStartDate)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "format(target=provider:J611:01:070;selector=ClaimCalculation.InitialAdditionStartDate;pattern=yyyyMMdd;source=provider-r7-10:p64:item70)"
     },
     {
       "fieldId": "provider:J611:01:071",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelPresent(ClaimCalculation.InitialAdditionStartDate)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "calendarDay(target=provider:J611:01:071;selector=ClaimCalculation.InitialAdditionStartDate;offsetDays=29;pattern=yyyyMMdd;source=provider-r7-10:p64:item71)"
     },
     {
       "fieldId": "provider:J611:01:072",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelPresent(ClaimCalculation.InitialAdditionStartDate)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the value deterministically from effective contracts, daily records, claim masters, and calculation results"
+      "generatorRule": "count(target=provider:J611:01:072;selector=DailyRecord.serviceProvided;window=InitialAdditionFirst30DaysAndServiceProvisionMonth;source=provider-r7-10:p64:item72)"
     },
     {
       "fieldId": "provider:J611:01:073",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:073;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p64:item73)"
     },
     {
       "fieldId": "provider:J611:01:074",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:074;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p64:item74)"
     },
     {
       "fieldId": "provider:J611:01:075",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:075;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p64:item75)"
     },
     {
       "fieldId": "provider:J611:01:076",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:076;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p64:item76)"
     },
     {
       "fieldId": "provider:J611:01:077",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:077;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p64:item77)"
     },
     {
       "fieldId": "provider:J611:01:078",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:078;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p64:item78)"
     },
     {
       "fieldId": "provider:J611:01:079",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:079;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item79)"
     },
     {
       "fieldId": "provider:J611:01:080",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:080;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item80)"
     },
     {
       "fieldId": "provider:J611:01:081",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:081;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item81)"
     },
     {
       "fieldId": "provider:J611:01:082",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:082;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item82)"
     },
     {
       "fieldId": "provider:J611:01:083",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:083;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item83)"
     },
     {
       "fieldId": "provider:J611:01:084",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:084;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item84)"
     },
     {
       "fieldId": "provider:J611:01:085",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:085;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item85)"
     },
     {
       "fieldId": "provider:J611:01:086",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:086;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item86)"
     },
     {
       "fieldId": "provider:J611:01:087",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:087;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item87)"
     },
     {
       "fieldId": "provider:J611:01:088",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:088;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item88)"
     },
     {
       "fieldId": "provider:J611:01:089",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:089;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item89)"
     },
     {
       "fieldId": "provider:J611:01:090",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:090;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item90)"
     },
     {
       "fieldId": "provider:J611:01:091",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:091;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item91)"
     },
     {
       "fieldId": "provider:J611:01:092",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:092;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item92)"
     },
     {
       "fieldId": "provider:J611:01:093",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:093;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item93)"
     },
     {
       "fieldId": "provider:J611:01:094",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:094;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item94)"
     },
     {
       "fieldId": "provider:J611:01:095",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:095;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item95)"
     },
     {
       "fieldId": "provider:J611:01:096",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:096;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item96)"
     },
     {
       "fieldId": "provider:J611:01:097",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:097;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item97)"
     },
     {
       "fieldId": "provider:J611:01:098",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:098;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item98)"
     },
     {
       "fieldId": "provider:J611:01:099",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:099;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item99)"
     },
     {
       "fieldId": "provider:J611:01:100",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:100;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p65:item100)"
     },
     {
       "fieldId": "provider:J611:01:101",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:101;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item101)"
     },
     {
       "fieldId": "provider:J611:01:102",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:102;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item102)"
     },
     {
       "fieldId": "provider:J611:01:103",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:103;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item103)"
     },
     {
       "fieldId": "provider:J611:01:104",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:104;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item104)"
     },
     {
       "fieldId": "provider:J611:01:105",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:105;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item105)"
     },
     {
       "fieldId": "provider:J611:01:106",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:106;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item106)"
     },
     {
       "fieldId": "provider:J611:01:107",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:107;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item107)"
     },
     {
       "fieldId": "provider:J611:01:108",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:108;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item108)"
     },
     {
       "fieldId": "provider:J611:01:109",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:109;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item109)"
     },
     {
       "fieldId": "provider:J611:01:110",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:110;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item110)"
     },
     {
       "fieldId": "provider:J611:01:111",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:111;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item111)"
     },
     {
       "fieldId": "provider:J611:01:112",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:112;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item112)"
     },
     {
       "fieldId": "provider:J611:01:113",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:113;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item113)"
     },
     {
       "fieldId": "provider:J611:01:114",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:114;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item114)"
     },
     {
       "fieldId": "provider:J611:01:115",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:115;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item115)"
     },
     {
       "fieldId": "provider:J611:01:116",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:116;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item116)"
     },
     {
       "fieldId": "provider:J611:01:117",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelPresent(DailyRecord.MedicalCoordinationType)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "count(target=provider:J611:01:117;selector=DailyRecord.MedicalCoordinationType;value=present;source=provider-r7-10:p66:item117)"
     },
     {
       "fieldId": "provider:J611:01:118",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:118;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item118)"
     },
     {
       "fieldId": "provider:J611:01:119",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:119;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item119)"
     },
     {
       "fieldId": "provider:J611:01:120",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:120;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p66:item120)"
     },
     {
       "fieldId": "provider:J611:01:121",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:121;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item121)"
     },
     {
       "fieldId": "provider:J611:01:122",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:122;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item122)"
     },
     {
       "fieldId": "provider:J611:01:123",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:123;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item123)"
     },
     {
       "fieldId": "provider:J611:01:124",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:124;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item124)"
     },
     {
       "fieldId": "provider:J611:01:125",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelPresent(DailyRecord.TrialUseSupportType)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "count(target=provider:J611:01:125;selector=DailyRecord.TrialUseSupportType;value=present;source=provider-r7-10:p67:item125)"
     },
     {
       "fieldId": "provider:J611:01:126",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:126;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item126)"
     },
     {
       "fieldId": "provider:J611:01:127",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:127;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item127)"
     },
     {
       "fieldId": "provider:J611:01:128",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:128;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item128)"
     },
     {
       "fieldId": "provider:J611:01:129",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:129;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item129)"
     },
     {
       "fieldId": "provider:J611:01:130",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:130;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item130)"
     },
     {
       "fieldId": "provider:J611:01:131",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:131;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item131)"
     },
     {
       "fieldId": "provider:J611:01:132",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:132;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item132)"
     },
     {
       "fieldId": "provider:J611:01:133",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:133;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item133)"
     },
     {
       "fieldId": "provider:J611:01:134",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:134;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item134)"
     },
     {
       "fieldId": "provider:J611:01:135",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:135;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item135)"
     },
     {
       "fieldId": "provider:J611:01:136",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:136;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item136)"
     },
     {
       "fieldId": "provider:J611:01:137",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:137;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item137)"
     },
     {
       "fieldId": "provider:J611:01:138",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:138;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item138)"
     },
     {
       "fieldId": "provider:J611:01:139",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:139;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p67:item139)"
     },
     {
       "fieldId": "provider:J611:01:140",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:140;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item140)"
     },
     {
       "fieldId": "provider:J611:01:141",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:141;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item141)"
     },
     {
       "fieldId": "provider:J611:01:142",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:142;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item142)"
     },
     {
       "fieldId": "provider:J611:01:143",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:143;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item143)"
     },
     {
       "fieldId": "provider:J611:01:144",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:144;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item144)"
     },
     {
       "fieldId": "provider:J611:01:145",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:145;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item145)"
     },
     {
       "fieldId": "provider:J611:01:146",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:146;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item146)"
     },
     {
       "fieldId": "provider:J611:01:147",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:147;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item147)"
     },
     {
       "fieldId": "provider:J611:01:148",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:148;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item148)"
     },
     {
       "fieldId": "provider:J611:01:149",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:149;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item149)"
     },
     {
       "fieldId": "provider:J611:01:150",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:150;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item150)"
     },
     {
       "fieldId": "provider:J611:01:151",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:151;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item151)"
     },
     {
       "fieldId": "provider:J611:01:152",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelTrue(DailyRecord.RegionalCollaborationApplied)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "count(target=provider:J611:01:152;selector=DailyRecord.RegionalCollaborationApplied;value=true;source=provider-r7-10:p68:item152)"
     },
     {
       "fieldId": "provider:J611:01:153",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:153;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item153)"
     },
     {
       "fieldId": "provider:J611:01:154",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:154;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item154)"
     },
     {
       "fieldId": "provider:J611:01:155",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:155;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p68:item155)"
     },
     {
       "fieldId": "provider:J611:01:156",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelPresent(IntensiveSupportEpisode.StartDate)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "IntensiveSupportEpisode",
@@ -2244,140 +2262,140 @@
     },
     {
       "fieldId": "provider:J611:01:157",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:157;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p69:item157)"
     },
     {
       "fieldId": "provider:J611:01:158",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:158;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p69:item158)"
     },
     {
       "fieldId": "provider:J611:01:159",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:159;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p69:item159)"
     },
     {
       "fieldId": "provider:J611:01:160",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:160;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p69:item160)"
     },
     {
       "fieldId": "provider:J611:01:161",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:161;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p69:item161)"
     },
     {
       "fieldId": "provider:J611:01:162",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:162;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p69:item162)"
     },
     {
       "fieldId": "provider:J611:01:163",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:163;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p69:item163)"
     },
     {
       "fieldId": "provider:J611:01:164",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:164;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p69:item164)"
     },
     {
       "fieldId": "provider:J611:01:165",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:165;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p69:item165)"
     },
     {
       "fieldId": "provider:J611:01:166",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:166;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p69:item166)"
     },
     {
       "fieldId": "provider:J611:01:167",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelTrue(DailyRecord.IntensiveSupportApplied)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "count(target=provider:J611:01:167;selector=DailyRecord.IntensiveSupportApplied;value=true;source=provider-r7-10:p69:item167)"
     },
     {
       "fieldId": "provider:J611:01:168",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelTrue(DailyRecord.EmergencyAdmissionApplied)",
       "notes": "",
       "status": "generated",
-      "generatorRule": "derive the official value from the claim context or emit empty when the record condition does not apply"
+      "generatorRule": "count(target=provider:J611:01:168;selector=DailyRecord.EmergencyAdmissionApplied;value=true;source=provider-r7-10:p69:item168)"
     },
     {
       "fieldId": "provider:J611:01:169",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:169;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p69:item169)"
     },
     {
       "fieldId": "provider:J611:01:170",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:170;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p69:item170)"
     },
     {
       "fieldId": "provider:J611:01:171",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:171;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p69:item171)"
     },
     {
       "fieldId": "provider:J611:01:172",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:01:172;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p69:item172)"
     },
     {
       "fieldId": "provider:J611:02:001",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J611:02:001;value=J611;source=provider-r7-10:p72:item1)"
     },
     {
       "fieldId": "provider:J611:02:002",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J611:02:002;value=02;source=provider-r7-10:p72:item2)"
     },
     {
       "fieldId": "provider:J611:02:003",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "",
       "status": "explicitInput",
       "inputContract": "ServiceProvisionMonth"
     },
     {
       "fieldId": "provider:J611:02:004",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "Certificate",
@@ -2387,70 +2405,70 @@
     },
     {
       "fieldId": "provider:J611:02:005",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "",
       "status": "existing",
       "modelPath": "Office.OfficeNumber"
     },
     {
       "fieldId": "provider:J611:02:006",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "",
       "status": "existing",
       "modelPath": "Certificate.CertificateNumber"
     },
     {
       "fieldId": "provider:J611:02:007",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit the fixed official code declared by this record specification"
+      "generatorRule": "const(target=provider:J611:02:007;value=1701;source=provider-r7-10:p72:item7)"
     },
     {
       "fieldId": "provider:J611:02:008",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:008;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p72:item8)"
     },
     {
       "fieldId": "provider:J611:02:009",
-      "requiredCondition": "always for form 1701",
+      "requiredCondition": "always",
       "notes": "",
       "status": "existing",
       "modelPath": "DailyRecord.ServiceDate"
     },
     {
       "fieldId": "provider:J611:02:010",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:010;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p72:item10)"
     },
     {
       "fieldId": "provider:J611:02:011",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:011;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p72:item11)"
     },
     {
       "fieldId": "provider:J611:02:012",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:012;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p72:item12)"
     },
     {
       "fieldId": "provider:J611:02:013",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:013;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p72:item13)"
     },
     {
       "fieldId": "provider:J611:02:014",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelPresent(DailyRecord.ServiceStartTime)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "DailyRecord",
@@ -2460,7 +2478,7 @@
     },
     {
       "fieldId": "provider:J611:02:015",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelPresent(DailyRecord.ServiceEndTime)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "DailyRecord",
@@ -2470,84 +2488,84 @@
     },
     {
       "fieldId": "provider:J611:02:016",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:016;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p72:item16)"
     },
     {
       "fieldId": "provider:J611:02:017",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:017;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p72:item17)"
     },
     {
       "fieldId": "provider:J611:02:018",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:018;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p72:item18)"
     },
     {
       "fieldId": "provider:J611:02:019",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:019;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p72:item19)"
     },
     {
       "fieldId": "provider:J611:02:020",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:020;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item20)"
     },
     {
       "fieldId": "provider:J611:02:021",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelTrue(DailyRecord.Transport)",
       "notes": "",
       "status": "existing",
       "modelPath": "DailyRecord.Transport"
     },
     {
       "fieldId": "provider:J611:02:022",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelTrue(DailyRecord.Transport)",
       "notes": "",
       "status": "existing",
       "modelPath": "DailyRecord.Transport"
     },
     {
       "fieldId": "provider:J611:02:023",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:023;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item23)"
     },
     {
       "fieldId": "provider:J611:02:024",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:024;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item24)"
     },
     {
       "fieldId": "provider:J611:02:025",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:025;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item25)"
     },
     {
       "fieldId": "provider:J611:02:026",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:026;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item26)"
     },
     {
       "fieldId": "provider:J611:02:027",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelNonZero(DailyRecord.SpecialVisitSupportMinutes)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "DailyRecord",
@@ -2557,7 +2575,7 @@
     },
     {
       "fieldId": "provider:J611:02:028",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelNonZero(DailyRecord.SpecialVisitSupportMinutes)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "DailyRecord",
@@ -2567,7 +2585,7 @@
     },
     {
       "fieldId": "provider:J611:02:029",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelTrue(DailyRecord.OffsiteSupportApplied)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "DailyRecord",
@@ -2577,315 +2595,315 @@
     },
     {
       "fieldId": "provider:J611:02:030",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:030;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item30)"
     },
     {
       "fieldId": "provider:J611:02:031",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:031;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item31)"
     },
     {
       "fieldId": "provider:J611:02:032",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelTrue(DailyRecord.MealProvided)",
       "notes": "",
       "status": "existing",
       "modelPath": "DailyRecord.MealProvided"
     },
     {
       "fieldId": "provider:J611:02:033",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:033;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item33)"
     },
     {
       "fieldId": "provider:J611:02:034",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:034;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item34)"
     },
     {
       "fieldId": "provider:J611:02:035",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelPresent(DailyRecord.Note)",
       "notes": "",
       "status": "existing",
       "modelPath": "DailyRecord.Note"
     },
     {
       "fieldId": "provider:J611:02:036",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelPresent(DailyRecord.Attendance)",
       "notes": "",
       "status": "existing",
       "modelPath": "DailyRecord.Attendance"
     },
     {
       "fieldId": "provider:J611:02:037",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:037;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item37)"
     },
     {
       "fieldId": "provider:J611:02:038",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:038;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p74:item38)"
     },
     {
       "fieldId": "provider:J611:02:039",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:039;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p74:item39)"
     },
     {
       "fieldId": "provider:J611:02:040",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:040;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p74:item40)"
     },
     {
       "fieldId": "provider:J611:02:041",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:041;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p74:item41)"
     },
     {
       "fieldId": "provider:J611:02:042",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:042;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p74:item42)"
     },
     {
       "fieldId": "provider:J611:02:043",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:043;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p74:item43)"
     },
     {
       "fieldId": "provider:J611:02:044",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:044;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p74:item44)"
     },
     {
       "fieldId": "provider:J611:02:045",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:045;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p74:item45)"
     },
     {
       "fieldId": "provider:J611:02:046",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:046;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p74:item46)"
     },
     {
       "fieldId": "provider:J611:02:047",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:047;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p74:item47)"
     },
     {
       "fieldId": "provider:J611:02:048",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:048;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p74:item48)"
     },
     {
       "fieldId": "provider:J611:02:049",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:049;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p74:item49)"
     },
     {
       "fieldId": "provider:J611:02:050",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:050;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p74:item50)"
     },
     {
       "fieldId": "provider:J611:02:051",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:051;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item51)"
     },
     {
       "fieldId": "provider:J611:02:052",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:052;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item52)"
     },
     {
       "fieldId": "provider:J611:02:053",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:053;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item53)"
     },
     {
       "fieldId": "provider:J611:02:054",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:054;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item54)"
     },
     {
       "fieldId": "provider:J611:02:055",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:055;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item55)"
     },
     {
       "fieldId": "provider:J611:02:056",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:056;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item56)"
     },
     {
       "fieldId": "provider:J611:02:057",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:057;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item57)"
     },
     {
       "fieldId": "provider:J611:02:058",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:058;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item58)"
     },
     {
       "fieldId": "provider:J611:02:059",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:059;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item59)"
     },
     {
       "fieldId": "provider:J611:02:060",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:060;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item60)"
     },
     {
       "fieldId": "provider:J611:02:061",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:061;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item61)"
     },
     {
       "fieldId": "provider:J611:02:062",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:062;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item62)"
     },
     {
       "fieldId": "provider:J611:02:063",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:063;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item63)"
     },
     {
       "fieldId": "provider:J611:02:064",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:064;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item64)"
     },
     {
       "fieldId": "provider:J611:02:065",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:065;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item65)"
     },
     {
       "fieldId": "provider:J611:02:066",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:066;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item66)"
     },
     {
       "fieldId": "provider:J611:02:067",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:067;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item67)"
     },
     {
       "fieldId": "provider:J611:02:068",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:068;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item68)"
     },
     {
       "fieldId": "provider:J611:02:069",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:069;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p75:item69)"
     },
     {
       "fieldId": "provider:J611:02:070",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:070;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p76:item70)"
     },
     {
       "fieldId": "provider:J611:02:071",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:071;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p76:item71)"
     },
     {
       "fieldId": "provider:J611:02:072",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:072;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p76:item72)"
     },
     {
       "fieldId": "provider:J611:02:073",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:073;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p76:item73)"
     },
     {
       "fieldId": "provider:J611:02:074",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelPresent(DailyRecord.MedicalCoordinationType)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "DailyRecord",
@@ -2895,63 +2913,63 @@
     },
     {
       "fieldId": "provider:J611:02:075",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:075;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p76:item75)"
     },
     {
       "fieldId": "provider:J611:02:076",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:076;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p76:item76)"
     },
     {
       "fieldId": "provider:J611:02:077",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:077;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p76:item77)"
     },
     {
       "fieldId": "provider:J611:02:078",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:078;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p76:item78)"
     },
     {
       "fieldId": "provider:J611:02:079",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:079;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p76:item79)"
     },
     {
       "fieldId": "provider:J611:02:080",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:080;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p76:item80)"
     },
     {
       "fieldId": "provider:J611:02:081",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:081;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p76:item81)"
     },
     {
       "fieldId": "provider:J611:02:082",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:082;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p76:item82)"
     },
     {
       "fieldId": "provider:J611:02:083",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelPresent(DailyRecord.TrialUseSupportType)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "DailyRecord",
@@ -2961,91 +2979,91 @@
     },
     {
       "fieldId": "provider:J611:02:084",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:084;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item84)"
     },
     {
       "fieldId": "provider:J611:02:085",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:085;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item85)"
     },
     {
       "fieldId": "provider:J611:02:086",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:086;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item86)"
     },
     {
       "fieldId": "provider:J611:02:087",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:087;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item87)"
     },
     {
       "fieldId": "provider:J611:02:088",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:088;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item88)"
     },
     {
       "fieldId": "provider:J611:02:089",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:089;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item89)"
     },
     {
       "fieldId": "provider:J611:02:090",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:090;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item90)"
     },
     {
       "fieldId": "provider:J611:02:091",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:091;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item91)"
     },
     {
       "fieldId": "provider:J611:02:092",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:092;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item92)"
     },
     {
       "fieldId": "provider:J611:02:093",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:093;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item93)"
     },
     {
       "fieldId": "provider:J611:02:094",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:094;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item94)"
     },
     {
       "fieldId": "provider:J611:02:095",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:095;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item95)"
     },
     {
       "fieldId": "provider:J611:02:096",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelTrue(DailyRecord.RegionalCollaborationApplied)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "DailyRecord",
@@ -3055,77 +3073,77 @@
     },
     {
       "fieldId": "provider:J611:02:097",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:097;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item97)"
     },
     {
       "fieldId": "provider:J611:02:098",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:098;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item98)"
     },
     {
       "fieldId": "provider:J611:02:099",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:099;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item99)"
     },
     {
       "fieldId": "provider:J611:02:100",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:100;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item100)"
     },
     {
       "fieldId": "provider:J611:02:101",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:101;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p77:item101)"
     },
     {
       "fieldId": "provider:J611:02:102",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:102;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p78:item102)"
     },
     {
       "fieldId": "provider:J611:02:103",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:103;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p78:item103)"
     },
     {
       "fieldId": "provider:J611:02:104",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:104;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p78:item104)"
     },
     {
       "fieldId": "provider:J611:02:105",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:105;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p78:item105)"
     },
     {
       "fieldId": "provider:J611:02:106",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:106;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p78:item106)"
     },
     {
       "fieldId": "provider:J611:02:107",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelTrue(DailyRecord.IntensiveSupportApplied)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "DailyRecord",
@@ -3135,7 +3153,7 @@
     },
     {
       "fieldId": "provider:J611:02:108",
-      "requiredCondition": "when form 1701 records the item",
+      "requiredCondition": "modelTrue(DailyRecord.EmergencyAdmissionApplied)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "DailyRecord",
@@ -3145,38 +3163,38 @@
     },
     {
       "fieldId": "provider:J611:02:109",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:109;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p78:item109)"
     },
     {
       "fieldId": "provider:J611:02:110",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:110;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p78:item110)"
     },
     {
       "fieldId": "provider:J611:02:111",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:111;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p78:item111)"
     },
     {
       "fieldId": "provider:J611:02:112",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:112;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p78:item112)"
     },
     {
       "fieldId": "provider:J611:02:113",
-      "requiredCondition": "must be empty for form 1701",
+      "requiredCondition": "never",
       "notes": "",
       "status": "generated",
-      "generatorRule": "emit an empty CSV item because the official form 1701 matrix does not use this field"
+      "generatorRule": "constEmpty(target=provider:J611:02:113;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p78:item113)"
     }
   ]
 }
