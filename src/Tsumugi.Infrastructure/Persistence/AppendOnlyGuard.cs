@@ -23,6 +23,8 @@ public static class AppendOnlyGuard
         typeof(WageSettings),
         typeof(WageStatement),
         typeof(AuditEntry),
+        typeof(ClaimBatch),
+        typeof(ClaimDetail),
         typeof(WageAdjustment),
         typeof(RecipientHourlyRate),
     };
