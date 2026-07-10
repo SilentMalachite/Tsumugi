@@ -1,0 +1,80 @@
+using System.Reflection;
+using FluentAssertions;
+using Tsumugi.Domain.ValueObjects;
+
+namespace Tsumugi.Domain.Tests.ValueObjects;
+
+public sealed class ProcessingMonthTests
+{
+    [Theory]
+    [InlineData(1900, 1, 190001, "1900-01")]
+    [InlineData(2026, 7, 202607, "2026-07")]
+    [InlineData(2200, 12, 220012, "2200-12")]
+    public void Constructor_ToInt_FromInt_and_ToString_round_trip(
+        int year,
+        int month,
+        int compactValue,
+        string text)
+    {
+        var value = new ProcessingMonth(year, month);
+
+        value.Year.Should().Be(year);
+        value.Month.Should().Be(month);
+        value.ToInt().Should().Be(compactValue);
+        ProcessingMonth.FromInt(compactValue).Should().Be(value);
+        value.ToString().Should().Be(text);
+    }
+
+    [Theory]
+    [InlineData(1899, 12)]
+    [InlineData(2201, 1)]
+    [InlineData(2026, 0)]
+    [InlineData(2026, 13)]
+    public void Constructor_rejects_out_of_range_values(int year, int month)
+        => FluentActions.Invoking(() => new ProcessingMonth(year, month))
+            .Should().Throw<ArgumentOutOfRangeException>();
+
+    [Theory]
+    [InlineData(189912)]
+    [InlineData(220101)]
+    [InlineData(202600)]
+    [InlineData(202613)]
+    public void FromInt_rejects_out_of_range_values(int value)
+        => FluentActions.Invoking(() => ProcessingMonth.FromInt(value))
+            .Should().Throw<ArgumentOutOfRangeException>();
+
+    [Fact]
+    public void Comparison_contract_is_chronological()
+    {
+        var earlier = new ProcessingMonth(2025, 12);
+        var later = new ProcessingMonth(2026, 1);
+        var same = new ProcessingMonth(2025, 12);
+
+        earlier.CompareTo(later).Should().BeNegative();
+        later.CompareTo(earlier).Should().BePositive();
+        earlier.CompareTo(same).Should().Be(0);
+        (earlier < later).Should().BeTrue();
+        (earlier <= same).Should().BeTrue();
+        (later > earlier).Should().BeTrue();
+        (same >= earlier).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Does_not_expose_conversions_to_other_month_types()
+    {
+        var forbiddenTypes = new[]
+        {
+            typeof(ProcessingMonth),
+            typeof(ServiceMonth),
+            typeof(YearMonth),
+        };
+
+        var conversions = forbiddenTypes
+            .SelectMany(type => type.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            .Where(method => method.Name is "op_Implicit" or "op_Explicit")
+            .Where(method => method.ReturnType == typeof(ProcessingMonth)
+                || method.GetParameters().Any(parameter => parameter.ParameterType == typeof(ProcessingMonth)));
+
+        conversions.Should().BeEmpty();
+    }
+}
