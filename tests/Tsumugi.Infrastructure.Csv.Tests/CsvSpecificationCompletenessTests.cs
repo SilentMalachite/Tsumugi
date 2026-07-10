@@ -133,6 +133,8 @@ public sealed class CsvSpecificationCompletenessTests
             .Be("日中支援加算欄 指定事業所番号");
         allFields["provider:J121:01:019"].GetProperty("officialName").GetString().Should()
             .Be("日中支援加算欄 当該事業所への通所日数");
+        allFields["provider:J121:01:032"].GetProperty("officialName").GetString().Should()
+            .Be("特定障害者特別給付費（合計） 算定日額");
         allFields["provider:J611:01:140"].GetProperty("officialName").GetString().Should()
             .Be("保育・教育等移行支援加算 移行日（年月日）");
         allFields["provider:J611:01:142"].GetProperty("officialName").GetString().Should()

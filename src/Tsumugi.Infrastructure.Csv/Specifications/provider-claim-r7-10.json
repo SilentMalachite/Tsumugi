@@ -886,7 +886,7 @@
         {
           "fieldId": "provider:J121:01:032",
           "position": 32,
-          "officialName": "特 定 障 給 （ 合 害 付 計 者 費 ） 特 別 / 算定日額",
+          "officialName": "特定障害者特別給付費（合計） 算定日額",
           "requiredWhen": "never",
           "dataType": "numeric",
           "maxBytes": 4,
