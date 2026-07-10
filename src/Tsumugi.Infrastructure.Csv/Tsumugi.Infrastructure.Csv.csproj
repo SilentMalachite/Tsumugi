@@ -9,4 +9,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Specifications/*.json" />
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tsumugi.Infrastructure.Csv.Tests" />
+  </ItemGroup>
 </Project>
