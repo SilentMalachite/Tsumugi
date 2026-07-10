@@ -37,6 +37,49 @@ public sealed class ClaimSpecificationBoundaryTests
         violation.ToString().Should().Contain(violation.RelativePath + ":1").And.Contain(violation.CatalogPath);
     }
 
+    [Theory]
+    [InlineData("1e20", "1e20")]
+    [InlineData("1e20", "10e19")]
+    [InlineData("1e20", "1_0.0_0e1_9F")]
+    [InlineData("1e+020", "0010.00e+0_19D")]
+    [InlineData("10.00", "1e1")]
+    [InlineData("-1e20", "-100000000000000000000m")]
+    [InlineData("1e300", "10e299D")]
+    [InlineData("16", "0x10UL")]
+    [InlineData("16", "0b1_0000")]
+    [InlineData("1000", "0x3E8UL")]
+    public void Scan_detects_equivalent_master_number_literal_spellings(
+        string jsonNumber,
+        string csharpLiteral)
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.WriteMasterNumber(jsonNumber);
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/EquivalentNumber.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal static class EquivalentNumber { " +
+            "internal static object Value => " + csharpLiteral + "; }");
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-literal" && v.Literal == jsonNumber);
+
+        violation.LineNumber.Should().Be(1);
+    }
+
+    [Fact]
+    public void Scan_does_not_match_non_equivalent_exponent_number()
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.WriteMasterNumber("1e20");
+        fixture.Write(
+            "src/Tsumugi.Application/Claims/DifferentExponent.cs",
+            "namespace Tsumugi.Application.Claims; internal static class DifferentExponent { " +
+            "internal static double Value => 1e21; }");
+
+        fixture.Scan().Should().NotContain(
+            v => v.Rule == "claim-master-literal" && v.Literal == "1e20");
+    }
+
     [Fact]
     public void Scan_detects_nested_master_string_literal_in_application_source()
     {
@@ -453,6 +496,23 @@ public sealed class ClaimSpecificationBoundaryTests
         private string Root { get; }
 
         public IReadOnlyList<Violation> Scan() => ExternalSpecificationLiteralGuard.Scan(Root);
+
+        public void WriteMasterNumber(string number)
+        {
+            Write(
+                MasterPath,
+                "{\n" +
+                "  \"schemaVersion\": \"1\",\n" +
+                "  \"masterKind\": \"fixture\",\n" +
+                "  \"entries\": [\n" +
+                "    {\n" +
+                "      \"effectiveFrom\": \"2026-06\",\n" +
+                "      \"sourceDocumentId\": \"known-source\",\n" +
+                "      \"values\": { \"units\": " + number + " }\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}\n");
+        }
 
         public void WriteMaster(string? sourceDocumentId, string? effectiveFrom = "2026-06")
         {

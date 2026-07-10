@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -583,37 +584,104 @@ internal static class ExternalSpecificationLiteralGuard
             or SyntaxKind.Utf8SingleLineRawStringLiteralToken
             or SyntaxKind.Utf8MultiLineRawStringLiteralToken;
 
-    private static string NormalizeCSharpNumber(SyntaxToken token) =>
-        token.Value switch
-        {
-            float value => value.ToString("R", CultureInfo.InvariantCulture),
-            double value => value.ToString("R", CultureInfo.InvariantCulture),
-            decimal value => value.ToString("G29", CultureInfo.InvariantCulture),
-            IFormattable value => value.ToString(null, CultureInfo.InvariantCulture),
-            _ => token.ValueText,
-        };
-
-    private static string NormalizeCatalogNumber(string literal)
+    private static string NormalizeCSharpNumber(SyntaxToken token)
     {
-        var unsignedLiteral = literal.Length > 0 && literal[0] == '-'
-            ? literal[1..]
-            : literal;
-        if (decimal.TryParse(
-                unsignedLiteral,
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture,
-                out var decimalValue))
+        var literal = token.Text.Replace("_", string.Empty, StringComparison.Ordinal);
+        if (literal.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
         {
-            return decimalValue.ToString("G29", CultureInfo.InvariantCulture);
+            return NormalizeBasedInteger(literal, prefixLength: 2, radix: 16);
         }
 
-        return double.TryParse(
-            unsignedLiteral,
-            NumberStyles.Float,
-            CultureInfo.InvariantCulture,
-            out var doubleValue)
-            ? doubleValue.ToString("R", CultureInfo.InvariantCulture)
-            : unsignedLiteral;
+        if (literal.StartsWith("0b", StringComparison.OrdinalIgnoreCase))
+        {
+            return NormalizeBasedInteger(literal, prefixLength: 2, radix: 2);
+        }
+
+        return NormalizeDecimalNumber(StripCSharpNumericSuffix(literal));
+    }
+
+    private static string NormalizeBasedInteger(string literal, int prefixLength, int radix)
+    {
+        var digitEnd = literal.Length;
+        while (digitEnd > prefixLength && literal[digitEnd - 1] is 'u' or 'U' or 'l' or 'L')
+        {
+            digitEnd--;
+        }
+
+        var value = BigInteger.Zero;
+        for (var index = prefixLength; index < digitEnd; index++)
+        {
+            value = value * radix + GetRadixDigit(literal[index]);
+        }
+
+        return NormalizeDecimalNumber(value.ToString(CultureInfo.InvariantCulture));
+    }
+
+    private static int GetRadixDigit(char character) =>
+        character switch
+        {
+            >= '0' and <= '9' => character - '0',
+            >= 'a' and <= 'f' => character - 'a' + 10,
+            >= 'A' and <= 'F' => character - 'A' + 10,
+            _ => throw new InvalidOperationException("Roslyn returned an invalid based integer literal."),
+        };
+
+    private static string StripCSharpNumericSuffix(string literal)
+    {
+        var suffixStart = literal.Length;
+        while (suffixStart > 0 && literal[suffixStart - 1] is
+               'u' or 'U' or 'l' or 'L' or 'f' or 'F' or 'd' or 'D' or 'm' or 'M')
+        {
+            suffixStart--;
+        }
+
+        return literal[..suffixStart];
+    }
+
+    private static string NormalizeCatalogNumber(string literal) => NormalizeDecimalNumber(literal);
+
+    private static string NormalizeDecimalNumber(string literal)
+    {
+        var unsignedLiteral = literal.AsSpan();
+        if (unsignedLiteral.Length > 0 && unsignedLiteral[0] is '+' or '-')
+        {
+            unsignedLiteral = unsignedLiteral[1..];
+        }
+
+        var exponentMarker = unsignedLiteral.IndexOf('e');
+        if (exponentMarker < 0) exponentMarker = unsignedLiteral.IndexOf('E');
+
+        var explicitExponent = exponentMarker < 0
+            ? BigInteger.Zero
+            : BigInteger.Parse(
+                unsignedLiteral[(exponentMarker + 1)..],
+                NumberStyles.AllowLeadingSign,
+                CultureInfo.InvariantCulture);
+        var significand = exponentMarker < 0
+            ? unsignedLiteral
+            : unsignedLiteral[..exponentMarker];
+        var decimalPoint = significand.IndexOf('.');
+        var fractionalDigitCount = decimalPoint < 0
+            ? 0
+            : significand.Length - decimalPoint - 1;
+        var digits = significand.ToString().Replace(".", string.Empty, StringComparison.Ordinal);
+
+        var firstNonZero = 0;
+        while (firstNonZero < digits.Length && digits[firstNonZero] == '0') firstNonZero++;
+        if (firstNonZero == digits.Length) return "0";
+
+        var decimalExponent = explicitExponent - fractionalDigitCount;
+        var significantEnd = digits.Length;
+        while (significantEnd > firstNonZero && digits[significantEnd - 1] == '0')
+        {
+            significantEnd--;
+            decimalExponent++;
+        }
+
+        var significantDigits = digits[firstNonZero..significantEnd];
+        return decimalExponent.IsZero
+            ? significantDigits
+            : significantDigits + "E" + decimalExponent.ToString(CultureInfo.InvariantCulture);
     }
 
     private static int FindElementOffset(string text, JsonElement element, int startIndex)
