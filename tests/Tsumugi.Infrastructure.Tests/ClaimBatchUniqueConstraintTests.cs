@@ -23,7 +23,8 @@ public sealed class ClaimBatchUniqueConstraintTests : IClassFixture<SqliteFixtur
         context.Set<ClaimBatch>().Add(NewBatch(officeId, serviceMonth));
         await context.SaveChangesAsync();
 
-        context.Set<ClaimBatch>().Add(NewBatch(officeId, serviceMonth));
+        var secondNew = NewBatch(officeId, serviceMonth) with { Revision = 2 };
+        context.Set<ClaimBatch>().Add(secondNew);
 
         await AssertSqliteConstraintAsync(() => context.SaveChangesAsync());
     }
