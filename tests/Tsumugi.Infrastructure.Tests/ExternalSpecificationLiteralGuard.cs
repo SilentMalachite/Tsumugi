@@ -592,8 +592,10 @@ internal static class ExternalSpecificationLiteralGuard
                             break;
                         }
 
+                        var holeText = text[holeStart..holeEnd];
+                        var expressionLength = GetInterpolationExpressionLength(holeText);
                         holes.Add(new InterpolationHole(
-                            text[holeStart..holeEnd],
+                            holeText[..expressionLength],
                             GetLineNumber(text, holeStart) - 1));
                         index = holeEnd + braceCount;
                         continue;
@@ -755,6 +757,108 @@ internal static class ExternalSpecificationLiteralGuard
 
         return -1;
     }
+
+    private static int GetInterpolationExpressionLength(string hole)
+    {
+        var parenthesesDepth = 0;
+        var bracketsDepth = 0;
+        var bracesDepth = 0;
+        var conditionalDepth = 0;
+        var index = 0;
+
+        while (index < hole.Length)
+        {
+            if (hole[index] == '"')
+            {
+                var quoteCount = CountRun(hole, index, '"');
+                index = quoteCount >= 3
+                    ? SkipRawString(hole, index, quoteCount)
+                    : SkipQuotedLiteral(hole, index, '"', isVerbatim: false);
+                continue;
+            }
+
+            if (hole[index] == '@' && index + 1 < hole.Length && hole[index + 1] == '"')
+            {
+                index = SkipQuotedLiteral(hole, index + 1, '"', isVerbatim: true);
+                continue;
+            }
+
+            if (hole[index] == '\'')
+            {
+                index = SkipQuotedLiteral(hole, index, '\'', isVerbatim: false);
+                continue;
+            }
+
+            switch (hole[index])
+            {
+                case '(':
+                    parenthesesDepth++;
+                    break;
+                case ')':
+                    if (parenthesesDepth > 0) parenthesesDepth--;
+                    break;
+                case '[':
+                    bracketsDepth++;
+                    break;
+                case ']':
+                    if (bracketsDepth > 0) bracketsDepth--;
+                    break;
+                case '{':
+                    bracesDepth++;
+                    break;
+                case '}':
+                    if (bracesDepth > 0) bracesDepth--;
+                    break;
+            }
+
+            var isTopLevel = parenthesesDepth == 0 && bracketsDepth == 0 && bracesDepth == 0;
+            if (!isTopLevel)
+            {
+                index++;
+                continue;
+            }
+
+            if (hole[index] == ',') return index;
+
+            if (hole[index] == '?')
+            {
+                if (index + 1 < hole.Length && hole[index + 1] == '[')
+                {
+                    bracketsDepth++;
+                    index += 2;
+                    continue;
+                }
+
+                if (index + 1 < hole.Length && hole[index + 1] is '?' or '.')
+                {
+                    index += 2;
+                    continue;
+                }
+
+                conditionalDepth++;
+                index++;
+                continue;
+            }
+
+            if (hole[index] == ':')
+            {
+                if (index + 1 < hole.Length && hole[index + 1] == ':' ||
+                    index > 0 && hole[index - 1] == ':')
+                {
+                    index++;
+                    continue;
+                }
+
+                if (conditionalDepth == 0) return index;
+                conditionalDepth--;
+            }
+
+            index++;
+        }
+
+        return hole.Length;
+    }
+
     private static string StripComments(string text)
     {
         var result = text.ToCharArray();

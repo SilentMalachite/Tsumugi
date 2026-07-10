@@ -88,6 +88,41 @@ public sealed class ClaimSpecificationBoundaryTests
         violation.LineNumber.Should().Be(1);
     }
 
+    [Theory]
+    [InlineData("42:777")]
+    [InlineData("42,777")]
+    public void Scan_ignores_master_numbers_used_only_as_interpolation_format_or_alignment(string hole)
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/InterpolatedFormat.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal static class InterpolatedFormat { " +
+            "internal static string Value => $\"{" + hole + "}\"; }");
+
+        fixture.Scan().Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("true ? 777 : 0:000")]
+    [InlineData("new[] { 777, 1 }[0]:000")]
+    [InlineData("Echo(\"a:b,c\", 777):000")]
+    [InlineData("':' == ':' ? 777 : 0:000")]
+    [InlineData("matrix?[0, 777]:000")]
+    public void Scan_keeps_literals_inside_interpolation_expression_delimiters(string hole)
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/InterpolatedExpression.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal static class InterpolatedExpression { " +
+            "internal static string Value => $\"{" + hole + "}\"; }");
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-literal" && v.Literal == "777");
+
+        violation.LineNumber.Should().Be(1);
+    }
+
     [Fact]
     public void Scan_detects_all_csv_boundary_token_kinds_outside_infrastructure_csv()
     {
