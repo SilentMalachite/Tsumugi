@@ -70,12 +70,10 @@ public static class ClaimBatchPolicy
 
     public static int NextRevision(IReadOnlyCollection<ClaimBatch> history)
     {
-        ArgumentNullException.ThrowIfNull(history);
+        ValidateHistory(history);
         if (history.Count == 0) return 1;
 
-        var nextRevision = checked(history.Max(batch => batch.Revision) + 1);
-        ValidateHistory(history);
-        return nextRevision;
+        return checked(history.Max(batch => batch.Revision) + 1);
     }
 
     private static void ValidateTotals(ClaimBatch batch)

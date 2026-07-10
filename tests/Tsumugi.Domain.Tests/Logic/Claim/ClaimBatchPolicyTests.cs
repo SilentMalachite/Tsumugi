@@ -294,12 +294,12 @@ public sealed class ClaimBatchPolicyTests
     }
 
     [Fact]
-    public void NextRevision_does_not_silently_overflow_int_max_value()
+    public void NextRevision_validates_history_before_revision_arithmetic()
     {
         var intMaxHead = New(RootId, Time) with { Revision = int.MaxValue };
 
         FluentActions.Invoking(() => ClaimBatchPolicy.NextRevision([intMaxHead]))
-            .Should().Throw<OverflowException>();
+            .Should().Throw<InvalidOperationException>();
     }
 
     private static ClaimBatch New(Guid id, DateTimeOffset createdAt) => ClaimBatch.NewRecord(
