@@ -18,6 +18,7 @@ public sealed class WageStatementPdfGenerator(TimeProvider timeProvider) : IWage
         ArgumentNullException.ThrowIfNull(statement);
         ArgumentNullException.ThrowIfNull(recipient);
         ArgumentNullException.ThrowIfNull(office);
+        var generatedAt = timeProvider.GetUtcNow();
 
         var doc = Document.Create(c =>
         {
@@ -38,9 +39,13 @@ public sealed class WageStatementPdfGenerator(TimeProvider timeProvider) : IWage
                 p.Footer().AlignCenter().Text(t =>
                 {
                     t.Span("発行日: ");
-                    t.Span(timeProvider.GetUtcNow().UtcDateTime.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
+                    t.Span(generatedAt.UtcDateTime.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
                 });
             });
+        }).WithMetadata(new DocumentMetadata
+        {
+            CreationDate = generatedAt,
+            ModifiedDate = generatedAt,
         });
         return doc.GeneratePdf();
     }
@@ -55,6 +60,7 @@ public sealed class WageStatementPdfGenerator(TimeProvider timeProvider) : IWage
         ArgumentNullException.ThrowIfNull(statements);
         ArgumentNullException.ThrowIfNull(recipients);
         ArgumentNullException.ThrowIfNull(office);
+        var generatedAt = timeProvider.GetUtcNow();
 
         var total = statements.Sum(s => s.AmountYen);
         var count = statements.Count;
@@ -99,9 +105,13 @@ public sealed class WageStatementPdfGenerator(TimeProvider timeProvider) : IWage
                 p.Footer().AlignCenter().Text(t =>
                 {
                     t.Span("発行日: ");
-                    t.Span(timeProvider.GetUtcNow().UtcDateTime.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
+                    t.Span(generatedAt.UtcDateTime.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
                 });
             });
+        }).WithMetadata(new DocumentMetadata
+        {
+            CreationDate = generatedAt,
+            ModifiedDate = generatedAt,
         });
         return doc.GeneratePdf();
     }
