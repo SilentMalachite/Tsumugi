@@ -24,11 +24,21 @@ public sealed class OfflineComplianceTests
     private static readonly (string AssemblyNamePrefix, string Reason)[] AssemblyAllowlist =
         Array.Empty<(string, string)>();
 
+    [Fact]
+    public void Assembly_reference_check_covers_all_non_ui_production_assemblies()
+    {
+        InlineDataCoverage.AssertMethodCovers(
+            typeof(OfflineComplianceTests),
+            nameof(Tsumugi_assemblies_do_not_reference_network_libraries),
+            InlineDataCoverage.NonUiProductionAssemblies);
+    }
+
     [Theory]
     [InlineData("Tsumugi.Domain")]
     [InlineData("Tsumugi.Application")]
     [InlineData("Tsumugi.Infrastructure")]
     [InlineData("Tsumugi.Infrastructure.Reporting")]
+    [InlineData("Tsumugi.Infrastructure.Csv")]
     public void Tsumugi_assemblies_do_not_reference_network_libraries(string assemblyName)
     {
         // NOTE: GetReferencedAssemblies() returns DIRECT references only; transitive references are not walked (tracked in docs/open-questions.md).

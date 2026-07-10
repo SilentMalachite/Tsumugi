@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Tsumugi.Infrastructure.Csv</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Tsumugi.Application/Tsumugi.Application.csproj" />
+    <ProjectReference Include="../Tsumugi.Domain/Tsumugi.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Specifications/*.json" />
+  </ItemGroup>
+</Project>

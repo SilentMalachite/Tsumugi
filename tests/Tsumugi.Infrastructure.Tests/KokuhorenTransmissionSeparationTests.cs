@@ -38,11 +38,22 @@ public sealed class KokuhorenTransmissionSeparationTests
     private static readonly (string Symbol, string Reason)[] Allowlist =
         Array.Empty<(string, string)>();
 
+    [Fact]
+    public void Transmission_type_check_covers_all_production_assemblies()
+    {
+        InlineDataCoverage.AssertMethodCovers(
+            typeof(KokuhorenTransmissionSeparationTests),
+            nameof(Tsumugi_assemblies_do_not_reference_transmission_types),
+            InlineDataCoverage.AllProductionAssemblies);
+    }
+
     [Theory]
     [InlineData("Tsumugi.App")]
     [InlineData("Tsumugi.Domain")]
     [InlineData("Tsumugi.Application")]
     [InlineData("Tsumugi.Infrastructure")]
+    [InlineData("Tsumugi.Infrastructure.Reporting")]
+    [InlineData("Tsumugi.Infrastructure.Csv")]
     public void Tsumugi_assemblies_do_not_reference_transmission_types(string assemblyName)
     {
         var dll = TsumugiAssemblyLocator.LocateProductionDll(assemblyName);
@@ -63,11 +74,22 @@ public sealed class KokuhorenTransmissionSeparationTests
                      "違反: " + string.Join(", ", hits));
     }
 
+    [Fact]
+    public void Transmission_keyword_check_covers_all_production_assemblies()
+    {
+        InlineDataCoverage.AssertMethodCovers(
+            typeof(KokuhorenTransmissionSeparationTests),
+            nameof(Tsumugi_assemblies_do_not_embed_transmission_keyword_literals),
+            InlineDataCoverage.AllProductionAssemblies);
+    }
+
     [Theory]
     [InlineData("Tsumugi.App")]
     [InlineData("Tsumugi.Domain")]
     [InlineData("Tsumugi.Application")]
     [InlineData("Tsumugi.Infrastructure")]
+    [InlineData("Tsumugi.Infrastructure.Reporting")]
+    [InlineData("Tsumugi.Infrastructure.Csv")]
     public void Tsumugi_assemblies_do_not_embed_transmission_keyword_literals(string assemblyName)
     {
         var dll = TsumugiAssemblyLocator.LocateProductionDll(assemblyName);

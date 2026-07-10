@@ -87,12 +87,22 @@ public sealed class AppOfflineComplianceTests
     private static readonly (string DllName, string Reason)[] PInvokeAllowlist =
         Array.Empty<(string, string)>();
 
+    [Fact]
+    public void PInvoke_check_covers_all_production_assemblies()
+    {
+        InlineDataCoverage.AssertMethodCovers(
+            typeof(AppOfflineComplianceTests),
+            nameof(Tsumugi_assemblies_do_not_pinvoke_into_network_native_libraries),
+            InlineDataCoverage.AllProductionAssemblies);
+    }
+
     [Theory]
     [InlineData("Tsumugi.App")]
     [InlineData("Tsumugi.Domain")]
     [InlineData("Tsumugi.Application")]
     [InlineData("Tsumugi.Infrastructure")]
     [InlineData("Tsumugi.Infrastructure.Reporting")]
+    [InlineData("Tsumugi.Infrastructure.Csv")]
     public void Tsumugi_assemblies_do_not_pinvoke_into_network_native_libraries(string assemblyName)
     {
         var dll = TsumugiAssemblyLocator.LocateProductionDll(assemblyName);
@@ -150,12 +160,22 @@ public sealed class AppOfflineComplianceTests
              "URL 混入は文字列リテラルとしてスキャンで検出されるが実害なし。"),
         };
 
+    [Fact]
+    public void Url_literal_check_covers_all_production_assemblies()
+    {
+        InlineDataCoverage.AssertMethodCovers(
+            typeof(AppOfflineComplianceTests),
+            nameof(Tsumugi_assemblies_do_not_embed_external_url_literals),
+            InlineDataCoverage.AllProductionAssemblies);
+    }
+
     [Theory]
     [InlineData("Tsumugi.App")]
     [InlineData("Tsumugi.Domain")]
     [InlineData("Tsumugi.Application")]
     [InlineData("Tsumugi.Infrastructure")]
     [InlineData("Tsumugi.Infrastructure.Reporting")]
+    [InlineData("Tsumugi.Infrastructure.Csv")]
     public void Tsumugi_assemblies_do_not_embed_external_url_literals(string assemblyName)
     {
         var dll = TsumugiAssemblyLocator.LocateProductionDll(assemblyName);

@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
+    <RootNamespace>Tsumugi.Infrastructure.Csv.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,9 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Tsumugi.Infrastructure\Tsumugi.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Tsumugi.Infrastructure.Csv\Tsumugi.Infrastructure.Csv.csproj" />
-    <ProjectReference Include="..\..\src\Tsumugi.Infrastructure.Reporting\Tsumugi.Infrastructure.Reporting.csproj" />
   </ItemGroup>
 
 </Project>
