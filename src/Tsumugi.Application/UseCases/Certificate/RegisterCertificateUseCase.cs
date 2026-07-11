@@ -40,6 +40,9 @@ public sealed record RegisterCertificateInput(
     public string? UpperLimitManagementProvider { get; init; }
     public bool MealProvisionApplicable { get; init; }
     public bool HighCostBenefitApplicable { get; init; }
+    public string? MunicipalityNumber { get; init; }
+    public string? SubsidyMunicipalityNumber { get; init; }
+    public string? UpperLimitManagementProviderNumber { get; init; }
 }
 
 public sealed class RegisterCertificateUseCase(
@@ -94,7 +97,10 @@ public sealed class RegisterCertificateUseCase(
             paymentBurden: input.PaymentBurden,
             upperLimitManagementProvider: input.UpperLimitManagementProvider,
             mealProvisionApplicable: input.MealProvisionApplicable,
-            highCostBenefitApplicable: input.HighCostBenefitApplicable);
+            highCostBenefitApplicable: input.HighCostBenefitApplicable,
+            municipalityNumber: input.MunicipalityNumber,
+            subsidyMunicipalityNumber: input.SubsidyMunicipalityNumber,
+            upperLimitManagementProviderNumber: input.UpperLimitManagementProviderNumber);
 
         await repo.AddAsync(entity, ct);
         await uow.SaveChangesAsync(ct);
@@ -103,8 +109,11 @@ public sealed class RegisterCertificateUseCase(
     }
 
     internal static CertificateDto MapToDto(Domain.Entities.Certificate e) => new(
-        e.Id, e.RecipientId, e.CertificateNumber, e.Validity,
+        e.Id, e.RootCertificateId, e.Revision, e.ExpectedHeadCertificateId,
+        e.RecipientId, e.CertificateNumber, e.Validity,
         e.SupplyDays, e.MonthlyCostCap, e.Municipality,
+        e.MunicipalityNumber, e.SubsidyMunicipalityNumber,
+        e.UpperLimitManagementProviderNumber,
         e.RecipientAddress, e.RecipientGender, e.GuardianName, e.GuardianRelationship,
         e.Disabilities, e.SupportCategory,
         e.BenefitType, e.ServiceCategory, e.SupplyNotes,

@@ -9,12 +9,18 @@ namespace Tsumugi.Application.Dtos;
 /// </summary>
 public sealed record CertificateDto(
     Guid Id,
+    Guid RootCertificateId,
+    int Revision,
+    Guid? ExpectedHeadCertificateId,
     Guid RecipientId,
     string CertificateNumber,
     DateRange Validity,
     int SupplyDays,
     int MonthlyCostCap,
     string Municipality,
+    string? MunicipalityNumber,
+    string? SubsidyMunicipalityNumber,
+    string? UpperLimitManagementProviderNumber,
     // 支給決定障害者等：発行時点スナップショット
     string? RecipientAddress,
     Gender RecipientGender,

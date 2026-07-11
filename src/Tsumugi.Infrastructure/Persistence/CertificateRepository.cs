@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Domain.Entities;
+using ClaimCertificatePolicy = Tsumugi.Domain.Logic.Claim.CertificatePolicy;
 
 namespace Tsumugi.Infrastructure.Persistence;
 
@@ -8,6 +9,14 @@ public sealed class CertificateRepository(TsumugiDbContext db) : ICertificateRep
 {
     public async Task AddAsync(Certificate certificate, CancellationToken ct) =>
         await db.Certificates.AddAsync(certificate, ct);
+
+    public async Task<Certificate?> FindHeadByRootIdAsync(
+        Guid rootCertificateId,
+        CancellationToken ct) =>
+        await db.Certificates.AsNoTracking()
+            .Where(certificate => certificate.RootCertificateId == rootCertificateId)
+            .OrderByDescending(certificate => certificate.Revision)
+            .FirstOrDefaultAsync(ct);
 
     public async Task<IReadOnlyList<Certificate>> ListByRecipientAsync(Guid recipientId, CancellationToken ct) =>
         await db.Certificates.AsNoTracking()
@@ -24,10 +33,6 @@ public sealed class CertificateRepository(TsumugiDbContext db) : ICertificateRep
         var candidates = await db.Certificates.AsNoTracking()
             .Where(c => c.RecipientId == recipientId)
             .ToListAsync(ct);
-        // 同期日内に複数あれば「最新の CreatedAt」が実効
-        return candidates
-            .Where(c => c.Validity.Contains(asOf))
-            .OrderByDescending(c => c.CreatedAt)
-            .FirstOrDefault();
+        return ClaimCertificatePolicy.EffectiveVersion(candidates, asOf);
     }
 }

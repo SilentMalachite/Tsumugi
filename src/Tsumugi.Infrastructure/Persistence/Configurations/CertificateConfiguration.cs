@@ -10,14 +10,29 @@ public sealed class CertificateConfiguration : IEntityTypeConfiguration<Certific
     public void Configure(EntityTypeBuilder<Certificate> builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        builder.ToTable("Certificates");
+        builder.ToTable("Certificates", table => table.HasCheckConstraint(
+            "CK_Certificates_RevisionLineage",
+            "\"Revision\" >= 1 AND ((\"Revision\" = 1 AND \"RootCertificateId\" = \"Id\" AND \"ExpectedHeadCertificateId\" IS NULL) OR (\"Revision\" >= 2 AND \"RootCertificateId\" <> \"Id\" AND \"ExpectedHeadCertificateId\" IS NOT NULL))"));
         builder.HasKey(c => c.Id);
+        builder.Property(c => c.RootCertificateId).IsRequired();
+        builder.Property(c => c.Revision).IsRequired();
+        builder.Property(c => c.ExpectedHeadCertificateId);
+        builder.HasIndex(c => new { c.RootCertificateId, c.Revision })
+            .IsUnique()
+            .HasDatabaseName("UX_Certificates_RootCertificateId_Revision");
+        builder.HasIndex(c => c.ExpectedHeadCertificateId)
+            .HasFilter("\"ExpectedHeadCertificateId\" IS NOT NULL")
+            .IsUnique()
+            .HasDatabaseName("UX_Certificates_ExpectedHeadCertificateId");
         builder.Property(c => c.RecipientId).IsRequired();
         builder.HasIndex(c => c.RecipientId);
         builder.Property(c => c.CertificateNumber).IsRequired().HasMaxLength(32);
         builder.Property(c => c.SupplyDays).IsRequired();
         builder.Property(c => c.MonthlyCostCap).IsRequired();
         builder.Property(c => c.Municipality).IsRequired().HasMaxLength(64);
+        builder.Property(c => c.MunicipalityNumber).HasMaxLength(6);
+        builder.Property(c => c.SubsidyMunicipalityNumber).HasMaxLength(6);
+        builder.Property(c => c.UpperLimitManagementProviderNumber).HasMaxLength(10);
         builder.Property(c => c.CreatedBy).IsRequired().HasMaxLength(64);
         builder.Property(c => c.CreatedAt).IsRequired();
         builder.Property(c => c.ConcurrencyToken).IsConcurrencyToken();

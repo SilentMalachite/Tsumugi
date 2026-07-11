@@ -17,12 +17,18 @@ namespace Tsumugi.Domain.Entities;
 /// </summary>
 public sealed record Certificate : Entity
 {
+    public required Guid RootCertificateId { get; init; }
+    public required int Revision { get; init; }
+    public Guid? ExpectedHeadCertificateId { get; init; }
     public required Guid RecipientId { get; init; }
     public required string CertificateNumber { get; init; }
     public required DateRange Validity { get; init; }
     public required int SupplyDays { get; init; }
     public required int MonthlyCostCap { get; init; }
     public required string Municipality { get; init; }
+    public string? MunicipalityNumber { get; init; }
+    public string? SubsidyMunicipalityNumber { get; init; }
+    public string? UpperLimitManagementProviderNumber { get; init; }
 
     // -------- 支給決定障害者等：受給者証発行時点のスナップショット --------
     public string? RecipientAddress { get; init; }
@@ -87,7 +93,10 @@ public sealed record Certificate : Entity
         PaymentBurdenCategory paymentBurden = PaymentBurdenCategory.Unspecified,
         string? upperLimitManagementProvider = null,
         bool mealProvisionApplicable = false,
-        bool highCostBenefitApplicable = false)
+        bool highCostBenefitApplicable = false,
+        string? municipalityNumber = null,
+        string? subsidyMunicipalityNumber = null,
+        string? upperLimitManagementProviderNumber = null)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(supplyDays);
         ArgumentOutOfRangeException.ThrowIfNegative(monthlyCostCap);
@@ -95,12 +104,18 @@ public sealed record Certificate : Entity
         return new()
         {
             Id = id,
+            RootCertificateId = id,
+            Revision = 1,
+            ExpectedHeadCertificateId = null,
             RecipientId = recipientId,
             CertificateNumber = certificateNumber,
             Validity = validity,
             SupplyDays = supplyDays,
             MonthlyCostCap = monthlyCostCap,
             Municipality = municipality,
+            MunicipalityNumber = municipalityNumber,
+            SubsidyMunicipalityNumber = subsidyMunicipalityNumber,
+            UpperLimitManagementProviderNumber = upperLimitManagementProviderNumber,
             CreatedBy = createdBy,
             CreatedAt = createdAt,
             ConcurrencyToken = concurrencyToken,
