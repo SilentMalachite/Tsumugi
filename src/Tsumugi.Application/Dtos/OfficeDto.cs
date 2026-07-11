@@ -12,4 +12,8 @@ public sealed record OfficeDto(
     string Name,
     ServiceCategory ServiceCategory,
     RegionGrade RegionGrade,
-    Guid ConcurrencyToken);
+    Guid ConcurrencyToken,
+    string? PostalCode = null,
+    string? Address = null,
+    string? PhoneNumber = null,
+    string? RepresentativeTitleAndName = null);

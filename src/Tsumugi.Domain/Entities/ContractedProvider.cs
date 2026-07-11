@@ -21,6 +21,8 @@ public sealed record ContractedProvider : Entity
     public DateOnly? TerminationDate { get; init; }
     /// <summary>備考（自由記述）。</summary>
     public string? Notes { get; init; }
+    /// <summary>サービス提供事業者記入欄の番号（J121:05:011、0～99）。</summary>
+    public int? CertificateEntryNumber { get; init; }
 
     public static ContractedProvider Create(
         Guid id,
@@ -34,9 +36,13 @@ public sealed record ContractedProvider : Entity
         DateTimeOffset createdAt,
         Guid concurrencyToken,
         DateOnly? terminationDate = null,
-        string? notes = null)
+        string? notes = null,
+        int? certificateEntryNumber = null)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(contractedSupplyDays);
+        if (certificateEntryNumber is < 0 or > 99)
+            throw new ArgumentOutOfRangeException(
+                nameof(certificateEntryNumber), "証書記入欄番号は0から99の範囲で指定してください。");
         return new()
         {
             Id = id,
@@ -48,6 +54,7 @@ public sealed record ContractedProvider : Entity
             ContractDate = contractDate,
             TerminationDate = terminationDate,
             Notes = notes,
+            CertificateEntryNumber = certificateEntryNumber,
             CreatedBy = createdBy,
             CreatedAt = createdAt,
             ConcurrencyToken = concurrencyToken,

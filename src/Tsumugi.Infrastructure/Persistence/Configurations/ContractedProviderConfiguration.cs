@@ -19,6 +19,7 @@ public sealed class ContractedProviderConfiguration : IEntityTypeConfiguration<C
         builder.Property(p => p.ContractedSupplyDays).IsRequired();
         builder.Property(p => p.ContractDate).IsRequired();
         builder.Property(p => p.Notes).HasMaxLength(512);
+        builder.Property(p => p.CertificateEntryNumber);
         builder.Property(p => p.CreatedBy).IsRequired().HasMaxLength(64);
         builder.Property(p => p.CreatedAt).IsRequired();
         builder.Property(p => p.ConcurrencyToken).IsConcurrencyToken();

@@ -19,6 +19,10 @@ public sealed class OfficeConfiguration : IEntityTypeConfiguration<Office>
             .HasConversion<int>();
         builder.Property(o => o.RegionGrade).IsRequired()
             .HasConversion<int>();
+        builder.Property(o => o.PostalCode).HasMaxLength(16);
+        builder.Property(o => o.Address).HasMaxLength(256);
+        builder.Property(o => o.PhoneNumber).HasMaxLength(32);
+        builder.Property(o => o.RepresentativeTitleAndName).HasMaxLength(128);
         builder.Property(o => o.CreatedBy).IsRequired().HasMaxLength(64);
         builder.Property(o => o.CreatedAt).IsRequired();
         builder.Property(o => o.ConcurrencyToken).IsConcurrencyToken();

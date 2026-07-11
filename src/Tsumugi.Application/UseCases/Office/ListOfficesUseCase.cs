@@ -9,6 +9,7 @@ public sealed class ListOfficesUseCase(IOfficeRepository repo)
     {
         var list = await repo.ListAsync(ct);
         return list.Select(o => new OfficeDto(
-            o.Id, o.OfficeNumber, o.Name, o.ServiceCategory, o.RegionGrade, o.ConcurrencyToken)).ToArray();
+            o.Id, o.OfficeNumber, o.Name, o.ServiceCategory, o.RegionGrade, o.ConcurrencyToken,
+            o.PostalCode, o.Address, o.PhoneNumber, o.RepresentativeTitleAndName)).ToArray();
     }
 }
