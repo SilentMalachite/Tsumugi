@@ -199,7 +199,7 @@ ADR 0023の平均工賃計算
 
 ## 出典と再検証
 
-物理頁はPDF先頭を1頁とする。2026-07-10に下表のlive資料を2回以上取得し、同一SHA-256とサイズを確認した。令和8年6月事務処理要領はlive URLが404のため再取得済みとは扱わず、ADR 0020の不変byte識別子を使用する。ADR 0020に登録済みのIDを優先し、現行liveで置換された事務処理要領だけADR 0024登録済みの令和8年7月IDを併記する。
+物理頁はPDF先頭を1頁とする。2026-07-10に下表のlive資料を2回以上取得し、同一SHA-256とサイズを確認した。令和8年6月事務処理要領は厚生労働省の旧原URLが404であるため、ADR 0020登録済みの北九州市公式サイト再配布PDFを2026-07-11に再取得し、同一SHA-256、サイズ、262 pagesを確認した。物理頁182〜186、197〜199の抽出本文は、現行liveの令和8年7月版の同頁と完全一致することも確認した。ADR 0020に登録済みのIDを優先し、現行liveで置換された事務処理要領だけADR 0024登録済みの令和8年7月IDを併記する。
 
 | sourceDocumentId | URL | SHA-256 / size | 本ADRで使用する箇所 |
 | --- | --- | --- | --- |
@@ -210,7 +210,7 @@ ADR 0023の平均工賃計算
 | `mhlw-unit-price-notice-observed-946c3d96` | https://www.mhlw.go.jp/web/t_doc?dataId=83aa8493&dataType=0&pageNo=1 | `946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b` / 52,785 bytes | HTML pageNo=1。基準額10円と地域別割合。具体値と版選択はADR 0020を参照 |
 | `mhlw-disability-support-act-observed-4b8f2824` | https://www.mhlw.go.jp/web/t_doc?dataId=83aa7574&dataType=0&pageNo=1 | `4b8f2824d25351a7b97f37461eaa0825be5046bfc3ab4d87595e1ab86a9443dc` / 204,793 bytes | HTML 29条3項、31条。給付費を費用額から決定負担額の控除で求める法的順序と特例給付を照合 |
 | `r6-disability-support-guide-202404` | https://www.mhlw.go.jp/content/12200000/001327493.pdf | `3ead1b2d235ff15e6d0c71a129e7ef880e119272a00acd043e635aee8c637469` / 3,124,049 bytes。ADR 0020登録値と一致 | p9。R6の制度上限4区分。証実値を上書きせず、ADR 0022の補助上限として使用 |
-| `r8-grant-decision-administration-202606` | ADR 0020に記録された旧公式URL（2026-07-10のlive確認では404） | `d6e1672245370d2d7bb9a4258622ae3e631d0a6144c8e0c9ea51e2018a146f1e` / 1,998,305 bytes（ADR 0020の不変byte識別子） | p182〜186、p197〜199。上限額管理、月次給付単位数、総費用額、1割相当額、決定負担額、給付費 |
+| `r8-grant-decision-administration-202606` | https://www.city.kitakyushu.lg.jp/files/001215921.pdf | `c5070de88b83528860e8dba6c4aa88ec4bd7418dea017fbbdb5cc80dc7014798` / 1,968,795 bytes。ADR 0020登録値と一致 | p182〜186、p197〜199。上限額管理、月次給付単位数、総費用額、1割相当額、決定負担額、給付費 |
 | `r8-grant-decision-administration-202607` | https://www.mhlw.go.jp/content/12200000/001721666.pdf | `1a94220c99986f353e4c63c095c156448271ecad1d7bf0d9e197d3b8ca06de65` / 1,999,016 bytes | p182〜186、p197〜199。令和8年6月版の本ADR対象式・順序を現行liveで再検証 |
 
 障害者総合支援法29条3項は、月次の給付額を、サービス種類ごとの基準費用額の合計から負担能力等を勘案した額を控除した額と定め、同項2号はその額を費用額の10%相当額以下とする。31条の特例は市町村が定める額を使う。`mhlw-disability-support-act-observed-4b8f2824`は2026-07-10に3回取得し、全bytesが一致したlive法令証拠である。これは給付費を決定利用者負担額の控除で求める法的順序の照合に使い、地域単価又は端数方向の値ソースには使わない。
