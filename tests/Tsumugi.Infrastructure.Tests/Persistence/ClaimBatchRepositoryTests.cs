@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.ValueObjects;
@@ -54,6 +55,70 @@ public sealed class ClaimBatchRepositoryTests : IClassFixture<SqliteFixture>
         result.Should().NotBeNull();
         result!.Details.Should().HaveCount(2);
         context.ChangeTracker.Entries().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ListHistoryAggregates_orders_only_by_revision_when_created_at_and_id_are_reversed()
+    {
+        var officeId = Guid.NewGuid();
+        var month = new ServiceMonth(2026, 8);
+        await using var context = _fixture.NewContext();
+        var first = Batch.New(officeId, month, revision: 1) with
+        {
+            Id = Guid.Parse("f0000000-0000-0000-0000-000000000000"),
+            CreatedAt = DateTimeOffset.UnixEpoch.AddDays(2),
+        };
+        var second = Batch.Correct(officeId, month, first, revision: 2) with
+        {
+            Id = Guid.Parse("10000000-0000-0000-0000-000000000000"),
+            CreatedAt = DateTimeOffset.UnixEpoch.AddDays(1),
+        };
+        context.AddRange(second, first);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var result = await new ClaimBatchRepository(context)
+            .ListHistoryAggregatesAsync(officeId, month, default);
+
+        result.Select(item => item.Header.Revision).Should().Equal(1, 2);
+        result.Select(item => item.Header.Id).Should().Equal(first.Id, second.Id);
+    }
+
+    [Fact]
+    public async Task ListHistoryAggregates_returns_duplicate_revisions_raw_without_id_or_time_rescue()
+    {
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+        var options = new DbContextOptionsBuilder<TsumugiDbContext>()
+            .UseSqlite(connection)
+            .Options;
+        await using var context = new TsumugiDbContext(options);
+        await context.Database.MigrateAsync();
+        await context.Database.ExecuteSqlRawAsync(
+            "DROP INDEX UX_ClaimBatches_OfficeId_ServiceMonthKey_Revision; "
+            + "DROP INDEX UX_ClaimBatches_OfficeId_ServiceMonthKey_NewOnly;");
+        var officeId = Guid.NewGuid();
+        var month = new ServiceMonth(2026, 9);
+        var laterId = Batch.New(officeId, month, revision: 1) with
+        {
+            Id = Guid.Parse("f0000000-0000-0000-0000-000000000000"),
+            CreatedAt = DateTimeOffset.UnixEpoch.AddDays(2),
+        };
+        var earlierId = Batch.New(officeId, month, revision: 1) with
+        {
+            Id = Guid.Parse("10000000-0000-0000-0000-000000000000"),
+            CreatedAt = DateTimeOffset.UnixEpoch.AddDays(1),
+        };
+        context.AddRange(laterId, earlierId);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var result = await new ClaimBatchRepository(context)
+            .ListHistoryAggregatesAsync(officeId, month, default);
+
+        result.Should().HaveCount(2);
+        result.Select(item => item.Header.Revision).Should().Equal(1, 1);
+        result.Select(item => item.Header.Id).Should().Contain([laterId.Id, earlierId.Id]);
     }
 
     internal static class Batch

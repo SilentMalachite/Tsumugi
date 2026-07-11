@@ -159,46 +159,7 @@ public sealed class ClaimFinalizationOperationV1 : IClaimFinalizationOperation
         => Bounded(value) && value.All(character => character <= 0x7f);
 
     private static bool IsNfc(string value)
-    {
-        if (!value.IsNormalized(NormalizationForm.FormC)) return false;
-
-        // InvariantGlobalizationではIsNormalizedがdecomposed Latinを見逃すため、
-        // canonical compositionを持つ代表的なLatin pairだけをfallback検出する。
-        var codePoints = value.EnumerateRunes().Select(rune => rune.Value).ToArray();
-        return !codePoints
-            .Zip(codePoints.Skip(1), IsComposableLatinPair)
-            .Any(composable => composable);
-    }
-
-    private static bool IsComposableLatinPair(int first, int second) => second switch
-    {
-        0x0300 => first is 'A' or 'E' or 'I' or 'N' or 'O' or 'U' or 'W' or 'Y'
-            or 'a' or 'e' or 'i' or 'n' or 'o' or 'u' or 'w' or 'y',
-        0x0301 => first is 'A' or 'C' or 'E' or 'G' or 'I' or 'K' or 'L' or 'M' or 'N'
-            or 'O' or 'P' or 'R' or 'S' or 'U' or 'W' or 'Y' or 'Z'
-            or 'a' or 'c' or 'e' or 'g' or 'i' or 'k' or 'l' or 'm' or 'n'
-            or 'o' or 'p' or 'r' or 's' or 'u' or 'w' or 'y' or 'z',
-        0x0302 => first is 'A' or 'C' or 'E' or 'G' or 'H' or 'I' or 'J' or 'O' or 'S' or 'U' or 'W' or 'Y'
-            or 'a' or 'c' or 'e' or 'g' or 'h' or 'i' or 'j' or 'o' or 's' or 'u' or 'w' or 'y',
-        0x0303 => first is 'A' or 'E' or 'I' or 'N' or 'O' or 'U' or 'V' or 'Y'
-            or 'a' or 'e' or 'i' or 'n' or 'o' or 'u' or 'v' or 'y',
-        0x0304 => first is 'A' or 'E' or 'G' or 'I' or 'O' or 'U' or 'Y'
-            or 'a' or 'e' or 'g' or 'i' or 'o' or 'u' or 'y',
-        0x0306 => first is 'A' or 'E' or 'G' or 'I' or 'O' or 'U'
-            or 'a' or 'e' or 'g' or 'i' or 'o' or 'u',
-        0x0307 => first is 'A' or 'B' or 'C' or 'D' or 'E' or 'F' or 'G' or 'H' or 'I'
-            or 'M' or 'N' or 'O' or 'P' or 'R' or 'S' or 'W' or 'X' or 'Y' or 'Z'
-            or 'a' or 'b' or 'c' or 'd' or 'e' or 'f' or 'g' or 'h' or 'm'
-            or 'n' or 'o' or 'p' or 'r' or 's' or 'w' or 'x' or 'y' or 'z',
-        0x0308 => first is 'A' or 'E' or 'H' or 'I' or 'O' or 'U' or 'W' or 'X' or 'Y'
-            or 'a' or 'e' or 'h' or 'i' or 'o' or 't' or 'u' or 'w' or 'x' or 'y',
-        0x030A => first is 'A' or 'U' or 'a' or 'u',
-        0x030C => first is 'A' or 'C' or 'D' or 'E' or 'G' or 'H' or 'I' or 'K' or 'L' or 'N'
-            or 'O' or 'R' or 'S' or 'T' or 'U' or 'Z'
-            or 'a' or 'c' or 'd' or 'e' or 'g' or 'h' or 'i' or 'j' or 'k' or 'l'
-            or 'n' or 'o' or 'r' or 's' or 't' or 'u' or 'z',
-        _ => false,
-    };
+        => value.IsNormalized(NormalizationForm.FormC);
 
     private static string FormatGuid(Guid value) => value.ToString("D").ToLowerInvariant();
 

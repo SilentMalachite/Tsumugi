@@ -8,8 +8,8 @@ namespace Tsumugi.Infrastructure.Persistence.Configurations;
 internal static class DateRangeJson
 {
     // NOTE: CLAUDE.md ハード制約 6 に従い Culture 依存を明示的に断つ。
-    // 現状は InvariantGlobalization=true で実害は出ないが、将来オフに切り替えた場合でも
-    // ISO yyyy-MM-dd 固定で読み書きされることを保証する。
+    // globalization有効下でも実行環境のCultureに依存せず、ISO yyyy-MM-dd固定で
+    // 読み書きされることを保証する。
     public static string Serialize(DateRange v) =>
         JsonSerializer.Serialize(new Dto(
             v.Start.ToString("O", CultureInfo.InvariantCulture),

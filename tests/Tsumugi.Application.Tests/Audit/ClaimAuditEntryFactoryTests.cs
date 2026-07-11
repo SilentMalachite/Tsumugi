@@ -40,4 +40,38 @@ public sealed class ClaimAuditEntryFactoryTests
                 Guid.NewGuid(), "actor", payload, DateTimeOffset.UnixEpoch))
             .Should().Throw<ArgumentException>();
     }
+
+    [Fact]
+    public void Create_with_maximum_allowlist_values_stays_under_limit_and_excludes_sensitive_data()
+    {
+        var maximumId = Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff");
+        var payload = new ClaimAuditPayload(
+            ClaimAuditPayload.FinalizedEventCode,
+            maximumId,
+            maximumId,
+            maximumId,
+            new ServiceMonth(2099, 12),
+            RecordKind.Cancel,
+            int.MaxValue,
+            maximumId,
+            new string('f', 64));
+        const string sensitiveActor =
+            "version-v999|source-secret|recipient-name|certificate-123|{\"json\":true}|input-secret|999999yen";
+
+        var entry = new ClaimAuditEntryFactory().Create(
+            maximumId,
+            sensitiveActor,
+            payload,
+            DateTimeOffset.MaxValue);
+
+        entry.Summary!.Length.Should().BeLessThanOrEqualTo(512);
+        entry.Summary.Should().NotContainAny(
+            "version-v999",
+            "source-secret",
+            "recipient-name",
+            "certificate-123",
+            "json",
+            "input-secret",
+            "999999yen");
+    }
 }

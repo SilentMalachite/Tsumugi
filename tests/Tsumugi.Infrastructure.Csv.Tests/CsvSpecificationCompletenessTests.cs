@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 using FluentAssertions;
@@ -123,7 +124,9 @@ public sealed class CsvSpecificationCompletenessTests
         allFields["provider:J611:02:009"].GetProperty("dataType").GetString().Should()
             .Be("code", "the official two-byte item is day-of-month, not an eight-byte calendar date");
         AssertAllowedCodes(allFields, "provider:J611:02:009",
-            Enumerable.Range(1, 31).Select(day => day.ToString()).ToArray());
+            Enumerable.Range(1, 31)
+                .Select(day => day.ToString(CultureInfo.InvariantCulture))
+                .ToArray());
         AssertOfficialFieldShape(allFields, "provider:J121:01:030", "numeric", 10);
         AssertOfficialFieldShape(allFields, "provider:J121:04:012", "numeric", 3);
         AssertOfficialFieldShape(allFields, "provider:J121:04:014", "numeric", 10);

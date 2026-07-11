@@ -258,10 +258,10 @@ public sealed class ClaimFinalizationStore(
                 || detail.TotalCostYen < 0
                 || detail.BenefitYen < 0
                 || detail.BurdenYen < 0)
-            || draft.Details.Sum(detail => detail.TotalUnits) != draft.TotalUnits
-            || draft.Details.Sum(detail => detail.TotalCostYen) != draft.TotalCostYen
-            || draft.Details.Sum(detail => detail.BenefitYen) != draft.TotalBenefitYen
-            || draft.Details.Sum(detail => detail.BurdenYen) != draft.TotalBurdenYen)
+            || draft.Details.Sum(detail => (long)detail.TotalUnits) != draft.TotalUnits
+            || draft.Details.Sum(detail => (long)detail.TotalCostYen) != draft.TotalCostYen
+            || draft.Details.Sum(detail => (long)detail.BenefitYen) != draft.TotalBenefitYen
+            || draft.Details.Sum(detail => (long)detail.BurdenYen) != draft.TotalBurdenYen)
             throw Error(ClaimErrorCode.InvalidOperationPayload);
     }
 
@@ -336,10 +336,10 @@ public sealed class ClaimFinalizationStore(
             || details.Select(detail => detail.RecipientId).Distinct().Count() != details.Count
             || (batch.Kind == RecordKind.Cancel && details.Count != 0)
             || (batch.Kind != RecordKind.Cancel
-                && (details.Sum(detail => detail.TotalUnits) != batch.TotalUnits
-                    || details.Sum(detail => detail.TotalCostYen) != batch.TotalCostYen
-                    || details.Sum(detail => detail.BenefitYen) != batch.TotalBenefitYen
-                    || details.Sum(detail => detail.BurdenYen) != batch.TotalBurdenYen)))
+                && (details.Sum(detail => (long)detail.TotalUnits) != batch.TotalUnits
+                    || details.Sum(detail => (long)detail.TotalCostYen) != batch.TotalCostYen
+                    || details.Sum(detail => (long)detail.BenefitYen) != batch.TotalBenefitYen
+                    || details.Sum(detail => (long)detail.BurdenYen) != batch.TotalBurdenYen)))
             throw Error(ClaimErrorCode.InvalidHistory);
 
         var restored = RestoreDetailDrafts(aggregate);

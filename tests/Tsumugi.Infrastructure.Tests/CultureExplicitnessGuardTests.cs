@@ -9,7 +9,7 @@ namespace Tsumugi.Infrastructure.Tests;
 /// <summary>
 /// CLAUDE.md §ハード制約 6「カルチャ依存（数値/日付整形）に OS 差の地雷を作らない」のトリップワイヤ。
 /// `.Parse(...)` / `.ParseExact(...)` と書式付き `.ToString("...")` には `CultureInfo` を明示する。
-/// （InvariantGlobalization=true 下では実害が出ないが、policy として CI で機械担保する。）
+/// globalization有効下でもOSのCulture差を生まないよう、policyとしてCIで機械担保する。
 /// </summary>
 public sealed class CultureExplicitnessGuardTests
 {

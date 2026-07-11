@@ -108,6 +108,107 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Commit_uses_revision_not_created_at_when_persisted_time_is_later_than_candidate()
+    {
+        var store = CreateStore();
+        var initial = Draft(Guid.NewGuid());
+        var root = await store.CommitAsync(initial, default);
+        var future = new DateTimeOffset(2099, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        await using (var tamper = _factory.CreateDbContext())
+            await tamper.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE ClaimBatches SET CreatedAt = {future} WHERE Id = {root.BatchId}");
+        var correction = initial with
+        {
+            FinalizationOperationId = Guid.NewGuid(),
+            Kind = RecordKind.Correct,
+            RootBatchId = root.BatchId,
+            ExpectedHead = new ClaimExpectedHead(root.BatchId, root.Revision),
+        };
+
+        var result = await store.CommitAsync(correction, default);
+
+        result.Revision.Should().Be(2);
+        await using var verification = _factory.CreateDbContext();
+        var revisions = await verification.ClaimBatches
+            .OrderBy(batch => batch.Revision)
+            .Select(batch => new { batch.Revision, batch.CreatedAt })
+            .ToArrayAsync();
+        revisions.Select(item => item.Revision).Should().Equal(1, 2);
+        revisions[0].CreatedAt.Should().BeAfter(revisions[1].CreatedAt);
+    }
+
+    [Theory]
+    [InlineData("version")]
+    [InlineData("total")]
+    [InlineData("detail")]
+    public async Task Commit_rejects_incoming_aggregate_mismatch_before_audit_or_save(string mismatch)
+    {
+        var audit = new RecordingAuditFactory();
+        var store = new ClaimFinalizationStore(
+            _factory,
+            new ClaimFinalizationOperationRegistry(),
+            new TestCodecRegistry(_codec),
+            audit,
+            TimeProvider.System);
+        var original = Draft(Guid.NewGuid());
+        var draft = mismatch switch
+        {
+            "version" => original with
+            {
+                Details = [original.Details[0] with { ClaimMasterVersion = "master-v2" }],
+            },
+            "total" => original with { TotalUnits = original.TotalUnits + 1 },
+            "detail" => original with
+            {
+                Details = [original.Details[0] with { SnapshotSchemaVersion = "other-snapshot-v1" }],
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(mismatch)),
+        };
+
+        var action = () => store.CommitAsync(draft, default);
+
+        await action.Should().ThrowAsync<ClaimFinalizationException>()
+            .Where(exception => exception.Code == ClaimErrorCode.InvalidOperationPayload);
+        audit.Calls.Should().Be(0);
+        await using var verification = _factory.CreateDbContext();
+        (await verification.ClaimBatches.CountAsync()).Should().Be(0);
+        (await verification.ClaimDetails.CountAsync()).Should().Be(0);
+        (await verification.AuditEntries.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Commit_rejects_append_after_cancel_before_audit_or_save()
+    {
+        var audit = new RecordingAuditFactory();
+        var store = new ClaimFinalizationStore(
+            _factory,
+            new ClaimFinalizationOperationRegistry(),
+            new TestCodecRegistry(_codec),
+            audit,
+            TimeProvider.System);
+        var (cancellation, initial) = await CommitCancellationAsync(store);
+        await using var query = _factory.CreateDbContext();
+        var cancelledHead = await query.ClaimBatches
+            .SingleAsync(batch => batch.FinalizationOperationId == cancellation.FinalizationOperationId);
+        var correction = initial with
+        {
+            FinalizationOperationId = Guid.NewGuid(),
+            Kind = RecordKind.Correct,
+            RootBatchId = cancellation.RootBatchId,
+            ExpectedHead = new ClaimExpectedHead(cancelledHead.Id, cancelledHead.Revision),
+        };
+
+        var action = () => store.CommitAsync(correction, default);
+
+        await action.Should().ThrowAsync<ClaimFinalizationException>()
+            .Where(exception => exception.Code == ClaimErrorCode.ExpectedHeadMismatch);
+        audit.Calls.Should().Be(2);
+        await using var verification = _factory.CreateDbContext();
+        (await verification.ClaimBatches.CountAsync()).Should().Be(2);
+        (await verification.AuditEntries.CountAsync()).Should().Be(2);
+    }
+
+    [Fact]
     public async Task Commit_Cancel_replay_rejects_different_expected_head()
     {
         var store = CreateStore();
@@ -445,6 +546,53 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
         }
 
         var action = () => store.CommitAsync(tamperedDraft, default);
+
+        await action.Should().ThrowAsync<ClaimFinalizationException>()
+            .Where(exception => exception.Code == ClaimErrorCode.InvalidHistory);
+    }
+
+    [Fact]
+    public async Task Commit_maps_incoming_detail_sum_overflow_to_invalid_operation_payload()
+    {
+        var store = CreateStore();
+        var draft = DraftWithTwoDetails(Guid.NewGuid()) with
+        {
+            TotalUnits = int.MaxValue,
+            TotalCostYen = int.MaxValue,
+            TotalBenefitYen = int.MaxValue,
+            TotalBurdenYen = int.MaxValue,
+            Details = DraftWithTwoDetails(Guid.NewGuid()).Details
+                .Select(detail => detail with
+                {
+                    TotalUnits = int.MaxValue,
+                    TotalCostYen = int.MaxValue,
+                    BenefitYen = int.MaxValue,
+                    BurdenYen = int.MaxValue,
+                })
+                .ToArray(),
+        };
+
+        var action = () => store.CommitAsync(draft, default);
+
+        await action.Should().ThrowAsync<ClaimFinalizationException>()
+            .Where(exception => exception.Code == ClaimErrorCode.InvalidOperationPayload);
+    }
+
+    [Fact]
+    public async Task Replay_maps_persisted_detail_sum_overflow_to_invalid_history()
+    {
+        var store = CreateStore();
+        var draft = DraftWithTwoDetails(Guid.NewGuid());
+        await store.CommitAsync(draft, default);
+        await using (var tamper = _factory.CreateDbContext())
+        {
+            await tamper.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE ClaimBatches SET TotalUnits = {int.MaxValue}, TotalCostYen = {int.MaxValue}, TotalBenefitYen = {int.MaxValue}, TotalBurdenYen = {int.MaxValue}");
+            await tamper.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE ClaimDetails SET TotalUnits = {int.MaxValue}, TotalCostYen = {int.MaxValue}, BenefitYen = {int.MaxValue}, BurdenYen = {int.MaxValue}");
+        }
+
+        var action = () => store.CommitAsync(draft, default);
 
         await action.Should().ThrowAsync<ClaimFinalizationException>()
             .Where(exception => exception.Code == ClaimErrorCode.InvalidHistory);
@@ -900,6 +1048,23 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
                 actor);
     }
 
+    private sealed class RecordingAuditFactory : IClaimAuditEntryFactory
+    {
+        private readonly ClaimAuditEntryFactory _inner = new();
+
+        internal int Calls { get; private set; }
+
+        public Tsumugi.Domain.Entities.AuditEntry Create(
+            Guid auditEntryId,
+            string actor,
+            ClaimAuditPayload payload,
+            DateTimeOffset occurredAt)
+        {
+            Calls++;
+            return _inner.Create(auditEntryId, actor, payload, occurredAt);
+        }
+    }
+
     private sealed class V2Operation : IClaimFinalizationOperation
     {
         private readonly ClaimFinalizationOperationV1 _v1 = new();
@@ -907,12 +1072,26 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
         public string SchemaVersion => "claim-finalization-operation-v2";
 
         public ClaimFinalizationOperationPayload Canonicalize(ClaimFinalizationDraft draft)
-            => _v1.Canonicalize(draft);
+            => ToV2(_v1.Canonicalize(draft));
 
         public ClaimFinalizationOperationPayload Rebuild(
             ClaimBatchAggregate aggregate,
             IReadOnlyList<ClaimFinalizationDetailDraft> details)
-            => _v1.Rebuild(aggregate, details);
+            => ToV2(_v1.Rebuild(aggregate, details));
+
+        private static ClaimFinalizationOperationPayload ToV2(
+            ClaimFinalizationOperationPayload v1Payload)
+        {
+            var json = Encoding.UTF8.GetString(v1Payload.GetCanonicalUtf8Bytes())
+                .Replace(
+                    ClaimFinalizationOperationV1.SchemaVersion,
+                    "claim-finalization-operation-v2",
+                    StringComparison.Ordinal);
+            var bytes = Encoding.UTF8.GetBytes(json);
+            return new ClaimFinalizationOperationPayload(
+                bytes,
+                Convert.ToHexStringLower(SHA256.HashData(bytes)));
+        }
     }
 
     private sealed class TestCodec : IClaimSnapshotValidationCodec

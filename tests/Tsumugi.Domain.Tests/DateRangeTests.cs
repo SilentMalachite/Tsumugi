@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using Tsumugi.Domain.ValueObjects;
 using Xunit;
@@ -14,8 +15,10 @@ public sealed class DateRangeTests
     [InlineData("2026-04-01", "2026-04-30", "2026-05-01", false)]
     public void Contains_handles_both_ends_inclusive(string s, string e, string d, bool expected)
     {
-        var range = new DateRange(DateOnly.Parse(s), DateOnly.Parse(e));
-        range.Contains(DateOnly.Parse(d)).Should().Be(expected);
+        var range = new DateRange(
+            DateOnly.Parse(s, CultureInfo.InvariantCulture),
+            DateOnly.Parse(e, CultureInfo.InvariantCulture));
+        range.Contains(DateOnly.Parse(d, CultureInfo.InvariantCulture)).Should().Be(expected);
     }
 
     [Fact]

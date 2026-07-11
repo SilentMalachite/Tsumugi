@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Logic;
@@ -22,8 +23,8 @@ public sealed class CertificatePolicyTests
     public void Single_certificate_matches_threshold(string asOf, string end, int threshold, bool isHit)
     {
         var result = CertificatePolicy.FindExpiring(
-            new[] { Cert(DateOnly.Parse(end)) },
-            DateOnly.Parse(asOf),
+            new[] { Cert(DateOnly.Parse(end, CultureInfo.InvariantCulture)) },
+            DateOnly.Parse(asOf, CultureInfo.InvariantCulture),
             threshold);
         result.Should().HaveCount(isHit ? 1 : 0);
     }

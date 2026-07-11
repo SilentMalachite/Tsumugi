@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -192,7 +193,9 @@ public sealed class ClaimBatchUniqueConstraintTests : IClassFixture<SqliteFixtur
         command.CommandText = "PRAGMA foreign_keys = ON;";
         await command.ExecuteNonQueryAsync();
         command.CommandText = "PRAGMA foreign_keys;";
-        var enabled = Convert.ToInt64(await command.ExecuteScalarAsync());
+        var enabled = Convert.ToInt64(
+            await command.ExecuteScalarAsync(),
+            CultureInfo.InvariantCulture);
         enabled.Should().Be(1);
 
         return context;

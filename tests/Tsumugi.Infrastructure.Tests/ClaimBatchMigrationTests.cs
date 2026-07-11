@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -118,7 +119,9 @@ public sealed class ClaimBatchMigrationTests
         await using var command = connection.CreateCommand();
         command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = $name;";
         command.Parameters.AddWithValue("$name", tableName);
-        return Convert.ToInt64(await command.ExecuteScalarAsync()) == 1;
+        return Convert.ToInt64(
+            await command.ExecuteScalarAsync(),
+            CultureInfo.InvariantCulture) == 1;
     }
 
     private static async Task<Dictionary<string, bool>> ReadIndexesAsync(
@@ -210,7 +213,9 @@ public sealed class ClaimBatchMigrationTests
             await using (var command = connection.CreateCommand())
             {
                 command.CommandText = "PRAGMA foreign_keys;";
-                Convert.ToInt64(await command.ExecuteScalarAsync()).Should().Be(1);
+                Convert.ToInt64(
+                    await command.ExecuteScalarAsync(),
+                    CultureInfo.InvariantCulture).Should().Be(1);
             }
 
             var options = new DbContextOptionsBuilder<TsumugiDbContext>()

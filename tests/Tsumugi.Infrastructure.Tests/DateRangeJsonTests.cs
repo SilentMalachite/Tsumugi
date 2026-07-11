@@ -7,9 +7,8 @@ namespace Tsumugi.Infrastructure.Tests;
 
 public sealed class DateRangeJsonTests
 {
-    // NOTE: 全アセンブリで InvariantGlobalization=true のため Culture 切替テストは構築不能。
-    // 代わりに「ISO 文字列で書き出され、ISO 文字列から元の値に戻る」契約をピン留めし、
-    // 将来 Invariant モードが外された場合も Culture 依存の地雷を踏まないよう既定値を固定する。
+    // globalization有効下でも「ISO文字列で書き出され、ISO文字列から元の値に戻る」契約を
+    // ピン留めし、実行環境のCultureに依存しない既定値を固定する。
 
     [Fact]
     public void Serialize_emits_iso_yyyy_MM_dd_for_start_and_end()

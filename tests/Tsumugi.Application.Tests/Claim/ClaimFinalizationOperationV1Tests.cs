@@ -3,6 +3,7 @@ using System.Text;
 using FluentAssertions;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
+using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.ValueObjects;
 
@@ -27,6 +28,20 @@ public sealed class ClaimFinalizationOperationV1Tests
     public void Canonicalize_rejects_non_normalized_actor()
     {
         var draft = Draft() with { CreatedBy = "e\u0301" };
+
+        FluentActions.Invoking(() => new ClaimFinalizationOperationV1().Canonicalize(draft))
+            .Should().Throw<ClaimFinalizationException>()
+            .Which.Code.Should().Be(ClaimErrorCode.InvalidOperationPayload);
+    }
+
+    [Theory]
+    [InlineData("A\u0309")]
+    [InlineData("A\u0323")]
+    [InlineData("\u1100\u1161")]
+    [InlineData("A\u0323\u0309")]
+    public void Canonicalize_rejects_non_NFC_actor_across_unicode(string actor)
+    {
+        var draft = Draft() with { CreatedBy = actor };
 
         FluentActions.Invoking(() => new ClaimFinalizationOperationV1().Canonicalize(draft))
             .Should().Throw<ClaimFinalizationException>()
@@ -112,7 +127,83 @@ public sealed class ClaimFinalizationOperationV1Tests
             .Which.Code.Should().Be(ClaimErrorCode.InvalidOperationPayload);
     }
 
-    private static ClaimFinalizationDraft Draft() => new(
+    [Theory]
+    [InlineData("operationApplicationVersion")]
+    [InlineData("claimMasterVersion")]
+    [InlineData("csvSpecificationVersion")]
+    [InlineData("reportSpecificationVersion")]
+    [InlineData("snapshotApplicationVersion")]
+    [InlineData("expectedHeadBatchId")]
+    [InlineData("expectedHeadRevision")]
+    [InlineData("totalUnits")]
+    [InlineData("totalCostYen")]
+    [InlineData("totalBenefitYen")]
+    [InlineData("totalBurdenYen")]
+    [InlineData("inputEnvelopeBytes")]
+    [InlineData("calculationEnvelopeBytes")]
+    public void Canonicalize_hash_changes_for_each_operation_input(string field)
+    {
+        var draft = Draft() with
+        {
+            RootBatchId = Guid.Parse("40000000-0000-0000-0000-000000000000"),
+            ExpectedHead = new ClaimExpectedHead(
+                Guid.Parse("50000000-0000-0000-0000-000000000000"), 7),
+        };
+        var changed = WithHashField(draft, field);
+        var operation = new ClaimFinalizationOperationV1();
+
+        var original = operation.Canonicalize(draft);
+        var modified = operation.Canonicalize(changed);
+
+        modified.Sha256.Should().NotBe(original.Sha256);
+        modified.GetCanonicalUtf8Bytes().Should().NotEqual(original.GetCanonicalUtf8Bytes());
+    }
+
+    [Fact]
+    public void Rebuild_excludes_persisted_ids_created_at_and_revision_from_operation_payload()
+    {
+        var draft = Draft();
+        var operation = new ClaimFinalizationOperationV1();
+        var first = Aggregate(
+            draft,
+            Guid.Parse("60000000-0000-0000-0000-000000000000"),
+            Guid.Parse("70000000-0000-0000-0000-000000000000"),
+            DateTimeOffset.UnixEpoch,
+            revision: 1);
+        var second = Aggregate(
+            draft,
+            Guid.Parse("80000000-0000-0000-0000-000000000000"),
+            Guid.Parse("90000000-0000-0000-0000-000000000000"),
+            DateTimeOffset.UnixEpoch.AddYears(10),
+            revision: 99);
+
+        var firstPayload = operation.Rebuild(first, draft.Details);
+        var secondPayload = operation.Rebuild(second, draft.Details);
+
+        secondPayload.Sha256.Should().Be(firstPayload.Sha256);
+        secondPayload.GetCanonicalUtf8Bytes().Should().Equal(firstPayload.GetCanonicalUtf8Bytes());
+    }
+
+    [Fact]
+    public void Rebuild_from_persisted_aggregate_matches_original_bytes_and_hash()
+    {
+        var draft = Draft();
+        var operation = new ClaimFinalizationOperationV1();
+        var original = operation.Canonicalize(draft);
+        var aggregate = Aggregate(
+            draft,
+            Guid.Parse("60000000-0000-0000-0000-000000000000"),
+            Guid.Parse("70000000-0000-0000-0000-000000000000"),
+            DateTimeOffset.UnixEpoch,
+            revision: 1);
+
+        var rebuilt = operation.Rebuild(aggregate, draft.Details);
+
+        rebuilt.Sha256.Should().Be(original.Sha256);
+        rebuilt.GetCanonicalUtf8Bytes().Should().Equal(original.GetCanonicalUtf8Bytes());
+    }
+
+    internal static ClaimFinalizationDraft Draft() => new(
         Guid.Parse("30000000-0000-0000-0000-000000000000"),
         RecordKind.New,
         Guid.Parse("10000000-0000-0000-0000-000000000000"),
@@ -192,6 +283,89 @@ public sealed class ClaimFinalizationOperationV1Tests
                 }),
             _ => throw new ArgumentOutOfRangeException(nameof(field)),
         };
+
+    private static ClaimFinalizationDraft WithHashField(
+        ClaimFinalizationDraft draft,
+        string field) => field switch
+        {
+            "operationApplicationVersion" => draft with { OperationApplicationVersion = "operation-app-v2" },
+            "claimMasterVersion" => draft with { ClaimMasterVersion = "master-v2" },
+            "csvSpecificationVersion" => draft with { CsvSpecificationVersion = "csv-v2" },
+            "reportSpecificationVersion" => draft with { ReportSpecificationVersion = "report-v2" },
+            "snapshotApplicationVersion" => draft with { SnapshotApplicationVersion = "snapshot-app-v2" },
+            "expectedHeadBatchId" => draft with
+            {
+                ExpectedHead = draft.ExpectedHead! with { BatchId = Guid.NewGuid() },
+            },
+            "expectedHeadRevision" => draft with
+            {
+                ExpectedHead = draft.ExpectedHead! with { Revision = draft.ExpectedHead.Revision + 1 },
+            },
+            "totalUnits" => draft with { TotalUnits = draft.TotalUnits + 1 },
+            "totalCostYen" => draft with { TotalCostYen = draft.TotalCostYen + 1 },
+            "totalBenefitYen" => draft with { TotalBenefitYen = draft.TotalBenefitYen + 1 },
+            "totalBurdenYen" => draft with { TotalBurdenYen = draft.TotalBurdenYen + 1 },
+            "inputEnvelopeBytes" => WithDetail(
+                draft,
+                draft.Details[0] with { InputSnapshotEnvelope = Envelope("{\"type\":\"input-v2\"}") }),
+            "calculationEnvelopeBytes" => WithDetail(
+                draft,
+                draft.Details[0] with
+                {
+                    CalculationSnapshotEnvelope = Envelope("{\"type\":\"calculation-v2\"}"),
+                }),
+            _ => throw new ArgumentOutOfRangeException(nameof(field)),
+        };
+
+    private static ClaimBatchAggregate Aggregate(
+        ClaimFinalizationDraft draft,
+        Guid batchId,
+        Guid detailId,
+        DateTimeOffset createdAt,
+        int revision)
+    {
+        var payload = new ClaimFinalizationOperationV1().Canonicalize(draft);
+        var batch = ClaimBatch.NewRecord(
+            batchId,
+            draft.OfficeId,
+            draft.ServiceMonth,
+            draft.TotalUnits,
+            draft.TotalCostYen,
+            draft.TotalBenefitYen,
+            draft.TotalBurdenYen,
+            draft.ClaimMasterVersion,
+            draft.CsvSpecificationVersion,
+            draft.ReportSpecificationVersion,
+            draft.SnapshotApplicationVersion,
+            draft.OperationApplicationVersion,
+            draft.FinalizationOperationId,
+            ClaimFinalizationOperationV1.SchemaVersion,
+            payload.Sha256,
+            draft.CreatedBy,
+            createdAt) with
+        {
+            Revision = revision,
+        };
+        var detailDraft = draft.Details[0];
+        var detail = ClaimDetail.Create(
+            detailId,
+            batchId,
+            detailDraft.RecipientId,
+            detailDraft.SnapshotSchemaVersion,
+            detailDraft.ClaimMasterVersion,
+            detailDraft.CsvSpecificationVersion,
+            detailDraft.ReportSpecificationVersion,
+            detailDraft.SnapshotApplicationVersion,
+            Encoding.UTF8.GetString(detailDraft.InputSnapshotEnvelope.GetCanonicalUtf8Bytes()),
+            Encoding.UTF8.GetString(detailDraft.CalculationSnapshotEnvelope.GetCanonicalUtf8Bytes()),
+            detailDraft.TotalUnits,
+            detailDraft.TotalCostYen,
+            detailDraft.BenefitYen,
+            detailDraft.BurdenYen,
+            draft.CreatedBy,
+            createdAt);
+        return new ClaimBatchAggregate(batch, [detail]);
+    }
 
     private static ClaimFinalizationDraft WithDetail(
         ClaimFinalizationDraft draft,

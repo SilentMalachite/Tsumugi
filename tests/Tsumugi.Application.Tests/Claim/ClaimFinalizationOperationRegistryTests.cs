@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using FluentAssertions;
 using Tsumugi.Application.Claim;
 
@@ -25,17 +27,31 @@ public sealed class ClaimFinalizationOperationRegistryTests
         registry.GetReadEntry(ClaimFinalizationOperationV1.SchemaVersion)!.Operation.Should().BeSameAs(v1);
         registry.GetWriteEntry(ClaimFinalizationOperationV1.SchemaVersion).Should().BeNull();
         registry.GetWriteEntry(v2.SchemaVersion)!.Operation.Should().BeSameAs(v2);
+        var draft = ClaimFinalizationOperationV1Tests.Draft();
+        var v1Bytes = v1.Canonicalize(draft).GetCanonicalUtf8Bytes();
+        var v2Bytes = registry.GetWriteEntry(v2.SchemaVersion)!.Operation
+            .Canonicalize(draft)
+            .GetCanonicalUtf8Bytes();
+        Encoding.UTF8.GetString(v2Bytes).Should().Be(
+            "{\"schemaVersion\":\"claim-finalization-operation-v2\"}");
+        v2Bytes.Should().NotEqual(v1Bytes);
     }
 
     private sealed class StubOperation(string schemaVersion) : IClaimFinalizationOperation
     {
         public string SchemaVersion { get; } = schemaVersion;
         public ClaimFinalizationOperationPayload Canonicalize(
-            Tsumugi.Application.Abstractions.ClaimFinalizationDraft draft) => throw new NotSupportedException();
+            Tsumugi.Application.Abstractions.ClaimFinalizationDraft draft)
+        {
+            var bytes = Encoding.UTF8.GetBytes($"{{\"schemaVersion\":\"{SchemaVersion}\"}}");
+            return new ClaimFinalizationOperationPayload(
+                bytes,
+                Convert.ToHexStringLower(SHA256.HashData(bytes)));
+        }
 
         public ClaimFinalizationOperationPayload Rebuild(
             Tsumugi.Application.Abstractions.ClaimBatchAggregate aggregate,
             IReadOnlyList<Tsumugi.Application.Abstractions.ClaimFinalizationDetailDraft> details)
-            => throw new NotSupportedException();
+            => Canonicalize(null!);
     }
 }
