@@ -148,8 +148,53 @@
       "supersedes": null,
       "corrects": null,
       "supplements": null,
-      "applicabilityNote": "effectiveAtは資料の「令和6年5月版」を月初に正規化し、publishedAtは公式お知らせの提示開始日に基づく。成人B型にはphysical pages 16〜17の一般上限額管理フローとpages 19〜20の入力不整合・適用境界の存在確認だけに使用する。physical page 18全体は障害児通所用であり、徴収順、管理結果区分1〜3、金額関係のいずれも成人B型の検証へ使用しない。2024-04へ遡及せず、R6-06版にも含めない。2024-04〜2026-05の成人B型上限額管理対象は成人用一次資料追加まで算定不能とする",
+      "applicabilityNote": "effectiveAtは資料の「令和6年5月版」を月初に正規化し、publishedAtは公式お知らせの提示開始日に基づく。成人B型にはphysical pages 16〜17の一般上限額管理フローとpages 19〜20の入力不整合・適用境界の存在確認だけに使用する。physical page 18全体は障害児通所用であり、徴収順、管理結果区分1〜3、金額関係のいずれも成人B型の検証へ使用しない。2024-04へ遡及せず、R6-06版にも含めない",
       "correctionNote": null
+    },
+    {
+      "documentId": "r6-grant-decision-administration-202404",
+      "title": "介護給付費等に係る支給決定事務等について（事務処理要領・最終改正令和6年4月）",
+      "publisher": "厚生労働省（福島県公式ページ再配布）",
+      "effectiveAt": "2024-04-01",
+      "publishedAt": "2024-03-29",
+      "retrievedAt": "2026-07-11",
+      "url": "https://www.pref.fukushima.lg.jp/uploaded/attachment/624888.pdf",
+      "sha256": "ddbcaf0421f9fad4fcb925515247363ea19eb5880dbb0f4d8b54922dada303c8",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "福島県公式配布ページの項目（16）が2024-03-29付の厚生労働省・こども家庭庁通知の【溶け込み】事務処理要領として再配布。SHA-256を固定した4,587,513 bytes・256 pagesを2026-07-11に取得。physical pages 170〜183に成人の上限額管理概要、指定就労継続支援B型事業所、結果票、結果区分1〜3、優先徴収順、総費用額、利用者負担額、管理結果後利用者負担額と配分を収載し、2024-04〜2024-12に適用する",
+      "correctionNote": null
+    },
+    {
+      "documentId": "r7-grant-decision-administration-202501",
+      "title": "介護給付費等に係る支給決定事務等について（事務処理要領・最終改正令和7年1月）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2025-01-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-11",
+      "url": "https://www.mhlw.go.jp/content/12200000/001242850.pdf",
+      "sha256": "f3667ee8504dd86c39ae9bd35996f67ba03b89115878fa76a05eaa6d181f9f8e",
+      "supersedes": ["r6-grant-decision-administration-202404"],
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "厚生労働省の原URLは現在404。Internet Archiveの公式origin capture 20250317120118からraw locator 20250317120118id_で1,881,376 bytes・256 pagesを2026-07-11に取得。physical pages 170〜183の上限額管理規則の抽出本文はR6版と一致し、成人B型の結果票、結果区分1〜3、優先徴収順、金額項目と配分を2025-01〜2025-08に適用する",
+      "correctionNote": "2025-01からr6-grant-decision-administration-202404を置換する。R6適用月へ遡及しない"
+    },
+    {
+      "documentId": "r7-grant-decision-administration-202509",
+      "title": "介護給付費等に係る支給決定事務等について（事務処理要領・最終改正令和7年9月）",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2025-09-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-11",
+      "url": "https://www.mhlw.go.jp/content/12200000/001571725.pdf",
+      "sha256": "243686e446eb695468ebe370ddabaed4b7743f5afd9ef60e29afc0019ead97cc",
+      "supersedes": ["r7-grant-decision-administration-202501"],
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "厚生労働省の原URLは現在404。Internet Archiveの公式origin capture 20251001223141からraw locator 20251001223141id_で1,944,918 bytes・261 pagesを2026-07-11に取得。physical page 172に概要、174に指定就労継続支援B型、181〜185に結果票、項目、結果区分1〜3、優先徴収順、金額項目と配分を収載し、2025-09〜2026-05に適用する",
+      "correctionNote": "2025-09からr7-grant-decision-administration-202501を置換する。2025-08以前へ遡及しない"
     },
     {
       "documentId": "r6-revision-overview",
@@ -722,11 +767,11 @@
       "retrievedAt": "2026-07-10",
       "url": "https://www.mhlw.go.jp/content/12200000/001470632.pdf",
       "sha256": "d6e1672245370d2d7bb9a4258622ae3e631d0a6144c8e0c9ea51e2018a146f1e",
-      "supersedes": null,
+      "supersedes": ["r7-grant-decision-administration-202509"],
       "corrects": null,
       "supplements": null,
       "applicabilityNote": "effectiveAtは「最終改正 令和8年6月」を月初に正規化。physical pages 112〜113の受給者証上限の認定・適用期間、pages 173〜186（特に182〜186）の上限額管理、結果1〜3、管理結果後利用者負担額、合計、成人を含む徴収優先順に使用。page 112は制度額を別の利用者負担マニュアル参照とするため、本資料を制度額そのものの根拠にしない。令和8年5月以前に遡及適用しない",
-      "correctionNote": null
+      "correctionNote": "2026-06からr7-grant-decision-administration-202509を置換する。2026-05以前へ遡及しない"
     },
     {
       "documentId": "r8-revision-overview",
@@ -1052,7 +1097,8 @@
         "r6-claim-decision-202404-pdf",
         "r6-claim-decision-202404-xls",
         "r6-disability-support-guide-202404",
-        "r6-claim-handbook-202405"
+        "r6-claim-handbook-202405",
+        "r6-grant-decision-administration-202404"
       ]
     },
     {
@@ -1089,7 +1135,10 @@
         "r6-service-codes-2-xlsx",
         "r6-claim-decision-202406-pdf",
         "r6-claim-decision-202406-xls",
-        "r6-disability-support-guide-202404"
+        "r6-disability-support-guide-202404",
+        "r6-grant-decision-administration-202404",
+        "r7-grant-decision-administration-202501",
+        "r7-grant-decision-administration-202509"
       ]
     },
     {

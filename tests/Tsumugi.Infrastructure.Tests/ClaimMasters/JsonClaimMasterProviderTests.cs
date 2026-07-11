@@ -23,6 +23,9 @@ public sealed class JsonClaimMasterProviderTests
         "mhlw-unit-price-notice-observed-946c3d96",
         "r6-disability-support-guide-202404",
         "r6-claim-handbook-202405",
+        "r6-grant-decision-administration-202404",
+        "r7-grant-decision-administration-202501",
+        "r7-grant-decision-administration-202509",
         "r6-revision-overview",
         "r6-fee-notice",
         "r6-calculation-note",
@@ -186,6 +189,97 @@ public sealed class JsonClaimMasterProviderTests
                 "url", "sha256", "supersedes", "corrects", "supplements", "applicabilityNote",
                 "correctionNote");
         }
+    }
+
+    [Fact]
+    public void Embedded_catalog_registers_the_R6_adult_burden_source_from_the_official_distribution()
+    {
+        using var stream = OpenEmbedded(".ClaimMasters.Seed.sources.json");
+        using var document = JsonDocument.Parse(stream);
+        var source = SourceById(document.RootElement, "r6-grant-decision-administration-202404");
+
+        source.GetProperty("title").GetString().Should()
+            .Be("介護給付費等に係る支給決定事務等について（事務処理要領・最終改正令和6年4月）");
+        source.GetProperty("publisher").GetString().Should().Be("厚生労働省（福島県公式ページ再配布）");
+        source.GetProperty("effectiveAt").GetString().Should().Be("2024-04-01");
+        source.GetProperty("publishedAt").GetString().Should().Be("2024-03-29");
+        source.GetProperty("retrievedAt").GetString().Should().Be("2026-07-11");
+        source.GetProperty("url").GetString().Should()
+            .Be("https://www.pref.fukushima.lg.jp/uploaded/attachment/624888.pdf");
+        source.GetProperty("sha256").GetString().Should()
+            .Be("ddbcaf0421f9fad4fcb925515247363ea19eb5880dbb0f4d8b54922dada303c8");
+        var note = source.GetProperty("applicabilityNote").GetString();
+        note.Should().Contain("福島県公式配布ページ");
+        note.Should().Contain("4,587,513 bytes");
+        note.Should().Contain("physical pages 170〜183");
+        note.Should().Contain("2024-04〜2024-12");
+    }
+
+    [Fact]
+    public void Embedded_catalog_registers_the_archived_R7_January_adult_burden_source()
+    {
+        using var stream = OpenEmbedded(".ClaimMasters.Seed.sources.json");
+        using var document = JsonDocument.Parse(stream);
+        var source = SourceById(document.RootElement, "r7-grant-decision-administration-202501");
+
+        source.GetProperty("title").GetString().Should()
+            .Be("介護給付費等に係る支給決定事務等について（事務処理要領・最終改正令和7年1月）");
+        source.GetProperty("publisher").GetString().Should().Be("厚生労働省");
+        source.GetProperty("effectiveAt").GetString().Should().Be("2025-01-01");
+        source.GetProperty("publishedAt").ValueKind.Should().Be(JsonValueKind.Null);
+        source.GetProperty("retrievedAt").GetString().Should().Be("2026-07-11");
+        source.GetProperty("url").GetString().Should()
+            .Be("https://www.mhlw.go.jp/content/12200000/001242850.pdf");
+        source.GetProperty("sha256").GetString().Should()
+            .Be("f3667ee8504dd86c39ae9bd35996f67ba03b89115878fa76a05eaa6d181f9f8e");
+        RelationIds(source, "supersedes").Should().Equal("r6-grant-decision-administration-202404");
+        var note = source.GetProperty("applicabilityNote").GetString();
+        note.Should().Contain("原URLは現在404");
+        note.Should().Contain("20250317120118id_");
+        note.Should().Contain("1,881,376 bytes");
+        note.Should().Contain("2025-01〜2025-08");
+        source.GetProperty("correctionNote").GetString().Should()
+            .Contain("r6-grant-decision-administration-202404");
+    }
+
+    [Fact]
+    public void Embedded_catalog_registers_the_archived_R7_September_adult_burden_source()
+    {
+        using var stream = OpenEmbedded(".ClaimMasters.Seed.sources.json");
+        using var document = JsonDocument.Parse(stream);
+        var source = SourceById(document.RootElement, "r7-grant-decision-administration-202509");
+
+        source.GetProperty("title").GetString().Should()
+            .Be("介護給付費等に係る支給決定事務等について（事務処理要領・最終改正令和7年9月）");
+        source.GetProperty("publisher").GetString().Should().Be("厚生労働省");
+        source.GetProperty("effectiveAt").GetString().Should().Be("2025-09-01");
+        source.GetProperty("publishedAt").ValueKind.Should().Be(JsonValueKind.Null);
+        source.GetProperty("retrievedAt").GetString().Should().Be("2026-07-11");
+        source.GetProperty("url").GetString().Should()
+            .Be("https://www.mhlw.go.jp/content/12200000/001571725.pdf");
+        source.GetProperty("sha256").GetString().Should()
+            .Be("243686e446eb695468ebe370ddabaed4b7743f5afd9ef60e29afc0019ead97cc");
+        RelationIds(source, "supersedes").Should().Equal("r7-grant-decision-administration-202501");
+        var note = source.GetProperty("applicabilityNote").GetString();
+        note.Should().Contain("原URLは現在404");
+        note.Should().Contain("20251001223141id_");
+        note.Should().Contain("1,944,918 bytes");
+        note.Should().Contain("2025-09〜2026-05");
+        source.GetProperty("correctionNote").GetString().Should()
+            .Contain("r7-grant-decision-administration-202501");
+    }
+
+    [Fact]
+    public void Embedded_catalog_links_the_R8_adult_burden_source_to_the_R7_September_source()
+    {
+        using var stream = OpenEmbedded(".ClaimMasters.Seed.sources.json");
+        using var document = JsonDocument.Parse(stream);
+        var source = SourceById(document.RootElement, "r8-grant-decision-administration-202606");
+
+        RelationIds(source, "supersedes").Should().Equal("r7-grant-decision-administration-202509");
+        source.GetProperty("correctionNote").GetString().Should().Contain("2026-06");
+        source.GetProperty("correctionNote").GetString().Should()
+            .Contain("r7-grant-decision-administration-202509");
     }
 
     [Fact]
@@ -472,6 +566,17 @@ public sealed class JsonClaimMasterProviderTests
         .Select(item => item.GetString()!)
         .ToArray();
 
+    private static JsonElement SourceById(JsonElement root, string documentId) => root
+        .GetProperty("sources")
+        .EnumerateArray()
+        .Single(source => source.GetProperty("documentId").GetString() == documentId);
+
+    private static string[] RelationIds(JsonElement source, string relation) => source
+        .GetProperty(relation)
+        .EnumerateArray()
+        .Select(item => item.GetString()!)
+        .ToArray();
+
     private static string[] Required(JsonElement schema) => schema.GetProperty("required")
         .EnumerateArray().Select(item => item.GetString()!).ToArray();
 
@@ -550,6 +655,7 @@ public sealed class JsonClaimMasterProviderTests
         "r6-capability-202404", "r6-reward-structure", "r6-service-codes-2-pdf",
         "r6-service-codes-2-xlsx", "r6-claim-decision-202404-pdf", "r6-claim-decision-202404-xls",
         "r6-disability-support-guide-202404", "r6-claim-handbook-202405",
+        "r6-grant-decision-administration-202404",
     ];
 
     private static readonly string[] ExpectedR606Sources =
@@ -562,7 +668,8 @@ public sealed class JsonClaimMasterProviderTests
         "r6-calculation-corr-8", "r6-qa-corr-1", "r6-qa-corr-2", "r6-qa-corr-3",
         "r6-capability-202406", "r6-reward-structure", "r6-service-codes-2-pdf",
         "r6-service-codes-2-xlsx", "r6-claim-decision-202406-pdf", "r6-claim-decision-202406-xls",
-        "r6-disability-support-guide-202404",
+        "r6-disability-support-guide-202404", "r6-grant-decision-administration-202404",
+        "r7-grant-decision-administration-202501", "r7-grant-decision-administration-202509",
     ];
 
     private static readonly string[] ExpectedR806Sources =
