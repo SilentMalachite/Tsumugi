@@ -40,6 +40,12 @@ public sealed class ClaimFinalizationStore(
                 ct);
             if (replay is not null)
             {
+                var replayHistory = await ListHistoryAggregatesAsync(
+                    db,
+                    replay.Header.OfficeId,
+                    replay.Header.ServiceMonth,
+                    ct);
+                ValidateHistory(replayHistory);
                 var result = ValidateReplay(replay, draft);
                 await transaction.RollbackAsync(ct);
                 return result;

@@ -65,6 +65,46 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Replay_rejects_tampered_revision_even_when_operation_hash_matches()
+    {
+        var store = CreateStore();
+        var draft = Draft(Guid.NewGuid());
+        var committed = await store.CommitAsync(draft, default);
+        await using (var tamper = _factory.CreateDbContext())
+            await tamper.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE ClaimBatches SET Revision = 2 WHERE Id = {committed.BatchId}");
+
+        var action = () => store.CommitAsync(draft, default);
+
+        await action.Should().ThrowAsync<ClaimFinalizationException>()
+            .Where(exception => exception.Code == ClaimErrorCode.InvalidHistory);
+    }
+
+    [Fact]
+    public async Task Replay_rejects_revision_gap_elsewhere_in_same_history()
+    {
+        var store = CreateStore();
+        var initial = Draft(Guid.NewGuid());
+        var root = await store.CommitAsync(initial, default);
+        var correction = initial with
+        {
+            FinalizationOperationId = Guid.NewGuid(),
+            Kind = RecordKind.Correct,
+            RootBatchId = root.BatchId,
+            ExpectedHead = new ClaimExpectedHead(root.BatchId, root.Revision),
+        };
+        var corrected = await store.CommitAsync(correction, default);
+        await using (var tamper = _factory.CreateDbContext())
+            await tamper.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE ClaimBatches SET Revision = 3 WHERE Id = {corrected.BatchId}");
+
+        var action = () => store.CommitAsync(initial, default);
+
+        await action.Should().ThrowAsync<ClaimFinalizationException>()
+            .Where(exception => exception.Code == ClaimErrorCode.InvalidHistory);
+    }
+
+    [Fact]
     public async Task Commit_persists_hash_derived_from_canonical_bytes_and_replays()
     {
         var store = CreateStore();
