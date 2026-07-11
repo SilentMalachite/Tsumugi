@@ -6,6 +6,13 @@ namespace Tsumugi.Application.Tests.Claim;
 public sealed class ClaimFinalizationOperationRegistryTests
 {
     [Fact]
+    public void Operation_contract_exposes_versioned_aggregate_rebuild()
+    {
+        typeof(IClaimFinalizationOperation).GetMethod(nameof(ClaimFinalizationOperationV1.Rebuild))
+            .Should().NotBeNull();
+    }
+
+    [Fact]
     public void Read_support_remains_available_when_v1_write_is_disabled()
     {
         var v1 = new ClaimFinalizationOperationV1();
@@ -25,5 +32,10 @@ public sealed class ClaimFinalizationOperationRegistryTests
         public string SchemaVersion { get; } = schemaVersion;
         public ClaimFinalizationOperationPayload Canonicalize(
             Tsumugi.Application.Abstractions.ClaimFinalizationDraft draft) => throw new NotSupportedException();
+
+        public ClaimFinalizationOperationPayload Rebuild(
+            Tsumugi.Application.Abstractions.ClaimBatchAggregate aggregate,
+            IReadOnlyList<Tsumugi.Application.Abstractions.ClaimFinalizationDetailDraft> details)
+            => throw new NotSupportedException();
     }
 }

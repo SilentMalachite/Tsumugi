@@ -113,14 +113,23 @@ public sealed class ClaimFinalizationStore(
             aggregate.Header.OperationPayloadSchemaVersion)
             ?? throw Error(ClaimErrorCode.UnsupportedOperationSchema);
         var persistedDetails = RestoreDetailDrafts(aggregate);
-        var rebuilt = readEntry.Operation is ClaimFinalizationOperationV1 v1
-            ? v1.Rebuild(aggregate, persistedDetails)
-            : readEntry.Operation.Canonicalize(ToDraft(aggregate, persistedDetails));
+        var rebuilt = readEntry.Operation.Rebuild(aggregate, persistedDetails);
         if (!string.Equals(
                 rebuilt.Sha256,
                 aggregate.Header.OperationPayloadSha256,
                 StringComparison.Ordinal))
             throw Error(ClaimErrorCode.InvalidHistory);
+
+        if (aggregate.Header.Kind == RecordKind.Cancel)
+        {
+            ValidateIncomingEnvelopes(incoming, requireWrite: false);
+            if (incoming.Details.Count != 0
+                || incoming.TotalUnits != 0
+                || incoming.TotalCostYen != 0
+                || incoming.TotalBenefitYen != 0
+                || incoming.TotalBurdenYen != 0)
+                throw Error(ClaimErrorCode.InvalidOperationPayload);
+        }
 
         var normalizedIncoming = aggregate.Header.Kind == RecordKind.Cancel
             ? incoming with
@@ -129,14 +138,10 @@ public sealed class ClaimFinalizationStore(
                 CsvSpecificationVersion = aggregate.Header.CsvSpecificationVersion,
                 ReportSpecificationVersion = aggregate.Header.ReportSpecificationVersion,
                 SnapshotApplicationVersion = aggregate.Header.SnapshotApplicationVersion,
-                TotalUnits = 0,
-                TotalCostYen = 0,
-                TotalBenefitYen = 0,
-                TotalBurdenYen = 0,
-                Details = [],
             }
             : incoming;
-        ValidateIncomingEnvelopes(normalizedIncoming, requireWrite: false);
+        if (aggregate.Header.Kind != RecordKind.Cancel)
+            ValidateIncomingEnvelopes(normalizedIncoming, requireWrite: false);
         var requested = readEntry.Operation.Canonicalize(normalizedIncoming);
         if (!string.Equals(requested.Sha256, rebuilt.Sha256, StringComparison.Ordinal)
             || incoming.OfficeId != aggregate.Header.OfficeId
@@ -192,6 +197,7 @@ public sealed class ClaimFinalizationStore(
             || draft.Kind is not RecordKind.New and not RecordKind.Correct and not RecordKind.Cancel
             || draft.Details is null)
             throw Error(ClaimErrorCode.InvalidOperationPayload);
+        ValidateDraftMetadata(draft);
 
         var headers = history.Select(item => item.Header).ToArray();
         var head = ClaimBatchPolicy.Head(headers);
@@ -267,6 +273,10 @@ public sealed class ClaimFinalizationStore(
                      detail.CalculationSnapshotEnvelope,
                  }))
         {
+            if (!AsciiBounded(envelope.SchemaVersion)
+                || !AsciiBounded(envelope.ValidationCodecId)
+                || !LowerSha256(envelope.PayloadSha256))
+                throw Error(ClaimErrorCode.InvalidSnapshotEnvelope);
             var codec = codecRegistry.Find(envelope.SchemaVersion, envelope.ValidationCodecId)
                 ?? throw Error(ClaimErrorCode.UnsupportedSnapshotCodec);
             if (requireWrite && !codec.CanWrite)
@@ -294,14 +304,35 @@ public sealed class ClaimFinalizationStore(
     {
         var batch = aggregate.Header;
         var details = aggregate.Details;
-        if (details.Any(detail =>
-                detail.ClaimBatchId != batch.Id
+        if (batch.Id == Guid.Empty
+            || batch.FinalizationOperationId == Guid.Empty
+            || !Bounded(batch.CreatedBy)
+            || !AsciiBounded(batch.ClaimMasterVersion)
+            || !AsciiBounded(batch.CsvSpecificationVersion)
+            || !AsciiBounded(batch.ReportSpecificationVersion)
+            || !AsciiBounded(batch.SnapshotApplicationVersion)
+            || !AsciiBounded(batch.OperationApplicationVersion)
+            || !AsciiBounded(batch.OperationPayloadSchemaVersion)
+            || !LowerSha256(batch.OperationPayloadSha256)
+            || details.Any(detail =>
+                detail.Id == Guid.Empty
+                || detail.ClaimBatchId != batch.Id
+                || detail.RecipientId == Guid.Empty
+                || !Bounded(detail.CreatedBy)
                 || detail.CreatedBy != batch.CreatedBy
-                || detail.SnapshotSchemaVersion.Length == 0
+                || !AsciiBounded(detail.SnapshotSchemaVersion)
+                || !AsciiBounded(detail.ClaimMasterVersion)
+                || !AsciiBounded(detail.CsvSpecificationVersion)
+                || !AsciiBounded(detail.ReportSpecificationVersion)
+                || !AsciiBounded(detail.SnapshotApplicationVersion)
                 || detail.ClaimMasterVersion != batch.ClaimMasterVersion
                 || detail.CsvSpecificationVersion != batch.CsvSpecificationVersion
                 || detail.ReportSpecificationVersion != batch.ReportSpecificationVersion
-                || detail.SnapshotApplicationVersion != batch.SnapshotApplicationVersion)
+                || detail.SnapshotApplicationVersion != batch.SnapshotApplicationVersion
+                || detail.TotalUnits < 0
+                || detail.TotalCostYen < 0
+                || detail.BenefitYen < 0
+                || detail.BurdenYen < 0)
             || details.Select(detail => detail.RecipientId).Distinct().Count() != details.Count
             || (batch.Kind == RecordKind.Cancel && details.Count != 0)
             || (batch.Kind != RecordKind.Cancel
@@ -315,9 +346,7 @@ public sealed class ClaimFinalizationStore(
         if (!requireOperationHash) return;
         var readEntry = operationRegistry.GetReadEntry(batch.OperationPayloadSchemaVersion)
             ?? throw Error(ClaimErrorCode.UnsupportedOperationSchema);
-        var payload = readEntry.Operation is ClaimFinalizationOperationV1 v1
-            ? v1.Rebuild(aggregate, restored)
-            : readEntry.Operation.Canonicalize(ToDraft(aggregate, restored));
+        var payload = readEntry.Operation.Rebuild(aggregate, restored);
         if (!string.Equals(payload.Sha256, batch.OperationPayloadSha256, StringComparison.Ordinal))
             throw Error(ClaimErrorCode.InvalidHistory);
     }
@@ -348,14 +377,25 @@ public sealed class ClaimFinalizationStore(
             var reader = new Utf8JsonReader(bytes);
             using var document = JsonDocument.ParseValue(ref reader);
             var root = document.RootElement;
-            var schema = root.GetProperty("schemaVersion").GetString();
-            var codecId = root.GetProperty("validationCodecId").GetString();
+            if (reader.BytesConsumed != bytes.Length
+                || root.ValueKind != JsonValueKind.Object
+                || !root.TryGetProperty("schemaVersion", out var schemaProperty)
+                || schemaProperty.ValueKind != JsonValueKind.String
+                || !root.TryGetProperty("validationCodecId", out var codecProperty)
+                || codecProperty.ValueKind != JsonValueKind.String)
+                throw Error(ClaimErrorCode.InvalidSnapshotEnvelope);
+            var schema = schemaProperty.GetString();
+            var codecId = codecProperty.GetString();
             if (schema != expectedSchema || schema is null || codecId is null)
+                throw Error(ClaimErrorCode.InvalidSnapshotEnvelope);
+            if (!AsciiBounded(schema) || !AsciiBounded(codecId))
                 throw Error(ClaimErrorCode.InvalidSnapshotEnvelope);
             var codec = codecRegistry.Find(schema, codecId)
                 ?? throw Error(ClaimErrorCode.UnsupportedSnapshotCodec);
             var envelope = codec.ReadValidated(bytes);
-            if (envelope.SchemaVersion != schema || envelope.ValidationCodecId != codecId)
+            if (envelope.SchemaVersion != schema
+                || envelope.ValidationCodecId != codecId
+                || !LowerSha256(envelope.PayloadSha256))
                 throw Error(ClaimErrorCode.InvalidSnapshotEnvelope);
             return envelope;
         }
@@ -364,6 +404,11 @@ public sealed class ClaimFinalizationStore(
             throw;
         }
         catch (JsonException exception)
+        {
+            throw Error(ClaimErrorCode.InvalidSnapshotEnvelope, exception);
+        }
+        catch (Exception exception) when (
+            exception is KeyNotFoundException or InvalidOperationException or ArgumentException)
         {
             throw Error(ClaimErrorCode.InvalidSnapshotEnvelope, exception);
         }
@@ -414,33 +459,6 @@ public sealed class ClaimFinalizationStore(
             draft.CreatedBy, now))
         .ToArray();
 
-    private static ClaimFinalizationDraft ToDraft(
-        ClaimBatchAggregate aggregate,
-        IReadOnlyList<ClaimFinalizationDetailDraft> details)
-    {
-        var batch = aggregate.Header;
-        return new ClaimFinalizationDraft(
-            batch.FinalizationOperationId,
-            batch.Kind,
-            batch.OfficeId,
-            batch.ServiceMonth,
-            batch.OriginId,
-            batch.ExpectedHeadBatchId is null
-                ? null
-                : new ClaimExpectedHead(batch.ExpectedHeadBatchId.Value, batch.ExpectedHeadRevision!.Value),
-            batch.CreatedBy,
-            batch.OperationApplicationVersion,
-            batch.ClaimMasterVersion,
-            batch.CsvSpecificationVersion,
-            batch.ReportSpecificationVersion,
-            batch.SnapshotApplicationVersion,
-            batch.TotalUnits,
-            batch.TotalCostYen,
-            batch.TotalBenefitYen,
-            batch.TotalBurdenYen,
-            details);
-    }
-
     private static async Task<ClaimBatchAggregate?> FindAggregateByOperationIdAsync(
         TsumugiDbContext db,
         Guid operationId,
@@ -479,4 +497,38 @@ public sealed class ClaimFinalizationStore(
     private static ClaimFinalizationException Error(
         ClaimErrorCode code,
         Exception? inner = null) => new(code, innerException: inner);
+
+    private static void ValidateDraftMetadata(ClaimFinalizationDraft draft)
+    {
+        if (!Bounded(draft.CreatedBy)
+            || !AsciiBounded(draft.OperationApplicationVersion)
+            || !AsciiBounded(draft.ClaimMasterVersion)
+            || !AsciiBounded(draft.CsvSpecificationVersion)
+            || !AsciiBounded(draft.ReportSpecificationVersion)
+            || !AsciiBounded(draft.SnapshotApplicationVersion)
+            || draft.Details.Any(detail =>
+                !AsciiBounded(detail.SnapshotSchemaVersion)
+                || !AsciiBounded(detail.ClaimMasterVersion)
+                || !AsciiBounded(detail.CsvSpecificationVersion)
+                || !AsciiBounded(detail.ReportSpecificationVersion)
+                || !AsciiBounded(detail.SnapshotApplicationVersion)
+                || !AsciiBounded(detail.InputSnapshotEnvelope.SchemaVersion)
+                || !AsciiBounded(detail.InputSnapshotEnvelope.ValidationCodecId)
+                || !LowerSha256(detail.InputSnapshotEnvelope.PayloadSha256)
+                || !AsciiBounded(detail.CalculationSnapshotEnvelope.SchemaVersion)
+                || !AsciiBounded(detail.CalculationSnapshotEnvelope.ValidationCodecId)
+                || !LowerSha256(detail.CalculationSnapshotEnvelope.PayloadSha256)))
+            throw Error(ClaimErrorCode.InvalidOperationPayload);
+    }
+
+    private static bool Bounded(string value)
+        => !string.IsNullOrWhiteSpace(value) && value.Length <= 64;
+
+    private static bool AsciiBounded(string value)
+        => Bounded(value) && value.All(character => character <= 0x7f);
+
+    private static bool LowerSha256(string value)
+        => value is { Length: 64 }
+            && value.All(character =>
+                character is (>= '0' and <= '9') or (>= 'a' and <= 'f'));
 }

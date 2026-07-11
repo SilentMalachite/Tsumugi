@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -108,22 +107,30 @@ public sealed class ClaimFinalizationOperationV1 : IClaimFinalizationOperation
 
     private static void Validate(ClaimFinalizationDraft draft)
     {
-        if (!draft.CreatedBy.IsNormalized(NormalizationForm.FormC)
-            || draft.CreatedBy.Any(character =>
-                CharUnicodeInfo.GetUnicodeCategory(character) is UnicodeCategory.NonSpacingMark)
+        if (!Bounded(draft.CreatedBy)
+            || !IsNfc(draft.CreatedBy)
             || draft.FinalizationOperationId == Guid.Empty
             || draft.OfficeId == Guid.Empty
             || draft.Details is null
-            || !Ascii(draft.OperationApplicationVersion)
-            || !Ascii(draft.ClaimMasterVersion)
-            || !Ascii(draft.CsvSpecificationVersion)
-            || !Ascii(draft.ReportSpecificationVersion)
-            || !Ascii(draft.SnapshotApplicationVersion)
-            || draft.Details.Any(detail => !Ascii(detail.SnapshotSchemaVersion)
-                || !Ascii(detail.ClaimMasterVersion)
-                || !Ascii(detail.CsvSpecificationVersion)
-                || !Ascii(detail.ReportSpecificationVersion)
-                || !Ascii(detail.SnapshotApplicationVersion)
+            || !AsciiVersion(draft.OperationApplicationVersion)
+            || !AsciiVersion(draft.ClaimMasterVersion)
+            || !AsciiVersion(draft.CsvSpecificationVersion)
+            || !AsciiVersion(draft.ReportSpecificationVersion)
+            || !AsciiVersion(draft.SnapshotApplicationVersion)
+            || draft.Details.Any(detail => detail.RecipientId == Guid.Empty
+                || detail.TotalUnits < 0
+                || detail.TotalCostYen < 0
+                || detail.BenefitYen < 0
+                || detail.BurdenYen < 0
+                || !AsciiVersion(detail.SnapshotSchemaVersion)
+                || !AsciiVersion(detail.ClaimMasterVersion)
+                || !AsciiVersion(detail.CsvSpecificationVersion)
+                || !AsciiVersion(detail.ReportSpecificationVersion)
+                || !AsciiVersion(detail.SnapshotApplicationVersion)
+                || !AsciiVersion(detail.InputSnapshotEnvelope.SchemaVersion)
+                || !AsciiVersion(detail.InputSnapshotEnvelope.ValidationCodecId)
+                || !AsciiVersion(detail.CalculationSnapshotEnvelope.SchemaVersion)
+                || !AsciiVersion(detail.CalculationSnapshotEnvelope.ValidationCodecId)
                 || !IsJsonObject(detail.InputSnapshotEnvelope)
                 || !IsJsonObject(detail.CalculationSnapshotEnvelope)))
             throw new ClaimFinalizationException(ClaimErrorCode.InvalidOperationPayload);
@@ -145,8 +152,53 @@ public sealed class ClaimFinalizationOperationV1 : IClaimFinalizationOperation
         }
     }
 
-    private static bool Ascii(string value)
-        => !string.IsNullOrWhiteSpace(value) && value.All(character => character <= 0x7f);
+    private static bool Bounded(string value)
+        => !string.IsNullOrWhiteSpace(value) && value.Length <= 64;
+
+    private static bool AsciiVersion(string value)
+        => Bounded(value) && value.All(character => character <= 0x7f);
+
+    private static bool IsNfc(string value)
+    {
+        if (!value.IsNormalized(NormalizationForm.FormC)) return false;
+
+        // InvariantGlobalizationではIsNormalizedがdecomposed Latinを見逃すため、
+        // canonical compositionを持つ代表的なLatin pairだけをfallback検出する。
+        var codePoints = value.EnumerateRunes().Select(rune => rune.Value).ToArray();
+        return !codePoints
+            .Zip(codePoints.Skip(1), IsComposableLatinPair)
+            .Any(composable => composable);
+    }
+
+    private static bool IsComposableLatinPair(int first, int second) => second switch
+    {
+        0x0300 => first is 'A' or 'E' or 'I' or 'N' or 'O' or 'U' or 'W' or 'Y'
+            or 'a' or 'e' or 'i' or 'n' or 'o' or 'u' or 'w' or 'y',
+        0x0301 => first is 'A' or 'C' or 'E' or 'G' or 'I' or 'K' or 'L' or 'M' or 'N'
+            or 'O' or 'P' or 'R' or 'S' or 'U' or 'W' or 'Y' or 'Z'
+            or 'a' or 'c' or 'e' or 'g' or 'i' or 'k' or 'l' or 'm' or 'n'
+            or 'o' or 'p' or 'r' or 's' or 'u' or 'w' or 'y' or 'z',
+        0x0302 => first is 'A' or 'C' or 'E' or 'G' or 'H' or 'I' or 'J' or 'O' or 'S' or 'U' or 'W' or 'Y'
+            or 'a' or 'c' or 'e' or 'g' or 'h' or 'i' or 'j' or 'o' or 's' or 'u' or 'w' or 'y',
+        0x0303 => first is 'A' or 'E' or 'I' or 'N' or 'O' or 'U' or 'V' or 'Y'
+            or 'a' or 'e' or 'i' or 'n' or 'o' or 'u' or 'v' or 'y',
+        0x0304 => first is 'A' or 'E' or 'G' or 'I' or 'O' or 'U' or 'Y'
+            or 'a' or 'e' or 'g' or 'i' or 'o' or 'u' or 'y',
+        0x0306 => first is 'A' or 'E' or 'G' or 'I' or 'O' or 'U'
+            or 'a' or 'e' or 'g' or 'i' or 'o' or 'u',
+        0x0307 => first is 'A' or 'B' or 'C' or 'D' or 'E' or 'F' or 'G' or 'H' or 'I'
+            or 'M' or 'N' or 'O' or 'P' or 'R' or 'S' or 'W' or 'X' or 'Y' or 'Z'
+            or 'a' or 'b' or 'c' or 'd' or 'e' or 'f' or 'g' or 'h' or 'm'
+            or 'n' or 'o' or 'p' or 'r' or 's' or 'w' or 'x' or 'y' or 'z',
+        0x0308 => first is 'A' or 'E' or 'H' or 'I' or 'O' or 'U' or 'W' or 'X' or 'Y'
+            or 'a' or 'e' or 'h' or 'i' or 'o' or 't' or 'u' or 'w' or 'x' or 'y',
+        0x030A => first is 'A' or 'U' or 'a' or 'u',
+        0x030C => first is 'A' or 'C' or 'D' or 'E' or 'G' or 'H' or 'I' or 'K' or 'L' or 'N'
+            or 'O' or 'R' or 'S' or 'T' or 'U' or 'Z'
+            or 'a' or 'c' or 'd' or 'e' or 'g' or 'h' or 'i' or 'j' or 'k' or 'l'
+            or 'n' or 'o' or 'r' or 's' or 't' or 'u' or 'z',
+        _ => false,
+    };
 
     private static string FormatGuid(Guid value) => value.ToString("D").ToLowerInvariant();
 

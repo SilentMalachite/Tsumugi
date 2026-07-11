@@ -6,6 +6,9 @@ public interface IClaimFinalizationOperation
 {
     string SchemaVersion { get; }
     ClaimFinalizationOperationPayload Canonicalize(ClaimFinalizationDraft draft);
+    ClaimFinalizationOperationPayload Rebuild(
+        ClaimBatchAggregate aggregate,
+        IReadOnlyList<ClaimFinalizationDetailDraft> details);
 }
 
 public sealed class ClaimFinalizationOperationPayload
