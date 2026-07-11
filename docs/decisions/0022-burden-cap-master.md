@@ -45,7 +45,7 @@
 
 `PaymentBurdenCategory` との対応は `Welfare -> welfare`、`LowIncome -> low-income`、`General1 -> general-1`、`General2 -> general-2` の完全一致だけを許可する。`Unspecified` は制度額0の区分ではなく非入力状態なので、マスタ行を作らず算定不能とする。未知のenum値または文字列を近い区分へ寄せない。
 
-制度額の根拠は、ADR 0020の全3版束に登録した `r6-disability-support-guide-202404` 物理9頁である。R8の `r8-grant-decision-administration-202606` 物理112頁は制度額を別資料参照としており、金額自体の根拠には使わない。
+制度額の根拠は、ADR 0020の全5版束に登録した `r6-disability-support-guide-202404` 物理9頁である。R8の `r8-grant-decision-administration-202606` 物理112頁は制度額を別資料参照としており、金額自体の根拠には使わない。
 
 ### 3入力の責務境界
 
@@ -67,7 +67,7 @@ R8では市町村が所得区分等を認定して受給者証に負担上限月
 4. 証の区分とマスタkeyの対応、マスタ行の適用期間・適用条件、`certificateCap` が入力済みの非負値で `certificateCap <= masterCap` であることを検証する。低い個別実値は許可するが、制度マスタから区分または証実値を補完しない。
 5. 各事業所の上限適用前利用者負担額 `rawBurden` を、単位数・単価・給付率等の別契約により算出する。`provisionalBurden = min(rawBurden, masterCap, certificateCap)` とし、これを当該事業所の上限額管理前の暫定値とする。
 6. 受給者証上、上限額管理対象外であることが明示されている場合は、管理結果票が存在しないことを確認し、`provisionalBurden` を最終利用者負担額とする。対象外なのに管理結果票または管理事業所がある場合は不整合として拒否する。
-7. 上限額管理対象である場合は、成人B型に適用できる一次資料をサービス月で一意に解決する。2024-04〜2024-12は `r6-grant-decision-administration-202404`、2025-01〜2025-08は `r7-grant-decision-administration-202501`、2025-09〜2026-05は `r7-grant-decision-administration-202509`、2026-06以降は `r8-grant-decision-administration-202606` を選ぶ。版なし、複数版、supersedes chainの欠落・循環・不整合を拒否し、後版を過去月へ遡及しない。
+7. 上限額管理対象である場合は、サービス月から請求マスタreleaseを一意に解決し、そのreleaseが含む成人B型一次資料1件だけを使う。claim-master-r6-04とclaim-master-r6-06は `r6-grant-decision-administration-202404`、claim-master-r7-01は `r7-grant-decision-administration-202501`、claim-master-r7-09は `r7-grant-decision-administration-202509`、claim-master-r8-06は `r8-grant-decision-administration-202606` を選ぶ。版なし、複数版、複数grant資料、supersedes chainの欠落・循環・不整合を拒否し、後版を過去月へ遡及しない。
 8. 手順7で当月版を解決できた場合に限り、同じサービス月・受給者・受給者証・上限額管理事業所に対応する確定済みの正式な管理結果票をちょうど1件選ぶ。請求する事業所番号の行、証上限スナップショット、管理結果区分、各事業所の上限管理前利用者負担額、管理結果後利用者負担額、各合計を当月版の規則で検証する。全行で `0 <= 管理結果後額 <= 上限管理前額`、管理結果後合計が `certificateCap` と `masterCap` 以下、当該事業所の上限管理前額が手順5の暫定値と一致することを要求する。
 9. 検証済み管理結果票の請求対象事業所行にある「管理結果後利用者負担額」を最終利用者負担額として採用する。暫定値、制度額または受給者証実値で正式結果を置換しない。
 

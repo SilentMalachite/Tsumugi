@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -83,9 +84,22 @@ public sealed class JsonClaimMasterProviderTests
         { 2024, 4, "claim-master-r6-04" },
         { 2024, 5, "claim-master-r6-04" },
         { 2024, 6, "claim-master-r6-06" },
-        { 2026, 5, "claim-master-r6-06" },
+        { 2024, 12, "claim-master-r6-06" },
+        { 2025, 1, "claim-master-r7-01" },
+        { 2025, 8, "claim-master-r7-01" },
+        { 2025, 9, "claim-master-r7-09" },
+        { 2026, 5, "claim-master-r7-09" },
         { 2026, 6, "claim-master-r8-06" },
         { 2200, 12, "claim-master-r8-06" },
+    };
+
+    public static TheoryData<string, string> EmbeddedGrantSourceCases => new()
+    {
+        { "claim-master-r6-04", "r6-grant-decision-administration-202404" },
+        { "claim-master-r6-06", "r6-grant-decision-administration-202404" },
+        { "claim-master-r7-01", "r7-grant-decision-administration-202501" },
+        { "claim-master-r7-09", "r7-grant-decision-administration-202509" },
+        { "claim-master-r8-06", "r8-grant-decision-administration-202606" },
     };
 
     public static TheoryData<string, string> FileKindMappings => new()
@@ -177,10 +191,14 @@ public sealed class JsonClaimMasterProviderTests
 
         var releases = root.GetProperty("releases").EnumerateArray().ToArray();
         releases.Select(release => release.GetProperty("masterVersion").GetString())
-            .Should().Equal("claim-master-r6-04", "claim-master-r6-06", "claim-master-r8-06");
+            .Should().Equal(
+                "claim-master-r6-04", "claim-master-r6-06", "claim-master-r7-01",
+                "claim-master-r7-09", "claim-master-r8-06");
         ReleaseSourceIds(releases[0]).Should().Equal(ExpectedR604Sources);
         ReleaseSourceIds(releases[1]).Should().Equal(ExpectedR606Sources);
-        ReleaseSourceIds(releases[2]).Should().Equal(ExpectedR806Sources);
+        ReleaseSourceIds(releases[2]).Should().Equal(ExpectedR701Sources);
+        ReleaseSourceIds(releases[3]).Should().Equal(ExpectedR709Sources);
+        ReleaseSourceIds(releases[4]).Should().Equal(ExpectedR806Sources);
 
         foreach (var source in root.GetProperty("sources").EnumerateArray())
         {
@@ -189,6 +207,56 @@ public sealed class JsonClaimMasterProviderTests
                 "url", "sha256", "supersedes", "corrects", "supplements", "applicabilityNote",
                 "correctionNote");
         }
+    }
+
+    [Theory]
+    [MemberData(nameof(EmbeddedGrantSourceCases))]
+    public void Embedded_release_contains_exactly_its_current_grant_decision_source(
+        string masterVersion,
+        string expectedSourceId)
+    {
+        using var stream = OpenEmbedded(".ClaimMasters.Seed.sources.json");
+        using var document = JsonDocument.Parse(stream);
+        var release = document.RootElement.GetProperty("releases").EnumerateArray()
+            .Single(item => item.GetProperty("masterVersion").GetString() == masterVersion);
+
+        ReleaseSourceIds(release)
+            .Where(sourceId => sourceId.Contains("-grant-decision-administration-", StringComparison.Ordinal))
+            .Should().Equal(expectedSourceId);
+    }
+
+    [Fact]
+    public void Embedded_grant_decision_supersedes_chain_strictly_increases_effective_dates()
+    {
+        using var stream = OpenEmbedded(".ClaimMasters.Seed.sources.json");
+        using var document = JsonDocument.Parse(stream);
+        var root = document.RootElement;
+        string[] descendingChain =
+        [
+            "r8-grant-decision-administration-202606",
+            "r7-grant-decision-administration-202509",
+            "r7-grant-decision-administration-202501",
+            "r6-grant-decision-administration-202404",
+        ];
+
+        for (var index = 0; index < descendingChain.Length - 1; index++)
+        {
+            var source = SourceById(root, descendingChain[index]);
+            var superseded = SourceById(root, descendingChain[index + 1]);
+
+            RelationIds(source, "supersedes").Should().Equal(descendingChain[index + 1]);
+            DateOnly.ParseExact(
+                    source.GetProperty("effectiveAt").GetString()!,
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture)
+                .Should().BeAfter(DateOnly.ParseExact(
+                    superseded.GetProperty("effectiveAt").GetString()!,
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture));
+        }
+
+        SourceById(root, descendingChain[^1]).GetProperty("supersedes").ValueKind.Should()
+            .Be(JsonValueKind.Null);
     }
 
     [Fact]
@@ -229,12 +297,13 @@ public sealed class JsonClaimMasterProviderTests
         source.GetProperty("publishedAt").ValueKind.Should().Be(JsonValueKind.Null);
         source.GetProperty("retrievedAt").GetString().Should().Be("2026-07-11");
         source.GetProperty("url").GetString().Should()
-            .Be("https://www.mhlw.go.jp/content/12200000/001242850.pdf");
+            .Be("https://web.archive.org/web/20250317120118id_/https://www.mhlw.go.jp/content/12200000/001242850.pdf");
         source.GetProperty("sha256").GetString().Should()
             .Be("f3667ee8504dd86c39ae9bd35996f67ba03b89115878fa76a05eaa6d181f9f8e");
         RelationIds(source, "supersedes").Should().Equal("r6-grant-decision-administration-202404");
         var note = source.GetProperty("applicabilityNote").GetString();
-        note.Should().Contain("原URLは現在404");
+        note.Should().Contain("https://www.mhlw.go.jp/content/12200000/001242850.pdf");
+        note.Should().Contain("404");
         note.Should().Contain("20250317120118id_");
         note.Should().Contain("1,881,376 bytes");
         note.Should().Contain("2025-01〜2025-08");
@@ -256,12 +325,13 @@ public sealed class JsonClaimMasterProviderTests
         source.GetProperty("publishedAt").ValueKind.Should().Be(JsonValueKind.Null);
         source.GetProperty("retrievedAt").GetString().Should().Be("2026-07-11");
         source.GetProperty("url").GetString().Should()
-            .Be("https://www.mhlw.go.jp/content/12200000/001571725.pdf");
+            .Be("https://web.archive.org/web/20251001223141id_/https://www.mhlw.go.jp/content/12200000/001571725.pdf");
         source.GetProperty("sha256").GetString().Should()
             .Be("243686e446eb695468ebe370ddabaed4b7743f5afd9ef60e29afc0019ead97cc");
         RelationIds(source, "supersedes").Should().Equal("r7-grant-decision-administration-202501");
         var note = source.GetProperty("applicabilityNote").GetString();
-        note.Should().Contain("原URLは現在404");
+        note.Should().Contain("https://www.mhlw.go.jp/content/12200000/001571725.pdf");
+        note.Should().Contain("404");
         note.Should().Contain("20251001223141id_");
         note.Should().Contain("1,944,918 bytes");
         note.Should().Contain("2025-09〜2026-05");
@@ -682,7 +752,18 @@ public sealed class JsonClaimMasterProviderTests
         "r6-capability-202406", "r6-reward-structure", "r6-service-codes-2-pdf",
         "r6-service-codes-2-xlsx", "r6-claim-decision-202406-pdf", "r6-claim-decision-202406-xls",
         "r6-disability-support-guide-202404", "r6-grant-decision-administration-202404",
-        "r7-grant-decision-administration-202501", "r7-grant-decision-administration-202509",
+    ];
+
+    private static readonly string[] ExpectedR701Sources =
+    [
+        .. ExpectedR606Sources[..^1],
+        "r7-grant-decision-administration-202501",
+    ];
+
+    private static readonly string[] ExpectedR709Sources =
+    [
+        .. ExpectedR606Sources[..^1],
+        "r7-grant-decision-administration-202509",
     ];
 
     private static readonly string[] ExpectedR806Sources =
