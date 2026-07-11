@@ -2,21 +2,56 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tsumugi.App;
 using Tsumugi.App.ViewModels;
 using Tsumugi.Application.Abstractions;
+using Tsumugi.Application.Audit;
+using Tsumugi.Application.Claim;
 using Tsumugi.Application.UseCases;
 using Tsumugi.Application.UseCases.Wage;
 using Tsumugi.Application.UseCases.WorkRecord;
 using Tsumugi.Domain.Logic.Wage;
 using Tsumugi.Domain.ValueObjects;
+using Tsumugi.Infrastructure.Persistence;
 using Xunit;
 
 namespace Tsumugi.App.Tests;
 
 public sealed class CompositionRootTests
 {
+    [Fact]
+    public async Task Claim_finalization_services_use_factory_local_context_and_unavailable_production_codec()
+    {
+        var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
+        using var provider = services.BuildServiceProvider();
+        using var firstScope = provider.CreateScope();
+        using var secondScope = provider.CreateScope();
+
+        var factory = firstScope.ServiceProvider.GetRequiredService<IDbContextFactory<TsumugiDbContext>>();
+        var scopedContext = firstScope.ServiceProvider.GetRequiredService<TsumugiDbContext>();
+        var repository = firstScope.ServiceProvider.GetRequiredService<IClaimBatchRepository>();
+        var firstStore = firstScope.ServiceProvider.GetRequiredService<IClaimFinalizationStore>();
+        var secondStore = secondScope.ServiceProvider.GetRequiredService<IClaimFinalizationStore>();
+        var operationRegistry = firstScope.ServiceProvider
+            .GetRequiredService<IClaimFinalizationOperationRegistry>();
+        var auditFactory = firstScope.ServiceProvider.GetRequiredService<IClaimAuditEntryFactory>();
+        var codecRegistry = firstScope.ServiceProvider
+            .GetRequiredService<IClaimSnapshotValidationCodecRegistry>();
+        await using var localContext = await factory.CreateDbContextAsync();
+
+        repository.Should().NotBeNull();
+        firstStore.Should().BeSameAs(secondStore);
+        operationRegistry.Should().NotBeNull();
+        auditFactory.Should().NotBeNull();
+        localContext.Should().NotBeSameAs(scopedContext);
+        codecRegistry.HasWriteSupport.Should().BeFalse();
+        codecRegistry.Find("claim-snapshot-v1", "claim-snapshot-codec-v1").Should().BeNull();
+        firstStore.GetType().GetConstructors().Single().GetParameters()
+            .Should().NotContain(parameter => parameter.ParameterType == typeof(TsumugiDbContext));
+    }
+
     [Fact]
     public void Claim_master_provider_is_registered_as_an_eager_singleton_instance()
     {

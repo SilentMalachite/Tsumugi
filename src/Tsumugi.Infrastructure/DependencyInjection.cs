@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Audit;
+using Tsumugi.Application.Claim;
 using Tsumugi.Infrastructure.ClaimMasters;
 using Tsumugi.Infrastructure.Persistence;
 
@@ -14,7 +16,8 @@ public static class DependencyInjection
     {
         var claimMasterProvider = JsonClaimMasterProvider.LoadEmbedded();
         services.AddSingleton<IClaimMasterProvider>(claimMasterProvider);
-        services.AddDbContext<TsumugiDbContext>(o => o.UseSqlite(connectionString));
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddDbContextFactory<TsumugiDbContext>(o => o.UseSqlite(connectionString));
         services.AddScoped<IOfficeRepository, OfficeRepository>();
         services.AddScoped<IRecipientRepository, RecipientRepository>();
         services.AddScoped<ICertificateRepository, CertificateRepository>();
@@ -29,11 +32,17 @@ public static class DependencyInjection
         services.AddScoped<IWageSettingsRepository, WageSettingsRepository>();
         services.AddScoped<IWageStatementRepository, WageStatementRepository>();
         services.AddScoped<IAuditEntryRepository, AuditEntryRepository>();
+        services.AddScoped<IClaimBatchRepository, ClaimBatchRepository>();
         services.AddScoped<IWageAdjustmentRepository, WageAdjustmentRepository>();
         services.AddScoped<IRecipientHourlyRateRepository, RecipientHourlyRateRepository>();
         services.AddScoped<IAuditTrail, AuditTrail>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<IBackupService, SqliteBackupService>();
+        services.AddSingleton<IClaimFinalizationOperationRegistry, ClaimFinalizationOperationRegistry>();
+        services.AddSingleton<IClaimAuditEntryFactory, ClaimAuditEntryFactory>();
+        services.AddSingleton<IClaimSnapshotValidationCodecRegistry,
+            UnavailableClaimSnapshotValidationCodecRegistry>();
+        services.AddSingleton<IClaimFinalizationStore, ClaimFinalizationStore>();
         return services;
     }
 }

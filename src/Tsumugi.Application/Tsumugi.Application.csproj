@@ -4,4 +4,9 @@
     <ProjectReference Include="..\Tsumugi.Domain\Tsumugi.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tsumugi.Application.Tests" />
+    <InternalsVisibleTo Include="Tsumugi.Infrastructure.Tests" />
+  </ItemGroup>
+
 </Project>
