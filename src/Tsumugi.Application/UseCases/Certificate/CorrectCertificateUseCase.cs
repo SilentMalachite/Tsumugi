@@ -25,17 +25,10 @@ public sealed class CorrectCertificateUseCase(
         ArgumentNullException.ThrowIfNull(input);
         RequireIdentity(input.RootCertificateId, nameof(input.RootCertificateId));
         RequireIdentity(input.ExpectedHeadCertificateId, nameof(input.ExpectedHeadCertificateId));
-        ValidateDigits(input.MunicipalityNumber, 6, nameof(input.MunicipalityNumber), required: true);
-        ValidateDigits(
+        CertificateClaimInputValidator.Validate(
+            input.MunicipalityNumber,
             input.SubsidyMunicipalityNumber,
-            6,
-            nameof(input.SubsidyMunicipalityNumber),
-            required: false);
-        ValidateDigits(
-            input.UpperLimitManagementProviderNumber,
-            10,
-            nameof(input.UpperLimitManagementProviderNumber),
-            required: false);
+            input.UpperLimitManagementProviderNumber);
 
         var head = await repo.FindHeadByRootIdAsync(input.RootCertificateId, ct)
             ?? throw new InvalidOperationException("訂正対象の受給者証rootが見つかりません。");
@@ -66,21 +59,5 @@ public sealed class CorrectCertificateUseCase(
     {
         if (value == Guid.Empty)
             throw new ArgumentException("IDが指定されていません。", parameterName);
-    }
-
-    private static void ValidateDigits(
-        string? value,
-        int length,
-        string parameterName,
-        bool required)
-    {
-        if (!required && value is null)
-            return;
-        if (value is null
-            || value.Length != length
-            || value.Any(character => character is not (>= '0' and <= '9')))
-            throw new ArgumentException(
-                $"{parameterName}は{length}桁の半角数字で入力してください。",
-                parameterName);
     }
 }

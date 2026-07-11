@@ -45,6 +45,47 @@ public sealed record RegisterCertificateInput(
     public string? UpperLimitManagementProviderNumber { get; init; }
 }
 
+internal static class CertificateClaimInputValidator
+{
+    internal static void Validate(
+        string? municipalityNumber,
+        string? subsidyMunicipalityNumber,
+        string? upperLimitManagementProviderNumber)
+    {
+        ValidateDigits(
+            municipalityNumber,
+            6,
+            nameof(RegisterCertificateInput.MunicipalityNumber),
+            required: true);
+        ValidateDigits(
+            subsidyMunicipalityNumber,
+            6,
+            nameof(RegisterCertificateInput.SubsidyMunicipalityNumber),
+            required: false);
+        ValidateDigits(
+            upperLimitManagementProviderNumber,
+            10,
+            nameof(RegisterCertificateInput.UpperLimitManagementProviderNumber),
+            required: false);
+    }
+
+    private static void ValidateDigits(
+        string? value,
+        int length,
+        string parameterName,
+        bool required)
+    {
+        if (!required && value is null)
+            return;
+        if (value is null
+            || value.Length != length
+            || value.Any(character => character is not (>= '0' and <= '9')))
+            throw new ArgumentException(
+                $"{parameterName}は{length}桁の半角数字で入力してください。",
+                parameterName);
+    }
+}
+
 public sealed class RegisterCertificateUseCase(
     ICertificateRepository repo, IUnitOfWork uow, TimeProvider clock)
 {
@@ -56,6 +97,10 @@ public sealed class RegisterCertificateUseCase(
             throw new ArgumentException("利用者IDが指定されていません。", nameof(input));
         if (string.IsNullOrWhiteSpace(input.CertificateNumber))
             throw new ArgumentException("受給者証番号は必須です。", nameof(input));
+        CertificateClaimInputValidator.Validate(
+            input.MunicipalityNumber,
+            input.SubsidyMunicipalityNumber,
+            input.UpperLimitManagementProviderNumber);
         DateValidator.EnsureRange(input.Validity.Start, input.Validity.End, nameof(input));
         if (input.ConsultationStart is { } cs && input.ConsultationEnd is { } ce && cs > ce)
             throw new ArgumentException("計画相談支援期間の開始は終了以前である必要があります。", nameof(input));

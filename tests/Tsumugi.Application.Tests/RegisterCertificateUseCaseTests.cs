@@ -11,7 +11,10 @@ namespace Tsumugi.Application.Tests;
 public sealed class RegisterCertificateUseCaseTests
 {
     private static RegisterCertificateInput MinimalInput(Guid rid, string number, DateRange validity)
-        => new(rid, number, validity, SupplyDays: 23, MonthlyCostCap: 9300, Municipality: "杉並区");
+        => new(rid, number, validity, SupplyDays: 23, MonthlyCostCap: 9300, Municipality: "杉並区")
+        {
+            MunicipalityNumber = "131156",
+        };
 
     [Fact]
     public async Task Adds_certificate_when_no_overlap()
@@ -130,6 +133,79 @@ public sealed class RegisterCertificateUseCaseTests
 
         Func<Task> act = () => sut.ExecuteAsync(input, "u", default);
         await act.Should().ThrowAsync<ArgumentException>().WithMessage("*計画相談支援期間*");
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("12345")]
+    [InlineData("1234567")]
+    [InlineData("12A456")]
+    [InlineData("１２３４５６")]
+    public async Task Rejects_municipality_number_that_is_not_six_ascii_digits(string? value)
+    {
+        var repo = new FakeCertificateRepository();
+        var sut = new RegisterCertificateUseCase(
+            repo, new FakeUnitOfWork(), new FixedTimeProvider(DateTimeOffset.UnixEpoch));
+        var input = MinimalInput(
+            Guid.NewGuid(),
+            "1234567890",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31))) with
+        {
+            MunicipalityNumber = value,
+        };
+
+        var act = () => sut.ExecuteAsync(input, "u", default);
+
+        await act.Should().ThrowAsync<ArgumentException>();
+        repo.Added.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("12345")]
+    [InlineData("12A456")]
+    public async Task Rejects_invalid_subsidy_municipality_number_when_present(string value)
+    {
+        var repo = new FakeCertificateRepository();
+        var sut = new RegisterCertificateUseCase(
+            repo, new FakeUnitOfWork(), new FixedTimeProvider(DateTimeOffset.UnixEpoch));
+        var input = MinimalInput(
+            Guid.NewGuid(),
+            "1234567890",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31))) with
+        {
+            SubsidyMunicipalityNumber = value,
+        };
+
+        var act = () => sut.ExecuteAsync(input, "u", default);
+
+        await act.Should().ThrowAsync<ArgumentException>();
+        repo.Added.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("123456789")]
+    [InlineData("123456789A")]
+    public async Task Rejects_invalid_upper_limit_provider_number_when_present(string value)
+    {
+        var repo = new FakeCertificateRepository();
+        var sut = new RegisterCertificateUseCase(
+            repo, new FakeUnitOfWork(), new FixedTimeProvider(DateTimeOffset.UnixEpoch));
+        var input = MinimalInput(
+            Guid.NewGuid(),
+            "1234567890",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31))) with
+        {
+            UpperLimitManagementProviderNumber = value,
+        };
+
+        var act = () => sut.ExecuteAsync(input, "u", default);
+
+        await act.Should().ThrowAsync<ArgumentException>();
+        repo.Added.Should().BeEmpty();
     }
 }
 
