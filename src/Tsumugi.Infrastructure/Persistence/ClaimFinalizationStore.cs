@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
@@ -60,11 +61,14 @@ public sealed class ClaimFinalizationStore(
                 ?? throw Error(ClaimErrorCode.UnsupportedOperationSchema);
             ValidateIncomingEnvelopes(effectiveDraft, requireWrite: true);
             var operationPayload = writeEntry.Operation.Canonicalize(effectiveDraft);
+            var operationHash = ValidateOperationPayloadHash(
+                operationPayload,
+                ClaimErrorCode.InvalidOperationPayload);
 
             var revision = ClaimBatchPolicy.NextRevision(
                 history.Select(item => item.Header).ToArray());
             var now = clock.GetUtcNow();
-            var batch = CreateBatch(effectiveDraft, revision, operationPayload.Sha256, now);
+            var batch = CreateBatch(effectiveDraft, revision, operationHash, now);
             var details = CreateDetails(effectiveDraft, batch.Id, now);
             var candidate = new ClaimBatchAggregate(batch, details);
 
@@ -86,21 +90,21 @@ public sealed class ClaimFinalizationStore(
         {
             throw;
         }
-        catch (SqliteException exception)
+        catch (SqliteException)
         {
-            throw Error(ClaimErrorCode.PersistenceFailure, exception);
+            throw Error(ClaimErrorCode.PersistenceFailure);
         }
-        catch (DbUpdateException exception)
+        catch (DbUpdateException)
         {
-            throw Error(ClaimErrorCode.PersistenceFailure, exception);
+            throw Error(ClaimErrorCode.PersistenceFailure);
         }
-        catch (InvalidOperationException exception)
+        catch (InvalidOperationException)
         {
-            throw Error(ClaimErrorCode.InvalidHistory, exception);
+            throw Error(ClaimErrorCode.InvalidHistory);
         }
-        catch (ArgumentException exception)
+        catch (ArgumentException)
         {
-            throw Error(ClaimErrorCode.InvalidOperationPayload, exception);
+            throw Error(ClaimErrorCode.InvalidOperationPayload);
         }
     }
 
@@ -114,8 +118,9 @@ public sealed class ClaimFinalizationStore(
             ?? throw Error(ClaimErrorCode.UnsupportedOperationSchema);
         var persistedDetails = RestoreDetailDrafts(aggregate);
         var rebuilt = readEntry.Operation.Rebuild(aggregate, persistedDetails);
+        var rebuiltHash = ValidateOperationPayloadHash(rebuilt, ClaimErrorCode.InvalidHistory);
         if (!string.Equals(
-                rebuilt.Sha256,
+                rebuiltHash,
                 aggregate.Header.OperationPayloadSha256,
                 StringComparison.Ordinal))
             throw Error(ClaimErrorCode.InvalidHistory);
@@ -143,7 +148,10 @@ public sealed class ClaimFinalizationStore(
         if (aggregate.Header.Kind != RecordKind.Cancel)
             ValidateIncomingEnvelopes(normalizedIncoming, requireWrite: false);
         var requested = readEntry.Operation.Canonicalize(normalizedIncoming);
-        if (!string.Equals(requested.Sha256, rebuilt.Sha256, StringComparison.Ordinal)
+        var requestedHash = ValidateOperationPayloadHash(
+            requested,
+            ClaimErrorCode.InvalidOperationPayload);
+        if (!string.Equals(requestedHash, rebuiltHash, StringComparison.Ordinal)
             || incoming.OfficeId != aggregate.Header.OfficeId
             || incoming.ServiceMonth != aggregate.Header.ServiceMonth
             || incoming.Kind != aggregate.Header.Kind
@@ -281,8 +289,9 @@ public sealed class ClaimFinalizationStore(
                 ?? throw Error(ClaimErrorCode.UnsupportedSnapshotCodec);
             if (requireWrite && !codec.CanWrite)
                 throw Error(ClaimErrorCode.UnsupportedSnapshotCodec);
-            codec.Validate(envelope);
-            var restored = codec.ReadValidated(envelope.GetCanonicalUtf8Bytes());
+            InvokeCodec(() => codec.Validate(envelope));
+            var restored = InvokeCodec(
+                () => codec.ReadValidated(envelope.GetCanonicalUtf8Bytes()));
             if (restored.SchemaVersion != envelope.SchemaVersion
                 || restored.ValidationCodecId != envelope.ValidationCodecId
                 || restored.PayloadSha256 != envelope.PayloadSha256
@@ -347,7 +356,8 @@ public sealed class ClaimFinalizationStore(
         var readEntry = operationRegistry.GetReadEntry(batch.OperationPayloadSchemaVersion)
             ?? throw Error(ClaimErrorCode.UnsupportedOperationSchema);
         var payload = readEntry.Operation.Rebuild(aggregate, restored);
-        if (!string.Equals(payload.Sha256, batch.OperationPayloadSha256, StringComparison.Ordinal))
+        var payloadHash = ValidateOperationPayloadHash(payload, ClaimErrorCode.InvalidHistory);
+        if (!string.Equals(payloadHash, batch.OperationPayloadSha256, StringComparison.Ordinal))
             throw Error(ClaimErrorCode.InvalidHistory);
     }
 
@@ -392,7 +402,7 @@ public sealed class ClaimFinalizationStore(
                 throw Error(ClaimErrorCode.InvalidSnapshotEnvelope);
             var codec = codecRegistry.Find(schema, codecId)
                 ?? throw Error(ClaimErrorCode.UnsupportedSnapshotCodec);
-            var envelope = codec.ReadValidated(bytes);
+            var envelope = InvokeCodec(() => codec.ReadValidated(bytes));
             if (envelope.SchemaVersion != schema
                 || envelope.ValidationCodecId != codecId
                 || !LowerSha256(envelope.PayloadSha256))
@@ -403,14 +413,14 @@ public sealed class ClaimFinalizationStore(
         {
             throw;
         }
-        catch (JsonException exception)
+        catch (JsonException)
         {
-            throw Error(ClaimErrorCode.InvalidSnapshotEnvelope, exception);
+            throw Error(ClaimErrorCode.InvalidSnapshotEnvelope);
         }
         catch (Exception exception) when (
             exception is KeyNotFoundException or InvalidOperationException or ArgumentException)
         {
-            throw Error(ClaimErrorCode.InvalidSnapshotEnvelope, exception);
+            throw Error(ClaimErrorCode.InvalidSnapshotEnvelope);
         }
     }
 
@@ -494,9 +504,40 @@ public sealed class ClaimFinalizationStore(
         return headers.Select(header => new ClaimBatchAggregate(header, lookup[header.Id])).ToArray();
     }
 
-    private static ClaimFinalizationException Error(
-        ClaimErrorCode code,
-        Exception? inner = null) => new(code, innerException: inner);
+    private static ClaimFinalizationException Error(ClaimErrorCode code) => new(code);
+
+    private static string ValidateOperationPayloadHash(
+        ClaimFinalizationOperationPayload payload,
+        ClaimErrorCode errorCode)
+    {
+        var hash = Convert.ToHexStringLower(SHA256.HashData(payload.GetCanonicalUtf8Bytes()));
+        if (!string.Equals(hash, payload.Sha256, StringComparison.Ordinal))
+            throw Error(errorCode);
+        return hash;
+    }
+
+    private static void InvokeCodec(Action action)
+        => InvokeCodec(() =>
+        {
+            action();
+            return true;
+        });
+
+    private static T InvokeCodec<T>(Func<T> action)
+    {
+        try
+        {
+            return action();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            throw Error(ClaimErrorCode.InvalidSnapshotEnvelope);
+        }
+    }
 
     private static void ValidateDraftMetadata(ClaimFinalizationDraft draft)
     {

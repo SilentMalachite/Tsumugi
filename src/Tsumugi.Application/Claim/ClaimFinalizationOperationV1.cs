@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -72,9 +71,7 @@ public sealed class ClaimFinalizationOperationV1 : IClaimFinalizationOperation
         }
 
         var bytes = stream.ToArray();
-        return new ClaimFinalizationOperationPayload(
-            bytes,
-            Convert.ToHexStringLower(SHA256.HashData(bytes)));
+        return new ClaimFinalizationOperationPayload(bytes);
     }
 
     public ClaimFinalizationOperationPayload Rebuild(

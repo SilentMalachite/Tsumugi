@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using System.Text;
 using FluentAssertions;
 using Tsumugi.Application.Claim;
@@ -44,9 +43,7 @@ public sealed class ClaimFinalizationOperationRegistryTests
             Tsumugi.Application.Abstractions.ClaimFinalizationDraft draft)
         {
             var bytes = Encoding.UTF8.GetBytes($"{{\"schemaVersion\":\"{SchemaVersion}\"}}");
-            return new ClaimFinalizationOperationPayload(
-                bytes,
-                Convert.ToHexStringLower(SHA256.HashData(bytes)));
+            return new ClaimFinalizationOperationPayload(bytes);
         }
 
         public ClaimFinalizationOperationPayload Rebuild(

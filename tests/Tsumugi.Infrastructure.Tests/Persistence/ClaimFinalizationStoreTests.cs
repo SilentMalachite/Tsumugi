@@ -65,6 +65,32 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Commit_persists_hash_derived_from_canonical_bytes_and_replays()
+    {
+        var store = CreateStore();
+        var draft = Draft(Guid.NewGuid());
+        var canonicalBytes = new ClaimFinalizationOperationV1()
+            .Canonicalize(draft)
+            .GetCanonicalUtf8Bytes();
+        var expectedHash = Convert.ToHexStringLower(SHA256.HashData(canonicalBytes));
+
+        var committed = await store.CommitAsync(draft, default);
+
+        await using (var verification = _factory.CreateDbContext())
+        {
+            var persistedHash = await verification.ClaimBatches
+                .Where(batch => batch.Id == committed.BatchId)
+                .Select(batch => batch.OperationPayloadSha256)
+                .SingleAsync();
+            persistedHash.Should().Be(expectedHash);
+        }
+
+        var replay = await store.CommitAsync(draft, default);
+
+        replay.Should().Be(new ClaimFinalizationResult(committed.BatchId, 1, IsReplay: true));
+    }
+
+    [Fact]
     public async Task Commit_replay_rejects_forged_incoming_validation_marker()
     {
         var store = CreateStore();
@@ -408,6 +434,91 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
         (await verification.AuditEntries.CountAsync()).Should().Be(0);
     }
 
+    [Theory]
+    [InlineData("json")]
+    [InlineData("format")]
+    [InlineData("typed")]
+    public async Task Commit_sanitizes_incoming_codec_validate_failures(string failureKind)
+    {
+        const string secret = "recipient-secret-validate";
+        var codec = new ThrowingCodec(
+            _codec,
+            validateFailure: CreateCodecFailure(failureKind, secret));
+        var store = new ClaimFinalizationStore(
+            _factory,
+            new ClaimFinalizationOperationRegistry(),
+            new MultiCodecRegistry(codec),
+            new ClaimAuditEntryFactory(),
+            TimeProvider.System);
+
+        var action = () => store.CommitAsync(Draft(Guid.NewGuid()), default);
+
+        var exception = (await action.Should().ThrowAsync<ClaimFinalizationException>()).Which;
+        AssertSanitized(exception, ClaimErrorCode.InvalidSnapshotEnvelope, secret);
+    }
+
+    [Fact]
+    public async Task Commit_sanitizes_incoming_codec_read_failure()
+    {
+        const string secret = "recipient-secret-read";
+        var codec = new ThrowingCodec(
+            _codec,
+            readFailure: new JsonException(secret));
+        var store = new ClaimFinalizationStore(
+            _factory,
+            new ClaimFinalizationOperationRegistry(),
+            new MultiCodecRegistry(codec),
+            new ClaimAuditEntryFactory(),
+            TimeProvider.System);
+
+        var action = () => store.CommitAsync(Draft(Guid.NewGuid()), default);
+
+        var exception = (await action.Should().ThrowAsync<ClaimFinalizationException>()).Which;
+        AssertSanitized(exception, ClaimErrorCode.InvalidSnapshotEnvelope, secret);
+    }
+
+    [Fact]
+    public async Task Replay_sanitizes_persisted_codec_reader_failure()
+    {
+        const string secret = "recipient-secret-persisted";
+        var draft = Draft(Guid.NewGuid());
+        await CreateStore().CommitAsync(draft, default);
+        _factory.Contexts.Clear();
+        var codec = new ThrowingCodec(
+            _codec,
+            readFailure: new FormatException(secret));
+        var replayStore = new ClaimFinalizationStore(
+            _factory,
+            new ClaimFinalizationOperationRegistry(),
+            new MultiCodecRegistry(codec),
+            new ClaimAuditEntryFactory(),
+            TimeProvider.System);
+
+        var action = () => replayStore.CommitAsync(draft, default);
+
+        var exception = (await action.Should().ThrowAsync<ClaimFinalizationException>()).Which;
+        AssertSanitized(exception, ClaimErrorCode.InvalidSnapshotEnvelope, secret);
+        AssertDisposed(_factory.Contexts);
+    }
+
+    [Fact]
+    public async Task Commit_preserves_codec_operation_cancellation()
+    {
+        var cancellation = new OperationCanceledException("codec-cancelled");
+        var codec = new ThrowingCodec(_codec, validateFailure: cancellation);
+        var store = new ClaimFinalizationStore(
+            _factory,
+            new ClaimFinalizationOperationRegistry(),
+            new MultiCodecRegistry(codec),
+            new ClaimAuditEntryFactory(),
+            TimeProvider.System);
+
+        var action = () => store.CommitAsync(Draft(Guid.NewGuid()), default);
+
+        (await action.Should().ThrowAsync<OperationCanceledException>()).Which
+            .Should().BeSameAs(cancellation);
+    }
+
     [Fact]
     public async Task Commit_rejects_empty_New_when_registry_has_no_write_support()
     {
@@ -444,8 +555,8 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
 
         var action = () => store.CommitAsync(Draft(Guid.NewGuid()), default);
 
-        await action.Should().ThrowAsync<ClaimFinalizationException>()
-            .Where(exception => exception.Code == ClaimErrorCode.PersistenceFailure);
+        var exception = (await action.Should().ThrowAsync<ClaimFinalizationException>()).Which;
+        AssertSanitized(exception, ClaimErrorCode.PersistenceFailure, "audit failed");
         AssertDisposed(_factory.Contexts);
         await using var verification = _factory.CreateDbContext();
         (await verification.ClaimBatches.CountAsync()).Should().Be(0);
@@ -834,7 +945,8 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
     [Fact]
     public async Task Concurrent_New_uses_separate_contexts_and_commits_only_revision_one()
     {
-        var store = CreateStore();
+        var barrierFactory = new BarrierFactory(_factory);
+        var store = CreateStore(barrierFactory, _codec);
         var first = Draft(Guid.NewGuid());
         var second = first with
         {
@@ -842,9 +954,10 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
             Details = [first.Details[0] with { RecipientId = Guid.NewGuid() }],
         };
 
-        var outcomes = await Task.WhenAll(
-            CaptureAsync(() => store.CommitAsync(first, default)),
-            CaptureAsync(() => store.CommitAsync(second, default)));
+        var firstCommit = CaptureAsync(() => store.CommitAsync(first, default));
+        var secondCommit = CaptureAsync(() => store.CommitAsync(second, default));
+        await ReleaseAfterBothContextsCreatedAsync(barrierFactory);
+        var outcomes = await Task.WhenAll(firstCommit, secondCommit);
 
         outcomes.Count(outcome => outcome.Result is not null).Should().Be(1);
         outcomes.Count(outcome => outcome.Error?.Code is ClaimErrorCode.ExpectedHeadMismatch).Should().Be(1);
@@ -880,10 +993,13 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
             Details = [],
         };
         _factory.Contexts.Clear();
+        var barrierFactory = new BarrierFactory(_factory);
+        var concurrentStore = CreateStore(barrierFactory, _codec);
 
-        var outcomes = await Task.WhenAll(
-            CaptureAsync(() => store.CommitAsync(correction, default)),
-            CaptureAsync(() => store.CommitAsync(cancellation, default)));
+        var correctionCommit = CaptureAsync(() => concurrentStore.CommitAsync(correction, default));
+        var cancellationCommit = CaptureAsync(() => concurrentStore.CommitAsync(cancellation, default));
+        await ReleaseAfterBothContextsCreatedAsync(barrierFactory);
+        var outcomes = await Task.WhenAll(correctionCommit, cancellationCommit);
 
         outcomes.Count(outcome => outcome.Result is not null).Should().Be(1);
         outcomes.Count(outcome => outcome.Error?.Code is ClaimErrorCode.ExpectedHeadMismatch).Should().Be(1);
@@ -910,8 +1026,8 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
 
         var action = () => store.CommitAsync(Draft(Guid.NewGuid()), default);
 
-        await action.Should().ThrowAsync<ClaimFinalizationException>()
-            .Where(exception => exception.Code == ClaimErrorCode.PersistenceFailure);
+        var exception = (await action.Should().ThrowAsync<ClaimFinalizationException>()).Which;
+        AssertSanitized(exception, ClaimErrorCode.PersistenceFailure, _path);
         AssertDisposed(busyFactory.Contexts);
         await transaction.RollbackAsync();
         await using var verification = _factory.CreateDbContext();
@@ -948,8 +1064,8 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
 
         var action = () => store.CommitAsync(Draft(Guid.NewGuid()), default);
 
-        await action.Should().ThrowAsync<ClaimFinalizationException>()
-            .Where(exception => exception.Code == ClaimErrorCode.PersistenceFailure);
+        var exception = (await action.Should().ThrowAsync<ClaimFinalizationException>()).Which;
+        AssertSanitized(exception, ClaimErrorCode.PersistenceFailure, "forced-duplicate");
         AssertDisposed(_factory.Contexts);
         await using var verification = _factory.CreateDbContext();
         (await verification.ClaimBatches.CountAsync()).Should().Be(0);
@@ -972,8 +1088,8 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
 
         var action = () => CreateStore().CommitAsync(Draft(Guid.NewGuid()), default);
 
-        await action.Should().ThrowAsync<ClaimFinalizationException>()
-            .Where(exception => exception.Code == ClaimErrorCode.PersistenceFailure);
+        var exception = (await action.Should().ThrowAsync<ClaimFinalizationException>()).Which;
+        AssertSanitized(exception, ClaimErrorCode.PersistenceFailure, "forced-save-failure");
         AssertDisposed(_factory.Contexts);
         await using var verification = _factory.CreateDbContext();
         (await verification.ClaimBatches.CountAsync()).Should().Be(0);
@@ -1141,12 +1257,49 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
         }
     }
 
+    private static async Task ReleaseAfterBothContextsCreatedAsync(BarrierFactory factory)
+    {
+        try
+        {
+            await factory.BothContextsCreated.WaitAsync(TimeSpan.FromSeconds(5));
+        }
+        finally
+        {
+            factory.Release();
+        }
+    }
+
     private static void AssertDisposed(IEnumerable<TsumugiDbContext> contexts)
     {
         foreach (var context in contexts)
             FluentActions.Invoking(() => _ = context.ChangeTracker.Entries().Count())
                 .Should().Throw<ObjectDisposedException>();
     }
+
+    private static void AssertSanitized(
+        ClaimFinalizationException exception,
+        ClaimErrorCode expectedCode,
+        params string[] secrets)
+    {
+        exception.Code.Should().Be(expectedCode);
+        exception.Message.Should().Be($"請求確定処理に失敗しました ({expectedCode})。");
+        exception.InnerException.Should().BeNull();
+        exception.Path.Should().BeNull();
+        foreach (var secret in secrets)
+            exception.ToString().Should().NotContain(secret);
+    }
+
+    private static Exception CreateCodecFailure(string failureKind, string secret)
+        => failureKind switch
+        {
+            "json" => new JsonException(secret),
+            "format" => new FormatException(secret),
+            "typed" => new ClaimFinalizationException(
+                ClaimErrorCode.InvalidOperationPayload,
+                new ClaimJsonPath([new ClaimJsonPathSegment.PropertyToken("secret_path")]),
+                new InvalidOperationException(secret)),
+            _ => throw new ArgumentOutOfRangeException(nameof(failureKind)),
+        };
 
     private sealed record CommitOutcome(
         ClaimFinalizationResult? Result,
@@ -1177,6 +1330,31 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
 
         public Task<TsumugiDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default)
             => Task.FromResult(CreateDbContext());
+    }
+
+    private sealed class BarrierFactory(RecordingFactory inner) : IDbContextFactory<TsumugiDbContext>
+    {
+        private readonly TaskCompletionSource _bothContextsCreated =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _release =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _createdCount;
+
+        internal Task BothContextsCreated => _bothContextsCreated.Task;
+
+        public TsumugiDbContext CreateDbContext() => inner.CreateDbContext();
+
+        public async Task<TsumugiDbContext> CreateDbContextAsync(
+            CancellationToken cancellationToken = default)
+        {
+            var context = inner.CreateDbContext();
+            if (Interlocked.Increment(ref _createdCount) == 2)
+                _bothContextsCreated.TrySetResult();
+            await _release.Task.WaitAsync(cancellationToken);
+            return context;
+        }
+
+        internal void Release() => _release.TrySetResult();
     }
 
     private sealed class TestCodecRegistry(TestCodec codec) : IClaimSnapshotValidationCodecRegistry
@@ -1210,6 +1388,28 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
             => codecs.SingleOrDefault(codec =>
                 codec.SchemaVersion == schemaVersion
                 && codec.ValidationCodecId == validationCodecId);
+    }
+
+    private sealed class ThrowingCodec(
+        TestCodec inner,
+        Exception? validateFailure = null,
+        Exception? readFailure = null) : IClaimSnapshotValidationCodec
+    {
+        public string SchemaVersion => inner.SchemaVersion;
+        public string ValidationCodecId => inner.ValidationCodecId;
+        public bool CanWrite => inner.CanWrite;
+
+        public void Validate(ValidatedClaimSnapshotEnvelope envelope)
+        {
+            if (validateFailure is not null) throw validateFailure;
+            inner.Validate(envelope);
+        }
+
+        public ValidatedClaimSnapshotEnvelope ReadValidated(ReadOnlyMemory<byte> canonicalUtf8)
+        {
+            if (readFailure is not null) throw readFailure;
+            return inner.ReadValidated(canonicalUtf8);
+        }
     }
 
     private sealed class ThrowingAuditFactory : IClaimAuditEntryFactory
@@ -1279,9 +1479,7 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
                     "claim-finalization-operation-v2",
                     StringComparison.Ordinal);
             var bytes = Encoding.UTF8.GetBytes(json);
-            return new ClaimFinalizationOperationPayload(
-                bytes,
-                Convert.ToHexStringLower(SHA256.HashData(bytes)));
+            return new ClaimFinalizationOperationPayload(bytes);
         }
     }
 

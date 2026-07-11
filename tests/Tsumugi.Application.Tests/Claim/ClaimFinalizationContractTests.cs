@@ -1,4 +1,6 @@
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using FluentAssertions;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
@@ -85,5 +87,42 @@ public sealed class ClaimFinalizationContractTests
             .Should().Throw<ArgumentException>();
         FluentActions.Invoking(() => new ClaimJsonPathSegment.ArrayIndex(-1))
             .Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void Operation_payload_public_API_accepts_only_canonical_bytes_and_not_a_caller_hash()
+    {
+        var constructors = typeof(ClaimFinalizationOperationPayload)
+            .GetConstructors(BindingFlags.Instance | BindingFlags.Public);
+
+        constructors.Should().ContainSingle();
+        constructors.Single().GetParameters().Should().ContainSingle();
+        constructors.Single().GetParameters()
+            .Should().NotContain(parameter => parameter.ParameterType == typeof(string));
+        typeof(ClaimFinalizationOperationPayload).GetProperty(
+            nameof(ClaimFinalizationOperationPayload.Sha256))!.CanWrite.Should().BeFalse();
+    }
+
+    [Fact]
+    public void ClaimFinalizationException_public_API_cannot_accept_an_arbitrary_inner_exception()
+    {
+        typeof(ClaimFinalizationException)
+            .GetConstructors(BindingFlags.Instance | BindingFlags.Public)
+            .SelectMany(constructor => constructor.GetParameters())
+            .Should().NotContain(parameter => typeof(Exception).IsAssignableFrom(parameter.ParameterType));
+    }
+
+    [Fact]
+    public void Operation_payload_derives_hash_from_its_immutable_canonical_bytes()
+    {
+        var bytes = Encoding.UTF8.GetBytes("{\"schemaVersion\":\"claim-finalization-operation-v2\"}");
+        var payload = new ClaimFinalizationOperationPayload(bytes);
+        var expected = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        bytes[0] = (byte)'!';
+
+        payload.Sha256.Should().Be(expected);
+        payload.Sha256.Should().Be(Convert.ToHexStringLower(
+            SHA256.HashData(payload.GetCanonicalUtf8Bytes())));
+        new ClaimFinalizationOperationPayload("{}"u8).Sha256.Should().NotBe(payload.Sha256);
     }
 }

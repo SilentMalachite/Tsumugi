@@ -95,12 +95,28 @@ public sealed record ClaimJsonPath
     public IReadOnlyList<ClaimJsonPathSegment> Segments { get; }
 }
 
-public sealed class ClaimFinalizationException(
-    ClaimErrorCode code,
-    ClaimJsonPath? path = null,
-    Exception? innerException = null)
-    : Exception($"請求確定処理に失敗しました ({code})。", innerException)
+public sealed class ClaimFinalizationException : Exception
 {
-    public ClaimErrorCode Code { get; } = code;
-    public ClaimJsonPath? Path { get; } = path;
+    public ClaimFinalizationException(ClaimErrorCode code, ClaimJsonPath? path = null)
+        : base(MessageFor(code))
+    {
+        Code = code;
+        Path = path;
+    }
+
+    internal ClaimFinalizationException(
+        ClaimErrorCode code,
+        ClaimJsonPath? path,
+        Exception innerException)
+        : base(MessageFor(code), innerException)
+    {
+        Code = code;
+        Path = path;
+    }
+
+    public ClaimErrorCode Code { get; }
+    public ClaimJsonPath? Path { get; }
+
+    private static string MessageFor(ClaimErrorCode code)
+        => $"請求確定処理に失敗しました ({code})。";
 }
