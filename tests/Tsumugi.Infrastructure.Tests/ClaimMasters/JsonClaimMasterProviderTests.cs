@@ -291,6 +291,8 @@ public sealed class JsonClaimMasterProviderTests
         note.Should().Contain("北九州市公式サイト");
         note.Should().Contain("1,968,795 bytes");
         note.Should().Contain("physical pages 173、175、182、184〜186");
+        note.Should().Contain("https://www.mhlw.go.jp/content/12200000/001470632.pdf");
+        note.Should().Contain("404");
     }
 
     [Fact]

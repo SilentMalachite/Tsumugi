@@ -770,7 +770,7 @@
       "supersedes": ["r7-grant-decision-administration-202509"],
       "corrects": null,
       "supplements": null,
-      "applicabilityNote": "厚生労働省発出文書を北九州市公式サイトが再配布するlive PDFから1,968,795 bytes・262 pagesを2026-07-11に取得。effectiveAtは「最終改正 令和8年6月」を月初に正規化。physical pages 112〜113の受給者証上限の認定・適用期間、physical pages 173、175、182、184〜186の成人上限額管理概要、指定就労継続支援B型、結果票、結果区分1〜3、優先徴収順、金額項目、管理結果後利用者負担額と配分に使用。page 112は制度額を別資料参照とするため制度額そのものの根拠にせず、令和8年5月以前に遡及適用しない",
+      "applicabilityNote": "厚生労働省の旧原URL https://www.mhlw.go.jp/content/12200000/001470632.pdf は現在HTTP 404。厚生労働省発出文書を北九州市公式サイトが再配布するlive PDFから再現可能な1,968,795 bytes・262 pagesを2026-07-11に取得。effectiveAtは「最終改正 令和8年6月」を月初に正規化。physical pages 112〜113の受給者証上限の認定・適用期間、physical pages 173、175、182、184〜186の成人上限額管理概要、指定就労継続支援B型、結果票、結果区分1〜3、優先徴収順、金額項目、管理結果後利用者負担額と配分に使用。page 112は制度額を別資料参照とするため制度額そのものの根拠にせず、令和8年5月以前に遡及適用しない",
       "correctionNote": "2026-06からr7-grant-decision-administration-202509を置換する。2026-05以前へ遡及しない"
     },
     {
