@@ -11,6 +11,34 @@ public sealed class CorrectDailyRecordUseCase(
     public async Task<DailyRecordDto> ExecuteAsync(
         Guid originId, Attendance attendance, TransportKind transport, bool mealProvided,
         string? note, string actor, CancellationToken ct)
+        => await ExecuteAsync(
+            originId, attendance, transport, mealProvided, note,
+            serviceStartTime: null,
+            serviceEndTime: null,
+            specialVisitSupportMinutes: null,
+            offsiteSupportApplied: null,
+            medicalCoordinationType: MedicalCoordinationType.Unspecified,
+            trialUseSupportType: TrialUseSupportType.Unspecified,
+            regionalCollaborationApplied: null,
+            intensiveSupportApplied: null,
+            emergencyAdmissionApplied: null,
+            recipientConfirmation: RecipientConfirmationStatus.Unspecified,
+            actor, ct);
+
+    public async Task<DailyRecordDto> ExecuteAsync(
+        Guid originId, Attendance attendance, TransportKind transport, bool mealProvided,
+        string? note,
+        TimeOnly? serviceStartTime,
+        TimeOnly? serviceEndTime,
+        int? specialVisitSupportMinutes,
+        bool? offsiteSupportApplied,
+        MedicalCoordinationType medicalCoordinationType,
+        TrialUseSupportType trialUseSupportType,
+        bool? regionalCollaborationApplied,
+        bool? intensiveSupportApplied,
+        bool? emergencyAdmissionApplied,
+        RecipientConfirmationStatus recipientConfirmation,
+        string actor, CancellationToken ct)
     {
         var origin = await repo.FindByIdAsync(originId, ct)
             ?? throw new InvalidOperationException("訂正元レコードが見つかりません。");
@@ -29,7 +57,11 @@ public sealed class CorrectDailyRecordUseCase(
         var entity = Domain.Entities.DailyRecord.Correction(
             Guid.NewGuid(), origin.RecipientId, origin.ServiceDate, originId,
             attendance, transport, mealProvided, note,
-            actor, clock.GetUtcNow());
+            actor, clock.GetUtcNow(),
+            serviceStartTime, serviceEndTime, specialVisitSupportMinutes,
+            offsiteSupportApplied, medicalCoordinationType, trialUseSupportType,
+            regionalCollaborationApplied, intensiveSupportApplied,
+            emergencyAdmissionApplied, recipientConfirmation);
         await repo.AddAsync(entity, ct);
         await uow.SaveChangesAsync(ct);
         return RecordDailyRecordUseCase.Map(entity);

@@ -26,6 +26,16 @@ public sealed class DailyRecordConfiguration : IEntityTypeConfiguration<DailyRec
         builder.Property(r => r.Transport).HasConversion<int>().IsRequired();
         builder.Property(r => r.MealProvided).IsRequired();
         builder.Property(r => r.Note).HasMaxLength(512);
+        builder.Property(r => r.ServiceStartTime);
+        builder.Property(r => r.ServiceEndTime);
+        builder.Property(r => r.SpecialVisitSupportMinutes);
+        builder.Property(r => r.OffsiteSupportApplied);
+        builder.Property(r => r.MedicalCoordinationType).HasConversion<int>().IsRequired();
+        builder.Property(r => r.TrialUseSupportType).HasConversion<int>().IsRequired();
+        builder.Property(r => r.RegionalCollaborationApplied);
+        builder.Property(r => r.IntensiveSupportApplied);
+        builder.Property(r => r.EmergencyAdmissionApplied);
+        builder.Property(r => r.RecipientConfirmation).HasConversion<int>().IsRequired();
         builder.Property(r => r.CreatedBy).IsRequired().HasMaxLength(64);
         builder.Property(r => r.CreatedAt).IsRequired();
         // 取引記録は更新しないため ConcurrencyToken は IsConcurrencyToken() しない。列としては存在する。

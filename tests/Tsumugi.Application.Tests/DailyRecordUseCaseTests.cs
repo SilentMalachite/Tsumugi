@@ -30,6 +30,38 @@ public sealed class DailyRecordUseCaseTests
     }
 
     [Fact]
+    public async Task Record_persists_all_claim_inputs()
+    {
+        var sut = new RecordDailyRecordUseCase(_repo, _uow, _clock);
+
+        var dto = await sut.ExecuteAsync(
+            Guid.NewGuid(), new DateOnly(2026, 6, 1),
+            Attendance.Present, TransportKind.None, mealProvided: false, note: null,
+            serviceStartTime: new TimeOnly(9, 0),
+            serviceEndTime: new TimeOnly(15, 0),
+            specialVisitSupportMinutes: 0,
+            offsiteSupportApplied: false,
+            medicalCoordinationType: MedicalCoordinationType.TypeI,
+            trialUseSupportType: TrialUseSupportType.TypeII,
+            regionalCollaborationApplied: true,
+            intensiveSupportApplied: false,
+            emergencyAdmissionApplied: true,
+            recipientConfirmation: RecipientConfirmationStatus.Confirmed,
+            actor: "u", ct: default);
+
+        dto.ServiceStartTime.Should().Be(new TimeOnly(9, 0));
+        dto.ServiceEndTime.Should().Be(new TimeOnly(15, 0));
+        dto.SpecialVisitSupportMinutes.Should().Be(0);
+        dto.OffsiteSupportApplied.Should().BeFalse();
+        dto.MedicalCoordinationType.Should().Be(MedicalCoordinationType.TypeI);
+        dto.TrialUseSupportType.Should().Be(TrialUseSupportType.TypeII);
+        dto.RegionalCollaborationApplied.Should().BeTrue();
+        dto.IntensiveSupportApplied.Should().BeFalse();
+        dto.EmergencyAdmissionApplied.Should().BeTrue();
+        dto.RecipientConfirmation.Should().Be(RecipientConfirmationStatus.Confirmed);
+    }
+
+    [Fact]
     public async Task Record_rejects_empty_recipient_id()
     {
         var sut = new RecordDailyRecordUseCase(_repo, _uow, _clock);
@@ -71,6 +103,52 @@ public sealed class DailyRecordUseCaseTests
     }
 
     [Fact]
+    public async Task Correct_saves_submitted_claim_inputs_without_copying_effective_values()
+    {
+        var rid = Guid.NewGuid();
+        var origin = DailyRecord.NewRecord(Guid.NewGuid(), rid, new DateOnly(2026, 6, 1),
+            Attendance.Present, TransportKind.None, mealProvided: false,
+            note: null, createdBy: "u", createdAt: DateTimeOffset.UnixEpoch,
+            serviceStartTime: new TimeOnly(9, 0),
+            serviceEndTime: new TimeOnly(15, 0),
+            specialVisitSupportMinutes: 30,
+            offsiteSupportApplied: true,
+            medicalCoordinationType: MedicalCoordinationType.TypeVI,
+            trialUseSupportType: TrialUseSupportType.TypeII,
+            regionalCollaborationApplied: true,
+            intensiveSupportApplied: true,
+            emergencyAdmissionApplied: true,
+            recipientConfirmation: RecipientConfirmationStatus.Confirmed);
+        _repo.Added.Add(origin);
+
+        var sut = new CorrectDailyRecordUseCase(_repo, _uow, _clock);
+        var dto = await sut.ExecuteAsync(
+            origin.Id, Attendance.Present, TransportKind.None, mealProvided: false, note: null,
+            serviceStartTime: null,
+            serviceEndTime: null,
+            specialVisitSupportMinutes: 0,
+            offsiteSupportApplied: false,
+            medicalCoordinationType: MedicalCoordinationType.Unspecified,
+            trialUseSupportType: TrialUseSupportType.Unspecified,
+            regionalCollaborationApplied: false,
+            intensiveSupportApplied: false,
+            emergencyAdmissionApplied: false,
+            recipientConfirmation: RecipientConfirmationStatus.Unspecified,
+            actor: "u", ct: default);
+
+        dto.ServiceStartTime.Should().BeNull();
+        dto.ServiceEndTime.Should().BeNull();
+        dto.SpecialVisitSupportMinutes.Should().Be(0);
+        dto.OffsiteSupportApplied.Should().BeFalse();
+        dto.MedicalCoordinationType.Should().Be(MedicalCoordinationType.Unspecified);
+        dto.TrialUseSupportType.Should().Be(TrialUseSupportType.Unspecified);
+        dto.RegionalCollaborationApplied.Should().BeFalse();
+        dto.IntensiveSupportApplied.Should().BeFalse();
+        dto.EmergencyAdmissionApplied.Should().BeFalse();
+        dto.RecipientConfirmation.Should().Be(RecipientConfirmationStatus.Unspecified);
+    }
+
+    [Fact]
     public async Task Correct_throws_when_origin_not_found()
     {
         var sut = new CorrectDailyRecordUseCase(_repo, _uow, _clock);
@@ -89,6 +167,16 @@ public sealed class DailyRecordUseCaseTests
         var sut = new CancelDailyRecordUseCase(_repo, _uow, _clock);
         var dto = await sut.ExecuteAsync(origin.Id, "u", default);
         dto.Kind.Should().Be(RecordKind.Cancel);
+        dto.ServiceStartTime.Should().BeNull();
+        dto.ServiceEndTime.Should().BeNull();
+        dto.SpecialVisitSupportMinutes.Should().BeNull();
+        dto.OffsiteSupportApplied.Should().BeNull();
+        dto.MedicalCoordinationType.Should().Be(MedicalCoordinationType.Unspecified);
+        dto.TrialUseSupportType.Should().Be(TrialUseSupportType.Unspecified);
+        dto.RegionalCollaborationApplied.Should().BeNull();
+        dto.IntensiveSupportApplied.Should().BeNull();
+        dto.EmergencyAdmissionApplied.Should().BeNull();
+        dto.RecipientConfirmation.Should().Be(RecipientConfirmationStatus.Unspecified);
     }
 
     [Fact]
