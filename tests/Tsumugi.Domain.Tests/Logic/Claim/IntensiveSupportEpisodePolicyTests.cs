@@ -91,6 +91,7 @@ public sealed class IntensiveSupportEpisodePolicyTests
         {
             { "missing revision", new[] { root, correction with { Revision = 3 } } },
             { "duplicate revision and branch", new[] { root, correction, Correct(root) } },
+            { "duplicate id", new[] { root, correction with { Id = root.Id } } },
             { "root id mismatch", new[] { root, correction with { RootId = otherRootId } } },
             { "expected head mismatch", new[] { root, correction with { ExpectedHeadId = Guid.NewGuid() } } },
             { "root is not self", new[] { root with { RootId = otherRootId } } },

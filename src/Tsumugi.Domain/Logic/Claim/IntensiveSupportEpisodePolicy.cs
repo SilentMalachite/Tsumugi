@@ -12,8 +12,12 @@ public static class IntensiveSupportEpisodePolicy
         if (history.Count == 0) return;
 
         var ordered = history.OrderBy(episode => episode.Revision).ToArray();
+        var ids = new HashSet<Guid>();
         for (var index = 0; index < ordered.Length; index++)
         {
+            if (!ids.Add(ordered[index].Id))
+                throw Invalid("IntensiveSupportEpisode履歴内でIDが重複しています。");
+
             var expectedRevision = index + 1;
             if (ordered[index].Revision != expectedRevision)
                 throw Invalid(

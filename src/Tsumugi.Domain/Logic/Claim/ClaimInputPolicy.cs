@@ -12,8 +12,12 @@ public static class ClaimInputPolicy
         if (history.Count == 0) return;
 
         var ordered = history.OrderBy(input => input.Revision).ToArray();
+        var ids = new HashSet<Guid>();
         for (var index = 0; index < ordered.Length; index++)
         {
+            if (!ids.Add(ordered[index].Id))
+                throw Invalid("ClaimInput履歴内でIDが重複しています。");
+
             var expectedRevision = index + 1;
             if (ordered[index].Revision != expectedRevision)
                 throw Invalid($"ClaimInput Revision {expectedRevision} が欠落しているか重複しています。");
