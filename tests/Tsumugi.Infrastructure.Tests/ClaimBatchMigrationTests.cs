@@ -13,12 +13,12 @@ public sealed class ClaimBatchMigrationTests
     private const string MigrationSuffix = "_AddClaimBatchAndDetail";
 
     [Fact]
-    public async Task Latest_migration_creates_claim_tables_indexes_columns_and_restrict_foreign_keys()
+    public async Task Target_migration_creates_claim_tables_indexes_columns_and_restrict_foreign_keys()
     {
         await using var database = await TemporarySqliteDatabase.CreateAsync();
-        var (latest, _) = ResolveClaimMigration(database.Context);
+        var (target, _) = ResolveClaimMigration(database.Context);
 
-        await database.Context.GetService<IMigrator>().MigrateAsync(latest);
+        await database.Context.GetService<IMigrator>().MigrateAsync(target);
 
         (await TableExistsAsync(database.Connection, "ClaimBatches")).Should().BeTrue();
         (await TableExistsAsync(database.Connection, "ClaimDetails")).Should().BeTrue();
@@ -82,10 +82,10 @@ public sealed class ClaimBatchMigrationTests
     public async Task Claim_migration_rolls_back_to_previous_and_reapplies()
     {
         await using var database = await TemporarySqliteDatabase.CreateAsync();
-        var (latest, previous) = ResolveClaimMigration(database.Context);
+        var (target, previous) = ResolveClaimMigration(database.Context);
         var migrator = database.Context.GetService<IMigrator>();
 
-        await migrator.MigrateAsync(latest);
+        await migrator.MigrateAsync(target);
         (await TableExistsAsync(database.Connection, "ClaimBatches")).Should().BeTrue();
         (await TableExistsAsync(database.Connection, "ClaimDetails")).Should().BeTrue();
 
@@ -93,7 +93,7 @@ public sealed class ClaimBatchMigrationTests
         (await TableExistsAsync(database.Connection, "ClaimBatches")).Should().BeFalse();
         (await TableExistsAsync(database.Connection, "ClaimDetails")).Should().BeFalse();
 
-        await migrator.MigrateAsync(latest);
+        await migrator.MigrateAsync(target);
         (await TableExistsAsync(database.Connection, "ClaimBatches")).Should().BeTrue();
         (await TableExistsAsync(database.Connection, "ClaimDetails")).Should().BeTrue();
         (await ReadIndexesAsync(database.Connection, "ClaimBatches")).Should().ContainKey(
@@ -104,14 +104,13 @@ public sealed class ClaimBatchMigrationTests
         (await ReadForeignKeysAsync(database.Connection, "ClaimDetails")).Should().HaveCount(1);
     }
 
-    private static (string Latest, string Previous) ResolveClaimMigration(TsumugiDbContext context)
+    private static (string Target, string Previous) ResolveClaimMigration(TsumugiDbContext context)
     {
         var migrations = context.Database.GetMigrations().ToArray();
-        var latest = migrations.Single(migration =>
+        var targetIndex = Array.FindIndex(migrations, migration =>
             migration.EndsWith(MigrationSuffix, StringComparison.Ordinal));
-        latest.Should().Be(migrations[^1]);
-        migrations.Should().HaveCountGreaterThan(1);
-        return (latest, migrations[^2]);
+        targetIndex.Should().BeGreaterThan(0);
+        return (migrations[targetIndex], migrations[targetIndex - 1]);
     }
 
     private static async Task<bool> TableExistsAsync(SqliteConnection connection, string tableName)

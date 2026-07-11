@@ -1,3 +1,5 @@
+using System.Reflection;
+
 using FluentAssertions;
 using Tsumugi.Domain.Logic.Claim.Models;
 
@@ -53,6 +55,36 @@ public sealed class ClaimEvidenceTests
         int officialOptionCode)
     {
         var act = () => new AverageWageBandOption(kind, officialOptionCode);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void Versioned_average_wage_band_option_keeps_public_api_value_semantics_and_flat_materializer()
+    {
+        var masterVersion = new ClaimMasterVersion("claim-master-r8-06");
+        var option = new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 8);
+
+        var actual = new VersionedAverageWageBandOption(masterVersion, option);
+        var same = new VersionedAverageWageBandOption(masterVersion, option);
+        var materializer = typeof(VersionedAverageWageBandOption).GetConstructor(
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+            binder: null,
+            [typeof(ClaimMasterVersion), typeof(AverageWageBandOptionKind), typeof(int)],
+            modifiers: null);
+
+        actual.MasterVersion.Should().Be(masterVersion);
+        actual.Option.Should().Be(option);
+        actual.Should().Be(same);
+        materializer.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void Versioned_average_wage_band_option_rejects_invalid_option()
+    {
+        var act = () => new VersionedAverageWageBandOption(
+            new ClaimMasterVersion("claim-master-r8-06"),
+            default);
 
         act.Should().Throw<ArgumentException>();
     }

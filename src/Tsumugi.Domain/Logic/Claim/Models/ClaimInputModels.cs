@@ -63,17 +63,30 @@ public readonly record struct VersionedAverageWageBandOption
     public VersionedAverageWageBandOption(
         ClaimMasterVersion masterVersion,
         AverageWageBandOption option)
+        : this(masterVersion, option.Kind, option.OfficialOptionCode)
+    {
+    }
+
+    internal VersionedAverageWageBandOption(
+        ClaimMasterVersion masterVersion,
+        AverageWageBandOptionKind kind,
+        int officialOptionCode)
     {
         _ = masterVersion.Value;
-        if (option.Kind == AverageWageBandOptionKind.Unknown || option.OfficialOptionCode <= 0)
-            throw new ArgumentException("版付き平均工賃optionが未初期化です。", nameof(option));
+        if (!Enum.IsDefined(kind) || kind == AverageWageBandOptionKind.Unknown)
+            throw new ArgumentException("版付き平均工賃optionの種別が不正です。", nameof(kind));
+        if (officialOptionCode <= 0)
+            throw new ArgumentException("版付き平均工賃option codeは正の整数でなければなりません。", nameof(officialOptionCode));
 
         MasterVersion = masterVersion;
-        Option = option;
+        Kind = kind;
+        OfficialOptionCode = officialOptionCode;
     }
 
     public ClaimMasterVersion MasterVersion { get; }
-    public AverageWageBandOption Option { get; }
+    internal AverageWageBandOptionKind Kind { get; }
+    internal int OfficialOptionCode { get; }
+    public AverageWageBandOption Option => new(Kind, OfficialOptionCode);
 }
 
 public sealed class AverageWageBandOptionVersionRule

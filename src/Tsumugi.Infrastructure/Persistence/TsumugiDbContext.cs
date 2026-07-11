@@ -25,6 +25,13 @@ public sealed class TsumugiDbContext(DbContextOptions<TsumugiDbContext> options)
     // Phase 3 - Claim finalization snapshots
     public DbSet<ClaimBatch> ClaimBatches => Set<ClaimBatch>();
     public DbSet<ClaimDetail> ClaimDetails => Set<ClaimDetail>();
+    public DbSet<ClaimInput> ClaimInputs => Set<ClaimInput>();
+    public DbSet<IntensiveSupportEpisode> IntensiveSupportEpisodes => Set<IntensiveSupportEpisode>();
+    public DbSet<AverageWageAnnualEvidence> AverageWageAnnualEvidences => Set<AverageWageAnnualEvidence>();
+    public DbSet<OfficeClaimProfile> OfficeClaimProfiles => Set<OfficeClaimProfile>();
+    public DbSet<CertificateClaimEvidence> CertificateClaimEvidences => Set<CertificateClaimEvidence>();
+    public DbSet<UpperLimitManagementStatement> UpperLimitManagementStatements => Set<UpperLimitManagementStatement>();
+    public DbSet<UpperLimitManagementStatementLine> UpperLimitManagementStatementLines => Set<UpperLimitManagementStatementLine>();
 
     // Phase 4 - KouchinModule
     public DbSet<WageAdjustment> WageAdjustments => Set<WageAdjustment>();
