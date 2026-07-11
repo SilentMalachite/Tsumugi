@@ -7,11 +7,20 @@
 ## [Unreleased]
 
 ### 計画
-- フェーズ 3（国保連請求 CSV 生成）— 報酬告示・CSV インターフェース仕様の出典確定後に着手。
+- フェーズ 3-0（出典・契約・土台）— final-fix後のtargeted test、fresh full quality gate、最終レビュー（Critical / High / Medium 0件）を通過し、2026-07-11に受け入れ済み。詳細は [`docs/phase3-0-acceptance.md`](docs/phase3-0-acceptance.md)。
 - フェーズ 4（リリース準備・運用ハードニング）残り: 暗号化方針決定・バックアップ自動化・記録UI補完・配布パッケージング・運用ガイド・bulk operations ガード。詳細は `07_ClaudeCode_Phase4実装指示_リリース準備_Tsumugi.md`。
 
+### 追加（Added）— Phase 3-0: 国保連請求の出典・契約・土台
+- ADR 0020〜0026に、令和6/8報酬・地域単価・サービスコード、事業所体制、負担上限、平均工賃月額、国保連CSV、端数、append-only請求snapshotの出典・版・規則を記録。負担上限は令和6年4月から令和8年6月以降まで連続するR6/R7/R8の5-version source chainで固定。
+- 出典メタデータ、適用年月版のmaster schema / provider、`ServiceMonth` / `ProcessingMonth`分離、制度実値・CSV仕様値のハードコード境界検査を追加。
+- `Tsumugi.Infrastructure.Csv`と版付き仕様catalogを追加し、共通編・事業所編443 fieldIdsと3帳票113 fieldIdsをmachine-readable mappingへ固定。
+- `ClaimBatch` / `ClaimDetail`、専用履歴policy、AppendOnlyGuard、partial unique index、migration、raw repository、operation-local finalization storeのappend-only土台を追加し、operation replayでも対象headだけでなく全履歴を検証するようhardening。
+- Phase 3-0のtargeted test、停止条件audit、deferredを [`docs/phase3-0-acceptance.md`](docs/phase3-0-acceptance.md) に記録。
+
 ### 本番投入前に必須の deferred
-- 平均工賃月額（AC2-8 / AC4-14）の厚労省告示/通知突合 → 正式定義確定（構造整備完了、値差替のみで完了できる状態）。
+- Phase 3-1〜3-3は未実装。**51 missing fieldIds / 26 implementation targets**（CSV 30件＋帳票21件。正本は `docs/phase3-claim-field-mapping.md`）について、モデル・migration・実UIを追加する。
+- 令和6/8報酬master実値、平均工賃・基本報酬・加算減算・地域単価・利用者負担の計算、production snapshot codec、validated finalization / `IValidatedClaimSnapshotReader`を実装する。
+- 3帳票と国保連提出CSV（CP932 / CRLF）の生成・保存UIを実装する。現時点では請求CSV生成完了ではない。
 
 ## [0.3.1-phase4-s1] - 2026-07-05
 

@@ -2,11 +2,11 @@
 
 > 推測で実装しない。確定するまで該当機能の実装は止める。
 
-- [ ] 報酬の単位数・加算・地域区分単価の公式出典（令和6年改定）。フェーズ3着手前に必須。出典URL/版を記す。
-- [ ] **事業所体制の加算フラグキー一覧**: フェーズ1では文字列キーで保持。代表例（暫定）: `mealProvision`（食事提供体制加算）、`transportSupport`（送迎加算）等。フェーズ3で報酬告示と突合して正式コード・単位数を確定する。
-- [ ] 国保連 請求データCSVの公式インターフェース仕様書の版・文字コード・改行・レコード種別・項目順。フェーズ3着手前に必須。
+- [x] **報酬の単位数・加算・地域区分単価の公式出典（2026-07-11 クローズ / ADR 0020）**: 令和6年4月・6月と令和8年6月の一次資料、適用版、取得日、SHA-256、訂正関係を [ADR 0020](decisions/0020-claim-master-sources-and-versioning.md) で確定し、`JsonClaimMasterProviderTests` で出典カタログと版境界を固定した。Phase 3-0で確定したのは出典・版・適用規則であり、制度実値をC#へ直書きしていない。外部マスタへの実値投入と請求計算はPhase 3-1で実装する。
+- [x] **事業所体制の加算フラグキー一覧（2026-07-11 クローズ / ADR 0021）**: [ADR 0021](decisions/0021-office-capability-official-codes.md) で公式体制項目と選択番号に基づくone-hotキー、適用版、暫定キーの明示的再登録、未知・旧・版外キーのフェイルクローズを確定した。`mealProvision` / `transportSupport` を請求コードへ推測変換しない。実マスタ解決と入力UIはPhase 3-1で実装する。
+- [x] **国保連請求CSVの公式仕様（2026-07-11 クローズ / ADR 0024）**: [ADR 0024](decisions/0024-kokuhoren-csv-and-field-mapping.md) で共通編・事業所編の版、CP932、CRLF、外側レコード、項目順・必須条件・最大バイト数を確定した。`CsvSpecificationCompletenessTests` / `ClaimFieldMappingCompletenessTests` で仕様443 fieldIdsと3帳票113 fieldIdsの集合一致を検証する。CSVバイト生成はPhase 3-3で実装する。
 - [ ] SQLite 暗号化（SQLCipher等）の採否（ADR 0003 で暫定判断、運用要件で再確認）。
-- [ ] **[Security] NuGet audit suppression GHSA-2m69-gcr7-jv3q**: `SQLitePCLRaw.lib.e_sqlite3` 2.1.11（EF Core SQLite 経由のトランジティブ依存）に HIGH 深刻度のアドバイザリが存在し、現時点で修正バージョンが upstream から提供されていない。`Directory.Build.props` に `<NuGetAuditSuppress Include="https://github.com/advisories/GHSA-2m69-gcr7-jv3q"/>` を設定して抑制している。許容根拠: 修正版なし／完全オフラインのデスクトップアプリで SQLite がネットワーク面に露出しない／唯一の生SQL経路（`VACUUM INTO`）にシングルクォートエスケープを適用済み。解除条件: upstream がパッチ済みネイティブバンドルを公開したタイミングで抑制を除去し、バージョンを更新する。**セキュリティ再レビュー必須。**
+- [ ] **[Security] NuGet audit suppression GHSA-2m69-gcr7-jv3q**: `SQLitePCLRaw.lib.e_sqlite3` 2.1.11（EF Core SQLite 経由のトランジティブ依存）に HIGH 深刻度のアドバイザリが存在し、現時点で修正バージョンが upstream から提供されていない。`Directory.Build.props` に `<NuGetAuditSuppress Include="https://github.com/advisories/GHSA-2m69-gcr7-jv3q"/>` を設定して抑制している。許容根拠: 修正版なし／完全オフラインのデスクトップアプリで SQLite がネットワーク面に露出しない／唯一の動的値を埋め込む生SQL経路（`VACUUM INTO`）にシングルクォートエスケープを適用済み。解除条件: upstream がパッチ済みネイティブバンドルを公開したタイミングで抑制を除去し、バージョンを更新する。**セキュリティ再レビュー必須。**
 - [x] **App 層のオフライン遵守確認（2026-06-26 クローズ）**: `tests/Tsumugi.Infrastructure.Tests/AppOfflineComplianceTests.cs` で `System.Reflection.Metadata` の `PEReader`/`MetadataReader` を用いて `Tsumugi.App.dll` の `TypeReference`/`MemberReference` を直接走査し、`System.Net.*` 等の禁止 API への直接参照を CI で機械判定する（AC0-5）。allowlist は最小・理由付きで `AppOfflineComplianceTests.Allowlist` に明示（既定は空）。歯のある検査であることを `HttpClient` 一時混入で確認済み。実行時ネットワーク監視はスコープ外（直接参照禁止＋オフライン端末運用で十分とする）。
 - [ ] **アーキテクチャ/オフラインテストは直接参照のみを検査**: `GetReferencedAssemblies()` はトランジティブ参照をたどらない。オープンな問い: 将来的に依存グラフ全体を検査できるアーキテクチャテストツール（例: NetArchTest）を採用するかどうかを検討する。
 
@@ -14,17 +14,18 @@
 
 - [x] **DailyRecord 多重 New 重複の検知（2026-06-28 クローズ / ADR 0015）**: `DailyRecordConfiguration` に `(RecipientId, ServiceDate) WHERE Kind=1` の partial unique index を追加 (migration `20260628015004_DailyRecordDuplicateNewIndex`)。`DailyRecordDuplicateNewIndexTests` でレース条件下の二重 New 挿入が `DbUpdateException` で拒否されることを検証済。
 - [ ] **AppendOnlyGuard と EF Core bulk operations**: `AppendOnlyGuard.Inspect` は ChangeTracker 経由の `Modified`/`Deleted` のみ検出。`ExecuteUpdateAsync`/`ExecuteDeleteAsync` は ChangeTracker を経由しないため検出できない。現在の Repository 実装に bulk 呼び出しはないが、将来追加する際は別途ガードが必要。`ArchitectureTests` で append-only 型に対する bulk 呼び出しを禁止する案あり。
-- [ ] **報酬・CSV ハードコード機械判定 (CLAUDE.md §ハード制約 3)**: Phase 1 には報酬算定・CSV 生成のサーフェスが存在しないため、現時点で「単位数/加算/CSV フィールド literal が混入していないこと」を機械判定するテストはエントリポイントを持たない。Phase 3 で報酬テーブル・CSV 生成器を導入する際に以下を同時に追加する: (a) Domain/Application のソース文字列スキャナで `単位数` `加算` `区分単価` 等の語彙が seed JSON 以外に現れたら失敗するテスト、(b) CSV カラム名 literal が `Tsumugi.Infrastructure.Csv` 名前空間以外に現れたら失敗するテスト、(c) 整数 literal の上限ガード（例: 1000 を超える decimal/int literal を Domain 内で禁止）。本項目は Phase 3 着手前のチェックリスト。
+- [x] **報酬・CSVハードコード機械判定（2026-07-11 クローズ / AC3-0-2）**: [`ClaimSpecificationBoundaryTests`](../tests/Tsumugi.Infrastructure.Tests/ClaimSpecificationBoundaryTests.cs) と `ExternalSpecificationLiteralGuard` が、出典付きマスタ値のDomain/Application直書き、CSV仕様値のCsvアセンブリ外直書き、配置境界違反、未知sourceをRoslyn token単位で拒否する。任意の大整数を一律禁止せず、実際の外部仕様値との一致を検査する歯ありテストを採用した。
 - [ ] **Avalonia GUI 目視確認 (AC1-8 補完)**: Phase 1 では `AccessibilityDefaults` の値・適用・XAML 配線を全て CI テストで担保したが、実機起動でのフォント拡大追従、Reduce Motion の Transition 抑止、各 View のタブ順とフォーカス移動は手動 QA でしか確認できない。Phase 2 着手前に macOS/Windows 双方で 1 回ずつ目視チェックする。
-- [ ] **OfficeCapability の正式コード集合**: ADR 0006 の通り Phase 1 は `mealProvision` / `transportSupport` のみの暫定キーで運用。Phase 3 で報酬告示と突合して正式コード（食事提供体制加算 I/II、送迎加算 I/II 等）を確定する。
+- [x] **OfficeCapability の正式コード集合（2026-07-11 クローズ / ADR 0021）**: [ADR 0021](decisions/0021-office-capability-official-codes.md) に正式キー集合、請求・決定コードとの責務分離、適用期間、暫定キー移行とフェイルクローズ条件を記録した。実際の再登録UIと算定はPhase 3-1で実装する。
 - [x] **`UpdateOffice` / `UpdateRecipient` の actor 監査ログ（2026-06-29 クローズ / Phase 2）**: `UpdateOfficeUseCase` / `UpdateRecipientUseCase` で `IAuditTrail.RecordAsync` を呼び `actor` / `AuditAction.Update` / `TimeProvider` / 要約文字列を `AuditLog` に追記する実装に置換。空 actor は `ArgumentException` で弾く。各 UseCase テストで監査行が追記されることを検証済。
-- [ ] **性別など利用者属性の拡張**: 国保連請求 CSV では性別が必須項目の可能性が高い。Phase 1 の `Recipient` は漢字氏名 / カナ氏名 / 生年月日のみ。Phase 3 着手前に CSV インターフェース仕様書で必須項目を洗い出し、enum + migration を発行する。**進捗**: 2026-06-28 に `Certificate` 側に発行時点スナップショットとして `RecipientGender` 等を追加（ADR 0010）。`Recipient` マスタへの拡張は Phase 3 で CSV 仕様確認後に実施。
+- [x] **性別など利用者属性の拡張判断（2026-07-11 クローズ / ADR 0024・AC3-0-5）**: 令和7年10月事業所編のB型対象項目に性別はなく、全項目inventoryとmappingにも性別fieldIdはない。[ADR 0024](decisions/0024-kokuhoren-csv-and-field-mapping.md) に従い `Recipient.Gender` migrationは追加せず、`Certificate` の性別を請求へ推測流用しない。将来の公式版に必須fieldIdが追加された場合だけ、版付きmappingを更新して再判断する。
+- [ ] **[Phase3-1/AC3-8] 51 missing fieldIds / 26 implementation targets**: 正本は [`docs/phase3-claim-field-mapping.md` の「Phase 3-1へ送る未実装入力」](phase3-claim-field-mapping.md#phase-3-1へ送る未実装入力-51-mapping-entries) とし、本ファイルへ51行を複製しない。CSV 30件＋帳票21件の51 missing fieldIdsは、`targetModel + targetProperty + uiSurface + migrationRequired`で束ねると26 implementation targetsであり、51実装項目ではない。全targetでmigrationが必要。モデル・migration・実UI・`IValidatedClaimSnapshotReader`まで揃い、全history・全detailsを既知旧版codec込みで検証できるまで、請求確定・帳票・CSV生成をfail closedとする。
 
 ## Phase 1 受給者証 様式準拠（2026-06-28 追加）
 
 - [ ] **自治体差異**: 受給者証の様式は MHLW 告示で共通項目が定義される一方、自治体ごとに独自の補足欄（例: 通所給食提供時間帯・上限管理事業所の電話番号など）がある。Tsumugi では「主要セクションのみ準拠」とし、自治体独自項目は当面 `SupplyNotes` / `Notes` の自由記述で受ける（ADR 0010）。利用自治体ごとに具体的な追加項目が判明したら個別に enum 化を検討する。
-- [ ] **食事提供体制加算 / 高額障害福祉サービス費等の単位数**: Phase 1 では「適用 yes/no」のフラグのみ保持し、金額算定（単位数・利用額）は Phase 3 報酬告示と突合してから実装する（CLAUDE.md §ハード制約 3）。
-- [ ] **負担区分の月額上限金額表**: `PaymentBurdenCategory` の各区分（生活保護/低所得/一般1/一般2）の月額上限額（円）は告示で定義される。現状は `MonthlyCostCap` 列に手入力。Phase 3 で区分→上限額の対応テーブルをシード JSON 化し、`PaymentBurden` 設定時に自動入力する案を検討する。
+- [x] **食事提供体制加算 / 高額障害福祉サービス費等（2026-07-11 クローズ / ADR 0020〜0022）**: [ADR 0020](decisions/0020-claim-master-sources-and-versioning.md) と [ADR 0022](decisions/0022-burden-cap-master.md) で、令和6年4月から令和8年6月以降まで切れ目のない5 release source chainを確定し、[ADR 0021](decisions/0021-office-capability-official-codes.md) で体制・サービスコード境界を分離した。令和6年内を含むsource gapは0。Phase 3-0では出典・版・規則だけを確定しており、単位数・利用額の外部マスタ投入と実計算はPhase 3-1で実装する。
+- [x] **負担区分の月額上限金額表（2026-07-11 クローズ / ADR 0020・0022）**: [ADR 0020](decisions/0020-claim-master-sources-and-versioning.md) と [ADR 0022](decisions/0022-burden-cap-master.md) で `r6-04` / `r6-06` / `r7-01` / `r7-09` / `r8-06` の5 releaseを連続させ、令和6年を含むsource gapを0にした。制度区分、受給者証記載上限、上限額管理結果の優先関係を維持し、入力未指定、証上限未入力、管理結果未入力を0円扱いせずフェイルクローズする。制度額をC#へ直書きせず、外部マスタ実値と算定はPhase 3-1で実装する。
 - [ ] **計画相談支援事業者マスタ**: 現状は受給者証ごとに事業者名を自由記述。複数受給者で同じ事業者を参照することが多いため、Phase 3 で `ConsultationProvider` マスタを切り出して FK 参照に変更するか検討する。
 - [ ] **ContractedProvider と Contract の整理**: Phase 1 既存の `Contract` は自社事業所の利用契約のみ表現する。新規 `ContractedProvider` は受給者証「サービス事業者記入欄」に書かれる**全契約事業所**（他事業所含む）を網羅する。重複格納を避けたい場合は、自社契約は `Contract` 側のみで管理し `ContractedProvider` には他事業所のみ書く運用も検討する。Phase 2 着手前に運用方針を確定する。
 
@@ -39,7 +40,7 @@
 ## Phase 2 工賃計算（2026-06-28 追加）
 
 - [x] **KouchinModule.bas v5 の実挙動突合（2026-07-05 クローズ / ADR 0012 v2）**: `.xlsm` 検査で方式 Hourly・端数 HalfUp（`ROUND(…,0)` = `BD5`）・`HourUnitMinutes = 15`（`AY9 = 1/96日`）・年度起点 4 月を確認。ADR 0012 を「確定」へ書き換え済み。実装補足として丸めスコープは per-rate 集計後 1 回（.xlsm の per-day BD5 との semantic drift はユーザ承認済み）。
-- [ ] **平均工賃月額の正式定義**: 厚労省告示/通知の定義（分母＝延べ利用者 or 実利用者、基準期間、控除項目）を一次情報で確認。確定までは `AverageWageMetric` の暫定式を `[Obsolete("要・通知突合（暫定）")]` 相当のコメントで明示し、テストで形を固定（分母切替に強い構造）する。一次資料入手時にクローズ。
+- [x] **平均工賃月額の正式定義（2026-07-11 クローズ / ADR 0023）**: [ADR 0023](decisions/0023-average-wage-and-r8-transition.md) で年間工賃支払総額、年間延べ利用者数、年間開所日数を用いる正式式、対象期間、0除算、令和8区分・経過措置、Phase 2 `AverageWageMetric`との責務分離を確定した。請求用`Logic/Claim/AverageWageCalculator`と版付きマスタによる実計算はPhase 3-1で実装する。
 - [x] **特別手当の性格（2026-07-05 クローズ / ADR 0018）**: `.xlsm` の G 列（特別手当）を確認。利用者×月の任意支給であり、`WageAdjustment` append-only エンティティで受ける設計に確定。作業手当・職能手当は `WageSettings` 拡張で表現、特別手当のみ `WageAdjustment` に分離。
 - [x] **QuestPDF ライセンス（2026-07-05 クローズ / Phase 4 S1 / ADR 0013 v2）**: Community 継続を確定。一次情報確認 (docs/superpowers/specs/2026-07-05-phase4-s1-font-embed-and-questpdf-license-design.md §15) で就労B型事業所の想定規模との整合を確認。閾値超過時の Avalonia 印刷経路フォールバック計画は ADR 0013 に記載 (実装は別 ADR)。多施設運営法人の consolidated 年商が閾値近傍の場合は再判定すること。公営運営 / 上場企業も再判定対象 (ADR 0013 v2)。
 - [ ] **工賃確定後の下層訂正方針**: 自動再計算しない（Correction で履歴に残す）方針を ADR 0012 に併記済。次月調整 or 再確定の手順は運用ガイドへ。
