@@ -141,6 +141,10 @@ public sealed class ClaimFinalizationOperationV1Tests
     [InlineData("totalBurdenYen")]
     [InlineData("inputEnvelopeBytes")]
     [InlineData("calculationEnvelopeBytes")]
+    [InlineData("detailTotalUnits")]
+    [InlineData("detailTotalCostYen")]
+    [InlineData("detailBenefitYen")]
+    [InlineData("detailBurdenYen")]
     public void Canonicalize_hash_changes_for_each_operation_input(string field)
     {
         var draft = Draft() with
@@ -198,6 +202,28 @@ public sealed class ClaimFinalizationOperationV1Tests
             revision: 1);
 
         var rebuilt = operation.Rebuild(aggregate, draft.Details);
+
+        rebuilt.Sha256.Should().Be(original.Sha256);
+        rebuilt.GetCanonicalUtf8Bytes().Should().Equal(original.GetCanonicalUtf8Bytes());
+    }
+
+    [Fact]
+    public void Rebuild_excludes_persisted_operation_hash_from_operation_payload()
+    {
+        var draft = Draft();
+        var operation = new ClaimFinalizationOperationV1();
+        var aggregate = Aggregate(
+            draft,
+            Guid.Parse("60000000-0000-0000-0000-000000000000"),
+            Guid.Parse("70000000-0000-0000-0000-000000000000"),
+            DateTimeOffset.UnixEpoch,
+            revision: 1);
+        var tampered = new ClaimBatchAggregate(
+            aggregate.Header with { OperationPayloadSha256 = new string('f', 64) },
+            aggregate.Details);
+
+        var original = operation.Rebuild(aggregate, draft.Details);
+        var rebuilt = operation.Rebuild(tampered, draft.Details);
 
         rebuilt.Sha256.Should().Be(original.Sha256);
         rebuilt.GetCanonicalUtf8Bytes().Should().Equal(original.GetCanonicalUtf8Bytes());
@@ -314,6 +340,14 @@ public sealed class ClaimFinalizationOperationV1Tests
                 {
                     CalculationSnapshotEnvelope = Envelope("{\"type\":\"calculation-v2\"}"),
                 }),
+            "detailTotalUnits" => WithDetail(
+                draft, draft.Details[0] with { TotalUnits = draft.Details[0].TotalUnits + 1 }),
+            "detailTotalCostYen" => WithDetail(
+                draft, draft.Details[0] with { TotalCostYen = draft.Details[0].TotalCostYen + 1 }),
+            "detailBenefitYen" => WithDetail(
+                draft, draft.Details[0] with { BenefitYen = draft.Details[0].BenefitYen + 1 }),
+            "detailBurdenYen" => WithDetail(
+                draft, draft.Details[0] with { BurdenYen = draft.Details[0].BurdenYen + 1 }),
             _ => throw new ArgumentOutOfRangeException(nameof(field)),
         };
 

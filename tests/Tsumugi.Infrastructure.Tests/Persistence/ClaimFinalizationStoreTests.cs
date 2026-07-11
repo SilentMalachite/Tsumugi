@@ -239,6 +239,60 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Commit_Cancel_copies_head_snapshot_versions_keeps_requested_operation_version_and_replays()
+    {
+        var store = CreateStore();
+        var initial = Draft(Guid.NewGuid());
+        var root = await store.CommitAsync(initial, default);
+        var cancellation = initial with
+        {
+            FinalizationOperationId = Guid.NewGuid(),
+            Kind = RecordKind.Cancel,
+            RootBatchId = root.BatchId,
+            ExpectedHead = new ClaimExpectedHead(root.BatchId, root.Revision),
+            OperationApplicationVersion = "cancel-operation-v9",
+            ClaimMasterVersion = "caller-master-v9",
+            CsvSpecificationVersion = "caller-csv-v9",
+            ReportSpecificationVersion = "caller-report-v9",
+            SnapshotApplicationVersion = "caller-snapshot-app-v9",
+            TotalUnits = 0,
+            TotalCostYen = 0,
+            TotalBenefitYen = 0,
+            TotalBurdenYen = 0,
+            Details = [],
+        };
+
+        var result = await store.CommitAsync(cancellation, default);
+
+        Tsumugi.Domain.Entities.ClaimBatch persisted;
+        await using (var verification = _factory.CreateDbContext())
+        {
+            persisted = await verification.ClaimBatches.SingleAsync(batch => batch.Id == result.BatchId);
+            persisted.ClaimMasterVersion.Should().Be(initial.ClaimMasterVersion);
+            persisted.CsvSpecificationVersion.Should().Be(initial.CsvSpecificationVersion);
+            persisted.ReportSpecificationVersion.Should().Be(initial.ReportSpecificationVersion);
+            persisted.SnapshotApplicationVersion.Should().Be(initial.SnapshotApplicationVersion);
+            persisted.OperationApplicationVersion.Should().Be(cancellation.OperationApplicationVersion);
+            var normalized = cancellation with
+            {
+                ClaimMasterVersion = initial.ClaimMasterVersion,
+                CsvSpecificationVersion = initial.CsvSpecificationVersion,
+                ReportSpecificationVersion = initial.ReportSpecificationVersion,
+                SnapshotApplicationVersion = initial.SnapshotApplicationVersion,
+            };
+            persisted.OperationPayloadSha256.Should().Be(
+                new ClaimFinalizationOperationV1().Canonicalize(normalized).Sha256);
+        }
+
+        var replay = await store.CommitAsync(cancellation, default);
+
+        replay.Should().Be(new ClaimFinalizationResult(result.BatchId, 2, IsReplay: true));
+        await using var replayVerification = _factory.CreateDbContext();
+        (await replayVerification.ClaimBatches.CountAsync()).Should().Be(2);
+        (await replayVerification.AuditEntries.CountAsync()).Should().Be(2);
+    }
+
+    [Fact]
     public async Task Commit_Cancel_replay_rejects_nonzero_totals_before_normalization()
     {
         var store = CreateStore();
@@ -304,6 +358,53 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
         AssertDisposed(_factory.Contexts);
         await using var verification = _factory.CreateDbContext();
         (await verification.ClaimBatches.CountAsync()).Should().Be(0);
+        (await verification.AuditEntries.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Commit_rejects_unknown_incoming_codec_when_registry_has_other_write_support()
+    {
+        var store = new ClaimFinalizationStore(
+            _factory,
+            new ClaimFinalizationOperationRegistry(),
+            new MissingCodecRegistry(),
+            new ClaimAuditEntryFactory(),
+            TimeProvider.System);
+
+        var action = () => store.CommitAsync(Draft(Guid.NewGuid()), default);
+
+        await action.Should().ThrowAsync<ClaimFinalizationException>()
+            .Where(exception => exception.Code == ClaimErrorCode.UnsupportedSnapshotCodec);
+        AssertDisposed(_factory.Contexts);
+        await using var verification = _factory.CreateDbContext();
+        (await verification.ClaimBatches.CountAsync()).Should().Be(0);
+        (await verification.ClaimDetails.CountAsync()).Should().Be(0);
+        (await verification.AuditEntries.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Commit_rejects_read_only_incoming_codec_when_another_codec_can_write()
+    {
+        var readOnly = new TestCodec(canWrite: false);
+        var writer = new TestCodec(
+            canWrite: true,
+            schemaVersion: "other-snapshot-v1",
+            validationCodecId: "other-codec-v1");
+        var store = new ClaimFinalizationStore(
+            _factory,
+            new ClaimFinalizationOperationRegistry(),
+            new MultiCodecRegistry(readOnly, writer),
+            new ClaimAuditEntryFactory(),
+            TimeProvider.System);
+
+        var action = () => store.CommitAsync(Draft(Guid.NewGuid(), readOnly), default);
+
+        await action.Should().ThrowAsync<ClaimFinalizationException>()
+            .Where(exception => exception.Code == ClaimErrorCode.UnsupportedSnapshotCodec);
+        AssertDisposed(_factory.Contexts);
+        await using var verification = _factory.CreateDbContext();
+        (await verification.ClaimBatches.CountAsync()).Should().Be(0);
+        (await verification.ClaimDetails.CountAsync()).Should().Be(0);
         (await verification.AuditEntries.CountAsync()).Should().Be(0);
     }
 
@@ -440,6 +541,78 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
 
         await action.Should().ThrowAsync<ClaimFinalizationException>()
             .Where(exception => exception.Code == ClaimErrorCode.InvalidHistory);
+    }
+
+    [Fact]
+    public async Task Replay_rejects_detail_created_by_mismatch_without_adding_rows_or_audit()
+    {
+        var store = CreateStore();
+        var draft = Draft(Guid.NewGuid());
+        await store.CommitAsync(draft, default);
+        await using (var tamper = _factory.CreateDbContext())
+            await tamper.Database.ExecuteSqlRawAsync(
+                "UPDATE ClaimDetails SET CreatedBy = 'different-actor';");
+        _factory.Contexts.Clear();
+
+        var action = () => store.CommitAsync(draft, default);
+
+        await action.Should().ThrowAsync<ClaimFinalizationException>()
+            .Where(exception => exception.Code == ClaimErrorCode.InvalidHistory);
+        AssertDisposed(_factory.Contexts);
+        await using var verification = _factory.CreateDbContext();
+        (await verification.ClaimBatches.CountAsync()).Should().Be(1);
+        (await verification.ClaimDetails.CountAsync()).Should().Be(1);
+        (await verification.AuditEntries.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Replay_rejects_duplicate_persisted_recipient_without_adding_rows_or_audit()
+    {
+        var store = CreateStore();
+        var draft = DraftWithTwoDetails(Guid.NewGuid());
+        await store.CommitAsync(draft, default);
+        var firstRecipientId = draft.Details[0].RecipientId;
+        var secondRecipientId = draft.Details[1].RecipientId;
+        await using (var tamper = _factory.CreateDbContext())
+        {
+            await tamper.Database.ExecuteSqlRawAsync(
+                "DROP INDEX UX_ClaimDetails_ClaimBatchId_RecipientId;");
+            await tamper.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE ClaimDetails SET RecipientId = {firstRecipientId} WHERE RecipientId = {secondRecipientId}");
+        }
+        _factory.Contexts.Clear();
+
+        var action = () => store.CommitAsync(draft, default);
+
+        await action.Should().ThrowAsync<ClaimFinalizationException>()
+            .Where(exception => exception.Code == ClaimErrorCode.InvalidHistory);
+        AssertDisposed(_factory.Contexts);
+        await using var verification = _factory.CreateDbContext();
+        (await verification.ClaimBatches.CountAsync()).Should().Be(1);
+        (await verification.ClaimDetails.CountAsync()).Should().Be(2);
+        (await verification.AuditEntries.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Replay_rejects_operation_hash_mismatch_without_adding_rows_or_audit()
+    {
+        var store = CreateStore();
+        var draft = Draft(Guid.NewGuid());
+        await store.CommitAsync(draft, default);
+        await using (var tamper = _factory.CreateDbContext())
+            await tamper.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE ClaimBatches SET OperationPayloadSha256 = {new string('f', 64)}");
+        _factory.Contexts.Clear();
+
+        var action = () => store.CommitAsync(draft, default);
+
+        await action.Should().ThrowAsync<ClaimFinalizationException>()
+            .Where(exception => exception.Code == ClaimErrorCode.InvalidHistory);
+        AssertDisposed(_factory.Contexts);
+        await using var verification = _factory.CreateDbContext();
+        (await verification.ClaimBatches.CountAsync()).Should().Be(1);
+        (await verification.ClaimDetails.CountAsync()).Should().Be(1);
+        (await verification.AuditEntries.CountAsync()).Should().Be(1);
     }
 
     [Fact]
@@ -1021,6 +1194,24 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
         public IClaimSnapshotValidationCodec? Find(string schemaVersion, string validationCodecId) => null;
     }
 
+    private sealed class MissingCodecRegistry : IClaimSnapshotValidationCodecRegistry
+    {
+        public bool HasWriteSupport => true;
+
+        public IClaimSnapshotValidationCodec? Find(string schemaVersion, string validationCodecId) => null;
+    }
+
+    private sealed class MultiCodecRegistry(
+        params IClaimSnapshotValidationCodec[] codecs) : IClaimSnapshotValidationCodecRegistry
+    {
+        public bool HasWriteSupport => codecs.Any(codec => codec.CanWrite);
+
+        public IClaimSnapshotValidationCodec? Find(string schemaVersion, string validationCodecId)
+            => codecs.SingleOrDefault(codec =>
+                codec.SchemaVersion == schemaVersion
+                && codec.ValidationCodecId == validationCodecId);
+    }
+
     private sealed class ThrowingAuditFactory : IClaimAuditEntryFactory
     {
         public Tsumugi.Domain.Entities.AuditEntry Create(
@@ -1100,15 +1291,23 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
         internal const string Id = "test-codec-v1";
         private readonly object _marker;
         private readonly bool _canWrite;
+        private readonly string _schemaVersion;
+        private readonly string _validationCodecId;
 
-        internal TestCodec(bool canWrite = true, object? marker = null)
+        internal TestCodec(
+            bool canWrite = true,
+            object? marker = null,
+            string schemaVersion = Schema,
+            string validationCodecId = Id)
         {
             _canWrite = canWrite;
             _marker = marker ?? new object();
+            _schemaVersion = schemaVersion;
+            _validationCodecId = validationCodecId;
         }
 
-        public string SchemaVersion => Schema;
-        public string ValidationCodecId => Id;
+        public string SchemaVersion => _schemaVersion;
+        public string ValidationCodecId => _validationCodecId;
         public bool CanWrite => _canWrite;
 
         internal ValidatedClaimSnapshotEnvelope Create(string payloadJson)
@@ -1116,8 +1315,9 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
             var payload = Encoding.UTF8.GetBytes(payloadJson);
             var payloadHash = Convert.ToHexStringLower(SHA256.HashData(payload));
             var bytes = Encoding.UTF8.GetBytes(
-                $"{{\"schemaVersion\":\"{Schema}\",\"validationCodecId\":\"{Id}\",\"payloadSha256\":\"{payloadHash}\",\"payload\":{payloadJson}}}");
-            return ValidatedClaimSnapshotEnvelope.CreateValidated(Schema, Id, payloadHash, bytes, _marker);
+                $"{{\"schemaVersion\":\"{SchemaVersion}\",\"validationCodecId\":\"{ValidationCodecId}\",\"payloadSha256\":\"{payloadHash}\",\"payload\":{payloadJson}}}");
+            return ValidatedClaimSnapshotEnvelope.CreateValidated(
+                SchemaVersion, ValidationCodecId, payloadHash, bytes, _marker);
         }
 
         public void Validate(ValidatedClaimSnapshotEnvelope envelope)
@@ -1134,14 +1334,15 @@ public sealed class ClaimFinalizationStoreTests : IDisposable
             var payloadRaw = root.GetProperty("payload").GetRawText();
             var payloadBytes = Encoding.UTF8.GetBytes(payloadRaw);
             var payloadHash = Convert.ToHexStringLower(SHA256.HashData(payloadBytes));
-            if (root.GetProperty("schemaVersion").GetString() != Schema
-                || root.GetProperty("validationCodecId").GetString() != Id
+            if (root.GetProperty("schemaVersion").GetString() != SchemaVersion
+                || root.GetProperty("validationCodecId").GetString() != ValidationCodecId
                 || root.GetProperty("payloadSha256").GetString() != payloadHash)
                 throw new ClaimFinalizationException(ClaimErrorCode.InvalidSnapshotEnvelope);
             var roundTrip = Encoding.UTF8.GetBytes(root.GetRawText());
             if (!roundTrip.AsSpan().SequenceEqual(canonicalUtf8.Span))
                 throw new ClaimFinalizationException(ClaimErrorCode.InvalidSnapshotEnvelope);
-            return ValidatedClaimSnapshotEnvelope.CreateValidated(Schema, Id, payloadHash, roundTrip, _marker);
+            return ValidatedClaimSnapshotEnvelope.CreateValidated(
+                SchemaVersion, ValidationCodecId, payloadHash, roundTrip, _marker);
         }
     }
 }
