@@ -81,6 +81,55 @@ public sealed class ClaimInputPolicyTests
             .Should().Throw<InvalidOperationException>();
     }
 
+    public static TheoryData<string, IReadOnlyCollection<ClaimInput>> CancelPayloadHistories()
+    {
+        var root = New();
+        var cancellation = Cancel(root);
+
+        return new()
+        {
+            {
+                "upper limit management result",
+                new[] { root, cancellation with { UpperLimitManagementResult = root.UpperLimitManagementResult } }
+            },
+            {
+                "upper limit managed amount",
+                new[] { root, cancellation with { UpperLimitManagedAmountYen = root.UpperLimitManagedAmountYen } }
+            },
+            {
+                "municipal subsidy amount",
+                new[] { root, cancellation with { MunicipalSubsidyAmountYen = root.MunicipalSubsidyAmountYen } }
+            },
+            {
+                "exceptional usage start month",
+                new[] { root, cancellation with { ExceptionalUsageStartMonth = Month } }
+            },
+            {
+                "exceptional usage end month",
+                new[] { root, cancellation with { ExceptionalUsageEndMonth = Month } }
+            },
+            {
+                "exceptional usage days",
+                new[] { root, cancellation with { ExceptionalUsageDays = root.ExceptionalUsageDays } }
+            },
+            {
+                "standard usage day total",
+                new[] { root, cancellation with { StandardUsageDayTotal = root.StandardUsageDayTotal } }
+            },
+        };
+    }
+
+    [Theory]
+    [MemberData(nameof(CancelPayloadHistories))]
+    public void Cancel_with_claim_input_payload_is_rejected(
+        string _,
+        IReadOnlyCollection<ClaimInput> history)
+    {
+        FluentActions.Invoking(() => ClaimInputPolicy.ValidateHistory(history))
+            .Should().Throw<InvalidOperationException>()
+            .WithMessage("ClaimInputのCancelは請求入力値を持てません。");
+    }
+
     [Fact]
     public void Official_upper_limit_management_results_are_closed_to_codes_one_through_three()
     {

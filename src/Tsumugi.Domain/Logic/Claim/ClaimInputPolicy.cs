@@ -47,6 +47,15 @@ public static class ClaimInputPolicy
                 throw Invalid("ClaimInput履歴に異なる事業所、利用者またはサービス月が混在しています。");
             if (input.Kind is not RecordKind.New and not RecordKind.Correct and not RecordKind.Cancel)
                 throw Invalid($"未知のRecordKind {input.Kind} です。");
+            if (input.Kind == RecordKind.Cancel
+                && (input.UpperLimitManagementResult is not null
+                    || input.UpperLimitManagedAmountYen is not null
+                    || input.MunicipalSubsidyAmountYen is not null
+                    || input.ExceptionalUsageStartMonth is not null
+                    || input.ExceptionalUsageEndMonth is not null
+                    || input.ExceptionalUsageDays is not null
+                    || input.StandardUsageDayTotal is not null))
+                throw Invalid("ClaimInputのCancelは請求入力値を持てません。");
             if (input.UpperLimitManagementResult is { } result && !Enum.IsDefined(result))
                 throw Invalid("未知の上限額管理結果です。");
 
