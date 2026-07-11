@@ -761,16 +761,16 @@
     {
       "documentId": "r8-grant-decision-administration-202606",
       "title": "介護給付費等に係る支給決定事務等について（事務処理要領・最終改正令和8年6月）",
-      "publisher": "厚生労働省",
+      "publisher": "厚生労働省（北九州市公式サイト再配布）",
       "effectiveAt": "2026-06-01",
       "publishedAt": null,
-      "retrievedAt": "2026-07-10",
-      "url": "https://www.mhlw.go.jp/content/12200000/001470632.pdf",
-      "sha256": "d6e1672245370d2d7bb9a4258622ae3e631d0a6144c8e0c9ea51e2018a146f1e",
+      "retrievedAt": "2026-07-11",
+      "url": "https://www.city.kitakyushu.lg.jp/files/001215921.pdf",
+      "sha256": "c5070de88b83528860e8dba6c4aa88ec4bd7418dea017fbbdb5cc80dc7014798",
       "supersedes": ["r7-grant-decision-administration-202509"],
       "corrects": null,
       "supplements": null,
-      "applicabilityNote": "effectiveAtは「最終改正 令和8年6月」を月初に正規化。physical pages 112〜113の受給者証上限の認定・適用期間、pages 173〜186（特に182〜186）の上限額管理、結果1〜3、管理結果後利用者負担額、合計、成人を含む徴収優先順に使用。page 112は制度額を別の利用者負担マニュアル参照とするため、本資料を制度額そのものの根拠にしない。令和8年5月以前に遡及適用しない",
+      "applicabilityNote": "厚生労働省発出文書を北九州市公式サイトが再配布するlive PDFから1,968,795 bytes・262 pagesを2026-07-11に取得。effectiveAtは「最終改正 令和8年6月」を月初に正規化。physical pages 112〜113の受給者証上限の認定・適用期間、physical pages 173、175、182、184〜186の成人上限額管理概要、指定就労継続支援B型、結果票、結果区分1〜3、優先徴収順、金額項目、管理結果後利用者負担額と配分に使用。page 112は制度額を別資料参照とするため制度額そのものの根拠にせず、令和8年5月以前に遡及適用しない",
       "correctionNote": "2026-06からr7-grant-decision-administration-202509を置換する。2026-05以前へ遡及しない"
     },
     {
