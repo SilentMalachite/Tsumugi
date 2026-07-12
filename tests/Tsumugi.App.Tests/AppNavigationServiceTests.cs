@@ -10,12 +10,9 @@ using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Application.UseCases;
 using Tsumugi.Application.UseCases.Certificate;
-using Tsumugi.Application.UseCases.Claim;
 using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
-using Tsumugi.Domain.Logic.Claim;
-using Tsumugi.Domain.Logic.Claim.Models;
 using Tsumugi.Domain.ValueObjects;
 using Tsumugi.Infrastructure.Persistence;
 
@@ -74,7 +71,7 @@ public sealed class AppNavigationServiceTests
         codeBehind.Should().Contain("AppSection.RecipientList");
         codeBehind.Should().Contain("nameof(MainViewModel.SelectedSection)");
         xaml.Should().Contain("<views:ClaimInputView DataContext=\"{Binding ClaimInput}\" />");
-        xaml.Should().Contain("IsVisible=\"{Binding ClaimInputAvailable}\"");
+        xaml.Should().NotContain("ClaimInputAvailable");
         xaml.Should().NotContain("ClaimPreparationView");
     }
 
@@ -491,7 +488,6 @@ public sealed class AppNavigationServiceTests
                 Path.GetTempPath(),
                 $"tsumugi-navigation-{Guid.NewGuid():N}.db");
             var services = new ServiceCollection().AddTsumugiServices($"Data Source={dbPath}");
-            AddTestClaimInputServices(services);
             var provider = services.BuildServiceProvider();
             var scope = provider.CreateAsyncScope();
 
@@ -559,29 +555,4 @@ public sealed class AppNavigationServiceTests
         }
     }
 
-    private static void AddTestClaimInputServices(IServiceCollection services)
-    {
-        var version = new ClaimMasterVersion("navigation-test-master");
-        var option = new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 1);
-        var rule = new AverageWageBandOptionVersionRule(
-            version,
-            new ServiceMonth(2026, 1),
-            null,
-            [option],
-            new Dictionary<R8ReformStatus, IReadOnlyCollection<AverageWageBandOption>>
-            {
-                [R8ReformStatus.ReformTarget] = [option],
-            });
-        var policy = new OfficeClaimProfilePolicy(
-            version, [rule], new DateOnly(2026, 6, 1), date => date.AddYears(3));
-        services.AddSingleton<IOfficeClaimProfilePolicyProvider>(
-            new FixedOfficeClaimProfilePolicyProvider(policy));
-        services.AddScoped<QueryClaimInputWorkspaceUseCase>();
-        services.AddScoped<SetClaimInputUseCase>();
-        services.AddScoped<SetAverageWageAnnualEvidenceUseCase>();
-        services.AddScoped<SetOfficeClaimProfileUseCase>();
-        services.AddScoped<SetCertificateClaimEvidenceUseCase>();
-        services.AddScoped<SetUpperLimitManagementStatementUseCase>();
-        services.AddTransient<ClaimInputViewModel>();
-    }
 }

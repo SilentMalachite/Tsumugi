@@ -34,6 +34,7 @@ public sealed partial class ClaimInputViewModel(
 {
     private const string ReloadMessage = "請求入力履歴を再読込してください。";
     private const string InvalidMessage = "請求入力の内容を確認してください。";
+    private const string MasterUnavailableMessage = "請求制度マスターを利用できません。";
 
     private readonly ListOfficesUseCase _listOffices = listOffices;
     private readonly ListRecipientsUseCase _listRecipients = listRecipients;
@@ -773,8 +774,13 @@ public sealed partial class ClaimInputViewModel(
         }
         catch (ClaimInputSaveException ex)
         {
-            var message = ex.Code is ClaimInputSaveErrorCode.ExpectedHeadMismatch
-                or ClaimInputSaveErrorCode.InvalidHistory ? ReloadMessage : InvalidMessage;
+            var message = ex.Code switch
+            {
+                ClaimInputSaveErrorCode.ExpectedHeadMismatch
+                    or ClaimInputSaveErrorCode.InvalidHistory => ReloadMessage,
+                ClaimInputSaveErrorCode.MasterUnavailable => MasterUnavailableMessage,
+                _ => InvalidMessage,
+            };
             await ReloadAfterFailureAsync(message);
         }
         catch (InvalidOperationException)

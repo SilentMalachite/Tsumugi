@@ -75,13 +75,13 @@ public static class CompositionRoot
         services.AddScoped<QueryIntensiveSupportEpisodeUseCase>();
         services.AddScoped<SetIntensiveSupportEpisodeUseCase>();
 
-        // Phase 3-1: OfficeClaimProfilePolicyに依存しない請求入力保存。
-        // policyのproduction-safe providerはTask 12未実装のため、SetOfficeClaimProfile、
-        // QueryClaimInputWorkspace、ClaimInputViewModelの本番登録は推測値を避けて保留する。
+        // Phase 3-1: master-backed policy providerで請求入力workspaceを本番提供する。
         services.AddScoped<SetClaimInputUseCase>();
         services.AddScoped<SetAverageWageAnnualEvidenceUseCase>();
+        services.AddScoped<SetOfficeClaimProfileUseCase>();
         services.AddScoped<SetCertificateClaimEvidenceUseCase>();
         services.AddScoped<SetUpperLimitManagementStatementUseCase>();
+        services.AddScoped<QueryClaimInputWorkspaceUseCase>();
 
         // Phase 2: 工賃計算戦略（4 方式並存; D3 CalculateWagesUseCase が IReadOnlyList<IWageMethodStrategy> を要求）
         services.AddSingleton<IReadOnlyList<IWageMethodStrategy>>(_ => new IWageMethodStrategy[]
@@ -136,6 +136,7 @@ public static class CompositionRoot
         services.AddTransient<WageFundSettingsViewModel>();
         services.AddTransient<WageCalculationViewModel>();
         services.AddTransient<WageStatementViewModel>();
+        services.AddTransient<ClaimInputViewModel>();
         // Phase 4 S0 ViewModels
         services.AddTransient<RecipientHourlyRateViewModel>();
         services.AddTransient<WageAdjustmentViewModel>();

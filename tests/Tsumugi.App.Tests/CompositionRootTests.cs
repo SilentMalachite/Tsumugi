@@ -10,9 +10,12 @@ using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Audit;
 using Tsumugi.Application.Claim;
 using Tsumugi.Application.UseCases;
+using Tsumugi.Application.UseCases.Certificate;
 using Tsumugi.Application.UseCases.Claim;
+using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Application.UseCases.Wage;
 using Tsumugi.Application.UseCases.WorkRecord;
+using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic.Wage;
 using Tsumugi.Domain.ValueObjects;
 using Tsumugi.Infrastructure.Persistence;
@@ -23,7 +26,7 @@ namespace Tsumugi.App.Tests;
 public sealed class CompositionRootTests
 {
     [Fact]
-    public void Claim_input_safe_services_are_registered_without_guessing_office_profile_policy()
+    public void Claim_input_workspace_is_registered_with_the_master_backed_policy_provider()
     {
         var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
 
@@ -36,38 +39,64 @@ public sealed class CompositionRootTests
             service.ServiceType == typeof(SetUpperLimitManagementStatementUseCase));
         services.Should().NotContain(service =>
             service.ServiceType == typeof(Tsumugi.Domain.Logic.Claim.OfficeClaimProfilePolicy));
-        services.Should().NotContain(service =>
+        services.Should().Contain(service =>
             service.ServiceType == typeof(SetOfficeClaimProfileUseCase));
-        services.Should().NotContain(service =>
+        services.Should().Contain(service =>
             service.ServiceType == typeof(QueryClaimInputWorkspaceUseCase));
-        services.Should().NotContain(service => service.ServiceType == typeof(ClaimInputViewModel));
+        services.Should().Contain(service => service.ServiceType == typeof(ClaimInputViewModel));
 
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
         var main = scope.ServiceProvider.GetRequiredService<MainViewModel>();
-        main.ClaimInput.Should().BeNull();
-        main.ClaimInputAvailable.Should().BeFalse();
+        main.ClaimInput.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task Production_navigation_reports_claim_input_as_unavailable_without_policy()
+    public async Task Production_navigation_loads_empty_claim_input_workspace_without_policy_rows()
     {
-        var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
-        using var provider = services.BuildServiceProvider();
-        using var scope = provider.CreateScope();
-        _ = scope.ServiceProvider.GetRequiredService<MainViewModel>();
-        var navigation = scope.ServiceProvider.GetRequiredService<Tsumugi.App.Navigation.IAppNavigationService>();
+        var dbPath = Path.Combine(Path.GetTempPath(), $"tsumugi-claim-input-{Guid.NewGuid():N}.db");
+        try
+        {
+            var services = new ServiceCollection().AddTsumugiServices($"Data Source={dbPath}");
+            using var provider = services.BuildServiceProvider();
+            using var scope = provider.CreateScope();
+            await scope.ServiceProvider.GetRequiredService<TsumugiDbContext>().Database.MigrateAsync();
+            var recipient = await scope.ServiceProvider.GetRequiredService<RegisterRecipientUseCase>()
+                .ExecuteAsync(new RegisterRecipientInput(
+                    "紡木 太郎", "ツムギ タロウ", new DateOnly(1990, 1, 1)), "test", default);
+            var office = await scope.ServiceProvider.GetRequiredService<RegisterOfficeUseCase>()
+                .ExecuteAsync("1234567890", "Tsumugi事業所", ServiceCategory.TypeB,
+                    RegionGrade.None, "test", default);
+            var (certificate, _) = await scope.ServiceProvider
+                .GetRequiredService<RegisterCertificateUseCase>()
+                .ExecuteAsync(new RegisterCertificateInput(
+                    recipient.Id, "9876543210",
+                    new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+                    23, 9_300, "杉並区")
+                {
+                    MunicipalityNumber = "131156",
+                }, "test", default);
+            _ = scope.ServiceProvider.GetRequiredService<MainViewModel>();
+            var navigation = scope.ServiceProvider.GetRequiredService<
+                Tsumugi.App.Navigation.IAppNavigationService>();
 
-        var result = await navigation.NavigateAsync(new Tsumugi.App.Navigation.NavigationRequest(
-            Tsumugi.App.Navigation.AppSection.ClaimInput,
-            Guid.NewGuid(),
-            CertificateId: Guid.NewGuid(),
-            OfficeId: Guid.NewGuid(),
-            ServiceMonth: new ServiceMonth(2026, 6)));
+            var result = await navigation.NavigateAsync(new Tsumugi.App.Navigation.NavigationRequest(
+                Tsumugi.App.Navigation.AppSection.ClaimInput,
+                recipient.Id,
+                CertificateId: certificate.Id,
+                OfficeId: office.Id,
+                ServiceMonth: new ServiceMonth(2026, 6)));
 
-        result.IsSuccess.Should().BeFalse();
-        result.ErrorCode.Should().Be(
-            Tsumugi.App.Navigation.NavigationErrorCode.NavigationTargetUnavailable);
+            result.IsSuccess.Should().BeTrue();
+            scope.ServiceProvider.GetRequiredService<MainViewModel>()
+                .ClaimInput!.WorkspaceLoaded.Should().BeTrue();
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            foreach (var path in new[] { dbPath, dbPath + "-shm", dbPath + "-wal" })
+                if (File.Exists(path)) File.Delete(path);
+        }
     }
 
     [Fact]

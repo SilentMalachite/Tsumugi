@@ -26,8 +26,8 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
         WageAdjustmentViewModel wageAdjustment,
         WageCalculationViewModel wageCalculation,
         WageStatementViewModel wageStatement,
-        IMessenger messenger,
-        ClaimInputViewModel? claimInput = null)
+        ClaimInputViewModel claimInput,
+        IMessenger messenger)
     {
         ArgumentNullException.ThrowIfNull(messenger);
         RecipientList = recipientList;
@@ -76,9 +76,7 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
     public WageCalculationViewModel WageCalculation { get; }
     public WageStatementViewModel WageStatement { get; }
 
-    // Phase 3-1: production policy provider未実装時はnull。test compositionでは注入可能。
-    public ClaimInputViewModel? ClaimInput { get; }
-    public bool ClaimInputAvailable => ClaimInput is not null;
+    public ClaimInputViewModel ClaimInput { get; }
 
     // Phase 4 S0 tabs
     public RecipientHourlyRateViewModel RecipientHourlyRate { get; }
@@ -125,13 +123,6 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
         CancellationToken ct)
     {
         if (request.Section == AppSection.ClaimPreparation)
-        {
-            return NavigationResult.Failure(
-                request,
-                NavigationErrorCode.NavigationTargetUnavailable);
-        }
-
-        if (request.Section == AppSection.ClaimInput && !ClaimInputAvailable)
         {
             return NavigationResult.Failure(
                 request,
@@ -222,7 +213,7 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
         NavigationRequest request,
         CancellationToken ct)
     {
-        if (ClaimInput is null || request.ServiceDate is not null
+        if (request.ServiceDate is not null
             || HasEmptyGuid(request.OfficeId) || HasEmptyGuid(request.RecipientId)
             || HasEmptyGuid(request.CertificateId) || request.OfficeId is null
             || request.RecipientId is null || request.CertificateId is null

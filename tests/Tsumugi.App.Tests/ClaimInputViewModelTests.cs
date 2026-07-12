@@ -245,7 +245,205 @@ public sealed class ClaimInputViewModelTests
         fixture.Sut.AverageWageCurrentHeadId.Should().Be(cancelId);
     }
 
-    private static Fixture CreateFixture(bool withActiveClaimInput)
+    [Fact]
+    public async Task Office_profile_save_reports_fixed_master_unavailable_message()
+    {
+        var fixture = CreateFixture(
+            withActiveClaimInput: false,
+            new UnavailableOfficeClaimProfilePolicyProvider());
+        await fixture.Sut.LoadAsync();
+        fixture.Sut.ProfileEffectiveFrom = new DateOnly(2026, 6, 1);
+        fixture.Sut.MasterVersion = new ClaimMasterVersion("not-seeded");
+        fixture.Sut.ReformStatus = R8ReformStatus.ReformTarget;
+        fixture.Sut.AverageWageBandOption =
+            new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 1);
+
+        await fixture.Sut.SaveOfficeProfileAsync();
+
+        fixture.OfficeProfile.Items.Should().BeEmpty();
+        fixture.Sut.WorkspaceLoaded.Should().BeTrue();
+        fixture.Sut.ErrorMessage.Should().Be("請求制度マスターを利用できません。");
+        fixture.Sut.ErrorMessage.Should().NotContain("not-seeded");
+    }
+
+    [Fact]
+    public async Task Average_wage_supports_new_correct_cancel_and_explicit_reentry()
+    {
+        var fixture = CreateFixture(withActiveClaimInput: false);
+        await fixture.Sut.LoadAsync();
+        ConfigureAverageWage(fixture.Sut);
+
+        await fixture.Sut.SaveAverageWageAsync();
+        fixture.Sut.AnnualWagePaidYen = 1_200_000;
+        await fixture.Sut.SaveAverageWageAsync();
+        await fixture.Sut.CancelAverageWageAsync();
+        fixture.Sut.ReenterAverageWage();
+        ConfigureAverageWage(fixture.Sut);
+        await fixture.Sut.SaveAverageWageAsync();
+
+        fixture.AverageWage.Items.Select(item => item.Kind).Should().Equal(
+            RecordKind.New, RecordKind.Correct, RecordKind.Cancel, RecordKind.Correct);
+        fixture.AverageWage.Items[^1].ExpectedHeadId
+            .Should().Be(fixture.AverageWage.Items[^2].Id);
+    }
+
+    [Fact]
+    public async Task Office_profile_supports_new_correct_cancel_and_explicit_reentry()
+    {
+        var fixture = CreateFixture(withActiveClaimInput: false);
+        await fixture.Sut.LoadAsync();
+        ConfigureOfficeProfile(fixture.Sut);
+
+        await fixture.Sut.SaveOfficeProfileAsync();
+        fixture.Sut.OfficeProfileEvidenceDocumentId = "corrected-evidence";
+        await fixture.Sut.SaveOfficeProfileAsync();
+        await fixture.Sut.CancelOfficeProfileAsync();
+        fixture.Sut.ReenterOfficeProfile();
+        ConfigureOfficeProfile(fixture.Sut);
+        await fixture.Sut.SaveOfficeProfileAsync();
+
+        fixture.OfficeProfile.Items.Select(item => item.Kind).Should().Equal(
+            RecordKind.New, RecordKind.Correct, RecordKind.Cancel, RecordKind.Correct);
+        fixture.OfficeProfile.Items[^2].MasterVersion.Should().BeNull();
+        fixture.OfficeProfile.Items[^1].ExpectedHeadId
+            .Should().Be(fixture.OfficeProfile.Items[^2].Id);
+    }
+
+    [Fact]
+    public async Task Certificate_evidence_supports_new_correct_cancel_and_explicit_reentry()
+    {
+        var fixture = CreateFixture(withActiveClaimInput: false);
+        await fixture.Sut.LoadAsync();
+        ConfigureCertificateEvidence(fixture.Sut);
+
+        await fixture.Sut.SaveCertificateEvidenceAsync();
+        fixture.Sut.MonthlyCostCapYen = 10_000;
+        await fixture.Sut.SaveCertificateEvidenceAsync();
+        await fixture.Sut.CancelCertificateEvidenceAsync();
+        fixture.Sut.ReenterCertificateEvidence();
+        ConfigureCertificateEvidence(fixture.Sut);
+        await fixture.Sut.SaveCertificateEvidenceAsync();
+
+        fixture.CertificateEvidence.Items.Select(item => item.Kind).Should().Equal(
+            RecordKind.New, RecordKind.Correct, RecordKind.Cancel, RecordKind.Correct);
+        fixture.CertificateEvidence.Items[^1].ExpectedHeadId
+            .Should().Be(fixture.CertificateEvidence.Items[^2].Id);
+    }
+
+    [Fact]
+    public async Task Statement_supports_new_correct_cancel_and_explicit_reentry()
+    {
+        var fixture = CreateFixture(withActiveClaimInput: false);
+        await fixture.Sut.LoadAsync();
+        ConfigureStatement(fixture.Sut);
+
+        await fixture.Sut.SaveStatementAsync();
+        fixture.Sut.StatementTotalCostYen = 1_200;
+        fixture.Sut.StatementLines[0].TotalCostYen = 1_200;
+        await fixture.Sut.SaveStatementAsync();
+        await fixture.Sut.CancelStatementAsync();
+        fixture.Sut.ReenterStatement();
+        ConfigureStatement(fixture.Sut);
+        await fixture.Sut.SaveStatementAsync();
+
+        fixture.Statement.Items.Select(item => item.Header.Kind).Should().Equal(
+            RecordKind.New, RecordKind.Correct, RecordKind.Cancel, RecordKind.Correct);
+        fixture.Statement.Items[^2].Lines.Should().BeEmpty();
+        fixture.Statement.Items[^1].Header.ExpectedHeadId
+            .Should().Be(fixture.Statement.Items[^2].Header.Id);
+    }
+
+    private static void ConfigureAverageWage(ClaimInputViewModel sut)
+    {
+        sut.AverageWagePeriodStart = new DateOnly(2025, 4, 1);
+        sut.AverageWagePeriodEnd = new DateOnly(2026, 3, 31);
+        sut.AnnualWagePaidYen = 1_000_000;
+        sut.AnnualExtendedUsers = 100;
+        sut.AnnualOpeningDays = 240;
+        sut.Completeness = FiscalYearCompleteness.Complete;
+        sut.AverageWageEvidenceDocumentId = "wage-evidence";
+        sut.DailyEvidenceReference = "daily-evidence";
+        sut.MonthlyEvidenceReference = "monthly-evidence";
+        sut.AverageWageConfirmedAt = DateTimeOffset.UnixEpoch;
+        sut.AverageWageConfirmedBy = "reviewer";
+        sut.AverageWageConfirmationReason = "checked";
+    }
+
+    private static void ConfigureOfficeProfile(ClaimInputViewModel sut)
+    {
+        sut.ProfileEffectiveFrom = new DateOnly(2026, 6, 1);
+        sut.MasterVersion = new ClaimMasterVersion("test-master");
+        sut.ReformStatus = R8ReformStatus.ReformTarget;
+        sut.AverageWageBandOption =
+            new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 1);
+        sut.OfficeProfileEvidenceDocumentId = "designation-ledger";
+        sut.OfficeProfileConfirmedAt = DateTimeOffset.UnixEpoch;
+        sut.OfficeProfileConfirmedBy = "reviewer";
+        sut.OfficeProfileConfirmationReason = "checked";
+    }
+
+    private static void ConfigureCertificateEvidence(ClaimInputViewModel sut)
+    {
+        sut.CertificateValidityStart = new DateOnly(2026, 4, 1);
+        sut.CertificateValidityEnd = new DateOnly(2027, 3, 31);
+        sut.MonthlyCostCapIsEntered = true;
+        sut.MonthlyCostCapYen = 9_300;
+        sut.UpperLimitManagementApplicability =
+            UpperLimitManagementApplicability.Applicable;
+        sut.UpperLimitManagementOfficeNumber = "1234567890";
+        sut.Article31Status = Article31SpecialBurdenStatus.NotApplicable;
+        sut.Article31AmountIsEntered = false;
+        sut.Article31EffectivePeriod =
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31));
+        sut.CertificateOriginalDocumentReference = "certificate-original";
+        sut.CertificateEvidenceConfirmedAt = DateTimeOffset.UnixEpoch;
+        sut.CertificateEvidenceConfirmedBy = "reviewer";
+        sut.CertificateEvidenceConfirmationReason = "checked";
+    }
+
+    private static void ConfigureStatement(ClaimInputViewModel sut)
+    {
+        sut.MunicipalityNumber = "131156";
+        sut.StatementCertificateNumber = "1234567890";
+        sut.StatementCertificateMonthlyCostCapIsEntered = true;
+        sut.StatementCertificateMonthlyCostCapYen = 9_300;
+        sut.StatementUpperLimitManagementApplicability =
+            UpperLimitManagementApplicability.Applicable;
+        sut.CertificateManagingOfficeNumber = "9876543210";
+        sut.ManagingOfficeNumber = "9876543210";
+        sut.ManagingOfficeName = "管理事業所";
+        sut.OriginalCreationKind = "original";
+        sut.StatementReceivedAt = DateTimeOffset.UnixEpoch;
+        sut.StatementOriginalDocumentReference = "statement-original";
+        sut.StatementIsConfirmed = true;
+        sut.StatementConfirmedAt = DateTimeOffset.UnixEpoch;
+        sut.StatementConfirmedBy = "reviewer";
+        sut.StatementConfirmationReason = "checked";
+        sut.StatementResult = UpperLimitManagementResult.Result2;
+        sut.StatementTotalCostIsEntered = true;
+        sut.StatementTotalCostYen = 1_000;
+        sut.StatementTotalPreManagementBurdenIsEntered = true;
+        sut.StatementTotalPreManagementBurdenYen = 500;
+        sut.StatementTotalManagedBurdenIsEntered = true;
+        sut.StatementTotalManagedBurdenYen = 500;
+        sut.StatementLines.Clear();
+        sut.StatementLines.Add(new UpperLimitManagementStatementLineViewModel
+        {
+            LineNumber = 1,
+            OfficeNumber = "9876543210",
+            OfficeName = "管理事業所",
+            TotalCostIsEntered = true,
+            TotalCostYen = 1_000,
+            PreManagementBurdenIsEntered = true,
+            PreManagementBurdenYen = 500,
+            ManagedBurdenIsEntered = true,
+            ManagedBurdenYen = 500,
+        });
+    }
+
+    private static Fixture CreateFixture(
+        bool withActiveClaimInput,
+        IOfficeClaimProfilePolicyProvider? policyProvider = null)
     {
         var officeId = Guid.NewGuid();
         var recipientId = Guid.NewGuid();
@@ -281,7 +479,7 @@ public sealed class ClaimInputViewModelTests
         var certificateEvidence = new FakeCertificateEvidenceRepository();
         var statement = new FakeStatementRepository();
         var policy = CreateOfficePolicy();
-        var policyProvider = new FixedOfficeClaimProfilePolicyProvider(policy);
+        policyProvider ??= new FixedOfficeClaimProfilePolicyProvider(policy);
         var query = new QueryClaimInputWorkspaceUseCase(
             claimInput, averageWage, officeProfile, certificateEvidence, statement,
             policyProvider);
@@ -302,7 +500,8 @@ public sealed class ClaimInputViewModelTests
             Month = Month.Month,
             SourceFiscalYear = 2025,
         };
-        return new Fixture(sut, claimInput, averageWage);
+        return new Fixture(
+            sut, claimInput, averageWage, officeProfile, certificateEvidence, statement);
     }
 
     private static OfficeClaimProfilePolicy CreateOfficePolicy()
@@ -322,7 +521,18 @@ public sealed class ClaimInputViewModelTests
     private sealed record Fixture(
         ClaimInputViewModel Sut,
         FakeClaimInputRepository ClaimInput,
-        FakeAverageWageRepository AverageWage);
+        FakeAverageWageRepository AverageWage,
+        FakeOfficeProfileRepository OfficeProfile,
+        FakeCertificateEvidenceRepository CertificateEvidence,
+        FakeStatementRepository Statement);
+
+    private sealed class UnavailableOfficeClaimProfilePolicyProvider
+        : IOfficeClaimProfilePolicyProvider
+    {
+        public OfficeClaimProfilePolicy Resolve(ClaimMasterVersion masterVersion) =>
+            throw new ClaimMasterPolicyUnavailableException(
+                ClaimMasterPolicyUnavailableCode.Unavailable);
+    }
 
     private sealed class FakeClaimInputRepository : IClaimInputRepository
     {
