@@ -102,6 +102,28 @@ public sealed class ClaimMasterSchemaPhase31Tests
         action.Should().Throw<InvalidDataException>();
     }
 
+    [Theory]
+    [InlineData("0", true)]
+    [InlineData("12", true)]
+    [InlineData("0.10", true)]
+    [InlineData("12.34", true)]
+    [InlineData("00.10", false)]
+    [InlineData("01", false)]
+    [InlineData("-1", false)]
+    [InlineData("-0.10", false)]
+    public void Load_matches_the_public_decimal_string_schema(string value, bool isValid)
+    {
+        var masters = ValidMasters();
+        MutateFirstValues(masters, "additions.json", values => values["percentage"] = value);
+
+        var action = () => Load(masters);
+
+        if (isValid)
+            action.Should().NotThrow();
+        else
+            action.Should().Throw<InvalidDataException>();
+    }
+
     [Fact]
     public void Load_rejects_an_unknown_rounding_rule_id()
     {

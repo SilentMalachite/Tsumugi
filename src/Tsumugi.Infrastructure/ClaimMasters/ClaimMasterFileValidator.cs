@@ -717,6 +717,7 @@ internal static class ClaimMasterFileValidator
             || text.Count(character => character == '.') > 1
             || text[0] == '.'
             || text[^1] == '.'
+            || text.Length > 1 && text[0] == '0' && text[1] != '.'
             || !decimal.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture,
                 out var value)
             || value < 0)
