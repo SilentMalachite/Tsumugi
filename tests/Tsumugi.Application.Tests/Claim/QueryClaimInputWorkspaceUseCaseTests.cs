@@ -225,6 +225,37 @@ public sealed class QueryClaimInputWorkspaceUseCaseTests
         error.Message.Should().NotContain("行");
     }
 
+    [Fact]
+    public async Task Execute_rejects_full_statement_chain_when_later_revision_changes_certificate()
+    {
+        var repositories = new WorkspaceRepositories();
+        var root = Guid.Parse("00000000-0000-0000-0000-000000001011");
+        var correctionId = Guid.Parse("00000000-0000-0000-0000-000000001012");
+        var changedCertificateId = Guid.Parse("00000000-0000-0000-0000-000000001013");
+        var created = StatementRevision(root, root, 1, RecordKind.New, null);
+        var corruptCorrection = StatementRevision(
+            correctionId, root, 2, RecordKind.Correct, root) with
+        {
+            CertificateId = changedCertificateId,
+        };
+        repositories.Statement.Aggregates.AddRange([
+            StatementAggregate(created),
+            StatementAggregate(corruptCorrection),
+        ]);
+
+        try
+        {
+            var result = await CreateSut(repositories).ExecuteAsync(ValidRequest(), default);
+            throw new Xunit.Sdk.XunitException(
+                $"Expected invalid history, but stale head {result.UpperLimitManagementStatementChain?.CurrentHeadId} was returned.");
+        }
+        catch (ClaimInputQueryException error)
+        {
+            error.Code.Should().Be(ClaimInputQueryErrorCode.InvalidHistory);
+            error.Message.Should().NotContain(changedCertificateId.ToString());
+        }
+    }
+
     private static QueryClaimInputWorkspaceUseCase CreateSut(WorkspaceRepositories repositories) =>
         new(
             repositories.ClaimInput,

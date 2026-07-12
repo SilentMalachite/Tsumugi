@@ -28,11 +28,8 @@ public sealed class QueryClaimInputWorkspaceUseCase(
             request.OfficeId, ct);
         var certificateEvidence = await certificateEvidenceRepository.ListByCertificateAsync(
             request.CertificateId, ct);
-        var statementCandidates = await statementRepository.ListHistoryAggregatesAsync(
+        var statements = await statementRepository.ListHistoryAggregatesAsync(
             request.OfficeId, request.RecipientId, request.ServiceMonth, ct);
-        var statements = statementCandidates
-            .Where(item => item.Header.CertificateId == request.CertificateId)
-            .ToArray();
 
         return new ClaimInputWorkspaceDto(
             MapClaimInputChain(claimInputs),
