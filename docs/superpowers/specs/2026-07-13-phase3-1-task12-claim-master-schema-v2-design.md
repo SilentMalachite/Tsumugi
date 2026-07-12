@@ -257,10 +257,21 @@ billingUnit = per-day
 
 ```text
 kind = formula
+mode = base-component-pass-through | factor-chain
 baseComponentKey
-factors[]
 billingUnit
 ```
+
+`base-component-pass-through` modeは次だけを持つ。
+
+```text
+baseComponentKey
+calculationStepId = claim.step.units.service-code.base-component-pass-through.v1
+roundingRuleId = null
+billingUnit
+```
+
+`factor-chain` modeは`baseComponentKey`、非空`factors[]`及び`billingUnit`を持つ。
 
 各factorは次を持つ。
 
@@ -272,7 +283,7 @@ calculationStepId
 roundingRuleId
 ```
 
-契約:
+factor-chain契約:
 
 - factorsは非空。
 - orderは1始まりの連続値で重複不可。
@@ -281,6 +292,12 @@ roundingRuleId
 - `baseComponentKey`はentryの`ComponentRefs`にあるrole `base`のbasic reward keyへ解決する。
 - 各factorは直前の丸め済み整数へrateを適用し、直後に整数へ丸める。chain末尾だけの一括丸めを禁止する。
 - 加算、減算又は未知operationをformulaへ混ぜない。
+
+base-component-pass-through契約:
+
+- factors fieldを禁止する。
+- `baseComponentKey`が解決した`BasicRewardMasterRow.BaseUnits`をそのままservice code単位とし、割合適用又は丸めを行わない。
+- factor field、rate又は任意式を禁止する。
 
 代表fixture:
 
@@ -307,9 +324,10 @@ claim.rounding.units.half-up.v1
 | unit-addition / percentage-of-target / per-service-code-unit | `claim.step.units.per-service-code.percentage.v1` | `claim.rounding.units.half-up.v1` |
 | unit-addition / percentage-of-target / monthly-target-unit-sum | `claim.step.units.monthly-target.percentage.v1` | `claim.rounding.units.half-up.v1` |
 | unit-addition / prorated-units | `claim.step.units.service-code.prorate-by-recipient-count.v1` | `claim.rounding.units.half-up.v1` |
+| formula / base-component-pass-through | `claim.step.units.service-code.base-component-pass-through.v1` | `null` |
 | formula factor | `claim.step.units.per-service-code.percentage.v1` | `claim.rounding.units.half-up.v1` |
 
-`claim.step.units.service-code.fixed.v1`及び`claim.step.units.service-code.prorate-by-recipient-count.v1`を新規closed IDとして追加する。他のIDはADR 0025の既存contractを再利用する。fixed unitは公式の整数をそのservice code単位として受け取り、丸めない。prorationはpool、staff count及びrecipient countから得たdecimal単位を既存の`claim.rounding.units.half-up.v1`で整数へ戻す。formulaはADR 0025どおり割合適用のたびに丸め、`after-chain`又は末尾一括丸めをschema上許可しない。上記以外のID、null位置又は組合せを拒否する。
+`claim.step.units.service-code.fixed.v1`、`claim.step.units.service-code.prorate-by-recipient-count.v1`及び`claim.step.units.service-code.base-component-pass-through.v1`を新規closed IDとして追加する。他のIDはADR 0025の既存contractを再利用する。fixed unitは公式の整数をそのservice code単位として受け取り、丸めない。prorationはpool、staff count及びrecipient countから得たdecimal単位を既存の`claim.rounding.units.half-up.v1`で整数へ戻す。base-component-pass-throughはbase unitsを変更せず、roundingを呼ばない。factor-chainはADR 0025どおり割合適用のたびに丸め、`after-chain`又は末尾一括丸めをschema上許可しない。上記以外のID、null位置又は組合せを拒否する。
 
 ## 9. Condition definitions
 
@@ -517,6 +535,7 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 - nested amount unionが種類別fieldを保持する。
 - prorated-unitsがpool、staff count selector、recipient count selector及び上限を保持する。
 - factorがstep及びrounding境界を保持する。
+- formula modeがbase-component-pass-throughとfactor-chainを排他的に保持する。
 - source refs、supports、condition definition及びcomponent refsを保持する。
 - `UnitAdjustmentMasterRow`が4種類のamount、step、rounding及びbilling unitを保持する。
 - `OfficialLabel`、`BaseUnits`及び`FinalUnits`の意味が混在しない。
@@ -545,6 +564,7 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 - reference namespace違反、target selector空集合、count selector未知値及びfactor condition subset違反を拒否する。
 - proration selector未知値、0以下のruntime count及びrecipient上限超過を拒否する。
 - factor orderの穴・重複、rate範囲外、step／rounding matrix不整合及び末尾一括丸めfieldを拒否する。
+- formula mode固有fieldの混在、pass-throughのfactor及びfactor-chainの空factorを拒否する。
 - service code retirement及びcondition retirementを受理する。
 
 ### 15.4 Representative gap fixtures
@@ -562,6 +582,8 @@ source refのdocument ID及びSHAはTask 13 manifestとcatalogの実値を使う
 同表の3 gap代表に加え、signed boundary fixtureとして`r6-service-codes-2-xlsx / workbook-order=38;row=913`の`finalUnits = -5`及び`per-day`を固定する。
 
 operation boundary fixtureとして`r6-service-codes-2-xlsx / workbook-order=38;row=1044`のservice code `469992`、official label `就継Ｂ医療連携体制加算Ⅴ`、`prorated-units`、`poolUnitsPerStaff = 500`、staff／recipient count selector、`maximumRecipientsPerStaff = 8`、`per-day`、proration step及びhalf-upを固定する。pool値は適用版の報酬告示、按分shapeはservice-code rowを有効正本として、それぞれ対応supportsで覆う。
+
+formula boundary fixtureとして`r6-service-codes-2-xlsx / workbook-order=38;row=907`のservice code `462841`、official label `就継Ｂ基準該当`、`formula / base-component-pass-through`、base component ref、`per-day`、pass-through step及びrounding `null`を固定する。
 
 ### 15.5 Scale test
 
@@ -631,6 +653,7 @@ Task 12とTask 13 seed転記を同じcommitへ混ぜない。
 - component参照とformula参照の不足・role不整合・期間外が拒否される。
 - unit-additionと参照addition componentのamount、step、rounding及びbilling unitが一致し、不一致が拒否される。
 - 利用者数按分が閉じたprorated-unitsとして保持され、未知selector、0除算相当及び上限超過が拒否される。
+- factorなしの基準service codeがbase-component-pass-throughとして保持され、factor-chainとのfield混在が拒否される。
 - adjustment selector graph及びunit-addition target selector graphの自己参照・循環が拒否される。
 - service code及びconditionの明示的retirementが受理される。
 - 14,709件scale fixtureがvalidatorを通る。
