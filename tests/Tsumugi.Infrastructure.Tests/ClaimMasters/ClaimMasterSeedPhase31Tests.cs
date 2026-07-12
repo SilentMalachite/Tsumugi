@@ -77,7 +77,38 @@ public sealed class ClaimMasterSeedPhase31Tests
         root.GetProperty("documents").ValueKind.Should().Be(JsonValueKind.Array);
         var rows = root.GetProperty("rows");
         rows.ValueKind.Should().Be(JsonValueKind.Array);
-        rows.GetArrayLength().Should().Be(0);
+        rows.GetArrayLength().Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public void Source_manifest_ranges_are_machine_countable_and_fully_inventoried()
+    {
+        using var manifest = OpenRepositoryJson(ManifestPath);
+        var root = manifest.RootElement;
+        var rows = root.GetProperty("rows").EnumerateArray().ToArray();
+        rows.Should().NotBeEmpty();
+
+        var uniqueRowIds = rows.Select(row => (
+            DocumentId: row.GetProperty("sourceDocumentId").GetString(),
+            Locator: row.GetProperty("sourceLocator").GetString())).ToArray();
+        uniqueRowIds.Should().OnlyHaveUniqueItems();
+
+        foreach (var document in root.GetProperty("documents").EnumerateArray())
+        {
+            var documentId = document.GetProperty("documentId").GetString();
+            var declaredRanges = document.GetProperty("extractionRanges").EnumerateArray().ToArray();
+            declaredRanges.Should().NotBeEmpty(
+                because: $"Task 3 must resolve every source range before transcription: {documentId}");
+            foreach (var range in declaredRanges)
+            {
+                var rangeId = range.GetProperty("rangeId").GetString();
+                var expected = range.GetProperty("expectedItemCount").GetInt32();
+                rows.Count(row =>
+                    row.GetProperty("sourceDocumentId").GetString() == documentId
+                    && row.GetProperty("rangeId").GetString() == rangeId)
+                    .Should().Be(expected);
+            }
+        }
     }
 
     [Fact]
@@ -143,6 +174,128 @@ public sealed class ClaimMasterSeedPhase31Tests
             {
                 AssertRangeContract(range);
             }
+        }
+    }
+
+    [Fact]
+    public void Source_manifest_rows_have_closed_and_consistent_dispositions()
+    {
+        using var manifest = OpenRepositoryJson(ManifestPath);
+        var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().ToArray();
+
+        foreach (var row in rows)
+        {
+            row.EnumerateObject().Select(property => property.Name).Should().Equal(
+                "sourceDocumentId",
+                "rangeId",
+                "sourceLocator",
+                "sourceLabel",
+                "effectiveFrom",
+                "effectiveTo",
+                "disposition",
+                "masterKind",
+                "seedKey",
+                "aggregationId",
+                "aggregationKind",
+                "aggregationReason",
+                "exclusionReason");
+
+            row.GetProperty("sourceLabel").GetString().Should().NotBeNullOrWhiteSpace();
+            row.GetProperty("effectiveFrom").GetString().Should().NotBeNullOrWhiteSpace();
+            row.GetProperty("effectiveTo").ValueKind.Should()
+                .BeOneOf(JsonValueKind.String, JsonValueKind.Null);
+
+            var disposition = row.GetProperty("disposition").GetString();
+            disposition.Should().BeOneOf("seed", "excluded", "schema-gap");
+
+            var masterKind = row.GetProperty("masterKind");
+            var seedKey = row.GetProperty("seedKey");
+            var aggregationId = row.GetProperty("aggregationId");
+            var aggregationKind = row.GetProperty("aggregationKind");
+            var aggregationReason = row.GetProperty("aggregationReason");
+            var reason = row.GetProperty("exclusionReason");
+            if (disposition == "seed")
+            {
+                masterKind.GetString().Should().BeOneOf(
+                    "basic-rewards",
+                    "additions",
+                    "region-unit-prices",
+                    "burden-caps",
+                    "transition-rules",
+                    "service-codes");
+                seedKey.GetString().Should().NotBeNullOrWhiteSpace();
+                reason.ValueKind.Should().Be(JsonValueKind.Null);
+                if (aggregationId.ValueKind == JsonValueKind.Null)
+                {
+                    aggregationKind.ValueKind.Should().Be(JsonValueKind.Null);
+                    aggregationReason.ValueKind.Should().Be(JsonValueKind.Null);
+                }
+                else
+                {
+                    aggregationId.GetString().Should().NotBeNullOrWhiteSpace();
+                    aggregationKind.GetString().Should().Be("multi-source-one-seed");
+                    aggregationReason.GetString().Should().NotBeNullOrWhiteSpace();
+                }
+            }
+            else
+            {
+                masterKind.ValueKind.Should().Be(JsonValueKind.Null);
+                seedKey.ValueKind.Should().Be(JsonValueKind.Null);
+                aggregationId.ValueKind.Should().Be(JsonValueKind.Null);
+                aggregationKind.ValueKind.Should().Be(JsonValueKind.Null);
+                aggregationReason.ValueKind.Should().Be(JsonValueKind.Null);
+                reason.GetString().Should().NotBeNullOrWhiteSpace();
+            }
+        }
+
+        var seedGroups = rows
+            .Where(row => row.GetProperty("disposition").GetString() == "seed")
+            .GroupBy(row => (
+                MasterKind: row.GetProperty("masterKind").GetString(),
+                SeedKey: row.GetProperty("seedKey").GetString()))
+            .ToArray();
+        foreach (var group in seedGroups)
+        {
+            var items = group.ToArray();
+            if (items.Length == 1)
+            {
+                items[0].GetProperty("aggregationId").ValueKind
+                    .Should().Be(JsonValueKind.Null);
+                continue;
+            }
+
+            var aggregationIds = items
+                .Select(item => item.GetProperty("aggregationId").GetString())
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+            aggregationIds.Should().ContainSingle();
+            aggregationIds[0].Should().NotBeNullOrWhiteSpace();
+            items.Should().OnlyContain(item =>
+                item.GetProperty("aggregationKind").GetString() == "multi-source-one-seed");
+            items.Select(item => item.GetProperty("aggregationReason").GetString())
+                .Should().OnlyContain(item => !string.IsNullOrWhiteSpace(item));
+        }
+    }
+
+    [Fact]
+    public void Source_manifest_row_locators_belong_to_the_declared_document_ranges()
+    {
+        using var manifest = OpenRepositoryJson(ManifestPath);
+        var documents = manifest.RootElement.GetProperty("documents").EnumerateArray()
+            .ToDictionary(
+                document => document.GetProperty("documentId").GetString()!,
+                StringComparer.Ordinal);
+
+        foreach (var row in manifest.RootElement.GetProperty("rows").EnumerateArray())
+        {
+            var documentId = row.GetProperty("sourceDocumentId").GetString()!;
+            documents.Should().ContainKey(documentId);
+            var rangeId = row.GetProperty("rangeId").GetString();
+            documents[documentId].GetProperty("extractionRanges").EnumerateArray()
+                .Count(range => range.GetProperty("rangeId").GetString() == rangeId)
+                .Should().Be(1);
+            row.GetProperty("sourceLocator").GetString()
+                .Should().NotBeNullOrWhiteSpace();
         }
     }
 
