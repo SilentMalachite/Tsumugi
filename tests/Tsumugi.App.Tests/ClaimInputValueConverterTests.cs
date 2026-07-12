@@ -87,6 +87,7 @@ public sealed class ClaimInputValueConverterTests
 
     [Theory]
     [InlineData("2026-07-12T10:30:00+09:00", 0)]
+    [InlineData("2026-07-12T10:30:00.1+09:00", 1_000_000)]
     [InlineData("2026-07-12T10:30:00.1234567+09:00", 1_234_567)]
     public void Date_time_offset_accepts_explicit_iso_with_offset(
         string text,
@@ -105,6 +106,7 @@ public sealed class ClaimInputValueConverterTests
     [InlineData("07/12/2026 10:30:00 +09:00")]
     [InlineData("2026年7月12日 10時30分00秒 +09:00")]
     [InlineData("2026-07-12 10:30:00 +09:00")]
+    [InlineData("2026-07-12T10:30:00.+09:00")]
     public void Date_time_offset_rejects_non_iso_text(string text)
     {
         var result = ConvertBack(
