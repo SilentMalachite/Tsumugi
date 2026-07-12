@@ -187,7 +187,7 @@ per-use
 
 ```text
 kind = fixed-composite-unit
-finalUnits: positive integer
+finalUnits: non-zero signed integer
 billingUnit: BillingUnit
 ```
 
@@ -200,6 +200,9 @@ billingUnit = per-day
 ```
 
 `finalUnits`は請求コード表の最終単位であり、`BasicRewardMasterRow.BaseUnits`とは別の意味を持つ。
+正値は報酬又は加算、負値は公式表が独立service codeとして示す減算を表す。`0`は請求効果のない曖昧な行となるため拒否する。
+
+同じgap categoryの符号境界fixtureとして、`r6-service-codes-2-xlsx / workbook-order=38;row=913`の身体拘束廃止未実施減算 `finalUnits = -5`、`billingUnit = per-day`を固定する。
 
 ### 8.2 unit-addition
 
@@ -499,6 +502,7 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 ### 15.1 Domain contract tests
 
 - 3 unit rule kindが全値を保持する。
+- fixed-composite-unitが正の最終単位と負の独立減算単位を保持し、0を拒否する。
 - nested amount unionが種類別fieldを保持する。
 - factorがstep及びrounding境界を保持する。
 - source refs、supports、condition definition及びcomponent refsを保持する。
@@ -541,6 +545,8 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 | `r6-service-codes-2-xlsx / workbook-order=38;row=908` | service code `462842`、official label `就継Ｂ基準該当・未計画１` | `formula`、base component、factor `rate = 0.7`、`per-day`、per-service-code percentage step、factor直後half-up | plan-not-created、適用2月目までのcondition keys、factor条件はentry条件のsubset、全必須supports |
 
 source refのdocument ID及びSHAはTask 13 manifestとcatalogの実値を使う。公式値を巨大fixtureへ複製せず、上表の各union代表field、source ref、condition、component及びperiodだけを固定する。
+
+同表の3 gap代表に加え、signed boundary fixtureとして`r6-service-codes-2-xlsx / workbook-order=38;row=913`の`finalUnits = -5`及び`per-day`を固定する。
 
 ### 15.5 Scale test
 
@@ -606,6 +612,7 @@ Task 12とTask 13 seed転記を同じcommitへ混ぜない。
 - source supportsと有効正本がfail-closedで検証される。
 - condition definitionが期間付きで一意に解決される。
 - `BaseUnits`、`FinalUnits`及びunit addition値が区別される。
+- 正値及び負値の`FinalUnits`が保持され、0が拒否される。
 - component参照とformula参照の不足・role不整合・期間外が拒否される。
 - unit-additionと参照addition componentのamount、step、rounding及びbilling unitが一致し、不一致が拒否される。
 - adjustment selector graph及びunit-addition target selector graphの自己参照・循環が拒否される。
