@@ -8,6 +8,8 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Specifications/*.json" />
+    <EmbeddedResource Include="../../docs/spec-data/phase3/report-field-mapping-r8-06.json"
+                      Link="Specifications/report-field-mapping-r8-06.json" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Tsumugi.Infrastructure.Csv.Tests" />
