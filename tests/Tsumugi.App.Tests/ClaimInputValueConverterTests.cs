@@ -59,6 +59,32 @@ public sealed class ClaimInputValueConverterTests
         { DateTimeOffsetConverter.Instance, "tomorrow", typeof(DateTimeOffset?) },
     };
 
+    [Theory]
+    [InlineData("1900-01", 1900, 1)]
+    [InlineData("2200-12", 2200, 12)]
+    public void Service_month_accepts_domain_year_boundaries(
+        string text,
+        int expectedYear,
+        int expectedMonth)
+    {
+        var result = ConvertBack(ServiceMonthConverter.Instance, text, typeof(ServiceMonth?));
+
+        result.Should().Be(new ServiceMonth(expectedYear, expectedMonth));
+    }
+
+    [Theory]
+    [InlineData("1800-01")]
+    [InlineData("2201-01")]
+    public void Service_month_outside_domain_years_surfaces_binding_error(string text)
+    {
+        var action = () => ConvertBack(
+            ServiceMonthConverter.Instance, text, typeof(ServiceMonth?));
+
+        var result = action.Should().NotThrow().Which;
+        result.Should().BeOfType<BindingNotification>();
+        ((BindingNotification)result!).ErrorType.Should().Be(BindingErrorType.Error);
+    }
+
     private static object? ConvertBack(
         IValueConverter converter,
         string text,

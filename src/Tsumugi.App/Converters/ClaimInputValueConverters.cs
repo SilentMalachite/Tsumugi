@@ -105,7 +105,14 @@ public sealed class ServiceMonthConverter : IValueConverter
                 $"{text}-01", "yyyy-MM-dd", CultureInfo.InvariantCulture,
                 DateTimeStyles.None, out var date))
         {
-            return new ServiceMonth(date.Year, date.Month);
+            try
+            {
+                return new ServiceMonth(date.Year, date.Month);
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                return ClaimInputConverter.Error(ex);
+            }
         }
 
         return ClaimInputConverter.Error("年月は yyyy-MM 形式で入力してください。");
