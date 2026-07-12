@@ -30,6 +30,8 @@ public sealed partial class CertificateViewModel(
 {
     private const string ProviderContextReloadMessage =
         "対象の受給者証が変更されています。最新状態を再読込してください。";
+    private const string ProviderContextLoadingMessage =
+        "契約事業所情報を再読込中です。読込完了後に再度実行してください。";
 
     public ObservableCollection<ExpiringCertificateDto> ExpiringItems { get; } = new();
     public ObservableCollection<RecipientDto> Recipients { get; } = new();
@@ -116,7 +118,9 @@ public sealed partial class CertificateViewModel(
     [ObservableProperty] private int? _providerCertificateEntryNumber;
     [ObservableProperty] private ContractedProviderDto? _selectedProvider;
     [ObservableProperty] private string? _providerSaveErrorMessage;
+    [ObservableProperty] private bool _providerContextLoaded;
     private Guid _providerConcurrencyToken;
+    private Guid _loadedProviderCertificateId;
     private readonly Dictionary<Guid, Guid> _certificateRootByRevisionId = [];
     private bool _isApplyingNavigationContext;
 
@@ -129,6 +133,7 @@ public sealed partial class CertificateViewModel(
 
     partial void OnSelectedCertificateChanged(CertificateDto? value)
     {
+        ResetProviderContext(clearError: true);
         MunicipalityNumber = value?.MunicipalityNumber ?? string.Empty;
         SubsidyMunicipalityNumber = value?.SubsidyMunicipalityNumber ?? string.Empty;
         UpperLimitManagementProviderNumber = value?.UpperLimitManagementProviderNumber ?? string.Empty;
@@ -227,18 +232,20 @@ public sealed partial class CertificateViewModel(
     {
         if (SelectedCertificate is not { } certificate)
         {
-            ContractedProviders.Clear();
-            SelectedProvider = null;
+            ResetProviderContext(clearError: true);
             return;
         }
 
         var requestedCertificateId = certificate.Id;
+        ProviderContextLoaded = false;
+        _loadedProviderCertificateId = Guid.Empty;
         var list = await listProviders.ExecuteAsync(requestedCertificateId, ct);
         if (SelectedCertificate?.Id != requestedCertificateId) return;
 
-        ContractedProviders.Clear();
-        SelectedProvider = null;
+        ResetProviderContext(clearError: false);
         foreach (var provider in list) ContractedProviders.Add(provider);
+        _loadedProviderCertificateId = requestedCertificateId;
+        ProviderContextLoaded = true;
     }
 
     [RelayCommand]
@@ -361,6 +368,11 @@ public sealed partial class CertificateViewModel(
                 ProviderSaveErrorMessage = "対象の受給者証を選択してください。";
                 return;
             }
+            if (!HasLoadedProviderContext(cert.Id))
+            {
+                ProviderSaveErrorMessage = ProviderContextLoadingMessage;
+                return;
+            }
             if (!await RevalidateSelectedCertificateHeadAsync(cert))
             {
                 ProviderSaveErrorMessage =
@@ -391,16 +403,20 @@ public sealed partial class CertificateViewModel(
     [RelayCommand]
     private async Task UpdateProviderAsync()
     {
-        if (SelectedProvider is not { } provider)
-        {
-            ProviderSaveErrorMessage = "更新対象の契約事業所を選択してください。";
-            return;
-        }
         if (SelectedCertificate is not { } certificate)
         {
             ProviderSaveErrorMessage = ProviderContextReloadMessage;
-            ContractedProviders.Clear();
-            SelectedProvider = null;
+            ResetProviderContext(clearError: false);
+            return;
+        }
+        if (!HasLoadedProviderContext(certificate.Id))
+        {
+            ProviderSaveErrorMessage = ProviderContextLoadingMessage;
+            return;
+        }
+        if (SelectedProvider is not { } provider)
+        {
+            ProviderSaveErrorMessage = "更新対象の契約事業所を選択してください。";
             return;
         }
 
@@ -478,6 +494,27 @@ public sealed partial class CertificateViewModel(
         foreach (var certificate in heads) CertificatesForRecipient.Add(certificate);
         SelectedCertificate = latest;
         return false;
+    }
+
+    private bool HasLoadedProviderContext(Guid certificateId) =>
+        ProviderContextLoaded && _loadedProviderCertificateId == certificateId;
+
+    private void ResetProviderContext(bool clearError)
+    {
+        ContractedProviders.Clear();
+        SelectedProvider = null;
+        _providerConcurrencyToken = Guid.Empty;
+        ProviderNumber = string.Empty;
+        ProviderName = string.Empty;
+        ProviderServiceCategory = "就労継続支援B型";
+        ProviderSupplyDays = 23;
+        ProviderContractDate = DateOnly.FromDateTime(DateTime.Today);
+        ProviderTerminationDate = null;
+        ProviderNotes = string.Empty;
+        ProviderCertificateEntryNumber = null;
+        ProviderContextLoaded = false;
+        _loadedProviderCertificateId = Guid.Empty;
+        if (clearError) ProviderSaveErrorMessage = null;
     }
 
     private static string? NullIfEmpty(string? s) => string.IsNullOrWhiteSpace(s) ? null : s;

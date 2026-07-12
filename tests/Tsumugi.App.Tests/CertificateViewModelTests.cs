@@ -365,6 +365,67 @@ public sealed class CertificateViewModelTests
     }
 
     [Fact]
+    public async Task Certificate_switch_clears_provider_context_and_blocks_writes_until_reload_completes()
+    {
+        var rid = Guid.NewGuid();
+        _recipients.Add(Recipient.Create(rid, "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid()));
+        var certA = Certificate.Create(Guid.NewGuid(), rid, "1111111111",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var certB = Certificate.Create(Guid.NewGuid(), rid, "2222222222",
+            new DateRange(new DateOnly(2027, 4, 1), new DateOnly(2028, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _certs.Add(certA);
+        _certs.Add(certB);
+        var providerA = ContractedProvider.Create(Guid.NewGuid(), certA.Id, "1010101010", "事業所A",
+            "生活介護", 20, new DateOnly(2026, 4, 1), "u", DateTimeOffset.UnixEpoch,
+            Guid.NewGuid(), new DateOnly(2027, 3, 31), "A備考", 8);
+        var providerB = ContractedProvider.Create(Guid.NewGuid(), certB.Id, "2020202020", "事業所B",
+            "就労継続支援B型", 21, new DateOnly(2027, 4, 1), "u",
+            DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _providers.Add(providerA);
+        _providers.Add(providerB);
+        var vm = NewVm();
+        (await vm.ApplyNavigationContextAsync(rid, null, certA.Id)).Should().BeTrue();
+        vm.ProviderContextLoaded.Should().BeTrue();
+        vm.SelectedProvider = vm.ContractedProviders.Single();
+        vm.ProviderName.Should().Be("事業所A");
+        _providers.BlockNextList(certB.Id);
+
+        var selectB = vm.ApplyNavigationContextAsync(rid, null, certB.Id);
+        await _providers.BlockedListStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        vm.SelectedCertificate!.Id.Should().Be(certB.Id);
+        vm.ProviderContextLoaded.Should().BeFalse();
+        vm.ContractedProviders.Should().BeEmpty();
+        vm.SelectedProvider.Should().BeNull();
+        vm.ProviderNumber.Should().BeEmpty();
+        vm.ProviderName.Should().BeEmpty();
+        vm.ProviderServiceCategory.Should().Be("就労継続支援B型");
+        vm.ProviderSupplyDays.Should().Be(23);
+        vm.ProviderContractDate.Should().Be(DateOnly.FromDateTime(DateTime.Today));
+        vm.ProviderTerminationDate.Should().BeNull();
+        vm.ProviderNotes.Should().BeEmpty();
+        vm.ProviderCertificateEntryNumber.Should().BeNull();
+
+        await vm.AddProviderCommand.ExecuteAsync(null);
+        vm.ProviderSaveErrorMessage.Should().Be(
+            "契約事業所情報を再読込中です。読込完了後に再度実行してください。");
+        await vm.UpdateProviderCommand.ExecuteAsync(null);
+        vm.ProviderSaveErrorMessage.Should().Be(
+            "契約事業所情報を再読込中です。読込完了後に再度実行してください。");
+        _providers.AllForTest.Should().HaveCount(2);
+
+        _providers.ReleaseBlockedList();
+        (await selectB).Should().BeTrue();
+
+        vm.ProviderContextLoaded.Should().BeTrue();
+        vm.ContractedProviders.Should().ContainSingle();
+        vm.ContractedProviders.Single().Id.Should().Be(providerB.Id);
+    }
+
+    [Fact]
     public async Task UpdateProviderCommand_rejects_provider_owned_by_another_certificate()
     {
         var rid = Guid.NewGuid();
