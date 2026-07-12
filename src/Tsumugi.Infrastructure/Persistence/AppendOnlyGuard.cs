@@ -25,6 +25,13 @@ public static class AppendOnlyGuard
         typeof(AuditEntry),
         typeof(ClaimBatch),
         typeof(ClaimDetail),
+        typeof(ClaimInput),
+        typeof(IntensiveSupportEpisode),
+        typeof(AverageWageAnnualEvidence),
+        typeof(OfficeClaimProfile),
+        typeof(CertificateClaimEvidence),
+        typeof(UpperLimitManagementStatement),
+        typeof(UpperLimitManagementStatementLine),
         typeof(WageAdjustment),
         typeof(RecipientHourlyRate),
     };
