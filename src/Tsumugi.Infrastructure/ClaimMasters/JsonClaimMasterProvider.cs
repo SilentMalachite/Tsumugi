@@ -131,15 +131,16 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider, IOfficeClaim
             }
 
             var row = candidates[0];
-            var optionRule = new AverageWageBandOptionVersionRule(
-                row.MasterVersion,
-                row.EffectiveFrom,
-                row.EffectiveTo,
-                row.AllowedAverageWageBandOptions,
-                row.AllowedOptionsByR8ReformStatus);
+            var optionRules = _calculationMasters.TransitionRules.Select(rule =>
+                new AverageWageBandOptionVersionRule(
+                    rule.MasterVersion,
+                    rule.EffectiveFrom,
+                    rule.EffectiveTo,
+                    rule.AllowedAverageWageBandOptions,
+                    rule.AllowedOptionsByR8ReformStatus)).ToArray();
             return new OfficeClaimProfilePolicy(
                 row.MasterVersion,
-                [optionRule],
+                optionRules,
                 row.R8EffectiveDate,
                 designation => ResolveFiledTransitionExclusiveEnd(row, designation));
         }

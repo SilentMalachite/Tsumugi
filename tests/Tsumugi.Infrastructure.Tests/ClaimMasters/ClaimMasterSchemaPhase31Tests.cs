@@ -115,9 +115,14 @@ public sealed class ClaimMasterSchemaPhase31Tests
     }
 
     internal static JsonClaimMasterProvider CreateProvider(
-        IReadOnlyDictionary<string, string> masterJsons)
+        IReadOnlyDictionary<string, string> masterJsons) =>
+        CreateProvider(masterJsons, ValidCatalogJson);
+
+    internal static JsonClaimMasterProvider CreateProvider(
+        IReadOnlyDictionary<string, string> masterJsons,
+        string catalogJson)
     {
-        using var sources = StreamOf(ValidCatalogJson);
+        using var sources = StreamOf(catalogJson);
         var streams = masterJsons.ToDictionary(
             pair => pair.Key,
             pair => (Stream)StreamOf(pair.Value),
