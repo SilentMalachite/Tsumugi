@@ -10,6 +10,7 @@ using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Audit;
 using Tsumugi.Application.Claim;
 using Tsumugi.Application.UseCases;
+using Tsumugi.Application.UseCases.Claim;
 using Tsumugi.Application.UseCases.Wage;
 using Tsumugi.Application.UseCases.WorkRecord;
 using Tsumugi.Domain.Logic.Wage;
@@ -21,6 +22,54 @@ namespace Tsumugi.App.Tests;
 
 public sealed class CompositionRootTests
 {
+    [Fact]
+    public void Claim_input_safe_services_are_registered_without_guessing_office_profile_policy()
+    {
+        var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
+
+        services.Should().Contain(service => service.ServiceType == typeof(SetClaimInputUseCase));
+        services.Should().Contain(service =>
+            service.ServiceType == typeof(SetAverageWageAnnualEvidenceUseCase));
+        services.Should().Contain(service =>
+            service.ServiceType == typeof(SetCertificateClaimEvidenceUseCase));
+        services.Should().Contain(service =>
+            service.ServiceType == typeof(SetUpperLimitManagementStatementUseCase));
+        services.Should().NotContain(service =>
+            service.ServiceType == typeof(Tsumugi.Domain.Logic.Claim.OfficeClaimProfilePolicy));
+        services.Should().NotContain(service =>
+            service.ServiceType == typeof(SetOfficeClaimProfileUseCase));
+        services.Should().NotContain(service =>
+            service.ServiceType == typeof(QueryClaimInputWorkspaceUseCase));
+        services.Should().NotContain(service => service.ServiceType == typeof(ClaimInputViewModel));
+
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+        var main = scope.ServiceProvider.GetRequiredService<MainViewModel>();
+        main.ClaimInput.Should().BeNull();
+        main.ClaimInputAvailable.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Production_navigation_reports_claim_input_as_unavailable_without_policy()
+    {
+        var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+        _ = scope.ServiceProvider.GetRequiredService<MainViewModel>();
+        var navigation = scope.ServiceProvider.GetRequiredService<Tsumugi.App.Navigation.IAppNavigationService>();
+
+        var result = await navigation.NavigateAsync(new Tsumugi.App.Navigation.NavigationRequest(
+            Tsumugi.App.Navigation.AppSection.ClaimInput,
+            Guid.NewGuid(),
+            CertificateId: Guid.NewGuid(),
+            OfficeId: Guid.NewGuid(),
+            ServiceMonth: new ServiceMonth(2026, 6)));
+
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorCode.Should().Be(
+            Tsumugi.App.Navigation.NavigationErrorCode.NavigationTargetUnavailable);
+    }
+
     [Fact]
     public async Task Claim_finalization_services_use_factory_local_context_and_unavailable_production_codec()
     {

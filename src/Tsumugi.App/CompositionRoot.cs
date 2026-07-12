@@ -75,6 +75,14 @@ public static class CompositionRoot
         services.AddScoped<QueryIntensiveSupportEpisodeUseCase>();
         services.AddScoped<SetIntensiveSupportEpisodeUseCase>();
 
+        // Phase 3-1: OfficeClaimProfilePolicyに依存しない請求入力保存。
+        // policyのproduction-safe providerはTask 12未実装のため、SetOfficeClaimProfile、
+        // QueryClaimInputWorkspace、ClaimInputViewModelの本番登録は推測値を避けて保留する。
+        services.AddScoped<SetClaimInputUseCase>();
+        services.AddScoped<SetAverageWageAnnualEvidenceUseCase>();
+        services.AddScoped<SetCertificateClaimEvidenceUseCase>();
+        services.AddScoped<SetUpperLimitManagementStatementUseCase>();
+
         // Phase 2: 工賃計算戦略（4 方式並存; D3 CalculateWagesUseCase が IReadOnlyList<IWageMethodStrategy> を要求）
         services.AddSingleton<IReadOnlyList<IWageMethodStrategy>>(_ => new IWageMethodStrategy[]
         {

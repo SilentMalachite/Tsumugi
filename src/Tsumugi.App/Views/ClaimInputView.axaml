@@ -1,0 +1,195 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             x:Class="Tsumugi.App.Views.ClaimInputView"
+             x:DataType="vm:ClaimInputViewModel">
+  <UserControl.KeyBindings>
+    <KeyBinding Gesture="F5" Command="{Binding LoadCommand}" />
+    <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCurrentAggregateCommand}" />
+    <KeyBinding Gesture="Escape" Command="{Binding DiscardCurrentEditCommand}" />
+  </UserControl.KeyBindings>
+  <DockPanel>
+    <TextBlock DockPanel.Dock="Top" Text="請求入力"
+               FontSize="{DynamicResource HeadingFontSize}" Margin="8" />
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="8">
+      <StackPanel MinWidth="200">
+        <TextBlock Text="事業所" />
+        <ComboBox ItemsSource="{Binding Offices}" SelectedItem="{Binding SelectedOffice}" />
+      </StackPanel>
+      <StackPanel MinWidth="200">
+        <TextBlock Text="利用者" />
+        <ComboBox ItemsSource="{Binding Recipients}" SelectedItem="{Binding SelectedRecipient}" />
+      </StackPanel>
+      <StackPanel MinWidth="200">
+        <TextBlock Text="受給者証" />
+        <ComboBox ItemsSource="{Binding Certificates}" SelectedItem="{Binding SelectedCertificate}" />
+      </StackPanel>
+      <StackPanel Width="90"><TextBlock Text="年" /><NumericUpDown Value="{Binding Year}" /></StackPanel>
+      <StackPanel Width="70"><TextBlock Text="月" /><NumericUpDown Value="{Binding Month}" /></StackPanel>
+      <StackPanel Width="110"><TextBlock Text="根拠年度" /><NumericUpDown Value="{Binding SourceFiscalYear}" /></StackPanel>
+      <Button Content="受給者証読込" Command="{Binding LoadCertificatesCommand}" VerticalAlignment="Bottom" />
+      <Button Content="再読込 (F5)" Command="{Binding LoadCommand}" VerticalAlignment="Bottom" />
+    </StackPanel>
+    <TextBlock DockPanel.Dock="Bottom" Text="{Binding ErrorMessage}" Margin="8"
+               FontSize="{DynamicResource BaseFontSize}" />
+    <ScrollViewer>
+      <StackPanel Margin="8" Spacing="8">
+        <ComboBox ItemsSource="{Binding AggregateOptions}" SelectedItem="{Binding SelectedAggregate}"
+                  HorizontalAlignment="Stretch" />
+        <TabControl SelectedIndex="{Binding SelectedAggregate, Mode=TwoWay}">
+          <TabItem Header="上限額管理結果">
+            <StackPanel Margin="8" Spacing="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="CurrentHeadId" /><TextBlock Text="{Binding ClaimInputCurrentHeadId}" />
+                <TextBlock Text="EffectiveHeadId" /><TextBlock Text="{Binding ClaimInputEffectiveHeadId}" />
+              </StackPanel>
+              <ComboBox ItemsSource="{Binding UpperLimitResultOptions}"
+                        SelectedItem="{Binding UpperLimitManagementResult}" />
+              <NumericUpDown Value="{Binding UpperLimitManagedAmountYen}" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="保存" Command="{Binding SaveClaimInputCommand}" />
+                <Button Content="取消" Command="{Binding CancelClaimInputCommand}" />
+                <Button Content="再入力" Command="{Binding ReenterClaimInputCommand}" />
+              </StackPanel>
+              <DataGrid ItemsSource="{Binding ClaimInputRevisions}" IsReadOnly="True" AutoGenerateColumns="True" />
+            </StackPanel>
+          </TabItem>
+          <TabItem Header="平均工賃年次根拠">
+            <StackPanel Margin="8" Spacing="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="CurrentHeadId" /><TextBlock Text="{Binding AverageWageCurrentHeadId}" />
+                <TextBlock Text="EffectiveHeadId" /><TextBlock Text="{Binding AverageWageEffectiveHeadId}" />
+              </StackPanel>
+              <TextBox Text="{Binding AverageWagePeriodStart}" Watermark="期間開始" />
+              <TextBox Text="{Binding AverageWagePeriodEnd}" Watermark="期間終了" />
+              <NumericUpDown Value="{Binding AnnualWagePaidYen}" />
+              <NumericUpDown Value="{Binding AnnualExtendedUsers}" />
+              <NumericUpDown Value="{Binding AnnualOpeningDays}" />
+              <ComboBox ItemsSource="{Binding CompletenessOptions}" SelectedItem="{Binding Completeness}" />
+              <TextBox Text="{Binding AverageWageEvidenceDocumentId}" Watermark="根拠文書ID" />
+              <TextBox Text="{Binding DailyEvidenceReference}" Watermark="日次根拠" />
+              <TextBox Text="{Binding MonthlyEvidenceReference}" Watermark="月次根拠" />
+              <TextBox Text="{Binding AverageWageConfirmedAt}" Watermark="確認日時" />
+              <TextBox Text="{Binding AverageWageConfirmedBy}" Watermark="確認者" />
+              <TextBox Text="{Binding AverageWageConfirmationReason}" Watermark="確認理由" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="保存" Command="{Binding SaveAverageWageCommand}" />
+                <Button Content="取消" Command="{Binding CancelAverageWageCommand}" />
+                <Button Content="再入力" Command="{Binding ReenterAverageWageCommand}" />
+              </StackPanel>
+              <DataGrid ItemsSource="{Binding AverageWageRevisions}" IsReadOnly="True" AutoGenerateColumns="True" />
+            </StackPanel>
+          </TabItem>
+          <TabItem Header="事業所請求設定">
+            <StackPanel Margin="8" Spacing="8">
+              <ComboBox ItemsSource="{Binding OfficeProfileChains}"
+                        SelectedItem="{Binding SelectedOfficeProfileChain}" />
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="CurrentHeadId" /><TextBlock Text="{Binding OfficeProfileCurrentHeadId}" />
+                <TextBlock Text="EffectiveHeadId" /><TextBlock Text="{Binding OfficeProfileEffectiveHeadId}" />
+              </StackPanel>
+              <TextBox Text="{Binding ProfileEffectiveFrom}" Watermark="適用開始" />
+              <TextBox Text="{Binding ProfileEffectiveTo}" Watermark="適用終了" />
+              <TextBox Text="{Binding MasterVersion}" Watermark="請求master版" />
+              <ComboBox ItemsSource="{Binding ReformStatusOptions}" SelectedItem="{Binding ReformStatus}" />
+              <TextBox Text="{Binding AverageWageBandOption}" Watermark="平均工賃option" />
+              <TextBox Text="{Binding DesignationDate}" Watermark="指定日" />
+              <TextBox Text="{Binding SupportStartDate}" Watermark="支援開始日" />
+              <TextBox Text="{Binding EarlierRegisteredBandOption}" Watermark="前登録option" />
+              <TextBox Text="{Binding EarlierRegistrationMonth}" Watermark="前登録月" />
+              <TextBox Text="{Binding LaterRegisteredBandOption}" Watermark="後登録option" />
+              <TextBox Text="{Binding LaterRegistrationMonth}" Watermark="後登録月" />
+              <TextBox Text="{Binding ReformComparisonEvidenceDocumentId}" Watermark="改定比較根拠" />
+              <TextBox Text="{Binding FiledTransitionPeriod}" Watermark="経過措置期間" />
+              <TextBox Text="{Binding FiledTransitionEvidenceDocumentId}" Watermark="経過措置根拠" />
+              <TextBox Text="{Binding OfficeProfileEvidenceDocumentId}" Watermark="指定権者根拠" />
+              <TextBox Text="{Binding OfficeProfileConfirmedAt}" Watermark="確認日時" />
+              <TextBox Text="{Binding OfficeProfileConfirmedBy}" Watermark="確認者" />
+              <TextBox Text="{Binding OfficeProfileConfirmationReason}" Watermark="確認理由" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="保存" Command="{Binding SaveOfficeProfileCommand}" />
+                <Button Content="取消" Command="{Binding CancelOfficeProfileCommand}" />
+                <Button Content="再入力" Command="{Binding ReenterOfficeProfileCommand}" />
+              </StackPanel>
+              <DataGrid ItemsSource="{Binding OfficeProfileRevisions}" IsReadOnly="True" AutoGenerateColumns="True" />
+            </StackPanel>
+          </TabItem>
+          <TabItem Header="受給者証請求根拠">
+            <StackPanel Margin="8" Spacing="8">
+              <ComboBox ItemsSource="{Binding CertificateEvidenceChains}"
+                        SelectedItem="{Binding SelectedCertificateEvidenceChain}" />
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="CurrentHeadId" /><TextBlock Text="{Binding CertificateEvidenceCurrentHeadId}" />
+                <TextBlock Text="EffectiveHeadId" /><TextBlock Text="{Binding CertificateEvidenceEffectiveHeadId}" />
+              </StackPanel>
+              <TextBox Text="{Binding CertificateValidityStart}" Watermark="有効開始" />
+              <TextBox Text="{Binding CertificateValidityEnd}" Watermark="有効終了" />
+              <CheckBox Content="月額上限入力済み" IsChecked="{Binding MonthlyCostCapIsEntered}" />
+              <NumericUpDown Value="{Binding MonthlyCostCapYen}" />
+              <ComboBox ItemsSource="{Binding ApplicabilityOptions}"
+                        SelectedItem="{Binding UpperLimitManagementApplicability}" />
+              <TextBox Text="{Binding UpperLimitManagementOfficeNumber}" Watermark="上限額管理事業所番号" />
+              <ComboBox ItemsSource="{Binding Article31StatusOptions}" SelectedItem="{Binding Article31Status}" />
+              <CheckBox Content="法31条額入力済み" IsChecked="{Binding Article31AmountIsEntered}" />
+              <NumericUpDown Value="{Binding Article31AmountYen}" />
+              <TextBox Text="{Binding Article31EffectivePeriod}" Watermark="法31条適用期間" />
+              <TextBox Text="{Binding CertificateOriginalDocumentReference}" Watermark="原本参照" />
+              <TextBox Text="{Binding CertificateEvidenceConfirmedAt}" Watermark="確認日時" />
+              <TextBox Text="{Binding CertificateEvidenceConfirmedBy}" Watermark="確認者" />
+              <TextBox Text="{Binding CertificateEvidenceConfirmationReason}" Watermark="確認理由" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="保存" Command="{Binding SaveCertificateEvidenceCommand}" />
+                <Button Content="取消" Command="{Binding CancelCertificateEvidenceCommand}" />
+                <Button Content="再入力" Command="{Binding ReenterCertificateEvidenceCommand}" />
+              </StackPanel>
+              <DataGrid ItemsSource="{Binding CertificateEvidenceRevisions}" IsReadOnly="True" AutoGenerateColumns="True" />
+            </StackPanel>
+          </TabItem>
+          <TabItem Header="上限額管理結果票">
+            <StackPanel Margin="8" Spacing="8">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="CurrentHeadId" /><TextBlock Text="{Binding StatementCurrentHeadId}" />
+                <TextBlock Text="EffectiveHeadId" /><TextBlock Text="{Binding StatementEffectiveHeadId}" />
+              </StackPanel>
+              <TextBox Text="{Binding MunicipalityNumber}" Watermark="市町村番号" />
+              <TextBox Text="{Binding StatementCertificateNumber}" Watermark="受給者証番号" />
+              <CheckBox Content="証月額上限入力済み" IsChecked="{Binding StatementCertificateMonthlyCostCapIsEntered}" />
+              <NumericUpDown Value="{Binding StatementCertificateMonthlyCostCapYen}" />
+              <ComboBox ItemsSource="{Binding ApplicabilityOptions}"
+                        SelectedItem="{Binding StatementUpperLimitManagementApplicability}" />
+              <TextBox Text="{Binding CertificateManagingOfficeNumber}" Watermark="証記載管理事業所番号" />
+              <TextBox Text="{Binding ManagingOfficeNumber}" Watermark="管理事業所番号" />
+              <TextBox Text="{Binding ManagingOfficeName}" Watermark="管理事業所名" />
+              <TextBox Text="{Binding OriginalCreationKind}" Watermark="原票作成区分" />
+              <TextBox Text="{Binding StatementReceivedAt}" Watermark="受領日時" />
+              <TextBox Text="{Binding StatementOriginalDocumentReference}" Watermark="原票参照" />
+              <CheckBox Content="確認済み" IsChecked="{Binding StatementIsConfirmed}" />
+              <TextBox Text="{Binding StatementConfirmedAt}" Watermark="確認日時" />
+              <TextBox Text="{Binding StatementConfirmedBy}" Watermark="確認者" />
+              <TextBox Text="{Binding StatementConfirmationReason}" Watermark="確認理由" />
+              <ComboBox ItemsSource="{Binding UpperLimitResultOptions}" SelectedItem="{Binding StatementResult}" />
+              <CheckBox Content="総費用入力済み" IsChecked="{Binding StatementTotalCostIsEntered}" />
+              <NumericUpDown Value="{Binding StatementTotalCostYen}" />
+              <CheckBox Content="管理前負担入力済み" IsChecked="{Binding StatementTotalPreManagementBurdenIsEntered}" />
+              <NumericUpDown Value="{Binding StatementTotalPreManagementBurdenYen}" />
+              <CheckBox Content="管理後負担入力済み" IsChecked="{Binding StatementTotalManagedBurdenIsEntered}" />
+              <NumericUpDown Value="{Binding StatementTotalManagedBurdenYen}" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="明細追加" Command="{Binding AddStatementLineCommand}" />
+                <Button Content="明細削除" Command="{Binding RemoveStatementLineCommand}" />
+              </StackPanel>
+              <DataGrid ItemsSource="{Binding StatementLines}" SelectedItem="{Binding SelectedStatementLine}"
+                        AutoGenerateColumns="True" IsReadOnly="False" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="保存" Command="{Binding SaveStatementCommand}" />
+                <Button Content="取消" Command="{Binding CancelStatementCommand}" />
+                <Button Content="再入力" Command="{Binding ReenterStatementCommand}" />
+              </StackPanel>
+              <DataGrid ItemsSource="{Binding StatementRevisions}" IsReadOnly="True" AutoGenerateColumns="True" />
+            </StackPanel>
+          </TabItem>
+        </TabControl>
+      </StackPanel>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

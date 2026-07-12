@@ -10,9 +10,12 @@ using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Application.UseCases;
 using Tsumugi.Application.UseCases.Certificate;
+using Tsumugi.Application.UseCases.Claim;
 using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
+using Tsumugi.Domain.Logic.Claim;
+using Tsumugi.Domain.Logic.Claim.Models;
 using Tsumugi.Domain.ValueObjects;
 using Tsumugi.Infrastructure.Persistence;
 
@@ -70,6 +73,9 @@ public sealed class AppNavigationServiceTests
         codeBehind.Should().Contain("AppSection.RecipientEdit");
         codeBehind.Should().Contain("AppSection.RecipientList");
         codeBehind.Should().Contain("nameof(MainViewModel.SelectedSection)");
+        xaml.Should().Contain("<views:ClaimInputView DataContext=\"{Binding ClaimInput}\" />");
+        xaml.Should().Contain("IsVisible=\"{Binding ClaimInputAvailable}\"");
+        xaml.Should().NotContain("ClaimPreparationView");
     }
 
     [Fact]
@@ -274,7 +280,6 @@ public sealed class AppNavigationServiceTests
     }
 
     [Theory]
-    [InlineData(AppSection.ClaimInput)]
     [InlineData(AppSection.ClaimPreparation)]
     public async Task Future_target_returns_closed_error_without_changing_selection_or_request(
         AppSection futureSection)
@@ -294,6 +299,42 @@ public sealed class AppNavigationServiceTests
         fixture.Main.SelectedSection.Should().Be(AppSection.DailyRecord);
         fixture.Main.LastNavigationResult.Should().BeSameAs(result);
         fixture.Main.LastNavigationResult!.Request.Should().BeSameAs(request);
+    }
+
+    [Fact]
+    public async Task ClaimInput_request_applies_complete_context_loads_workspace_and_changes_selection()
+    {
+        await using var fixture = await NavigationFixture.CreateAsync();
+        var month = new ServiceMonth(2026, 6);
+
+        var result = await fixture.Navigation.NavigateAsync(new NavigationRequest(
+            AppSection.ClaimInput,
+            fixture.RecipientId,
+            CertificateId: fixture.CertificateId,
+            OfficeId: fixture.OfficeId,
+            ServiceMonth: month));
+
+        result.IsSuccess.Should().BeTrue();
+        fixture.Main.SelectedSection.Should().Be(AppSection.ClaimInput);
+        fixture.Main.ClaimInput.Should().NotBeNull();
+        fixture.Main.ClaimInput!.OfficeId.Should().Be(fixture.OfficeId);
+        fixture.Main.ClaimInput.RecipientId.Should().Be(fixture.RecipientId);
+        fixture.Main.ClaimInput.CertificateId.Should().Be(fixture.CertificateId);
+        fixture.Main.ClaimInput.Year.Should().Be(2026);
+        fixture.Main.ClaimInput.Month.Should().Be(6);
+        fixture.Main.ClaimInput.SourceFiscalYear.Should().Be(2025);
+        fixture.Main.ClaimInput.WorkspaceLoaded.Should().BeTrue();
+
+        var next = await fixture.Navigation.NavigateAsync(new NavigationRequest(
+            AppSection.ClaimInput,
+            fixture.RecipientId,
+            CertificateId: fixture.CertificateId,
+            OfficeId: fixture.OfficeId,
+            ServiceMonth: new ServiceMonth(2027, 6)));
+
+        next.IsSuccess.Should().BeTrue();
+        fixture.Main.ClaimInput.SourceFiscalYear.Should().Be(2026);
+        fixture.Main.ClaimInput.WorkspaceLoaded.Should().BeTrue();
     }
 
     [Fact]
@@ -356,15 +397,14 @@ public sealed class AppNavigationServiceTests
         var arguments = constructor.GetParameters()
             .Select(parameter => parameter.ParameterType == typeof(IMessenger)
                 ? messenger
-                : services.GetRequiredService(parameter.ParameterType))
+                : services.GetService(parameter.ParameterType) ?? parameter.DefaultValue)
             .ToArray();
         var main = (MainViewModel)constructor.Invoke(arguments);
         var weakReferences = main.GetType().GetProperties()
             .Where(property => typeof(ViewModelBase).IsAssignableFrom(property.PropertyType))
-            .Select(property => (
-                property.Name,
-                new WeakReference(property.GetValue(main)
-                    ?? throw new InvalidOperationException($"{property.Name} was null."))))
+            .Select(property => (property.Name, Value: property.GetValue(main)))
+            .Where(item => item.Value is not null)
+            .Select(item => (item.Name, new WeakReference(item.Value!)))
             .Prepend((nameof(MainViewModel), new WeakReference(main)))
             .ToArray();
         main.Dispose();
@@ -450,7 +490,9 @@ public sealed class AppNavigationServiceTests
             var dbPath = Path.Combine(
                 Path.GetTempPath(),
                 $"tsumugi-navigation-{Guid.NewGuid():N}.db");
-            var provider = (ServiceProvider)CompositionRoot.Build($"Data Source={dbPath}");
+            var services = new ServiceCollection().AddTsumugiServices($"Data Source={dbPath}");
+            AddTestClaimInputServices(services);
+            var provider = services.BuildServiceProvider();
             var scope = provider.CreateAsyncScope();
 
             await scope.ServiceProvider.GetRequiredService<TsumugiDbContext>()
@@ -515,5 +557,29 @@ public sealed class AppNavigationServiceTests
                     File.Delete(path);
             }
         }
+    }
+
+    private static void AddTestClaimInputServices(IServiceCollection services)
+    {
+        var version = new ClaimMasterVersion("navigation-test-master");
+        var option = new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 1);
+        var rule = new AverageWageBandOptionVersionRule(
+            version,
+            new ServiceMonth(2026, 1),
+            null,
+            [option],
+            new Dictionary<R8ReformStatus, IReadOnlyCollection<AverageWageBandOption>>
+            {
+                [R8ReformStatus.ReformTarget] = [option],
+            });
+        services.AddSingleton(new OfficeClaimProfilePolicy(
+            version, [rule], new DateOnly(2026, 6, 1), date => date.AddYears(3)));
+        services.AddScoped<QueryClaimInputWorkspaceUseCase>();
+        services.AddScoped<SetClaimInputUseCase>();
+        services.AddScoped<SetAverageWageAnnualEvidenceUseCase>();
+        services.AddScoped<SetOfficeClaimProfileUseCase>();
+        services.AddScoped<SetCertificateClaimEvidenceUseCase>();
+        services.AddScoped<SetUpperLimitManagementStatementUseCase>();
+        services.AddTransient<ClaimInputViewModel>();
     }
 }

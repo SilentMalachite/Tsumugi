@@ -26,7 +26,8 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
         WageAdjustmentViewModel wageAdjustment,
         WageCalculationViewModel wageCalculation,
         WageStatementViewModel wageStatement,
-        IMessenger messenger)
+        IMessenger messenger,
+        ClaimInputViewModel? claimInput = null)
     {
         ArgumentNullException.ThrowIfNull(messenger);
         RecipientList = recipientList;
@@ -44,6 +45,7 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
         WageAdjustment = wageAdjustment;
         WageCalculation = wageCalculation;
         WageStatement = wageStatement;
+        ClaimInput = claimInput;
         messenger.Register<MainViewModel, AppNavigationMessage>(
             this,
             static (recipient, message) => message.Reply(
@@ -73,6 +75,10 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
     public WageFundSettingsViewModel WageFundSettings { get; }
     public WageCalculationViewModel WageCalculation { get; }
     public WageStatementViewModel WageStatement { get; }
+
+    // Phase 3-1: production policy provider未実装時はnull。test compositionでは注入可能。
+    public ClaimInputViewModel? ClaimInput { get; }
+    public bool ClaimInputAvailable => ClaimInput is not null;
 
     // Phase 4 S0 tabs
     public RecipientHourlyRateViewModel RecipientHourlyRate { get; }
@@ -118,7 +124,14 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
         NavigationRequest request,
         CancellationToken ct)
     {
-        if (request.Section is AppSection.ClaimInput or AppSection.ClaimPreparation)
+        if (request.Section == AppSection.ClaimPreparation)
+        {
+            return NavigationResult.Failure(
+                request,
+                NavigationErrorCode.NavigationTargetUnavailable);
+        }
+
+        if (request.Section == AppSection.ClaimInput && !ClaimInputAvailable)
         {
             return NavigationResult.Failure(
                 request,
@@ -130,6 +143,7 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
             AppSection.Certificate => await ApplyCertificateContextAsync(request, ct),
             AppSection.DailyRecord => await ApplyDailyRecordContextAsync(request, ct),
             AppSection.Office => await ApplyOfficeContextAsync(request, ct),
+            AppSection.ClaimInput => await ApplyClaimInputContextAsync(request, ct),
             AppSection.RecipientList
                 or AppSection.RecipientEdit
                 or AppSection.DisabilityCertificate
@@ -202,6 +216,26 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
             return false;
 
         return await Office.ApplyNavigationContextAsync(request.OfficeId, ct);
+    }
+
+    private async Task<bool> ApplyClaimInputContextAsync(
+        NavigationRequest request,
+        CancellationToken ct)
+    {
+        if (ClaimInput is null || request.ServiceDate is not null
+            || HasEmptyGuid(request.OfficeId) || HasEmptyGuid(request.RecipientId)
+            || HasEmptyGuid(request.CertificateId) || request.OfficeId is null
+            || request.RecipientId is null || request.CertificateId is null
+            || request.ServiceMonth is null
+            || !TryGetServiceMonth(request.ServiceMonth, out _, out _))
+            return false;
+
+        return await ClaimInput.ApplyNavigationContextAsync(
+            request.OfficeId,
+            request.RecipientId,
+            request.CertificateId,
+            request.ServiceMonth,
+            ct);
     }
 
     private static bool HasNoContext(NavigationRequest request) =>

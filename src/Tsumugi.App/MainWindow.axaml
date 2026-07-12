@@ -56,5 +56,8 @@
         <TabItem Header="工賃確定(_D)">
             <views:WageStatementView DataContext="{Binding WageStatement}" />
         </TabItem>
+        <TabItem Header="請求入力(_G)" IsVisible="{Binding ClaimInputAvailable}">
+            <views:ClaimInputView DataContext="{Binding ClaimInput}" />
+        </TabItem>
     </TabControl>
 </Window>

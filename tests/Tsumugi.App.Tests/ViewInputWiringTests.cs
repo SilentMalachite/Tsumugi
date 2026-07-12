@@ -79,6 +79,54 @@ public sealed class ViewInputWiringTests
     }
 
     [Fact]
+    public void ClaimInputView_exposes_only_owned_fields_histories_and_keyboard_commands()
+    {
+        var xml = ReadView("ClaimInputView.axaml");
+        foreach (var binding in new[]
+        {
+            "SelectedOffice", "SelectedRecipient", "SelectedCertificate", "Year", "Month",
+            "SourceFiscalYear", "SelectedAggregate", "ClaimInputCurrentHeadId",
+            "ClaimInputEffectiveHeadId", "ClaimInputRevisions", "UpperLimitManagementResult",
+            "UpperLimitManagedAmountYen", "AverageWageCurrentHeadId", "AverageWageEffectiveHeadId",
+            "AnnualWagePaidYen", "AnnualExtendedUsers", "AnnualOpeningDays", "Completeness",
+            "AverageWageEvidenceDocumentId", "DailyEvidenceReference", "MonthlyEvidenceReference",
+            "OfficeProfileChains", "SelectedOfficeProfileChain", "OfficeProfileCurrentHeadId",
+            "OfficeProfileEffectiveHeadId", "MasterVersion", "ReformStatus",
+            "AverageWageBandOption", "DesignationDate", "SupportStartDate",
+            "EarlierRegisteredBandOption", "EarlierRegistrationMonth",
+            "LaterRegisteredBandOption", "LaterRegistrationMonth",
+            "ReformComparisonEvidenceDocumentId", "FiledTransitionPeriod",
+            "FiledTransitionEvidenceDocumentId", "OfficeProfileEvidenceDocumentId",
+            "CertificateEvidenceChains", "SelectedCertificateEvidenceChain",
+            "CertificateEvidenceCurrentHeadId", "CertificateEvidenceEffectiveHeadId",
+            "MonthlyCostCapYen", "UpperLimitManagementApplicability",
+            "UpperLimitManagementOfficeNumber", "Article31Status", "Article31AmountYen",
+            "Article31EffectivePeriod", "CertificateOriginalDocumentReference",
+            "StatementCurrentHeadId", "StatementEffectiveHeadId", "MunicipalityNumber",
+            "StatementCertificateNumber", "StatementLines",
+        })
+            xml.Should().Contain($"{{Binding {binding}");
+
+        xml.Should().Contain("Gesture=\"F5\"").And.Contain("{Binding LoadCommand}");
+        xml.Should().Contain("Gesture=\"Ctrl+S\"")
+            .And.Contain("{Binding SaveCurrentAggregateCommand}");
+        xml.Should().Contain("Gesture=\"Escape\"")
+            .And.Contain("{Binding DiscardCurrentEditCommand}");
+        xml.Should().Contain("<ScrollViewer");
+        xml.Should().Contain("{Binding AddStatementLineCommand}")
+            .And.Contain("{Binding RemoveStatementLineCommand}")
+            .And.Contain("{Binding SelectedStatementLine}");
+        xml.Should().NotContain("MunicipalSubsidyAmountYen")
+            .And.NotContain("ExceptionalUsageStartMonth")
+            .And.NotContain("ExceptionalUsageEndMonth")
+            .And.NotContain("ExceptionalUsageDays")
+            .And.NotContain("StandardUsageDayTotal")
+            .And.NotContain("IntensiveSupportEpisode")
+            .And.NotContain("Phase3-2")
+            .And.NotContain("Phase3-3");
+    }
+
+    [Fact]
     public void ContractView_exposes_PeriodEnd_input()
     {
         var xml = ReadView("ContractView.axaml");
