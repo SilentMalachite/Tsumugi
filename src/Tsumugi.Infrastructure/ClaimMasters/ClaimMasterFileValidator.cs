@@ -535,15 +535,29 @@ internal static class ClaimMasterFileValidator
     private static void ValidateCalculationOrder(
         IReadOnlyCollection<PercentageAdjustmentMasterRow> rows)
     {
-        foreach (var group in rows.GroupBy(row =>
-                     (row.TargetSelector, row.EffectiveFrom, row.EffectiveTo)))
+        var boundaries = rows.Select(row => row.EffectiveFrom)
+            .Concat(rows
+                .Where(row => row.EffectiveTo is not null)
+                .Select(row => NextMonth(row.EffectiveTo!.Value)))
+            .Distinct()
+            .Order()
+            .ToArray();
+        foreach (var boundary in boundaries)
         {
-            var actual = group.Select(row => row.CalculationOrder).Order().ToArray();
-            var expected = Enumerable.Range(1, actual.Length).ToArray();
-            if (!actual.SequenceEqual(expected))
+            var activeRows = rows.Where(row =>
+                row.EffectiveFrom <= boundary
+                && (row.EffectiveTo is null || boundary <= row.EffectiveTo.Value));
+            foreach (var selectorRows in activeRows.GroupBy(
+                         row => row.TargetSelector,
+                         StringComparer.Ordinal))
             {
-                throw new InvalidDataException(
-                    "Percentage adjustment calculationOrder must be unique and contiguous from one.");
+                var actual = selectorRows.Select(row => row.CalculationOrder).Order().ToArray();
+                var expected = Enumerable.Range(1, actual.Length).ToArray();
+                if (!actual.SequenceEqual(expected))
+                {
+                    throw new InvalidDataException(
+                        "Percentage adjustment calculationOrder must be unique and contiguous from one.");
+                }
             }
         }
     }

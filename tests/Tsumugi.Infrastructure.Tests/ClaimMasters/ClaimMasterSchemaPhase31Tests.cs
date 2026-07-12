@@ -59,6 +59,39 @@ public sealed class ClaimMasterSchemaPhase31Tests
     }
 
     [Fact]
+    public void Load_rejects_duplicate_active_order_when_same_selector_rows_start_in_different_months()
+    {
+        var masters = ValidMasters();
+        var root = JsonNode.Parse(masters["additions.json"])!.AsObject();
+        var later = root["entries"]![0]!.DeepClone().AsObject();
+        later["key"] = "addition-later";
+        later["effectiveFrom"] = "2027-01";
+        root["entries"]!.AsArray().Add(later);
+        masters["additions.json"] = root.ToJsonString();
+
+        var action = () => Load(masters);
+
+        action.Should().Throw<InvalidDataException>();
+    }
+
+    [Fact]
+    public void Load_accepts_order_two_joining_an_active_order_one_mid_period()
+    {
+        var masters = ValidMasters();
+        var root = JsonNode.Parse(masters["additions.json"])!.AsObject();
+        var later = root["entries"]![0]!.DeepClone().AsObject();
+        later["key"] = "addition-later";
+        later["effectiveFrom"] = "2027-01";
+        later["values"]!["calculationOrder"] = 2;
+        root["entries"]!.AsArray().Add(later);
+        masters["additions.json"] = root.ToJsonString();
+
+        var action = () => Load(masters);
+
+        action.Should().NotThrow();
+    }
+
+    [Fact]
     public void Load_rejects_a_double_derived_percentage_number()
     {
         var masters = ValidMasters();
