@@ -33,6 +33,13 @@ public static class DependencyInjection
         services.AddScoped<IWageStatementRepository, WageStatementRepository>();
         services.AddScoped<IAuditEntryRepository, AuditEntryRepository>();
         services.AddScoped<IClaimBatchRepository, ClaimBatchRepository>();
+        services.AddScoped<IClaimInputRepository, ClaimInputRepository>();
+        services.AddScoped<IIntensiveSupportEpisodeRepository, IntensiveSupportEpisodeRepository>();
+        services.AddScoped<IAverageWageAnnualEvidenceRepository, AverageWageAnnualEvidenceRepository>();
+        services.AddScoped<IOfficeClaimProfileRepository, OfficeClaimProfileRepository>();
+        services.AddScoped<ICertificateClaimEvidenceRepository, CertificateClaimEvidenceRepository>();
+        services.AddScoped<IUpperLimitManagementStatementRepository,
+            UpperLimitManagementStatementRepository>();
         services.AddScoped<IWageAdjustmentRepository, WageAdjustmentRepository>();
         services.AddScoped<IRecipientHourlyRateRepository, RecipientHourlyRateRepository>();
         services.AddScoped<IAuditTrail, AuditTrail>();

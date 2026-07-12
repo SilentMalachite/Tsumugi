@@ -72,6 +72,22 @@ public sealed class CompositionRootTests
     }
 
     [Fact]
+    public void Claim_input_repositories_are_registered_as_scoped()
+    {
+        var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
+        using var provider = services.BuildServiceProvider();
+        using var firstScope = provider.CreateScope();
+        using var secondScope = provider.CreateScope();
+
+        AssertScoped<IClaimInputRepository>(firstScope, secondScope);
+        AssertScoped<IIntensiveSupportEpisodeRepository>(firstScope, secondScope);
+        AssertScoped<IAverageWageAnnualEvidenceRepository>(firstScope, secondScope);
+        AssertScoped<IOfficeClaimProfileRepository>(firstScope, secondScope);
+        AssertScoped<ICertificateClaimEvidenceRepository>(firstScope, secondScope);
+        AssertScoped<IUpperLimitManagementStatementRepository>(firstScope, secondScope);
+    }
+
+    [Fact]
     public void Build_resolves_use_cases_from_root()
     {
         var dbPath = Path.Combine(Path.GetTempPath(), $"tsumugi-ci-{Guid.NewGuid():N}.db");
@@ -132,6 +148,18 @@ public sealed class CompositionRootTests
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
         scope.ServiceProvider.GetRequiredService<IOfficeRepository>().Should().BeSameAs(fake);
+    }
+
+    private static void AssertScoped<T>(IServiceScope firstScope, IServiceScope secondScope)
+        where T : class
+    {
+        var first = firstScope.ServiceProvider.GetRequiredService<T>();
+        var sameScope = firstScope.ServiceProvider.GetRequiredService<T>();
+        var otherScope = secondScope.ServiceProvider.GetRequiredService<T>();
+
+        first.Should().NotBeNull();
+        sameScope.Should().NotBeNull().And.BeSameAs(first);
+        otherScope.Should().NotBeNull().And.NotBeSameAs(first);
     }
 
     private sealed class FakeRepo : IOfficeRepository
