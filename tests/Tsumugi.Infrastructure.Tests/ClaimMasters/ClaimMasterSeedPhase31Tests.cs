@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using FluentAssertions;
 using Tsumugi.Infrastructure.Tests;
 
@@ -291,12 +293,93 @@ public sealed class ClaimMasterSeedPhase31Tests
             var documentId = row.GetProperty("sourceDocumentId").GetString()!;
             documents.Should().ContainKey(documentId);
             var rangeId = row.GetProperty("rangeId").GetString();
-            documents[documentId].GetProperty("extractionRanges").EnumerateArray()
-                .Count(range => range.GetProperty("rangeId").GetString() == rangeId)
-                .Should().Be(1);
-            row.GetProperty("sourceLocator").GetString()
-                .Should().NotBeNullOrWhiteSpace();
+            var matchingRanges = documents[documentId].GetProperty("extractionRanges")
+                .EnumerateArray()
+                .Where(range => range.GetProperty("rangeId").GetString() == rangeId)
+                .ToArray();
+            matchingRanges.Should().ContainSingle();
+
+            var range = matchingRanges[0];
+            var locator = row.GetProperty("sourceLocator").GetString()!;
+            var kind = range.GetProperty("kind").GetString();
+            switch (kind)
+            {
+                case "xlsx-rows":
+                {
+                    var match = Regex.Match(
+                        locator,
+                        @"^workbook-order=([1-9]\d*);row=([1-9]\d*)$");
+                    match.Success.Should().BeTrue();
+                    var workbookOrder = int.Parse(
+                        match.Groups[1].Value,
+                        CultureInfo.InvariantCulture);
+                    var rowNumber = int.Parse(
+                        match.Groups[2].Value,
+                        CultureInfo.InvariantCulture);
+                    workbookOrder.Should().Be(range.GetProperty("workbookOrder").GetInt32());
+                    rowNumber.Should().BeInRange(
+                        range.GetProperty("rowFrom").GetInt32(),
+                        range.GetProperty("rowTo").GetInt32());
+                    break;
+                }
+                case "pdf-pages":
+                {
+                    var match = Regex.Match(locator, @"^pdf:physical-page=([1-9]\d*)(?:;.+)?$");
+                    match.Success.Should().BeTrue();
+                    var pageNumber = int.Parse(
+                        match.Groups[1].Value,
+                        CultureInfo.InvariantCulture);
+                    pageNumber.Should().BeInRange(
+                        range.GetProperty("pageFrom").GetInt32(),
+                        range.GetProperty("pageTo").GetInt32());
+                    break;
+                }
+                case "html-page":
+                {
+                    var match = Regex.Match(locator, @"^html:pageNo=([1-9]\d*)(?:;.+)?$");
+                    match.Success.Should().BeTrue();
+                    int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture)
+                        .Should().Be(range.GetProperty("pageNo").GetInt32());
+                    if (documentId == "mhlw-unit-price-notice-observed-946c3d96")
+                    {
+                        locator.Should().MatchRegex(
+                            @"^html:pageNo=1;table=e\d+;row=e\d+;service=e\d+$");
+                    }
+
+                    break;
+                }
+                default:
+                    false.Should().BeTrue(because: $"unknown range kind must fail: {kind}");
+                    break;
+            }
         }
+    }
+
+    [Fact]
+    public void Source_manifest_schema_audit_snapshot_stays_stopped()
+    {
+        using var manifest = OpenRepositoryJson(ManifestPath);
+        var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().ToArray();
+
+        rows.Should().HaveCount(14_709);
+        rows.Count(row => row.GetProperty("disposition").GetString() == "seed")
+            .Should().Be(15);
+        rows.Count(row => row.GetProperty("disposition").GetString() == "excluded")
+            .Should().Be(744);
+        var schemaGaps = rows.Where(row =>
+                row.GetProperty("disposition").GetString() == "schema-gap")
+            .ToArray();
+        schemaGaps.Should().HaveCount(13_950).And.NotBeEmpty();
+
+        var countsByReasonPrefix = schemaGaps
+            .GroupBy(row => row.GetProperty("exclusionReason").GetString()!.Split(':')[0])
+            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
+        countsByReasonPrefix.Should().BeEquivalentTo(new Dictionary<string, int>
+        {
+            ["numeric-composite-unit"] = 13_539,
+            ["unit-addition-or-other-operation"] = 352,
+            ["condition-rate-calculation-structure"] = 59,
+        });
     }
 
     [Fact]
