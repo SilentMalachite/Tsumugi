@@ -167,7 +167,7 @@ r8-reward-structure
 r8-service-codes-2-pdf
 ```
 
-各documentへ`sourceSha256`と`role`を置き、`extractionRanges`を次の閉じた形にする。最初はADRに明記済みのrangeだけを追加し、`rows`は空配列でよい。
+各documentへ`sourceSha256`と`role`を置き、`extractionRanges`を配列として必須にする。Task 1ではADRに位置が明記済みのrangeだけを追加し、取得前にworkbook order、最終行又は物理頁を確定できないdocumentは`extractionRanges: []`とする。空rangeはTask 2の取得対象から除外せず、Task 3で原本から確定する。`rows`は空配列でよい。
 
 ```json
 {
@@ -193,7 +193,7 @@ r8-service-codes-2-pdf
 }
 ```
 
-`xlsx-rows`は`workbookOrder / rowFrom / rowTo / expectedItemCount`、`pdf-pages`は`pageFrom / pageTo / expectedItemCount`、`html-page`は`pageNo / expectedItemCount = 1`を持つ。R6/R8 service code workbookはworkbook順38〜41を全て登録し、基本報酬範囲より後ろの行を省略しない。各sheetの最終行はTask 3で取得バイトから確定する。
+存在するrangeでは、`xlsx-rows`は`workbookOrder / rowFrom / rowTo / expectedItemCount`、`pdf-pages`は`pageFrom / pageTo / expectedItemCount`、`html-page`は`pageNo / expectedItemCount = 1`を持つ。R6/R8 service code workbookのworkbook順38〜41、capability workbookのsheet順、未確定cross-check頁はTask 3で取得バイトから確定し、基本報酬範囲より後ろの行を省略しない。
 
 - [ ] **Step 4: manifest documentがcatalogとreleaseに存在するtestを書く**
 
@@ -227,9 +227,13 @@ public void Source_manifest_documents_match_the_catalog_and_release_bundles()
             .Be(catalogSources[id].GetProperty("sha256").GetString());
         document.GetProperty("role").GetString().Should()
             .BeOneOf("authoritative", "cross-check");
+        document.GetProperty("extractionRanges").ValueKind
+            .Should().Be(JsonValueKind.Array);
     }
 }
 ```
+
+Task 1では空`extractionRanges`を許可する。既に存在するrangeだけについてrangeId一意、kind閉集合、kind固有field、`expectedItemCount > 0`を検査する。全documentのrange非空はTask 3の停止ゲートで検査する。
 
 - [ ] **Step 5: manifest契約testを通す**
 
@@ -409,7 +413,10 @@ public void Source_manifest_ranges_are_machine_countable_and_fully_inventoried()
     foreach (var document in root.GetProperty("documents").EnumerateArray())
     {
         var documentId = document.GetProperty("documentId").GetString();
-        foreach (var range in document.GetProperty("extractionRanges").EnumerateArray())
+        var declaredRanges = document.GetProperty("extractionRanges").EnumerateArray().ToArray();
+        declaredRanges.Should().NotBeEmpty(
+            because: $"Task 3 must resolve every source range before transcription: {documentId}");
+        foreach (var range in declaredRanges)
         {
             var rangeId = range.GetProperty("rangeId").GetString();
             var expected = range.GetProperty("expectedItemCount").GetInt32();
