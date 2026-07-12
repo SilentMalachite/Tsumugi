@@ -88,6 +88,37 @@ public sealed class OfficeClaimProfilePolicyProviderTests
         error.Message.Should().NotContain("sourceLocator");
     }
 
+    [Theory]
+    [InlineData("schemaVersion")]
+    [InlineData("masterKind")]
+    [InlineData("entries")]
+    public void Load_sanitizes_invalid_transition_headers_for_the_policy_boundary(
+        string headerName)
+    {
+        var masters = ClaimMasterSchemaPhase31Tests.ValidMasters();
+        var root = JsonNode.Parse(masters["transition-rules.json"])!.AsObject();
+        switch (headerName)
+        {
+            case "schemaVersion":
+                root[headerName] = "secret-schema-version";
+                break;
+            case "masterKind":
+                root[headerName] = "secret-master-kind";
+                break;
+            case "entries":
+                root.Remove(headerName);
+                break;
+        }
+
+        masters["transition-rules.json"] = root.ToJsonString();
+
+        var action = () => ClaimMasterSchemaPhase31Tests.CreateProvider(masters);
+
+        var error = action.Should().Throw<ClaimMasterPolicyUnavailableException>().Which;
+        error.Code.Should().Be(ClaimMasterPolicyUnavailableCode.InvalidMaster);
+        error.Message.Should().NotContain(headerName).And.NotContain("secret");
+    }
+
     [Fact]
     public void Resolve_current_policy_uses_historical_version_rules_for_reform_exempt_comparison()
     {

@@ -38,7 +38,8 @@ internal static class ClaimMasterFileValidator
 
     internal static ClaimCalculationMasterBundle ValidateAll(
         IReadOnlyDictionary<string, Stream> masterFiles,
-        IReadOnlyDictionary<string, string> knownSourceSha256ByDocumentId)
+        IReadOnlyDictionary<string, string> knownSourceSha256ByDocumentId,
+        bool sanitizeTransitionHeaders = false)
     {
         ArgumentNullException.ThrowIfNull(masterFiles);
         ArgumentNullException.ThrowIfNull(knownSourceSha256ByDocumentId);
@@ -72,16 +73,17 @@ internal static class ClaimMasterFileValidator
                 file = Deserialize(stream, expected.Key);
             }
             catch (Exception exception)
-                when (string.Equals(expected.Value, "transition-rules", StringComparison.Ordinal)
+                when (sanitizeTransitionHeaders
+                      && string.Equals(expected.Value, "transition-rules", StringComparison.Ordinal)
                       && exception is InvalidDataException or ArgumentException or InvalidOperationException)
             {
                 throw new ClaimMasterPolicyUnavailableException(
                     ClaimMasterPolicyUnavailableCode.InvalidMaster);
             }
 
-            ValidateHeader(expected.Key, expected.Value, file);
             try
             {
+                ValidateHeader(expected.Key, expected.Value, file);
                 var parsedEntries = file.Entries.Select(entry =>
                     ParseEntry(
                         expected.Key,
@@ -101,7 +103,8 @@ internal static class ClaimMasterFileValidator
                 throw;
             }
             catch (Exception exception)
-                when (string.Equals(expected.Value, "transition-rules", StringComparison.Ordinal)
+                when (sanitizeTransitionHeaders
+                      && string.Equals(expected.Value, "transition-rules", StringComparison.Ordinal)
                       && exception is InvalidDataException or ArgumentException or InvalidOperationException)
             {
                 throw new ClaimMasterPolicyUnavailableException(

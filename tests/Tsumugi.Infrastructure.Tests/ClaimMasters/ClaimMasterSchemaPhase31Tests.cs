@@ -162,7 +162,7 @@ public sealed class ClaimMasterSchemaPhase31Tests
             StringComparer.Ordinal);
         try
         {
-            return JsonClaimMasterProvider.Load(sources, streams);
+            return JsonClaimMasterProvider.LoadPolicy(sources, streams);
         }
         finally
         {

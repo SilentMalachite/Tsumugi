@@ -70,7 +70,7 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider, IOfficeClaim
                     OpenEmbedded(assembly, $".ClaimMasters.Seed.{fileName}"));
             }
 
-            return Load(sources, masters);
+            return LoadPolicy(sources, masters);
         }
         finally
         {
@@ -81,7 +81,18 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider, IOfficeClaim
 
     internal static JsonClaimMasterProvider Load(
         Stream sources,
-        IReadOnlyDictionary<string, Stream> masters)
+        IReadOnlyDictionary<string, Stream> masters) =>
+        Load(sources, masters, sanitizeTransitionHeaders: false);
+
+    internal static JsonClaimMasterProvider LoadPolicy(
+        Stream sources,
+        IReadOnlyDictionary<string, Stream> masters) =>
+        Load(sources, masters, sanitizeTransitionHeaders: true);
+
+    private static JsonClaimMasterProvider Load(
+        Stream sources,
+        IReadOnlyDictionary<string, Stream> masters,
+        bool sanitizeTransitionHeaders)
     {
         ArgumentNullException.ThrowIfNull(sources);
         ArgumentNullException.ThrowIfNull(masters);
@@ -97,7 +108,8 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider, IOfficeClaim
                 StringComparer.Ordinal);
         var calculationMasters = ClaimMasterFileValidator.ValidateAll(
             masters,
-            sourceSha256ByDocumentId);
+            sourceSha256ByDocumentId,
+            sanitizeTransitionHeaders);
         ValidateTransitionRuleReferences(calculationMasters.TransitionRules, catalog.Releases);
 
         var domainSources = catalog.Sources.Select(ToDomainSource).ToImmutableArray();
