@@ -6,8 +6,10 @@ using Tsumugi.Domain.ValueObjects;
 namespace Tsumugi.App.ViewModels;
 
 /// <summary>MainWindow の DataContext。各 ViewModel と画面間navigationを調停する。</summary>
-public sealed partial class MainViewModel : ViewModelBase
+public sealed partial class MainViewModel : ViewModelBase, IDisposable
 {
+    private readonly SemaphoreSlim _navigationGate = new(1, 1);
+
     public MainViewModel(
         RecipientListViewModel recipientList,
         RecipientEditViewModel recipientEdit,
@@ -76,30 +78,40 @@ public sealed partial class MainViewModel : ViewModelBase
     public RecipientHourlyRateViewModel RecipientHourlyRate { get; }
     public WageAdjustmentViewModel WageAdjustment { get; }
 
+    public void Dispose() => _navigationGate.Dispose();
+
     private async Task<NavigationResult> HandleNavigationAsync(
         NavigationRequest request,
         CancellationToken ct)
     {
-        NavigationResult result;
+        await _navigationGate.WaitAsync(ct);
         try
         {
-            result = await DispatchAsync(request, ct);
-        }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception)
-        {
-            result = NavigationResult.Failure(
-                request,
-                NavigationErrorCode.InvalidNavigationContext);
-        }
+            NavigationResult result;
+            try
+            {
+                result = await DispatchAsync(request, ct);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                result = NavigationResult.Failure(
+                    request,
+                    NavigationErrorCode.InvalidNavigationContext);
+            }
 
-        LastNavigationResult = result;
-        if (result.IsSuccess)
-            SelectedSection = request.Section;
-        return result;
+            LastNavigationResult = result;
+            if (result.IsSuccess)
+                SelectedSection = request.Section;
+            return result;
+        }
+        finally
+        {
+            _navigationGate.Release();
+        }
     }
 
     private async Task<NavigationResult> DispatchAsync(

@@ -104,7 +104,7 @@ public static class CompositionRoot
         // Phase 2: PDF 保存ダイアログ抽象（M-2）
         services.AddSingleton<Tsumugi.App.Services.IFileSaveService, Tsumugi.App.Services.AvaloniaFileSaveService>();
 
-        // Typed application navigation: scoped weak messenger がtransient MainViewModelを弱参照する。
+        // Typed application navigation: scoped weak messenger と単一MainViewModel coordinatorを共有する。
         services.AddScoped<IMessenger, WeakReferenceMessenger>();
         services.AddScoped<IAppNavigationService, AppNavigationService>();
 
@@ -126,7 +126,7 @@ public static class CompositionRoot
         // Phase 4 S0 ViewModels
         services.AddTransient<RecipientHourlyRateViewModel>();
         services.AddTransient<WageAdjustmentViewModel>();
-        services.AddTransient<MainViewModel>();
+        services.AddScoped<MainViewModel>();
 
         return services;
     }

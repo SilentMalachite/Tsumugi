@@ -6,10 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Tsumugi.App;
 using Tsumugi.App.Navigation;
 using Tsumugi.App.ViewModels;
+using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Application.UseCases;
 using Tsumugi.Application.UseCases.Certificate;
 using Tsumugi.Application.UseCases.Recipient;
+using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.ValueObjects;
 using Tsumugi.Infrastructure.Persistence;
@@ -71,7 +73,7 @@ public sealed class AppNavigationServiceTests
     }
 
     [Fact]
-    public void Navigation_service_and_messenger_are_scoped_while_main_view_model_is_transient()
+    public async Task Navigation_service_messenger_and_main_coordinator_are_scoped()
     {
         var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
 
@@ -80,7 +82,22 @@ public sealed class AppNavigationServiceTests
         services.Single(x => x.ServiceType == typeof(IMessenger)).Lifetime
             .Should().Be(ServiceLifetime.Scoped);
         services.Single(x => x.ServiceType == typeof(MainViewModel)).Lifetime
-            .Should().Be(ServiceLifetime.Transient);
+            .Should().Be(ServiceLifetime.Scoped);
+
+        using var provider = services.BuildServiceProvider();
+        using var firstScope = provider.CreateScope();
+        using var secondScope = provider.CreateScope();
+        var first = firstScope.ServiceProvider.GetRequiredService<MainViewModel>();
+
+        firstScope.ServiceProvider.GetRequiredService<MainViewModel>()
+            .Should().BeSameAs(first);
+        secondScope.ServiceProvider.GetRequiredService<MainViewModel>()
+            .Should().NotBeSameAs(first);
+
+        var navigation = firstScope.ServiceProvider.GetRequiredService<IAppNavigationService>();
+        var result = await navigation.NavigateAsync(
+            new NavigationRequest(AppSection.RecipientList));
+        result.IsSuccess.Should().BeTrue();
     }
 
     [Fact]
@@ -102,6 +119,57 @@ public sealed class AppNavigationServiceTests
         result.IsSuccess.Should().BeFalse();
         result.ErrorCode.Should().Be(NavigationErrorCode.NavigationTargetUnavailable);
         result.Request.Should().BeSameAs(request);
+    }
+
+    [Fact]
+    public async Task Coordinator_serializes_target_work_and_waiting_cancellation_preserves_state()
+    {
+        var firstRecipient = Recipient.Create(
+            Guid.NewGuid(), "一人目", "ヒトリメ", new DateOnly(1990, 1, 1),
+            "test", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var secondRecipient = Recipient.Create(
+            Guid.NewGuid(), "二人目", "フタリメ", new DateOnly(1991, 1, 1),
+            "test", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var recipients = new BlockingRecipientRepository([firstRecipient, secondRecipient]);
+        var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
+        services.AddScoped<IRecipientRepository>(_ => recipients);
+        services.AddScoped<ICertificateRepository>(_ => new InMemoryCertRepo());
+
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+        var main = scope.ServiceProvider.GetRequiredService<MainViewModel>();
+        var navigation = scope.ServiceProvider.GetRequiredService<IAppNavigationService>();
+        var firstRequest = new NavigationRequest(
+            AppSection.Certificate,
+            firstRecipient.Id);
+        var firstNavigation = navigation.NavigateAsync(firstRequest);
+        await recipients.FirstCallStarted.WaitAsync(TimeSpan.FromSeconds(5));
+
+        using var waitingCancellation = new CancellationTokenSource();
+        var secondRequest = new NavigationRequest(
+            AppSection.Certificate,
+            secondRecipient.Id);
+        var secondNavigation = navigation.NavigateAsync(
+            secondRequest,
+            waitingCancellation.Token);
+        var targetCallsBeforeCancellation = recipients.CallCount;
+        var selectionBeforeCancellation = main.SelectedSection;
+        var lastResultBeforeCancellation = main.LastNavigationResult;
+
+        waitingCancellation.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            async () => await secondNavigation);
+        recipients.ReleaseFirstCall();
+        var firstResult = await firstNavigation;
+
+        targetCallsBeforeCancellation.Should().Be(1);
+        selectionBeforeCancellation.Should().Be(AppSection.RecipientList);
+        lastResultBeforeCancellation.Should().BeNull();
+        recipients.CallCount.Should().Be(1);
+        firstResult.IsSuccess.Should().BeTrue();
+        main.SelectedSection.Should().Be(AppSection.Certificate);
+        main.LastNavigationResult.Should().BeSameAs(firstResult);
+        main.LastNavigationResult!.Request.Should().BeSameAs(firstRequest);
     }
 
     [Fact]
@@ -283,8 +351,15 @@ public sealed class AppNavigationServiceTests
     private static (string Name, WeakReference Reference)[]
         ResolveMainAndCaptureWeakReferences(IServiceProvider services)
     {
-        var main = services.GetRequiredService<MainViewModel>();
-        return main.GetType().GetProperties()
+        var constructor = typeof(MainViewModel).GetConstructors().Single();
+        var messenger = services.GetRequiredService<IMessenger>();
+        var arguments = constructor.GetParameters()
+            .Select(parameter => parameter.ParameterType == typeof(IMessenger)
+                ? messenger
+                : services.GetRequiredService(parameter.ParameterType))
+            .ToArray();
+        var main = (MainViewModel)constructor.Invoke(arguments);
+        var weakReferences = main.GetType().GetProperties()
             .Where(property => typeof(ViewModelBase).IsAssignableFrom(property.PropertyType))
             .Select(property => (
                 property.Name,
@@ -292,6 +367,8 @@ public sealed class AppNavigationServiceTests
                     ?? throw new InvalidOperationException($"{property.Name} was null."))))
             .Prepend((nameof(MainViewModel), new WeakReference(main)))
             .ToArray();
+        main.Dispose();
+        return weakReferences;
     }
 
     private static void ForceFullGarbageCollection()
@@ -300,6 +377,39 @@ public sealed class AppNavigationServiceTests
         {
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
             GC.WaitForPendingFinalizers();
+        }
+    }
+
+    private sealed class BlockingRecipientRepository(IReadOnlyList<Recipient> recipients)
+        : IRecipientRepository
+    {
+        private readonly TaskCompletionSource _firstCallStarted =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _releaseFirstCall =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _callCount;
+
+        public Task FirstCallStarted => _firstCallStarted.Task;
+        public int CallCount => Volatile.Read(ref _callCount);
+
+        public void ReleaseFirstCall() => _releaseFirstCall.TrySetResult();
+
+        public Task AddAsync(Recipient recipient, CancellationToken ct) => Task.CompletedTask;
+
+        public Task<Recipient?> FindByIdAsync(Guid id, CancellationToken ct) =>
+            Task.FromResult(recipients.SingleOrDefault(recipient => recipient.Id == id));
+
+        public Task UpdateAsync(Recipient recipient, CancellationToken ct) => Task.CompletedTask;
+
+        public async Task<IReadOnlyList<Recipient>> ListAsync(
+            bool includeArchived,
+            CancellationToken ct)
+        {
+            if (Interlocked.Increment(ref _callCount) == 1)
+                _firstCallStarted.TrySetResult();
+
+            await _releaseFirstCall.Task.WaitAsync(ct);
+            return recipients;
         }
     }
 
