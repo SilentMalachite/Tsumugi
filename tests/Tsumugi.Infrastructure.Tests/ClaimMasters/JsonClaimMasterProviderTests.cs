@@ -366,16 +366,16 @@ public sealed class JsonClaimMasterProviderTests
     }
 
     [Fact]
-    public void Load_accepts_nullable_properties_and_open_values_object()
+    public void Load_rejects_the_legacy_open_values_object()
     {
         var masterFiles = ValidMasterJsons();
         masterFiles["basic-rewards.json"] = MasterJson(
             "basic-rewards",
             Entries(Entry("a", "2024-04", null, values: "{\"futureProperty\":42}")));
 
-        var provider = Load(ValidCatalogJson, masterFiles);
+        var action = () => Load(ValidCatalogJson, masterFiles);
 
-        provider.ResolveVersion(new ServiceMonth(2024, 4)).Version.Value.Should().Be("claim-master-test");
+        action.Should().Throw<InvalidDataException>();
     }
 
     [Theory]
@@ -577,7 +577,10 @@ public sealed class JsonClaimMasterProviderTests
         var entry = masterRoot.GetProperty("$defs").GetProperty("entry");
         entry.GetProperty("additionalProperties").GetBoolean().Should().BeFalse();
         Required(entry).Should().BeEquivalentTo(
-            ["key", "effectiveFrom", "effectiveTo", "sourceDocumentId", "values"]);
+            [
+                "key", "effectiveFrom", "effectiveTo", "sourceDocumentId", "sourceSha256",
+                "sourceLocator", "values",
+            ]);
         Types(entry.GetProperty("properties").GetProperty("effectiveTo")).Should().Contain("null");
         entry.GetProperty("properties").GetProperty("values").GetProperty("type").GetString()
             .Should().Be("object");

@@ -281,15 +281,17 @@ public sealed class ClaimInputViewModelTests
         var certificateEvidence = new FakeCertificateEvidenceRepository();
         var statement = new FakeStatementRepository();
         var policy = CreateOfficePolicy();
+        var policyProvider = new FixedOfficeClaimProfilePolicyProvider(policy);
         var query = new QueryClaimInputWorkspaceUseCase(
-            claimInput, averageWage, officeProfile, certificateEvidence, statement, policy);
+            claimInput, averageWage, officeProfile, certificateEvidence, statement,
+            policyProvider);
         var uow = new FakeUnitOfWork();
         var clock = new FixedTimeProvider(DateTimeOffset.UnixEpoch.AddDays(1));
         var sut = new ClaimInputViewModel(
             null!, null!, null!, query,
             new SetClaimInputUseCase(claimInput, uow, clock),
             new SetAverageWageAnnualEvidenceUseCase(averageWage, uow, clock),
-            new SetOfficeClaimProfileUseCase(officeProfile, uow, clock, policy),
+            new SetOfficeClaimProfileUseCase(officeProfile, uow, clock, policyProvider),
             new SetCertificateClaimEvidenceUseCase(certificateEvidence, uow, clock),
             new SetUpperLimitManagementStatementUseCase(statement, uow, clock))
         {

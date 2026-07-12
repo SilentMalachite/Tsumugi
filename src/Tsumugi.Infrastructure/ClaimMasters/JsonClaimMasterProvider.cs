@@ -10,7 +10,7 @@ using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.Infrastructure.ClaimMasters;
 
-public sealed class JsonClaimMasterProvider : IClaimMasterProvider
+public sealed class JsonClaimMasterProvider : IClaimMasterProvider, IOfficeClaimProfilePolicyProvider
 {
     private const string SupportedSchemaVersion = "1";
 
@@ -35,13 +35,16 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider
 
     private readonly ImmutableArray<ClaimMasterRelease> _releases;
     private readonly ImmutableArray<ClaimSourceDocument> _sources;
+    private readonly ClaimCalculationMasterBundle _calculationMasters;
 
     private JsonClaimMasterProvider(
         IEnumerable<ClaimMasterRelease> releases,
-        IEnumerable<ClaimSourceDocument> sources)
+        IEnumerable<ClaimSourceDocument> sources,
+        ClaimCalculationMasterBundle calculationMasters)
     {
         _releases = [.. releases];
         _sources = [.. sources];
+        _calculationMasters = calculationMasters;
     }
 
     public static JsonClaimMasterProvider LoadEmbedded()
@@ -87,20 +90,97 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider
         ValidateSchemaVersion(catalog.SchemaVersion, "sources.json");
         ValidateCatalog(catalog);
 
-        var sourceIds = catalog.Sources
-            .Select(source => source.DocumentId)
-            .ToHashSet(StringComparer.Ordinal);
-        ClaimMasterFileValidator.ValidateAll(masters, sourceIds);
+        var sourceSha256ByDocumentId = catalog.Sources
+            .ToDictionary(
+                source => source.DocumentId,
+                source => source.Sha256,
+                StringComparer.Ordinal);
+        var calculationMasters = ClaimMasterFileValidator.ValidateAll(
+            masters,
+            sourceSha256ByDocumentId);
+        ValidateTransitionRuleReferences(calculationMasters.TransitionRules, catalog.Releases);
 
         var domainSources = catalog.Sources.Select(ToDomainSource).ToImmutableArray();
         var releases = catalog.Releases.Select(ToDomainRelease).ToImmutableArray();
         ClaimMasterCatalogPolicy.Validate(releases, domainSources);
 
-        return new JsonClaimMasterProvider(releases, domainSources);
+        return new JsonClaimMasterProvider(releases, domainSources, calculationMasters);
     }
 
     public ClaimMasterRelease ResolveVersion(ServiceMonth serviceMonth)
         => ClaimMasterCatalogPolicy.Resolve(_releases, _sources, serviceMonth);
+
+    public OfficeClaimProfilePolicy Resolve(ClaimMasterVersion masterVersion)
+    {
+        try
+        {
+            _ = masterVersion.Value;
+            var candidates = _calculationMasters.TransitionRules
+                .Where(rule => rule.MasterVersion == masterVersion)
+                .ToArray();
+            if (candidates.Length == 0)
+            {
+                throw new ClaimMasterPolicyUnavailableException(
+                    ClaimMasterPolicyUnavailableCode.Unavailable);
+            }
+
+            if (candidates.Length != 1)
+            {
+                throw new ClaimMasterPolicyUnavailableException(
+                    ClaimMasterPolicyUnavailableCode.Ambiguous);
+            }
+
+            var row = candidates[0];
+            var optionRule = new AverageWageBandOptionVersionRule(
+                row.MasterVersion,
+                row.EffectiveFrom,
+                row.EffectiveTo,
+                row.AllowedAverageWageBandOptions,
+                row.AllowedOptionsByR8ReformStatus);
+            return new OfficeClaimProfilePolicy(
+                row.MasterVersion,
+                [optionRule],
+                row.R8EffectiveDate,
+                designation => ResolveFiledTransitionExclusiveEnd(row, designation));
+        }
+        catch (ClaimMasterPolicyUnavailableException)
+        {
+            throw;
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            throw new ClaimMasterPolicyUnavailableException(
+                ClaimMasterPolicyUnavailableCode.InvalidMaster);
+        }
+    }
+
+    private static DateOnly ResolveFiledTransitionExclusiveEnd(
+        OfficeClaimProfileTransitionRuleMasterRow row,
+        DateOnly designation) => row.FiledTransitionEndRule switch
+        {
+            FiledTransitionExclusiveEndRule.AddYearsExclusive =>
+                designation.AddYears(row.FiledTransitionDurationYears),
+            _ => throw new InvalidOperationException("Filed transition end rule is closed."),
+        };
+
+    private static void ValidateTransitionRuleReferences(
+        IReadOnlyCollection<OfficeClaimProfileTransitionRuleMasterRow> rows,
+        IReadOnlyCollection<Release> releases)
+    {
+        foreach (var row in rows)
+        {
+            var release = releases.SingleOrDefault(item =>
+                string.Equals(item.MasterVersion, row.MasterVersion.Value, StringComparison.Ordinal));
+            if (release is null
+                || !release.SourceDocumentIds.Contains(
+                    row.Source.DocumentId,
+                    StringComparer.Ordinal))
+            {
+                throw new ClaimMasterPolicyUnavailableException(
+                    ClaimMasterPolicyUnavailableCode.InvalidMaster);
+            }
+        }
+    }
 
     private static Stream OpenEmbedded(Assembly assembly, string exactSuffix)
     {

@@ -105,17 +105,25 @@ public sealed class CompositionRootTests
     public void Claim_master_provider_is_registered_as_an_eager_singleton_instance()
     {
         var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
-        var descriptor = services.Single(service => service.ServiceType == typeof(IClaimMasterProvider));
+        var descriptor = services.Single(service =>
+            service.ServiceType == typeof(IClaimMasterProvider));
+        var policyDescriptor = services.Single(service =>
+            service.ServiceType == typeof(IOfficeClaimProfilePolicyProvider));
 
         descriptor.ImplementationInstance.Should().NotBeNull();
         descriptor.ImplementationType.Should().BeNull();
         descriptor.ImplementationFactory.Should().BeNull();
+        policyDescriptor.ImplementationInstance.Should().BeSameAs(
+            descriptor.ImplementationInstance);
 
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
         var resolved = scope.ServiceProvider.GetRequiredService<IClaimMasterProvider>();
+        var resolvedPolicyProvider = scope.ServiceProvider
+            .GetRequiredService<IOfficeClaimProfilePolicyProvider>();
 
         resolved.Should().BeSameAs(descriptor.ImplementationInstance);
+        resolvedPolicyProvider.Should().BeSameAs(resolved);
         resolved.ResolveVersion(new ServiceMonth(2026, 6)).Version.Value
             .Should().Be("claim-master-r8-06");
     }

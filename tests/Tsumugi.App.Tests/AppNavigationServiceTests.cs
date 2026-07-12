@@ -572,8 +572,10 @@ public sealed class AppNavigationServiceTests
             {
                 [R8ReformStatus.ReformTarget] = [option],
             });
-        services.AddSingleton(new OfficeClaimProfilePolicy(
-            version, [rule], new DateOnly(2026, 6, 1), date => date.AddYears(3)));
+        var policy = new OfficeClaimProfilePolicy(
+            version, [rule], new DateOnly(2026, 6, 1), date => date.AddYears(3));
+        services.AddSingleton<IOfficeClaimProfilePolicyProvider>(
+            new FixedOfficeClaimProfilePolicyProvider(policy));
         services.AddScoped<QueryClaimInputWorkspaceUseCase>();
         services.AddScoped<SetClaimInputUseCase>();
         services.AddScoped<SetAverageWageAnnualEvidenceUseCase>();

@@ -143,6 +143,7 @@ public enum ClaimInputSaveErrorCode
     ExpectedHeadRequired = 3,
     ExpectedHeadMismatch = 4,
     InvalidValue = 5,
+    MasterUnavailable = 6,
 }
 
 public enum ClaimInputFieldCode

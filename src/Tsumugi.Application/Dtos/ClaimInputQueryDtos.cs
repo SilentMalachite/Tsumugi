@@ -189,6 +189,7 @@ public enum ClaimInputQueryErrorCode
 {
     InvalidRequest = 1,
     InvalidHistory = 2,
+    MasterUnavailable = 3,
 }
 
 public sealed class ClaimInputQueryException : Exception

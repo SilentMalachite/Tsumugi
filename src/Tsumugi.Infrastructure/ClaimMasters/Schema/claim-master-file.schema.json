@@ -23,22 +23,221 @@
       "items": { "$ref": "#/$defs/entry" }
     }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "masterKind": { "const": "basic-rewards" } } },
+      "then": { "properties": { "entries": { "items": { "properties": { "values": { "$ref": "#/$defs/basicRewardValues" } } } } } }
+    },
+    {
+      "if": { "properties": { "masterKind": { "const": "additions" } } },
+      "then": { "properties": { "entries": { "items": { "properties": { "values": { "$ref": "#/$defs/percentageAdjustmentValues" } } } } } }
+    },
+    {
+      "if": { "properties": { "masterKind": { "const": "region-unit-prices" } } },
+      "then": { "properties": { "entries": { "items": { "properties": { "values": { "$ref": "#/$defs/regionUnitPriceValues" } } } } } }
+    },
+    {
+      "if": { "properties": { "masterKind": { "const": "burden-caps" } } },
+      "then": { "properties": { "entries": { "items": { "properties": { "values": { "$ref": "#/$defs/burdenCapValues" } } } } } }
+    },
+    {
+      "if": { "properties": { "masterKind": { "const": "transition-rules" } } },
+      "then": { "properties": { "entries": { "items": { "properties": { "values": { "$ref": "#/$defs/transitionRuleValues" } } } } } }
+    },
+    {
+      "if": { "properties": { "masterKind": { "const": "service-codes" } } },
+      "then": { "properties": { "entries": { "items": { "properties": { "values": { "$ref": "#/$defs/serviceCodeValues" } } } } } }
+    }
+  ],
   "$defs": {
     "entry": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["key", "effectiveFrom", "effectiveTo", "sourceDocumentId", "values"],
+      "required": [
+        "key",
+        "effectiveFrom",
+        "effectiveTo",
+        "sourceDocumentId",
+        "sourceSha256",
+        "sourceLocator",
+        "values"
+      ],
       "properties": {
-        "key": { "type": "string", "minLength": 1 },
-        "effectiveFrom": { "type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$" },
+        "key": { "$ref": "#/$defs/nonBlank" },
+        "effectiveFrom": { "$ref": "#/$defs/serviceMonth" },
         "effectiveTo": {
           "type": ["string", "null"],
           "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
         },
-        "sourceDocumentId": { "type": "string", "minLength": 1 },
+        "sourceDocumentId": { "$ref": "#/$defs/nonBlank" },
+        "sourceSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "sourceLocator": { "$ref": "#/$defs/nonBlank" },
         "values": {
           "type": "object",
           "minProperties": 1
+        }
+      }
+    },
+    "nonBlank": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$"
+    },
+    "serviceMonth": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+    },
+    "date": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
+    },
+    "decimalString": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+    },
+    "averageWageBandOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "officialOptionCode"],
+      "properties": {
+        "kind": {
+          "enum": ["numeric", "filed-transition", "production-activity-support"]
+        },
+        "officialOptionCode": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "basicRewardValues": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["paymentBand", "staffingKey", "capacityKey", "serviceCode", "units"],
+      "properties": {
+        "paymentBand": { "$ref": "#/$defs/nonBlank" },
+        "staffingKey": { "$ref": "#/$defs/nonBlank" },
+        "capacityKey": { "$ref": "#/$defs/nonBlank" },
+        "serviceCode": { "$ref": "#/$defs/nonBlank" },
+        "units": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "percentageAdjustmentValues": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "percentage",
+        "percentageBaseScope",
+        "percentageApplicationKind",
+        "targetSelector",
+        "calculationOrder",
+        "roundingRuleId",
+        "calculationStepId"
+      ],
+      "properties": {
+        "percentage": { "$ref": "#/$defs/decimalString" },
+        "percentageBaseScope": {
+          "enum": ["per-service-code-unit", "monthly-target-unit-sum"]
+        },
+        "percentageApplicationKind": {
+          "enum": ["replace", "add", "subtract"]
+        },
+        "targetSelector": { "$ref": "#/$defs/nonBlank" },
+        "calculationOrder": { "type": "integer", "minimum": 1 },
+        "roundingRuleId": { "const": "claim.rounding.units.half-up.v1" },
+        "calculationStepId": {
+          "enum": [
+            "claim.step.units.per-service-code.percentage.v1",
+            "claim.step.units.monthly-target.percentage.v1"
+          ]
+        }
+      }
+    },
+    "regionUnitPriceValues": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["regionKey", "serviceKind", "unitPriceYen"],
+      "properties": {
+        "regionKey": { "$ref": "#/$defs/nonBlank" },
+        "serviceKind": { "$ref": "#/$defs/nonBlank" },
+        "unitPriceYen": { "$ref": "#/$defs/decimalString" }
+      }
+    },
+    "burdenCapValues": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["burdenCategory", "capYen"],
+      "properties": {
+        "burdenCategory": { "$ref": "#/$defs/nonBlank" },
+        "capYen": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "transitionRuleValues": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "masterVersion",
+        "allowedAverageWageBandOptions",
+        "allowedOptionsByR8ReformStatus",
+        "r8EffectiveDate",
+        "filedTransitionEndRule",
+        "filedTransitionDurationYears"
+      ],
+      "properties": {
+        "masterVersion": { "$ref": "#/$defs/nonBlank" },
+        "allowedAverageWageBandOptions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/averageWageBandOption" }
+        },
+        "allowedOptionsByR8ReformStatus": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": false,
+          "properties": {
+            "not-applicable-before-r8": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "$ref": "#/$defs/averageWageBandOption" }
+            },
+            "reform-target": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "$ref": "#/$defs/averageWageBandOption" }
+            },
+            "reform-exempt": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "$ref": "#/$defs/averageWageBandOption" }
+            },
+            "unchanged-below-15000": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "$ref": "#/$defs/averageWageBandOption" }
+            }
+          }
+        },
+        "r8EffectiveDate": { "$ref": "#/$defs/date" },
+        "filedTransitionEndRule": { "const": "add-years-exclusive" },
+        "filedTransitionDurationYears": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "serviceCodeValues": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["serviceCode", "serviceKind", "selectors"],
+      "properties": {
+        "serviceCode": { "$ref": "#/$defs/nonBlank" },
+        "serviceKind": { "$ref": "#/$defs/nonBlank" },
+        "selectors": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/nonBlank" }
         }
       }
     }

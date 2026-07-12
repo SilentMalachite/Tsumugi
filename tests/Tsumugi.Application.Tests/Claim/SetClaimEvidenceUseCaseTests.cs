@@ -68,7 +68,8 @@ public sealed class SetClaimEvidenceUseCaseTests
     {
         var repo = new FakeOfficeClaimProfileRepository();
         var sut = new SetOfficeClaimProfileUseCase(
-            repo, new FakeUnitOfWork(), new FixedTimeProvider(Now), CreateOfficePolicy());
+            repo, new FakeUnitOfWork(), new FixedTimeProvider(Now),
+            new FakePolicyProvider(CreateOfficePolicy()));
 
         var saved = await sut.ExecuteAsync(
             ValidOfficeProfileRequest(Guid.NewGuid(), RecordKind.New, null),
@@ -84,7 +85,8 @@ public sealed class SetClaimEvidenceUseCaseTests
     {
         var repo = new FakeOfficeClaimProfileRepository();
         var sut = new SetOfficeClaimProfileUseCase(
-            repo, new FakeUnitOfWork(), new FixedTimeProvider(Now), CreateOfficePolicy());
+            repo, new FakeUnitOfWork(), new FixedTimeProvider(Now),
+            new FakePolicyProvider(CreateOfficePolicy()));
         var request = ValidOfficeProfileRequest(Guid.NewGuid(), RecordKind.New, null) with
         {
             MasterVersion = new ClaimMasterVersion("another-version"),
@@ -96,6 +98,47 @@ public sealed class SetClaimEvidenceUseCaseTests
         error.Code.Should().Be(ClaimInputSaveErrorCode.InvalidValue);
         error.FieldCode.Should().Be(ClaimInputFieldCode.Values);
         error.Message.Should().NotContain("another-version");
+        repo.Items.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Office_claim_profile_requires_a_master_version_before_policy_resolution()
+    {
+        var repo = new FakeOfficeClaimProfileRepository();
+        var provider = new FakePolicyProvider(CreateOfficePolicy());
+        var sut = new SetOfficeClaimProfileUseCase(
+            repo, new FakeUnitOfWork(), new FixedTimeProvider(Now), provider);
+        var request = ValidOfficeProfileRequest(Guid.NewGuid(), RecordKind.New, null) with
+        {
+            MasterVersion = null,
+        };
+
+        var act = () => sut.ExecuteAsync(request, "operator", default);
+
+        var error = (await act.Should().ThrowAsync<ClaimInputSaveException>()).Which;
+        error.Code.Should().Be(ClaimInputSaveErrorCode.InvalidRequest);
+        provider.ResolveCalls.Should().Be(0);
+        repo.Items.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Office_claim_profile_sanitizes_unavailable_master_policy()
+    {
+        var repo = new FakeOfficeClaimProfileRepository();
+        var provider = new FakePolicyProvider(
+            new ClaimMasterPolicyUnavailableException(
+                ClaimMasterPolicyUnavailableCode.Unavailable));
+        var sut = new SetOfficeClaimProfileUseCase(
+            repo, new FakeUnitOfWork(), new FixedTimeProvider(Now), provider);
+
+        var act = () => sut.ExecuteAsync(
+            ValidOfficeProfileRequest(Guid.NewGuid(), RecordKind.New, null),
+            "operator-secret",
+            default);
+
+        var error = (await act.Should().ThrowAsync<ClaimInputSaveException>()).Which;
+        error.Code.Should().Be(ClaimInputSaveErrorCode.MasterUnavailable);
+        error.Message.Should().NotContain(MasterVersion.Value).And.NotContain("operator-secret");
         repo.Items.Should().BeEmpty();
     }
 
@@ -276,6 +319,25 @@ public sealed class SetClaimEvidenceUseCaseTests
             [rule],
             new DateOnly(2026, 6, 1),
             designation => designation.AddYears(3));
+    }
+
+    private sealed class FakePolicyProvider : IOfficeClaimProfilePolicyProvider
+    {
+        private readonly OfficeClaimProfilePolicy? _policy;
+        private readonly ClaimMasterPolicyUnavailableException? _error;
+
+        public FakePolicyProvider(OfficeClaimProfilePolicy policy) => _policy = policy;
+
+        public FakePolicyProvider(ClaimMasterPolicyUnavailableException error) => _error = error;
+
+        public int ResolveCalls { get; private set; }
+
+        public OfficeClaimProfilePolicy Resolve(ClaimMasterVersion masterVersion)
+        {
+            ResolveCalls++;
+            if (_error is not null) throw _error;
+            return _policy!;
+        }
     }
 
     private sealed class FakeAverageWageAnnualEvidenceRepository

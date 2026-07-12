@@ -12,7 +12,7 @@ public sealed class QueryClaimInputWorkspaceUseCase(
     IOfficeClaimProfileRepository officeProfileRepository,
     ICertificateClaimEvidenceRepository certificateEvidenceRepository,
     IUpperLimitManagementStatementRepository statementRepository,
-    OfficeClaimProfilePolicy officeProfilePolicy)
+    IOfficeClaimProfilePolicyProvider officeProfilePolicyProvider)
 {
     public async Task<ClaimInputWorkspaceDto> ExecuteAsync(
         QueryClaimInputWorkspaceRequest request,
@@ -79,6 +79,22 @@ public sealed class QueryClaimInputWorkspaceUseCase(
         GroupByRoot(items, item => item.RootId)
             .Select(group =>
             {
+                var latestNonCancel = group.Items
+                    .Where(item => item.Kind != RecordKind.Cancel)
+                    .MaxBy(item => item.Revision);
+                if (latestNonCancel?.MasterVersion is not { } masterVersion)
+                    throw new ClaimInputQueryException(ClaimInputQueryErrorCode.InvalidHistory);
+                OfficeClaimProfilePolicy officeProfilePolicy;
+                try
+                {
+                    officeProfilePolicy = officeProfilePolicyProvider.Resolve(masterVersion);
+                }
+                catch (ClaimMasterPolicyUnavailableException)
+                {
+                    throw new ClaimInputQueryException(
+                        ClaimInputQueryErrorCode.MasterUnavailable);
+                }
+
                 ClaimInputQueryGuard.ValidateHistory(
                     () => officeProfilePolicy.ValidateHistory(group.Items));
                 return CreateChain(

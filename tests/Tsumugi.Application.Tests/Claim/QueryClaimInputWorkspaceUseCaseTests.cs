@@ -26,7 +26,8 @@ public sealed class QueryClaimInputWorkspaceUseCaseTests
     public async Task Execute_returns_empty_workspace_after_successful_empty_loads()
     {
         var repositories = new WorkspaceRepositories();
-        var sut = CreateSut(repositories);
+        var provider = new FakePolicyProvider(CreateOfficePolicy());
+        var sut = CreateSut(repositories, provider);
 
         var result = await sut.ExecuteAsync(ValidRequest(), default);
 
@@ -40,6 +41,7 @@ public sealed class QueryClaimInputWorkspaceUseCaseTests
         repositories.OfficeProfile.LastOfficeId.Should().Be(OfficeId);
         repositories.CertificateEvidence.LastCertificateId.Should().Be(CertificateId);
         repositories.Statement.LastQuery.Should().Be((OfficeId, RecipientId, Month));
+        provider.ResolveCalls.Should().Be(0);
     }
 
     [Fact]
@@ -206,6 +208,28 @@ public sealed class QueryClaimInputWorkspaceUseCaseTests
     }
 
     [Fact]
+    public async Task Execute_reports_unavailable_policy_for_the_latest_non_cancel_profile_version()
+    {
+        var repositories = new WorkspaceRepositories();
+        var root = Guid.Parse("00000000-0000-0000-0000-000000000911");
+        var cancel = Guid.Parse("00000000-0000-0000-0000-000000000912");
+        repositories.OfficeProfile.Items.AddRange([
+            OfficeProfileRevision(root, root, 1, RecordKind.New, null),
+            OfficeProfileRevision(cancel, root, 2, RecordKind.Cancel, root),
+        ]);
+        var provider = new FakePolicyProvider(
+            new ClaimMasterPolicyUnavailableException(
+                ClaimMasterPolicyUnavailableCode.Unavailable));
+
+        var act = () => CreateSut(repositories, provider).ExecuteAsync(ValidRequest(), default);
+
+        var error = (await act.Should().ThrowAsync<ClaimInputQueryException>()).Which;
+        error.Code.Should().Be(ClaimInputQueryErrorCode.MasterUnavailable);
+        error.Message.Should().NotContain(MasterVersion.Value);
+        provider.RequestedVersions.Should().Equal(MasterVersion);
+    }
+
+    [Fact]
     public async Task Execute_rejects_statement_with_lines_from_another_revision()
     {
         var repositories = new WorkspaceRepositories();
@@ -337,14 +361,16 @@ public sealed class QueryClaimInputWorkspaceUseCaseTests
             .And.NotContain(secondRoot.ToString());
     }
 
-    private static QueryClaimInputWorkspaceUseCase CreateSut(WorkspaceRepositories repositories) =>
+    private static QueryClaimInputWorkspaceUseCase CreateSut(
+        WorkspaceRepositories repositories,
+        IOfficeClaimProfilePolicyProvider? provider = null) =>
         new(
             repositories.ClaimInput,
             repositories.AverageWage,
             repositories.OfficeProfile,
             repositories.CertificateEvidence,
             repositories.Statement,
-            CreateOfficePolicy());
+            provider ?? new FakePolicyProvider(CreateOfficePolicy()));
 
     private static QueryClaimInputWorkspaceRequest ValidRequest() =>
         new(OfficeId, RecipientId, CertificateId, Month, 2025);
@@ -588,6 +614,26 @@ public sealed class QueryClaimInputWorkspaceUseCaseTests
             [rule],
             new DateOnly(2026, 6, 1),
             designation => designation.AddYears(3));
+    }
+
+    private sealed class FakePolicyProvider : IOfficeClaimProfilePolicyProvider
+    {
+        private readonly OfficeClaimProfilePolicy? _policy;
+        private readonly ClaimMasterPolicyUnavailableException? _error;
+
+        public FakePolicyProvider(OfficeClaimProfilePolicy policy) => _policy = policy;
+
+        public FakePolicyProvider(ClaimMasterPolicyUnavailableException error) => _error = error;
+
+        public int ResolveCalls => RequestedVersions.Count;
+        public List<ClaimMasterVersion> RequestedVersions { get; } = [];
+
+        public OfficeClaimProfilePolicy Resolve(ClaimMasterVersion masterVersion)
+        {
+            RequestedVersions.Add(masterVersion);
+            if (_error is not null) throw _error;
+            return _policy!;
+        }
     }
 
     private sealed class WorkspaceRepositories

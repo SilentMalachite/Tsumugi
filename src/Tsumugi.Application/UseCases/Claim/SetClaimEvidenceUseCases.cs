@@ -71,7 +71,7 @@ public sealed class SetOfficeClaimProfileUseCase(
     IOfficeClaimProfileRepository repo,
     IUnitOfWork uow,
     TimeProvider clock,
-    OfficeClaimProfilePolicy policy)
+    IOfficeClaimProfilePolicyProvider policyProvider)
 {
     public async Task<ClaimInputRevisionDto> ExecuteAsync(
         SetOfficeClaimProfileRequest request,
@@ -81,6 +81,24 @@ public sealed class SetOfficeClaimProfileUseCase(
         ArgumentNullException.ThrowIfNull(request);
         ClaimInputSaveGuard.ValidateActor(actor);
         ClaimInputSaveGuard.ValidateIdentities(request.OfficeId);
+        if (request.MasterVersion is not { } masterVersion)
+        {
+            throw new ClaimInputSaveException(
+                ClaimInputSaveErrorCode.InvalidRequest,
+                ClaimInputFieldCode.Values);
+        }
+
+        OfficeClaimProfilePolicy policy;
+        try
+        {
+            policy = policyProvider.Resolve(masterVersion);
+        }
+        catch (ClaimMasterPolicyUnavailableException)
+        {
+            throw new ClaimInputSaveException(
+                ClaimInputSaveErrorCode.MasterUnavailable,
+                ClaimInputFieldCode.Values);
+        }
 
         var candidates = await repo.ListByOfficeAsync(request.OfficeId, ct);
         var history = candidates
