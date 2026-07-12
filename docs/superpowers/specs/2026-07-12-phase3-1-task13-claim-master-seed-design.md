@@ -86,12 +86,22 @@ manifestのdocument ID、URL、期待SHA-256は`src/Tsumugi.Infrastructure/Claim
       "documentId": "...",
       "sourceSha256": "...",
       "role": "authoritative",
-      "extractionRanges": ["workbook-order=38;rows=..."]
+      "extractionRanges": [
+        {
+          "rangeId": "...",
+          "kind": "xlsx-rows",
+          "workbookOrder": 38,
+          "rowFrom": 7,
+          "rowTo": 1993,
+          "expectedItemCount": 1987
+        }
+      ]
     }
   ],
   "rows": [
     {
       "sourceDocumentId": "...",
+      "rangeId": "...",
       "sourceLocator": "...",
       "sourceLabel": "...",
       "effectiveFrom": "2026-06",
@@ -105,13 +115,13 @@ manifestのdocument ID、URL、期待SHA-256は`src/Tsumugi.Infrastructure/Claim
 }
 ```
 
-`role`は`authoritative`又は`cross-check`、`disposition`は`seed`、`excluded`又は`schema-gap`の閉集合とする。ADRが指定する抽出範囲内のB型関連rowを、採用rowだけでなく除外rowも含めて全件列挙する。
+`role`は`authoritative`又は`cross-check`、`disposition`は`seed`、`excluded`又は`schema-gap`の閉集合とする。`extractionRanges.kind`は`xlsx-rows`、`pdf-pages`又は`html-page`の閉集合とし、kindごとに開始・終了位置と`expectedItemCount`を必須にする。ADRが指定する抽出範囲内のB型関連rowを、採用rowだけでなく除外rowも含めて全件列挙する。
 
 - `seed`: `masterKind`と`seedKey`を必須とし、production seedのちょうど1 rowへ対応させる。
 - `excluded`: `exclusionReason`を必須とし、A型専用、別service、見出し、重複掲載などの具体的理由を記録する。
 - `schema-gap`: 現行6型へ損失なく分類できない理由を必須とし、Task 13を停止する。
 
-各documentの`extractionRanges`、manifestのrow数、公式資料から実際に列挙したrow数を一致させる。独立reviewerはseedだけでなく、この範囲とmanifestの全rowを照合する。
+各rowの`rangeId`は同じdocument内の`extractionRanges.rangeId`へちょうど1件対応させる。rangeごとの`expectedItemCount`、manifestのrow数、公式資料から実際に列挙したrow数を一致させる。独立reviewerはseedだけでなく、この範囲とmanifestの全rowを照合する。
 
 ## 5. スキーマ適合監査
 
