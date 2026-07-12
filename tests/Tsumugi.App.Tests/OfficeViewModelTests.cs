@@ -79,7 +79,9 @@ public sealed class OfficeViewModelTests
     public async Task SelectedItem_loads_form_for_editing()
     {
         var office = Office.Create(Guid.NewGuid(), "1234567890", "旧名",
-            ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+            ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            postalCode: "100-0001", address: "東京都千代田区", phoneNumber: "03-1234-5678",
+            representativeTitleAndName: "代表 山田太郎");
         _repo.Add(office);
         var vm = NewVm();
         await vm.LoadAsync();
@@ -89,6 +91,10 @@ public sealed class OfficeViewModelTests
         vm.EditingId.Should().Be(office.Id);
         vm.Name.Should().Be("旧名");
         vm.OfficeNumber.Should().Be("1234567890");
+        vm.PostalCode.Should().Be("100-0001");
+        vm.Address.Should().Be("東京都千代田区");
+        vm.PhoneNumber.Should().Be("03-1234-5678");
+        vm.RepresentativeTitleAndName.Should().Be("代表 山田太郎");
     }
 
     [Fact]
@@ -101,11 +107,19 @@ public sealed class OfficeViewModelTests
         await vm.LoadAsync();
         vm.SelectedItem = vm.Items.Single();
         vm.Name = "新名";
+        vm.PostalCode = "100-0002";
+        vm.Address = "東京都千代田区2";
+        vm.PhoneNumber = "03-9999-9999";
+        vm.RepresentativeTitleAndName = "所長 佐藤花子";
 
         await vm.UpdateCommand.ExecuteAsync(null);
 
         var stored = await _repo.FindByIdAsync(office.Id, default);
         stored!.Name.Should().Be("新名");
+        stored.PostalCode.Should().Be("100-0002");
+        stored.Address.Should().Be("東京都千代田区2");
+        stored.PhoneNumber.Should().Be("03-9999-9999");
+        stored.RepresentativeTitleAndName.Should().Be("所長 佐藤花子");
     }
 }
 

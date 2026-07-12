@@ -25,6 +25,51 @@ public sealed class ViewInputWiringTests
     }
 
     [Fact]
+    public void Phase31_owned_certificate_and_office_fields_are_exposed_without_evidence_fields()
+    {
+        var certificate = ReadView("CertificateView.axaml");
+        certificate.Should().Contain("{Binding MunicipalityNumber}");
+        certificate.Should().Contain("{Binding SubsidyMunicipalityNumber}");
+        certificate.Should().Contain("{Binding UpperLimitManagementProviderNumber}");
+        certificate.Should().Contain("{Binding ProviderCertificateEntryNumber}");
+        certificate.Should().Contain("{Binding SelectedProvider}");
+        certificate.Should().NotContain("CertificateClaimEvidence");
+        certificate.Should().NotContain("Article31");
+        certificate.Should().NotContain("OriginalDocumentReference");
+
+        var office = ReadView("OfficeView.axaml");
+        office.Should().Contain("{Binding PostalCode}");
+        office.Should().Contain("{Binding Address}");
+        office.Should().Contain("{Binding PhoneNumber}");
+        office.Should().Contain("{Binding RepresentativeTitleAndName}");
+    }
+
+    [Fact]
+    public void DailyRecordView_exposes_ten_claim_fields_episode_context_and_keyboard_commands()
+    {
+        var xml = ReadView("DailyRecordView.axaml");
+        foreach (var binding in new[]
+        {
+            "EditorServiceStartTime", "EditorServiceEndTime", "EditorSpecialVisitSupportMinutes",
+            "EditorOffsiteSupportApplied", "EditorMedicalCoordinationType", "EditorTrialUseSupportType",
+            "EditorRegionalCollaborationApplied", "EditorIntensiveSupportApplied",
+            "EditorEmergencyAdmissionApplied", "EditorRecipientConfirmation",
+            "SelectedOffice", "EpisodeRevisions",
+            "EpisodeCurrentHeadId", "EpisodeEffectiveHeadId",
+        })
+            xml.Should().Contain($"{{Binding {binding}}}");
+
+        xml.Should().Contain("{Binding EpisodeStartDate,");
+
+        xml.Should().Contain("Gesture=\"Ctrl+S\"");
+        xml.Should().Contain("{Binding SaveSelectedDailyRecordCommand}");
+        xml.Should().Contain("Gesture=\"F5\"");
+        xml.Should().NotContain("ClaimInputView");
+        xml.Should().NotContain("Phase3-2");
+        xml.Should().NotContain("Phase3-3");
+    }
+
+    [Fact]
     public void ContractView_exposes_PeriodEnd_input()
     {
         var xml = ReadView("ContractView.axaml");

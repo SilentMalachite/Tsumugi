@@ -6,7 +6,7 @@
              x:DataType="vm:CertificateViewModel">
     <UserControl.KeyBindings>
         <KeyBinding Gesture="F5" Command="{Binding RefreshCommand}" />
-        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCurrentCommand}" />
     </UserControl.KeyBindings>
     <DockPanel>
         <!-- ヘッダ：期限アラート設定 + 更新 -->
@@ -161,6 +161,14 @@
                                 <TextBlock Text="市町村番号" />
                                 <TextBox Text="{Binding MunicipalityNumber}" Watermark="6桁" MaxLength="6" />
                             </StackPanel>
+                            <StackPanel Spacing="2" Width="120">
+                                <TextBlock Text="助成自治体番号" />
+                                <TextBox Text="{Binding SubsidyMunicipalityNumber}" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="160">
+                                <TextBlock Text="上限額管理事業所番号" />
+                                <TextBox Text="{Binding UpperLimitManagementProviderNumber}" />
+                            </StackPanel>
                         </StackPanel>
                         <StackPanel Spacing="2">
                             <TextBlock Text="支給決定内容に関する特記事項" />
@@ -232,6 +240,8 @@
                                Foreground="#FFAA00"
                                IsVisible="{Binding OverlapWarning, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
                     <Button Content="受給者証を保存 (Ctrl+S)" Command="{Binding SaveCommand}" />
+                    <Button Content="選択中の受給者証を訂正 (Ctrl+S)"
+                            Command="{Binding CorrectCertificateCommand}" />
                 </StackPanel>
 
                 <!-- 6. サービス事業者記入欄 -->
@@ -255,6 +265,11 @@
                             <StackPanel Spacing="2" Width="140">
                                 <TextBlock Text="事業所番号" />
                                 <TextBox Text="{Binding ProviderNumber}" Watermark="10桁" />
+                            </StackPanel>
+                            <StackPanel Spacing="2" Width="100">
+                                <TextBlock Text="記入欄番号" />
+                                <NumericUpDown Value="{Binding ProviderCertificateEntryNumber}"
+                                               Minimum="0" Maximum="99" />
                             </StackPanel>
                             <StackPanel Spacing="2" Width="220">
                                 <TextBlock Text="事業者名" />
@@ -285,9 +300,13 @@
                                    Foreground="#FF4444"
                                    IsVisible="{Binding ProviderSaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
                         <Button Content="契約事業所を追加" Command="{Binding AddProviderCommand}" HorizontalAlignment="Left" />
+                        <Button Content="選択中の契約事業所を更新" Command="{Binding UpdateProviderCommand}"
+                                HorizontalAlignment="Left" />
                         <DataGrid ItemsSource="{Binding ContractedProviders}"
+                                  SelectedItem="{Binding SelectedProvider}"
                                   IsReadOnly="True" AutoGenerateColumns="False" MaxHeight="180">
                             <DataGrid.Columns>
+                                <DataGridTextColumn Header="記入欄" Binding="{Binding CertificateEntryNumber}" Width="Auto" />
                                 <DataGridTextColumn Header="事業所番号" Binding="{Binding ProviderNumber}" Width="Auto" />
                                 <DataGridTextColumn Header="事業者名" Binding="{Binding ProviderName}" Width="*" />
                                 <DataGridTextColumn Header="サービス種別" Binding="{Binding ServiceCategory}" Width="Auto" />

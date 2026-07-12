@@ -17,6 +17,10 @@ public sealed partial class OfficeViewModel(
     [ObservableProperty] private string _name = string.Empty;
     [ObservableProperty] private ServiceCategory _category = ServiceCategory.TypeB;
     [ObservableProperty] private RegionGrade _region = RegionGrade.None;
+    [ObservableProperty] private string _postalCode = string.Empty;
+    [ObservableProperty] private string _address = string.Empty;
+    [ObservableProperty] private string _phoneNumber = string.Empty;
+    [ObservableProperty] private string _representativeTitleAndName = string.Empty;
     [ObservableProperty] private string? _saveErrorMessage;
     [ObservableProperty] private bool _isSaved;
 
@@ -63,6 +67,10 @@ public sealed partial class OfficeViewModel(
         Name = value.Name;
         Category = value.ServiceCategory;
         Region = value.RegionGrade;
+        PostalCode = value.PostalCode ?? string.Empty;
+        Address = value.Address ?? string.Empty;
+        PhoneNumber = value.PhoneNumber ?? string.Empty;
+        RepresentativeTitleAndName = value.RepresentativeTitleAndName ?? string.Empty;
     }
 
     [RelayCommand]
@@ -96,7 +104,10 @@ public sealed partial class OfficeViewModel(
         {
             await updateUseCase.ExecuteAsync(
                 EditingId.Value, _editingConcurrencyToken,
-                Name, Category, Region, Environment.UserName, default);
+                Name, Category, Region,
+                NullIfEmpty(PostalCode), NullIfEmpty(Address), NullIfEmpty(PhoneNumber),
+                NullIfEmpty(RepresentativeTitleAndName),
+                Environment.UserName, default);
             SaveErrorMessage = null;
             IsSaved = true;
             await LoadAsync();
@@ -114,14 +125,30 @@ public sealed partial class OfficeViewModel(
     }
 
     [RelayCommand]
+    private async Task SaveCurrentAsync()
+    {
+        if (EditingId is null)
+            await SaveAsync();
+        else
+            await UpdateAsync();
+    }
+
+    [RelayCommand]
     private void Discard()
     {
         OfficeNumber = string.Empty;
         Name = string.Empty;
         Category = ServiceCategory.TypeB;
         Region = RegionGrade.None;
+        PostalCode = string.Empty;
+        Address = string.Empty;
+        PhoneNumber = string.Empty;
+        RepresentativeTitleAndName = string.Empty;
         SaveErrorMessage = null;
         IsSaved = false;
         SelectedItem = null;
     }
+
+    private static string? NullIfEmpty(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value;
 }

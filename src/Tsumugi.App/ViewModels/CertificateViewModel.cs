@@ -23,8 +23,10 @@ public sealed partial class CertificateViewModel(
     RegisterCertificateUseCase registerUseCase,
     ListRecipientsUseCase listRecipients,
     ListCertificatesByRecipientUseCase listByRecipient,
+    CorrectCertificateUseCase correctUseCase,
     RegisterContractedProviderUseCase registerProvider,
-    ListContractedProvidersUseCase listProviders) : ViewModelBase
+    ListContractedProvidersUseCase listProviders,
+    UpdateContractedProviderUseCase updateProvider) : ViewModelBase
 {
     public ObservableCollection<ExpiringCertificateDto> ExpiringItems { get; } = new();
     public ObservableCollection<RecipientDto> Recipients { get; } = new();
@@ -78,6 +80,8 @@ public sealed partial class CertificateViewModel(
     [ObservableProperty] private int _monthlyCostCap;
     [ObservableProperty] private string _municipality = string.Empty;
     [ObservableProperty] private string _municipalityNumber = string.Empty;
+    [ObservableProperty] private string _subsidyMunicipalityNumber = string.Empty;
+    [ObservableProperty] private string _upperLimitManagementProviderNumber = string.Empty;
     [ObservableProperty] private string _supplyNotes = string.Empty;
 
     // 4. 計画相談支援
@@ -106,7 +110,10 @@ public sealed partial class CertificateViewModel(
     [ObservableProperty] private DateOnly _providerContractDate = DateOnly.FromDateTime(DateTime.Today);
     [ObservableProperty] private DateOnly? _providerTerminationDate;
     [ObservableProperty] private string _providerNotes = string.Empty;
+    [ObservableProperty] private int? _providerCertificateEntryNumber;
+    [ObservableProperty] private ContractedProviderDto? _selectedProvider;
     [ObservableProperty] private string? _providerSaveErrorMessage;
+    private Guid _providerConcurrencyToken;
     private bool _isApplyingNavigationContext;
 
     partial void OnSelectedRecipientChanged(RecipientDto? value)
@@ -118,8 +125,25 @@ public sealed partial class CertificateViewModel(
 
     partial void OnSelectedCertificateChanged(CertificateDto? value)
     {
+        MunicipalityNumber = value?.MunicipalityNumber ?? string.Empty;
+        SubsidyMunicipalityNumber = value?.SubsidyMunicipalityNumber ?? string.Empty;
+        UpperLimitManagementProviderNumber = value?.UpperLimitManagementProviderNumber ?? string.Empty;
         if (!_isApplyingNavigationContext)
             _ = ReloadProvidersAsync();
+    }
+
+    partial void OnSelectedProviderChanged(ContractedProviderDto? value)
+    {
+        _providerConcurrencyToken = value?.ConcurrencyToken ?? Guid.Empty;
+        if (value is null) return;
+        ProviderNumber = value.ProviderNumber;
+        ProviderName = value.ProviderName;
+        ProviderServiceCategory = value.ServiceCategory;
+        ProviderSupplyDays = value.ContractedSupplyDays;
+        ProviderContractDate = value.ContractDate;
+        ProviderTerminationDate = value.TerminationDate;
+        ProviderNotes = value.Notes ?? string.Empty;
+        ProviderCertificateEntryNumber = value.CertificateEntryNumber;
     }
 
     /// <summary>View の Loaded から呼ばれる初期化フック。利用者一覧を読み込む。</summary>
@@ -193,6 +217,7 @@ public sealed partial class CertificateViewModel(
     private async Task ReloadProvidersAsync(CancellationToken ct = default)
     {
         ContractedProviders.Clear();
+        SelectedProvider = null;
         if (SelectedCertificate is not { } cert) return;
         var list = await listProviders.ExecuteAsync(cert.Id, ct);
         foreach (var p in list) ContractedProviders.Add(p);
@@ -227,6 +252,8 @@ public sealed partial class CertificateViewModel(
                 MealProvisionApplicable = MealProvisionApplicable,
                 HighCostBenefitApplicable = HighCostBenefitApplicable,
                 MunicipalityNumber = NullIfEmpty(MunicipalityNumber),
+                SubsidyMunicipalityNumber = NullIfEmpty(SubsidyMunicipalityNumber),
+                UpperLimitManagementProviderNumber = NullIfEmpty(UpperLimitManagementProviderNumber),
             };
 
             var (_, warnings) = await registerUseCase.ExecuteAsync(input, Environment.UserName, default);
@@ -243,6 +270,64 @@ public sealed partial class CertificateViewModel(
     }
 
     [RelayCommand]
+    private async Task CorrectCertificateAsync()
+    {
+        if (SelectedCertificate is not { } selected)
+        {
+            SaveErrorMessage = "訂正対象の受給者証を選択してください。";
+            IsSaved = false;
+            return;
+        }
+
+        var rootId = selected.RootCertificateId;
+        try
+        {
+            await correctUseCase.ExecuteAsync(
+                new CorrectCertificateInput(
+                    rootId,
+                    selected.Id,
+                    MunicipalityNumber)
+                {
+                    SubsidyMunicipalityNumber = NullIfEmpty(SubsidyMunicipalityNumber),
+                    UpperLimitManagementProviderNumber = NullIfEmpty(UpperLimitManagementProviderNumber),
+                },
+                Environment.UserName,
+                default);
+            SaveErrorMessage = null;
+            IsSaved = true;
+            await ReloadAndSelectCertificateHeadAsync(rootId);
+        }
+        catch (ArgumentException ex)
+        {
+            SaveErrorMessage = ex.Message;
+            IsSaved = false;
+        }
+        catch (InvalidOperationException)
+        {
+            SaveErrorMessage = "受給者証は既に訂正されています。最新状態を再読込してください。";
+            IsSaved = false;
+            await ReloadAndSelectCertificateHeadAsync(rootId);
+        }
+    }
+
+    [RelayCommand]
+    private async Task SaveCurrentAsync()
+    {
+        if (SelectedCertificate is null)
+            await SaveAsync();
+        else
+            await CorrectCertificateAsync();
+    }
+
+    private async Task ReloadAndSelectCertificateHeadAsync(Guid rootId)
+    {
+        await ReloadCertificatesAsync();
+        SelectedCertificate = CertificatesForRecipient
+            .Where(item => item.RootCertificateId == rootId)
+            .MaxBy(item => item.Revision);
+    }
+
+    [RelayCommand]
     private async Task AddProviderAsync()
     {
         try
@@ -256,6 +341,7 @@ public sealed partial class CertificateViewModel(
                 cert.Id, ProviderNumber, ProviderName, ProviderServiceCategory,
                 ProviderSupplyDays, ProviderContractDate, ProviderTerminationDate,
                 NullIfEmpty(ProviderNotes),
+                ProviderCertificateEntryNumber,
                 Environment.UserName, default);
             ProviderSaveErrorMessage = null;
             // フォームを初期化
@@ -263,11 +349,51 @@ public sealed partial class CertificateViewModel(
             ProviderName = string.Empty;
             ProviderNotes = string.Empty;
             ProviderTerminationDate = null;
+            ProviderCertificateEntryNumber = null;
             await ReloadProvidersAsync();
         }
         catch (ArgumentException ex)
         {
             ProviderSaveErrorMessage = ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private async Task UpdateProviderAsync()
+    {
+        if (SelectedProvider is not { } provider)
+        {
+            ProviderSaveErrorMessage = "更新対象の契約事業所を選択してください。";
+            return;
+        }
+
+        try
+        {
+            await updateProvider.ExecuteAsync(
+                provider.Id,
+                _providerConcurrencyToken,
+                ProviderNumber,
+                ProviderName,
+                ProviderServiceCategory,
+                ProviderSupplyDays,
+                ProviderContractDate,
+                ProviderTerminationDate,
+                NullIfEmpty(ProviderNotes),
+                ProviderCertificateEntryNumber,
+                Environment.UserName,
+                default);
+            ProviderSaveErrorMessage = null;
+            await ReloadProvidersAsync();
+        }
+        catch (ArgumentException ex)
+        {
+            ProviderSaveErrorMessage = ex.Message;
+        }
+        catch (Tsumugi.Application.OptimisticConcurrencyException)
+        {
+            ProviderSaveErrorMessage =
+                "他のユーザに先に更新されています。一覧を再選択して最新状態を読み込んでください。";
+            await ReloadProvidersAsync();
         }
     }
 

@@ -2,8 +2,12 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Tsumugi.Application.Dtos;
+using Tsumugi.Application.UseCases;
+using Tsumugi.Application.UseCases.Claim;
 using Tsumugi.Application.UseCases.DailyRecord;
+using Tsumugi.Application.UseCases.Office;
 using Tsumugi.Application.UseCases.Recipient;
+using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.App.ViewModels;
@@ -13,15 +17,53 @@ public sealed partial class DailyRecordViewModel(
     CorrectDailyRecordUseCase correct,
     CancelDailyRecordUseCase cancel,
     QueryMonthDailyRecordsUseCase query,
-    ListRecipientsUseCase listRecipients) : ViewModelBase
+    ListRecipientsUseCase listRecipients,
+    ListOfficesUseCase listOffices,
+    QueryIntensiveSupportEpisodeUseCase queryEpisode,
+    SetIntensiveSupportEpisodeUseCase setEpisode) : ViewModelBase
 {
     [ObservableProperty] private Guid _recipientId;
     [ObservableProperty] private RecipientDto? _selectedRecipient;
     [ObservableProperty] private int _year;
     [ObservableProperty] private int _month;
+    [ObservableProperty] private DailyCellViewModel? _selectedCell;
+
+    [ObservableProperty] private Attendance _editorAttendance = Attendance.Present;
+    [ObservableProperty] private TransportKind _editorTransport;
+    [ObservableProperty] private bool _editorMealProvided;
+    [ObservableProperty] private string _editorNote = string.Empty;
+    [ObservableProperty] private TimeOnly? _editorServiceStartTime;
+    [ObservableProperty] private TimeOnly? _editorServiceEndTime;
+    [ObservableProperty] private int? _editorSpecialVisitSupportMinutes;
+    [ObservableProperty] private bool? _editorOffsiteSupportApplied;
+    [ObservableProperty] private MedicalCoordinationType _editorMedicalCoordinationType;
+    [ObservableProperty] private TrialUseSupportType _editorTrialUseSupportType;
+    [ObservableProperty] private bool? _editorRegionalCollaborationApplied;
+    [ObservableProperty] private bool? _editorIntensiveSupportApplied;
+    [ObservableProperty] private bool? _editorEmergencyAdmissionApplied;
+    [ObservableProperty] private RecipientConfirmationStatus _editorRecipientConfirmation;
+    [ObservableProperty] private string? _dailyRecordErrorMessage;
+
+    [ObservableProperty] private OfficeDto? _selectedOffice;
+    [ObservableProperty] private Guid _officeId;
+    [ObservableProperty] private DateOnly? _episodeStartDate;
+    [ObservableProperty] private Guid? _episodeCurrentHeadId;
+    [ObservableProperty] private Guid? _episodeEffectiveHeadId;
+    [ObservableProperty] private string? _episodeErrorMessage;
 
     public ObservableCollection<DailyCellViewModel> Cells { get; } = new();
     public ObservableCollection<RecipientDto> Recipients { get; } = new();
+    public ObservableCollection<OfficeDto> Offices { get; } = new();
+    public ObservableCollection<IntensiveSupportEpisodeQueryRevisionDto> EpisodeRevisions { get; } = new();
+
+    public IReadOnlyList<Attendance> AttendanceOptions { get; } = Enum.GetValues<Attendance>();
+    public IReadOnlyList<TransportKind> TransportOptions { get; } = Enum.GetValues<TransportKind>();
+    public IReadOnlyList<MedicalCoordinationType> MedicalCoordinationOptions { get; } =
+        Enum.GetValues<MedicalCoordinationType>();
+    public IReadOnlyList<TrialUseSupportType> TrialUseSupportOptions { get; } =
+        Enum.GetValues<TrialUseSupportType>();
+    public IReadOnlyList<RecipientConfirmationStatus> RecipientConfirmationOptions { get; } =
+        Enum.GetValues<RecipientConfirmationStatus>();
 
     // 後方互換 API。XAML からは ObservableProperty / SelectedRecipient を直接バインドする。
     public void SetRecipient(Guid id) => RecipientId = id;
@@ -51,7 +93,10 @@ public sealed partial class DailyRecordViewModel(
     }
 
     /// <summary>View の Loaded から呼ばれる初期化フック。利用者一覧を読み込む。</summary>
-    public Task InitializeAsync(CancellationToken ct = default) => LoadRecipientsAsync(ct);
+    public async Task InitializeAsync(CancellationToken ct = default)
+    {
+        await Task.WhenAll(LoadRecipientsAsync(ct), LoadOfficesAsync(ct));
+    }
 
     public async Task LoadRecipientsAsync(CancellationToken ct = default)
     {
@@ -60,8 +105,39 @@ public sealed partial class DailyRecordViewModel(
         foreach (var r in list) Recipients.Add(r);
     }
 
+    public async Task LoadOfficesAsync(CancellationToken ct = default)
+    {
+        var list = await listOffices.ExecuteAsync(ct);
+        Offices.Clear();
+        foreach (var office in list) Offices.Add(office);
+    }
+
     partial void OnSelectedRecipientChanged(RecipientDto? value)
         => RecipientId = value?.Id ?? Guid.Empty;
+
+    partial void OnSelectedOfficeChanged(OfficeDto? value)
+        => OfficeId = value?.Id ?? Guid.Empty;
+
+    partial void OnSelectedCellChanged(DailyCellViewModel? value)
+    {
+        EditorAttendance = value?.EffectiveAttendance ?? Attendance.Present;
+        EditorTransport = value?.EffectiveTransport ?? TransportKind.None;
+        EditorMealProvided = value?.EffectiveMealProvided ?? false;
+        EditorNote = value?.EffectiveNote ?? string.Empty;
+        EditorServiceStartTime = value?.EffectiveServiceStartTime;
+        EditorServiceEndTime = value?.EffectiveServiceEndTime;
+        EditorSpecialVisitSupportMinutes = value?.EffectiveSpecialVisitSupportMinutes;
+        EditorOffsiteSupportApplied = value?.EffectiveOffsiteSupportApplied;
+        EditorMedicalCoordinationType = value?.EffectiveMedicalCoordinationType
+            ?? MedicalCoordinationType.Unspecified;
+        EditorTrialUseSupportType = value?.EffectiveTrialUseSupportType
+            ?? TrialUseSupportType.Unspecified;
+        EditorRegionalCollaborationApplied = value?.EffectiveRegionalCollaborationApplied;
+        EditorIntensiveSupportApplied = value?.EffectiveIntensiveSupportApplied;
+        EditorEmergencyAdmissionApplied = value?.EffectiveEmergencyAdmissionApplied;
+        EditorRecipientConfirmation = value?.EffectiveRecipientConfirmation
+            ?? RecipientConfirmationStatus.Unspecified;
+    }
 
     // ObservableProperty 変更時に CanExecute を再評価して F5 / ボタンの活性を切り替える。
     partial void OnRecipientIdChanged(Guid value) => LoadCommand.NotifyCanExecuteChanged();
@@ -80,6 +156,7 @@ public sealed partial class DailyRecordViewModel(
         // CanExecute で防げない経路（直接呼び出し）でも DateTime.DaysInMonth(0,0) に落ちないこと。
         if (!CanLoad()) { Cells.Clear(); return; }
 
+        var selectedDate = SelectedCell?.Date;
         Cells.Clear();
         var daysInMonth = DateTime.DaysInMonth(Year, Month);
         var effective = await query.ExecuteAsync(RecipientId, Year, Month, default);
@@ -93,8 +170,139 @@ public sealed partial class DailyRecordViewModel(
                 cell.EffectiveAttendance = dto.Attendance;
                 cell.EffectiveTransport = dto.Transport;
                 cell.EffectiveMealProvided = dto.MealProvided;
+                cell.EffectiveNote = dto.Note;
+                cell.EffectiveServiceStartTime = dto.ServiceStartTime;
+                cell.EffectiveServiceEndTime = dto.ServiceEndTime;
+                cell.EffectiveSpecialVisitSupportMinutes = dto.SpecialVisitSupportMinutes;
+                cell.EffectiveOffsiteSupportApplied = dto.OffsiteSupportApplied;
+                cell.EffectiveMedicalCoordinationType = dto.MedicalCoordinationType;
+                cell.EffectiveTrialUseSupportType = dto.TrialUseSupportType;
+                cell.EffectiveRegionalCollaborationApplied = dto.RegionalCollaborationApplied;
+                cell.EffectiveIntensiveSupportApplied = dto.IntensiveSupportApplied;
+                cell.EffectiveEmergencyAdmissionApplied = dto.EmergencyAdmissionApplied;
+                cell.EffectiveRecipientConfirmation = dto.RecipientConfirmation;
             }
             Cells.Add(cell);
         }
+        SelectedCell = selectedDate is { } preservedDate
+            ? Cells.SingleOrDefault(cell => cell.Date == preservedDate)
+            : null;
     }
+
+    [RelayCommand]
+    private async Task SaveSelectedDailyRecordAsync()
+    {
+        if (SelectedCell is not { } cell)
+        {
+            DailyRecordErrorMessage = "編集する日を選択してください。";
+            return;
+        }
+
+        try
+        {
+            if (cell.EffectiveId is { } effectiveId)
+            {
+                await correct.ExecuteAsync(
+                    effectiveId, EditorAttendance, EditorTransport, EditorMealProvided,
+                    NullIfEmpty(EditorNote), EditorServiceStartTime, EditorServiceEndTime,
+                    EditorSpecialVisitSupportMinutes, EditorOffsiteSupportApplied,
+                    EditorMedicalCoordinationType, EditorTrialUseSupportType,
+                    EditorRegionalCollaborationApplied, EditorIntensiveSupportApplied,
+                    EditorEmergencyAdmissionApplied, EditorRecipientConfirmation,
+                    Environment.UserName, default);
+            }
+            else
+            {
+                await record.ExecuteAsync(
+                    RecipientId, cell.Date, EditorAttendance, EditorTransport, EditorMealProvided,
+                    NullIfEmpty(EditorNote), EditorServiceStartTime, EditorServiceEndTime,
+                    EditorSpecialVisitSupportMinutes, EditorOffsiteSupportApplied,
+                    EditorMedicalCoordinationType, EditorTrialUseSupportType,
+                    EditorRegionalCollaborationApplied, EditorIntensiveSupportApplied,
+                    EditorEmergencyAdmissionApplied, EditorRecipientConfirmation,
+                    Environment.UserName, default);
+            }
+            DailyRecordErrorMessage = null;
+            await LoadAsync();
+        }
+        catch (ArgumentException ex)
+        {
+            DailyRecordErrorMessage = ex.Message;
+        }
+        catch (InvalidOperationException)
+        {
+            DailyRecordErrorMessage = "日次記録は既に更新されています。最新状態を再読込してください。";
+            await LoadAsync();
+        }
+    }
+
+    [RelayCommand]
+    public async Task LoadEpisodeAsync()
+    {
+        EpisodeRevisions.Clear();
+        EpisodeCurrentHeadId = null;
+        EpisodeEffectiveHeadId = null;
+        EpisodeStartDate = null;
+        if (OfficeId == Guid.Empty || RecipientId == Guid.Empty) return;
+
+        var history = await queryEpisode.ExecuteAsync(
+            new QueryIntensiveSupportEpisodeRequest(OfficeId, RecipientId), default);
+        foreach (var revision in history.Revisions) EpisodeRevisions.Add(revision);
+        EpisodeCurrentHeadId = history.CurrentHeadId;
+        EpisodeEffectiveHeadId = history.EffectiveHeadId;
+        EpisodeStartDate = history.Revisions.Count == 0
+            ? null
+            : history.Revisions[^1].StartDate;
+        EpisodeErrorMessage = null;
+    }
+
+    [RelayCommand]
+    private async Task SaveEpisodeAsync()
+    {
+        if (!CanEditEpisode())
+        {
+            EpisodeErrorMessage = "事業所と利用者を選択してください。";
+            return;
+        }
+
+        var kind = EpisodeCurrentHeadId is null ? RecordKind.New : RecordKind.Correct;
+        await ExecuteEpisodeSaveAsync(kind, EpisodeStartDate);
+    }
+
+    [RelayCommand]
+    private async Task CancelEpisodeAsync()
+    {
+        if (!CanEditEpisode() || EpisodeCurrentHeadId is null)
+        {
+            EpisodeErrorMessage = "取消対象の重度支援対象期間がありません。";
+            return;
+        }
+        await ExecuteEpisodeSaveAsync(RecordKind.Cancel, startDate: null);
+    }
+
+    private async Task ExecuteEpisodeSaveAsync(RecordKind kind, DateOnly? startDate)
+    {
+        try
+        {
+            await setEpisode.ExecuteAsync(
+                new SetIntensiveSupportEpisodeRequest(
+                    OfficeId, RecipientId, kind, EpisodeCurrentHeadId, startDate),
+                Environment.UserName, default);
+            EpisodeErrorMessage = null;
+            await LoadEpisodeAsync();
+        }
+        catch (ClaimInputSaveException ex)
+        {
+            var message = ex.Code == ClaimInputSaveErrorCode.ExpectedHeadMismatch
+                ? "重度支援対象期間は既に更新されています。最新状態を再読込してください。"
+                : "重度支援対象期間の入力内容を確認してください。";
+            await LoadEpisodeAsync();
+            EpisodeErrorMessage = message;
+        }
+    }
+
+    private bool CanEditEpisode() => OfficeId != Guid.Empty && RecipientId != Guid.Empty;
+
+    private static string? NullIfEmpty(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value;
 }

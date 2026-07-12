@@ -23,8 +23,10 @@ public sealed class CertificateViewModelTests
         new RegisterCertificateUseCase(_certs, _uow, _clock),
         new ListRecipientsUseCase(_recipients),
         new ListCertificatesByRecipientUseCase(_certs),
+        new CorrectCertificateUseCase(_certs, _uow, _clock),
         new RegisterContractedProviderUseCase(_providers, _uow, _clock),
-        new ListContractedProvidersUseCase(_providers));
+        new ListContractedProvidersUseCase(_providers),
+        new UpdateContractedProviderUseCase(_providers, _uow));
 
     [Fact]
     public async Task LoadAsync_populates_expiring_items()
@@ -66,6 +68,8 @@ public sealed class CertificateViewModelTests
         vm.MonthlyCostCap = 9300;
         vm.Municipality = "杉並区";
         vm.MunicipalityNumber = "131156";
+        vm.SubsidyMunicipalityNumber = "131157";
+        vm.UpperLimitManagementProviderNumber = "1371500001";
 
         // 各セクションを埋める
         vm.RecipientAddress = "東京都杉並区...";
@@ -90,8 +94,70 @@ public sealed class CertificateViewModelTests
         stored.SupportCategory.Should().Be(SupportCategory.Category2);
         stored.PaymentBurden.Should().Be(PaymentBurdenCategory.LowIncome);
         stored.MunicipalityNumber.Should().Be("131156");
+        stored.SubsidyMunicipalityNumber.Should().Be("131157");
+        stored.UpperLimitManagementProviderNumber.Should().Be("1371500001");
         stored.MealProvisionApplicable.Should().BeTrue();
         stored.ConsultationProviderName.Should().Be("相談センターA");
+    }
+
+    [Fact]
+    public async Task SelectedCertificate_populates_owned_claim_fields_and_correction_appends_revision()
+    {
+        var rid = Guid.NewGuid();
+        var recipient = Recipient.Create(rid, "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _recipients.Add(recipient);
+        var cert = Certificate.Create(Guid.NewGuid(), rid, "1234567890",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            municipalityNumber: "131156", subsidyMunicipalityNumber: "131157",
+            upperLimitManagementProviderNumber: "1371500001");
+        _certs.Add(cert);
+
+        var vm = NewVm();
+        (await vm.ApplyNavigationContextAsync(rid, null, cert.Id)).Should().BeTrue();
+
+        vm.MunicipalityNumber.Should().Be("131156");
+        vm.SubsidyMunicipalityNumber.Should().Be("131157");
+        vm.UpperLimitManagementProviderNumber.Should().Be("1371500001");
+
+        vm.MunicipalityNumber = "131158";
+        vm.SubsidyMunicipalityNumber = "131159";
+        vm.UpperLimitManagementProviderNumber = "1371500002";
+        await vm.CorrectCertificateCommand.ExecuteAsync(null);
+
+        var correction = _certs.AllForTest.MaxBy(x => x.Revision)!;
+        correction.Revision.Should().Be(2);
+        correction.RootCertificateId.Should().Be(cert.Id);
+        correction.ExpectedHeadCertificateId.Should().Be(cert.Id);
+        correction.MunicipalityNumber.Should().Be("131158");
+        correction.SubsidyMunicipalityNumber.Should().Be("131159");
+        correction.UpperLimitManagementProviderNumber.Should().Be("1371500002");
+    }
+
+    [Fact]
+    public async Task CorrectCertificateCommand_with_stale_selected_head_shows_fixed_reload_guidance()
+    {
+        var rid = Guid.NewGuid();
+        var recipient = Recipient.Create(rid, "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _recipients.Add(recipient);
+        var cert = Certificate.Create(Guid.NewGuid(), rid, "1234567890",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            municipalityNumber: "131156");
+        _certs.Add(cert);
+        var vm = NewVm();
+        (await vm.ApplyNavigationContextAsync(rid, null, cert.Id)).Should().BeTrue();
+
+        await new CorrectCertificateUseCase(_certs, _uow, _clock).ExecuteAsync(
+            new CorrectCertificateInput(cert.Id, cert.Id, "131157"), "other", default);
+        vm.MunicipalityNumber = "131158";
+        await vm.CorrectCertificateCommand.ExecuteAsync(null);
+
+        vm.SaveErrorMessage.Should().Be("受給者証は既に訂正されています。最新状態を再読込してください。");
+        vm.SelectedCertificate!.Revision.Should().Be(2);
+        vm.MunicipalityNumber.Should().Be("131157");
     }
 
     [Fact]
@@ -132,11 +198,68 @@ public sealed class CertificateViewModelTests
         vm.ProviderServiceCategory = "就労継続支援B型";
         vm.ProviderSupplyDays = 23;
         vm.ProviderContractDate = new DateOnly(2026, 4, 1);
+        vm.ProviderCertificateEntryNumber = 7;
 
         await vm.AddProviderCommand.ExecuteAsync(null);
 
         vm.ProviderSaveErrorMessage.Should().BeNull();
         _providers.AllForTest.Single().ProviderName.Should().Be("Tsumugi作業所");
+        _providers.AllForTest.Single().CertificateEntryNumber.Should().Be(7);
+    }
+
+    [Fact]
+    public async Task SelectedProvider_populates_edit_fields_and_update_preserves_optimistic_token()
+    {
+        var rid = Guid.NewGuid();
+        var cert = Certificate.Create(Guid.NewGuid(), rid, "1234567890",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _certs.Add(cert);
+        var provider = ContractedProvider.Create(Guid.NewGuid(), cert.Id, "1010101010", "旧名",
+            "就労継続支援B型", 20, new DateOnly(2026, 4, 1), "u",
+            DateTimeOffset.UnixEpoch, Guid.NewGuid(), certificateEntryNumber: 3);
+        _providers.Add(provider);
+        var vm = NewVm();
+        vm.SelectedRecipient = TestRecipients.Make(rid, "氏名", "シメイ");
+        await Task.Yield();
+        vm.SelectedCertificate = vm.CertificatesForRecipient.Single();
+        await Task.Yield();
+
+        vm.SelectedProvider = vm.ContractedProviders.Single();
+        vm.ProviderName.Should().Be("旧名");
+        vm.ProviderCertificateEntryNumber.Should().Be(3);
+        vm.ProviderName = "新名";
+        vm.ProviderCertificateEntryNumber = 4;
+        await vm.UpdateProviderCommand.ExecuteAsync(null);
+
+        _providers.AllForTest.Single().ProviderName.Should().Be("新名");
+        _providers.AllForTest.Single().CertificateEntryNumber.Should().Be(4);
+    }
+
+    [Fact]
+    public async Task UpdateProviderCommand_with_conflict_shows_fixed_reload_guidance()
+    {
+        var rid = Guid.NewGuid();
+        var cert = Certificate.Create(Guid.NewGuid(), rid, "1234567890",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _certs.Add(cert);
+        var provider = ContractedProvider.Create(Guid.NewGuid(), cert.Id, "1010101010", "旧名",
+            "就労継続支援B型", 20, new DateOnly(2026, 4, 1), "u",
+            DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _providers.Add(provider);
+        var vm = NewVm();
+        vm.SelectedRecipient = TestRecipients.Make(rid, "氏名", "シメイ");
+        await Task.Yield();
+        vm.SelectedCertificate = vm.CertificatesForRecipient.Single();
+        await Task.Yield();
+        vm.SelectedProvider = vm.ContractedProviders.Single();
+        _providers.Replace(provider with { ConcurrencyToken = Guid.NewGuid() });
+
+        await vm.UpdateProviderCommand.ExecuteAsync(null);
+
+        vm.ProviderSaveErrorMessage.Should().Be(
+            "他のユーザに先に更新されています。一覧を再選択して最新状態を読み込んでください。");
     }
 }
 
@@ -174,6 +297,12 @@ internal sealed class InMemoryContractedProviderRepo : IContractedProviderReposi
 {
     private readonly List<ContractedProvider> _list = new();
     public IReadOnlyList<ContractedProvider> AllForTest => _list;
+    public void Add(ContractedProvider provider) => _list.Add(provider);
+    public void Replace(ContractedProvider provider)
+    {
+        var index = _list.FindIndex(item => item.Id == provider.Id);
+        _list[index] = provider;
+    }
     public Task AddAsync(ContractedProvider p, CancellationToken ct) { _list.Add(p); return Task.CompletedTask; }
     public Task<ContractedProvider?> FindByIdAsync(Guid id, CancellationToken ct) =>
         Task.FromResult(_list.FirstOrDefault(p => p.Id == id));

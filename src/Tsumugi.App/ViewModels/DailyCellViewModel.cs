@@ -19,6 +19,17 @@ public sealed partial class DailyCellViewModel(
     [ObservableProperty] private Attendance? _effectiveAttendance;
     [ObservableProperty] private TransportKind _effectiveTransport;
     [ObservableProperty] private bool _effectiveMealProvided;
+    [ObservableProperty] private string? _effectiveNote;
+    [ObservableProperty] private TimeOnly? _effectiveServiceStartTime;
+    [ObservableProperty] private TimeOnly? _effectiveServiceEndTime;
+    [ObservableProperty] private int? _effectiveSpecialVisitSupportMinutes;
+    [ObservableProperty] private bool? _effectiveOffsiteSupportApplied;
+    [ObservableProperty] private MedicalCoordinationType _effectiveMedicalCoordinationType;
+    [ObservableProperty] private TrialUseSupportType _effectiveTrialUseSupportType;
+    [ObservableProperty] private bool? _effectiveRegionalCollaborationApplied;
+    [ObservableProperty] private bool? _effectiveIntensiveSupportApplied;
+    [ObservableProperty] private bool? _effectiveEmergencyAdmissionApplied;
+    [ObservableProperty] private RecipientConfirmationStatus _effectiveRecipientConfirmation;
 
     /// <summary>
     /// 出欠を変更する統一コマンド。既存記録があれば訂正、無ければ新規登録に分岐する。
@@ -31,12 +42,22 @@ public sealed partial class DailyCellViewModel(
         {
             await record.ExecuteAsync(recipientId, Date,
                 attendance, TransportKind.None, mealProvided: false, note: null,
+                serviceStartTime: null, serviceEndTime: null,
+                specialVisitSupportMinutes: null, offsiteSupportApplied: null,
+                MedicalCoordinationType.Unspecified, TrialUseSupportType.Unspecified,
+                regionalCollaborationApplied: null, intensiveSupportApplied: null,
+                emergencyAdmissionApplied: null, RecipientConfirmationStatus.Unspecified,
                 actor: Environment.UserName, default);
         }
         else
         {
             await correct.ExecuteAsync(EffectiveId.Value,
-                attendance, EffectiveTransport, EffectiveMealProvided, note: null,
+                attendance, EffectiveTransport, EffectiveMealProvided, EffectiveNote,
+                EffectiveServiceStartTime, EffectiveServiceEndTime,
+                EffectiveSpecialVisitSupportMinutes, EffectiveOffsiteSupportApplied,
+                EffectiveMedicalCoordinationType, EffectiveTrialUseSupportType,
+                EffectiveRegionalCollaborationApplied, EffectiveIntensiveSupportApplied,
+                EffectiveEmergencyAdmissionApplied, EffectiveRecipientConfirmation,
                 actor: Environment.UserName, default);
         }
         await reload();
@@ -47,6 +68,11 @@ public sealed partial class DailyCellViewModel(
     {
         await record.ExecuteAsync(recipientId, Date,
             attendance, TransportKind.None, mealProvided: false, note: null,
+            serviceStartTime: null, serviceEndTime: null,
+            specialVisitSupportMinutes: null, offsiteSupportApplied: null,
+            MedicalCoordinationType.Unspecified, TrialUseSupportType.Unspecified,
+            regionalCollaborationApplied: null, intensiveSupportApplied: null,
+            emergencyAdmissionApplied: null, RecipientConfirmationStatus.Unspecified,
             actor: Environment.UserName, default);
         await reload();
     }
@@ -56,7 +82,12 @@ public sealed partial class DailyCellViewModel(
     {
         if (EffectiveId is null) return;
         await correct.ExecuteAsync(EffectiveId.Value,
-            attendance, EffectiveTransport, EffectiveMealProvided, note: null,
+            attendance, EffectiveTransport, EffectiveMealProvided, EffectiveNote,
+            EffectiveServiceStartTime, EffectiveServiceEndTime,
+            EffectiveSpecialVisitSupportMinutes, EffectiveOffsiteSupportApplied,
+            EffectiveMedicalCoordinationType, EffectiveTrialUseSupportType,
+            EffectiveRegionalCollaborationApplied, EffectiveIntensiveSupportApplied,
+            EffectiveEmergencyAdmissionApplied, EffectiveRecipientConfirmation,
             actor: Environment.UserName, default);
         await reload();
     }

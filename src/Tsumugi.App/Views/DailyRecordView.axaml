@@ -2,10 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Tsumugi.App.ViewModels"
              xmlns:enums="using:Tsumugi.Domain.Enums"
+             xmlns:conv="using:Tsumugi.App.Converters"
              x:Class="Tsumugi.App.Views.DailyRecordView"
              x:DataType="vm:DailyRecordViewModel">
     <UserControl.KeyBindings>
         <KeyBinding Gesture="F5" Command="{Binding LoadCommand}" />
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveSelectedDailyRecordCommand}" />
     </UserControl.KeyBindings>
     <DockPanel>
         <TextBlock DockPanel.Dock="Top" Text="日次記録"
@@ -29,13 +31,14 @@
             <Button Content="表示 (F5)" Command="{Binding LoadCommand}" />
         </StackPanel>
         <ScrollViewer>
-            <ItemsControl ItemsSource="{Binding Cells}" Margin="8">
-                <ItemsControl.ItemsPanel>
+          <StackPanel Spacing="12" Margin="8">
+            <ListBox ItemsSource="{Binding Cells}" SelectedItem="{Binding SelectedCell}">
+                <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel />
                     </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
                     <DataTemplate DataType="vm:DailyCellViewModel">
                         <!-- セル寸法と文字サイズは UiDefaults.MinimumFontSize に追従する。固定 px は使わない。 -->
                         <Border BorderBrush="#444" BorderThickness="1" Margin="2"
@@ -70,8 +73,94 @@
                             </StackPanel>
                         </Border>
                     </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+              <StackPanel Spacing="8">
+                <TextBlock Text="選択日の請求入力" FontWeight="Bold" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <StackPanel Width="120"><TextBlock Text="出欠" />
+                    <ComboBox ItemsSource="{Binding AttendanceOptions}" SelectedItem="{Binding EditorAttendance}" />
+                  </StackPanel>
+                  <StackPanel Width="120"><TextBlock Text="送迎" />
+                    <ComboBox ItemsSource="{Binding TransportOptions}" SelectedItem="{Binding EditorTransport}" />
+                  </StackPanel>
+                  <CheckBox Content="食事提供" IsChecked="{Binding EditorMealProvided}" VerticalAlignment="Bottom" />
+                  <StackPanel Width="120"><TextBlock Text="開始時刻" />
+                    <TextBox Text="{Binding EditorServiceStartTime}" Watermark="09:00" />
+                  </StackPanel>
+                  <StackPanel Width="120"><TextBlock Text="終了時刻" />
+                    <TextBox Text="{Binding EditorServiceEndTime}" Watermark="15:30" />
+                  </StackPanel>
+                  <StackPanel Width="150"><TextBlock Text="訪問支援特別加算(分)" />
+                    <TextBox Text="{Binding EditorSpecialVisitSupportMinutes}" />
+                  </StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                  <CheckBox Content="施設外支援" IsThreeState="True" IsChecked="{Binding EditorOffsiteSupportApplied}" />
+                  <CheckBox Content="地域連携会議" IsThreeState="True" IsChecked="{Binding EditorRegionalCollaborationApplied}" />
+                  <CheckBox Content="集中的支援" IsThreeState="True" IsChecked="{Binding EditorIntensiveSupportApplied}" />
+                  <CheckBox Content="緊急時受入" IsThreeState="True" IsChecked="{Binding EditorEmergencyAdmissionApplied}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <StackPanel Width="180"><TextBlock Text="医療連携体制" />
+                    <ComboBox ItemsSource="{Binding MedicalCoordinationOptions}"
+                              SelectedItem="{Binding EditorMedicalCoordinationType}" />
+                  </StackPanel>
+                  <StackPanel Width="180"><TextBlock Text="体験利用支援" />
+                    <ComboBox ItemsSource="{Binding TrialUseSupportOptions}"
+                              SelectedItem="{Binding EditorTrialUseSupportType}" />
+                  </StackPanel>
+                  <StackPanel Width="180"><TextBlock Text="受領確認" />
+                    <ComboBox ItemsSource="{Binding RecipientConfirmationOptions}"
+                              SelectedItem="{Binding EditorRecipientConfirmation}" />
+                  </StackPanel>
+                  <StackPanel Width="300"><TextBlock Text="備考" />
+                    <TextBox Text="{Binding EditorNote}" />
+                  </StackPanel>
+                </StackPanel>
+                <TextBlock Text="{Binding DailyRecordErrorMessage}" Foreground="#FF4444" />
+                <Button Content="選択日を保存 (Ctrl+S)" Command="{Binding SaveSelectedDailyRecordCommand}"
+                        HorizontalAlignment="Left" />
+              </StackPanel>
+            </Border>
+
+            <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+              <StackPanel Spacing="8">
+                <TextBlock Text="重度支援対象期間" FontWeight="Bold" />
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <StackPanel Width="260"><TextBlock Text="事業所" />
+                    <ComboBox ItemsSource="{Binding Offices}" SelectedItem="{Binding SelectedOffice}"
+                              PlaceholderText="事業所を選択" />
+                  </StackPanel>
+                  <StackPanel Width="140"><TextBlock Text="開始日" />
+                    <TextBox Text="{Binding EpisodeStartDate, Converter={x:Static conv:DateOnlyConverter.Instance}}"
+                             Watermark="2026-04-01" />
+                  </StackPanel>
+                  <Button Content="再読込" Command="{Binding LoadEpisodeCommand}" VerticalAlignment="Bottom" />
+                  <Button Content="保存" Command="{Binding SaveEpisodeCommand}" VerticalAlignment="Bottom" />
+                  <Button Content="取消" Command="{Binding CancelEpisodeCommand}" VerticalAlignment="Bottom" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="16">
+                  <TextBlock Text="CurrentHeadId:" />
+                  <TextBlock Text="{Binding EpisodeCurrentHeadId}" />
+                  <TextBlock Text="EffectiveHeadId:" />
+                  <TextBlock Text="{Binding EpisodeEffectiveHeadId}" />
+                </StackPanel>
+                <TextBlock Text="{Binding EpisodeErrorMessage}" Foreground="#FF4444" />
+                <DataGrid ItemsSource="{Binding EpisodeRevisions}" IsReadOnly="True"
+                          AutoGenerateColumns="False" MaxHeight="180">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Revision" Binding="{Binding Revision}" />
+                    <DataGridTextColumn Header="種別" Binding="{Binding Kind}" />
+                    <DataGridTextColumn Header="開始日" Binding="{Binding StartDate}" />
+                    <DataGridTextColumn Header="ExpectedHeadId" Binding="{Binding ExpectedHeadId}" Width="*" />
+                  </DataGrid.Columns>
+                </DataGrid>
+              </StackPanel>
+            </Border>
+          </StackPanel>
         </ScrollViewer>
     </DockPanel>
 </UserControl>

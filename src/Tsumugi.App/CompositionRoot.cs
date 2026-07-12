@@ -5,6 +5,7 @@ using Tsumugi.App.ViewModels;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.UseCases;
 using Tsumugi.Application.UseCases.Certificate;
+using Tsumugi.Application.UseCases.Claim;
 using Tsumugi.Application.UseCases.Contract;
 using Tsumugi.Application.UseCases.DailyRecord;
 using Tsumugi.Application.UseCases.Office;
@@ -53,8 +54,10 @@ public static class CompositionRoot
         services.AddScoped<RegisterCertificateUseCase>();
         services.AddScoped<ListExpiringCertificatesUseCase>();
         services.AddScoped<ListCertificatesByRecipientUseCase>();
+        services.AddScoped<CorrectCertificateUseCase>();
         services.AddScoped<RegisterContractedProviderUseCase>();
         services.AddScoped<ListContractedProvidersUseCase>();
+        services.AddScoped<UpdateContractedProviderUseCase>();
 
         // Phase 1: 契約
         services.AddScoped<RegisterContractUseCase>();
@@ -69,6 +72,8 @@ public static class CompositionRoot
         services.AddScoped<CorrectDailyRecordUseCase>();
         services.AddScoped<CancelDailyRecordUseCase>();
         services.AddScoped<QueryMonthDailyRecordsUseCase>();
+        services.AddScoped<QueryIntensiveSupportEpisodeUseCase>();
+        services.AddScoped<SetIntensiveSupportEpisodeUseCase>();
 
         // Phase 2: 工賃計算戦略（4 方式並存; D3 CalculateWagesUseCase が IReadOnlyList<IWageMethodStrategy> を要求）
         services.AddSingleton<IReadOnlyList<IWageMethodStrategy>>(_ => new IWageMethodStrategy[]
