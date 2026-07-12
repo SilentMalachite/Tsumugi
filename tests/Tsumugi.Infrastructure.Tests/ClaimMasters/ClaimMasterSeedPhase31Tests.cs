@@ -132,6 +132,11 @@ public sealed class ClaimMasterSeedPhase31Tests
             var rangeIds = rangeItems
                 .Select(range => range.GetProperty("rangeId").GetString()!)
                 .ToArray();
+            foreach (var rangeId in rangeIds)
+            {
+                rangeId.Should().NotBeNullOrWhiteSpace();
+            }
+
             rangeIds.Distinct(StringComparer.Ordinal).Should().HaveCount(rangeIds.Length);
 
             foreach (var range in rangeItems)
