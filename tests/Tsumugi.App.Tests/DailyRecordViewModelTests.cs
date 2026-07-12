@@ -9,6 +9,7 @@ using Tsumugi.Application.UseCases.Office;
 using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
+using Tsumugi.Domain.ValueObjects;
 using Xunit;
 
 namespace Tsumugi.App.Tests;
@@ -132,6 +133,59 @@ public sealed class DailyRecordViewModelTests
         await vm.LoadAsync();
         vm.Cells.Should().HaveCount(30);
         vm.Cells.Should().OnlyContain(cell => cell.RecipientId == vm.RecipientId);
+    }
+
+    [Fact]
+    public async Task Navigation_context_loads_month_selects_target_date_and_populates_editor()
+    {
+        var office = Office.Create(Guid.NewGuid(), "1234567890", "事業所",
+            ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var recipient = Recipient.Create(Guid.NewGuid(), "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var serviceDate = new DateOnly(2026, 6, 12);
+        _offices.Add(office);
+        _recipients.Add(recipient);
+        _repo.Added.Add(DailyRecord.NewRecord(
+            Guid.NewGuid(), recipient.Id, serviceDate,
+            Attendance.Present, TransportKind.Round, true, "navigation",
+            "u", DateTimeOffset.UnixEpoch));
+        var vm = NewVm();
+
+        var result = await vm.ApplyNavigationContextAsync(
+            office.Id, recipient.Id, serviceDate, new ServiceMonth(2026, 6));
+
+        result.Should().BeTrue();
+        vm.SelectedOffice!.Id.Should().Be(office.Id);
+        vm.SelectedRecipient!.Id.Should().Be(recipient.Id);
+        vm.Cells.Should().HaveCount(30);
+        vm.SelectedCell!.Date.Should().Be(serviceDate);
+        vm.SelectedCell.EffectiveAttendance.Should().Be(Attendance.Present);
+        vm.EditorTransport.Should().Be(TransportKind.Round);
+        vm.EditorNote.Should().Be("navigation");
+    }
+
+    [Fact]
+    public async Task Navigation_context_discards_month_result_when_context_changes_in_flight()
+    {
+        var office = Office.Create(Guid.NewGuid(), "1234567890", "事業所",
+            ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var recipient = Recipient.Create(Guid.NewGuid(), "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _offices.Add(office);
+        _recipients.Add(recipient);
+        _repo.BlockMonthQuery = true;
+        var vm = NewVm();
+
+        var navigation = vm.ApplyNavigationContextAsync(
+            office.Id, recipient.Id, new DateOnly(2026, 6, 12),
+            new ServiceMonth(2026, 6));
+        await _repo.MonthQueryStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        vm.SetMonth(2026, 7);
+        _repo.ReleaseMonthQuery();
+
+        (await navigation).Should().BeFalse();
+        vm.Cells.Should().BeEmpty();
+        vm.SelectedCell.Should().BeNull();
     }
 
     [Theory]

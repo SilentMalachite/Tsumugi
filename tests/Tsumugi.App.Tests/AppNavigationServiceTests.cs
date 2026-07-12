@@ -10,6 +10,7 @@ using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Application.UseCases;
 using Tsumugi.Application.UseCases.Certificate;
+using Tsumugi.Application.UseCases.DailyRecord;
 using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
@@ -254,6 +255,7 @@ public sealed class AppNavigationServiceTests
             AppSection.DailyRecord,
             fixture.RecipientId,
             serviceDate,
+            OfficeId: fixture.OfficeId,
             ServiceMonth: serviceMonth));
 
         dailyResult.IsSuccess.Should().BeTrue();
@@ -262,6 +264,13 @@ public sealed class AppNavigationServiceTests
         main.DailyRecord.SelectedRecipient!.Id.Should().Be(fixture.RecipientId);
         main.DailyRecord.Year.Should().Be(2026);
         main.DailyRecord.Month.Should().Be(6);
+        main.DailyRecord.OfficeId.Should().Be(fixture.OfficeId);
+        main.DailyRecord.SelectedOffice!.Id.Should().Be(fixture.OfficeId);
+        main.DailyRecord.Cells.Should().HaveCount(30);
+        main.DailyRecord.SelectedCell.Should().NotBeNull();
+        main.DailyRecord.SelectedCell!.Date.Should().Be(serviceDate);
+        main.DailyRecord.SelectedCell.EffectiveAttendance.Should().Be(Attendance.Present);
+        main.DailyRecord.EditorNote.Should().Be("navigation-seed");
         main.Certificate.SelectedCertificate!.Id.Should().Be(fixture.CertificateId);
         main.Office.SelectedItem.Should().BeNull();
 
@@ -351,6 +360,49 @@ public sealed class AppNavigationServiceTests
         result.Request.Should().BeSameAs(request);
         fixture.Main.SelectedSection.Should().Be(AppSection.RecipientList);
         fixture.Main.LastNavigationResult.Should().BeSameAs(result);
+    }
+
+    [Fact]
+    public async Task Daily_request_with_mismatched_target_date_and_month_is_rejected()
+    {
+        await using var fixture = await NavigationFixture.CreateAsync();
+        fixture.Main.SelectedSection = AppSection.WageStatement;
+        var request = new NavigationRequest(
+            AppSection.DailyRecord,
+            fixture.RecipientId,
+            new DateOnly(2026, 7, 1),
+            OfficeId: fixture.OfficeId,
+            ServiceMonth: new ServiceMonth(2026, 6));
+
+        var result = await fixture.Navigation.NavigateAsync(request);
+
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorCode.Should().Be(NavigationErrorCode.InvalidNavigationContext);
+        fixture.Main.SelectedSection.Should().Be(AppSection.WageStatement);
+        fixture.Main.DailyRecord.Cells.Should().BeEmpty();
+        fixture.Main.DailyRecord.SelectedCell.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Daily_load_error_returns_closed_navigation_failure_and_keeps_selection()
+    {
+        await using var fixture = await NavigationFixture.CreateAsync(
+            new ThrowingMonthDailyRecordRepository());
+        fixture.Main.SelectedSection = AppSection.WageStatement;
+        var request = new NavigationRequest(
+            AppSection.DailyRecord,
+            fixture.RecipientId,
+            new DateOnly(2026, 6, 12),
+            OfficeId: fixture.OfficeId,
+            ServiceMonth: new ServiceMonth(2026, 6));
+
+        var result = await fixture.Navigation.NavigateAsync(request);
+
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorCode.Should().Be(NavigationErrorCode.InvalidNavigationContext);
+        fixture.Main.SelectedSection.Should().Be(AppSection.WageStatement);
+        fixture.Main.DailyRecord.Cells.Should().BeEmpty();
+        fixture.Main.DailyRecord.SelectedCell.Should().BeNull();
     }
 
     [Fact]
@@ -482,12 +534,15 @@ public sealed class AppNavigationServiceTests
         public Guid CertificateId { get; }
         public Guid OfficeId { get; }
 
-        public static async Task<NavigationFixture> CreateAsync()
+        public static async Task<NavigationFixture> CreateAsync(
+            IDailyRecordRepository? dailyRecordRepository = null)
         {
             var dbPath = Path.Combine(
                 Path.GetTempPath(),
                 $"tsumugi-navigation-{Guid.NewGuid():N}.db");
             var services = new ServiceCollection().AddTsumugiServices($"Data Source={dbPath}");
+            if (dailyRecordRepository is not null)
+                services.AddScoped<IDailyRecordRepository>(_ => dailyRecordRepository);
             var provider = services.BuildServiceProvider();
             var scope = provider.CreateAsyncScope();
 
@@ -528,6 +583,16 @@ public sealed class AppNavigationServiceTests
                     },
                     "test",
                     default);
+            await scope.ServiceProvider.GetRequiredService<RecordDailyRecordUseCase>()
+                .ExecuteAsync(
+                    recipient.Id,
+                    new DateOnly(2026, 6, 12),
+                    Attendance.Present,
+                    TransportKind.Round,
+                    mealProvided: true,
+                    note: "navigation-seed",
+                    actor: "test",
+                    default);
 
             var main = scope.ServiceProvider.GetRequiredService<MainViewModel>();
             var navigation = scope.ServiceProvider.GetRequiredService<IAppNavigationService>();
@@ -553,6 +618,29 @@ public sealed class AppNavigationServiceTests
                     File.Delete(path);
             }
         }
+    }
+
+    private sealed class ThrowingMonthDailyRecordRepository : IDailyRecordRepository
+    {
+        private readonly List<DailyRecord> _items = [];
+
+        public Task AddAsync(DailyRecord record, CancellationToken ct)
+        {
+            _items.Add(record);
+            return Task.CompletedTask;
+        }
+
+        public Task<DailyRecord?> FindByIdAsync(Guid id, CancellationToken ct) =>
+            Task.FromResult(_items.SingleOrDefault(item => item.Id == id));
+
+        public Task<IReadOnlyList<DailyRecord>> ListByRecipientAndDateAsync(
+            Guid recipientId, DateOnly serviceDate, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<DailyRecord>>(_items.Where(item =>
+                item.RecipientId == recipientId && item.ServiceDate == serviceDate).ToArray());
+
+        public Task<IReadOnlyList<DailyRecord>> ListByRecipientAndMonthAsync(
+            Guid recipientId, int year, int month, CancellationToken ct) =>
+            throw new InvalidOperationException("test month load failure");
     }
 
 }

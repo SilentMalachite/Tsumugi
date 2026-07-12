@@ -72,16 +72,31 @@ public sealed partial class DailyRecordViewModel(
     public void SetRecipient(Guid id) => RecipientId = id;
     public void SetMonth(int year, int month) { Year = year; Month = month; }
 
-    /// <summary>ナビゲーション由来の利用者・サービス年月だけを適用する。</summary>
+    /// <summary>ナビゲーション由来の事業所・利用者・対象日を読み込み、編集対象を選択する。</summary>
     public async Task<bool> ApplyNavigationContextAsync(
+        Guid? officeId,
         Guid? recipientId,
         DateOnly? serviceDate,
         ServiceMonth? serviceMonth,
         CancellationToken ct = default)
     {
+        var baseline = (OfficeId, RecipientId, Year, Month);
+        if (officeId is not null)
+            await LoadOfficesAsync(ct);
+        if (recipientId is not null)
+            await LoadRecipientsAsync(ct);
+        if (baseline != (OfficeId, RecipientId, Year, Month))
+            return false;
+
+        if (officeId is { } targetOfficeId)
+        {
+            SelectedOffice = Offices.SingleOrDefault(x => x.Id == targetOfficeId);
+            if (SelectedOffice is null)
+                return false;
+        }
+
         if (recipientId is { } id)
         {
-            await LoadRecipientsAsync(ct);
             SelectedRecipient = Recipients.SingleOrDefault(x => x.Id == id);
             if (SelectedRecipient is null)
                 return false;
@@ -92,7 +107,15 @@ public sealed partial class DailyRecordViewModel(
         else if (serviceMonth is { } month)
             SetMonth(month.Year, month.Month);
 
-        return true;
+        if (serviceDate is null && serviceMonth is null)
+            return true;
+        if (recipientId is null)
+            return false;
+
+        var loaded = await LoadDailyContextAsync(serviceDate, ct);
+        return loaded
+            && (officeId is null || OfficeId == officeId)
+            && (serviceDate is null || SelectedCell?.Date == serviceDate);
     }
 
     /// <summary>View の Loaded から呼ばれる初期化フック。利用者一覧を読み込む。</summary>
@@ -177,25 +200,29 @@ public sealed partial class DailyRecordViewModel(
         && Month is >= 1 and <= 12;
 
     [RelayCommand(CanExecute = nameof(CanLoad))]
-    public async Task LoadAsync()
+    public async Task LoadAsync() => await LoadDailyContextAsync(SelectedCell?.Date, default);
+
+    private async Task<bool> LoadDailyContextAsync(
+        DateOnly? selectedDate,
+        CancellationToken ct)
     {
         // CanExecute で防げない経路（直接呼び出し）でも DateTime.DaysInMonth(0,0) に落ちないこと。
-        if (!CanLoad()) { ClearDailyContext(); return; }
+        if (!CanLoad()) { ClearDailyContext(); return false; }
 
         var recipientId = RecipientId;
         var year = Year;
         var month = Month;
-        var selectedDate = SelectedCell?.Date;
         Cells.Clear();
         SelectedCell = null;
-        var effective = await query.ExecuteAsync(recipientId, year, month, default);
-        if (!MatchesDailyContext(recipientId, year, month)) return;
+        var effective = await query.ExecuteAsync(recipientId, year, month, ct);
+        if (!MatchesDailyContext(recipientId, year, month)) return false;
 
         var daysInMonth = DateTime.DaysInMonth(year, month);
         for (var d = 1; d <= daysInMonth; d++)
         {
             var date = new DateOnly(year, month, d);
-            var cell = new DailyCellViewModel(recipientId, date, record, correct, cancel, LoadAsync);
+            var cell = new DailyCellViewModel(
+                recipientId, date, record, correct, cancel, LoadAsync);
             if (effective.TryGetValue(date, out var dto))
             {
                 cell.EffectiveId = dto.Id;
@@ -219,6 +246,7 @@ public sealed partial class DailyRecordViewModel(
         SelectedCell = selectedDate is { } preservedDate
             ? Cells.SingleOrDefault(cell => cell.Date == preservedDate)
             : null;
+        return selectedDate is null || SelectedCell is not null;
     }
 
     [RelayCommand]

@@ -180,8 +180,8 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
         CancellationToken ct)
     {
         if (request.CertificateId is not null
-            || request.OfficeId is not null
             || HasEmptyGuid(request.RecipientId)
+            || HasEmptyGuid(request.OfficeId)
             || !TryGetServiceMonth(request.ServiceMonth, out var year, out var month)
             || request.ServiceDate is { } date
                 && request.ServiceMonth is not null
@@ -189,6 +189,7 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
             return false;
 
         return await DailyRecord.ApplyNavigationContextAsync(
+            request.OfficeId,
             request.RecipientId,
             request.ServiceDate,
             request.ServiceMonth,
