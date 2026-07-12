@@ -27,14 +27,8 @@ public sealed record NavigationResult
         NavigationErrorCode errorCode) => new(request, errorCode);
 }
 
-public delegate Task<NavigationResult> AppNavigationHandler(
-    NavigationRequest request,
-    CancellationToken cancellationToken);
-
 public interface IAppNavigationService
 {
-    void RegisterHandler(AppNavigationHandler handler);
-
     Task<NavigationResult> NavigateAsync(
         NavigationRequest request,
         CancellationToken cancellationToken = default);

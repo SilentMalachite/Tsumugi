@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using Tsumugi.App.Navigation;
 using Tsumugi.Domain.ValueObjects;
 
@@ -23,9 +24,9 @@ public sealed partial class MainViewModel : ViewModelBase
         WageAdjustmentViewModel wageAdjustment,
         WageCalculationViewModel wageCalculation,
         WageStatementViewModel wageStatement,
-        IAppNavigationService navigationService)
+        IMessenger messenger)
     {
-        ArgumentNullException.ThrowIfNull(navigationService);
+        ArgumentNullException.ThrowIfNull(messenger);
         RecipientList = recipientList;
         RecipientEdit = recipientEdit;
         DisabilityCertificate = disabilityCertificate;
@@ -41,7 +42,12 @@ public sealed partial class MainViewModel : ViewModelBase
         WageAdjustment = wageAdjustment;
         WageCalculation = wageCalculation;
         WageStatement = wageStatement;
-        navigationService.RegisterHandler(HandleNavigationAsync);
+        messenger.Register<MainViewModel, AppNavigationMessage>(
+            this,
+            static (recipient, message) => message.Reply(
+                recipient.HandleNavigationAsync(
+                    message.Request,
+                    message.CancellationToken)));
     }
 
     [ObservableProperty]

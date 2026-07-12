@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using CommunityToolkit.Mvvm.Messaging;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -69,14 +71,37 @@ public sealed class AppNavigationServiceTests
     }
 
     [Fact]
-    public void Navigation_service_and_main_view_model_have_scope_aligned_lifetimes()
+    public void Navigation_service_and_messenger_are_scoped_while_main_view_model_is_transient()
     {
         var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
 
         services.Single(x => x.ServiceType == typeof(IAppNavigationService)).Lifetime
             .Should().Be(ServiceLifetime.Scoped);
-        services.Single(x => x.ServiceType == typeof(MainViewModel)).Lifetime
+        services.Single(x => x.ServiceType == typeof(IMessenger)).Lifetime
             .Should().Be(ServiceLifetime.Scoped);
+        services.Single(x => x.ServiceType == typeof(MainViewModel)).Lifetime
+            .Should().Be(ServiceLifetime.Transient);
+    }
+
+    [Fact]
+    public async Task Navigation_service_does_not_strongly_retain_main_or_owned_view_models()
+    {
+        using var provider = (ServiceProvider)CompositionRoot.Build("Data Source=:memory:");
+        using var scope = provider.CreateScope();
+        var navigation = scope.ServiceProvider.GetRequiredService<IAppNavigationService>();
+        var weakReferences = ResolveMainAndCaptureWeakReferences(scope.ServiceProvider);
+
+        ForceFullGarbageCollection();
+
+        weakReferences.Should().OnlyContain(
+            item => !item.Reference.IsAlive,
+            "the scoped navigation service must not strongly retain {0}",
+            string.Join(", ", weakReferences.Select(item => item.Name)));
+        var request = new NavigationRequest(AppSection.RecipientList);
+        var result = await navigation.NavigateAsync(request);
+        result.IsSuccess.Should().BeFalse();
+        result.ErrorCode.Should().Be(NavigationErrorCode.NavigationTargetUnavailable);
+        result.Request.Should().BeSameAs(request);
     }
 
     [Fact]
@@ -252,6 +277,30 @@ public sealed class AppNavigationServiceTests
 
         return directory?.FullName
             ?? throw new DirectoryNotFoundException("Repository root was not found.");
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static (string Name, WeakReference Reference)[]
+        ResolveMainAndCaptureWeakReferences(IServiceProvider services)
+    {
+        var main = services.GetRequiredService<MainViewModel>();
+        return main.GetType().GetProperties()
+            .Where(property => typeof(ViewModelBase).IsAssignableFrom(property.PropertyType))
+            .Select(property => (
+                property.Name,
+                new WeakReference(property.GetValue(main)
+                    ?? throw new InvalidOperationException($"{property.Name} was null."))))
+            .Prepend((nameof(MainViewModel), new WeakReference(main)))
+            .ToArray();
+    }
+
+    private static void ForceFullGarbageCollection()
+    {
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
+            GC.WaitForPendingFinalizers();
+        }
     }
 
     private sealed class NavigationFixture : IAsyncDisposable

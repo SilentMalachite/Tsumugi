@@ -1,20 +1,20 @@
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
+
 namespace Tsumugi.App.Navigation;
 
 /// <summary>
-/// scoped なMainViewModel coordinatorへrequestを中継する。
-/// 対象ViewModel自体は保持しない。
+/// scoped messengerへrequestを送り、弱参照recipientのMainViewModel coordinatorへ中継する。
+/// MainViewModelや対象ViewModel自体は保持しない。
 /// </summary>
 public sealed class AppNavigationService : IAppNavigationService
 {
-    private AppNavigationHandler? _handler;
+    private readonly IMessenger _messenger;
 
-    public void RegisterHandler(AppNavigationHandler handler)
+    public AppNavigationService(IMessenger messenger)
     {
-        ArgumentNullException.ThrowIfNull(handler);
-        if (_handler is not null)
-            throw new InvalidOperationException("Navigation handler is already registered.");
-
-        _handler = handler;
+        ArgumentNullException.ThrowIfNull(messenger);
+        _messenger = messenger;
     }
 
     public async Task<NavigationResult> NavigateAsync(
@@ -22,16 +22,18 @@ public sealed class AppNavigationService : IAppNavigationService
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (_handler is null)
-        {
-            return NavigationResult.Failure(
-                request,
-                NavigationErrorCode.NavigationTargetUnavailable);
-        }
-
         try
         {
-            return await _handler(request, cancellationToken);
+            var message = _messenger.Send(
+                new AppNavigationMessage(request, cancellationToken));
+            if (!message.HasReceivedResponse)
+            {
+                return NavigationResult.Failure(
+                    request,
+                    NavigationErrorCode.NavigationTargetUnavailable);
+            }
+
+            return await message.Response;
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -44,4 +46,12 @@ public sealed class AppNavigationService : IAppNavigationService
                 NavigationErrorCode.InvalidNavigationContext);
         }
     }
+}
+
+internal sealed class AppNavigationMessage(
+    NavigationRequest request,
+    CancellationToken cancellationToken) : AsyncRequestMessage<NavigationResult>
+{
+    public NavigationRequest Request { get; } = request;
+    public CancellationToken CancellationToken { get; } = cancellationToken;
 }
