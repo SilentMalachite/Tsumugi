@@ -28,6 +28,19 @@ public sealed partial class OfficeViewModel(
 
     public ObservableCollection<OfficeDto> Items { get; } = [];
 
+    /// <summary>ナビゲーション由来の事業所だけを読み込み、選択する。</summary>
+    public async Task<bool> ApplyNavigationContextAsync(
+        Guid? officeId,
+        CancellationToken ct = default)
+    {
+        if (officeId is not { } id)
+            return true;
+
+        await LoadAsync(ct);
+        SelectedItem = Items.SingleOrDefault(item => item.Id == id);
+        return SelectedItem is not null;
+    }
+
     public async Task LoadAsync(CancellationToken ct = default)
     {
         var list = await listUseCase.ExecuteAsync(ct);

@@ -8,7 +8,8 @@
         x:Class="Tsumugi.App.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="Tsumugi — 就労継続支援B型">
-    <TabControl x:Name="MainTabs">
+    <TabControl x:Name="MainTabs"
+                SelectedIndex="{Binding SelectedSection, Mode=TwoWay}">
         <TabItem Header="利用者一覧(_1)">
             <views:RecipientListView DataContext="{Binding RecipientList}" />
         </TabItem>

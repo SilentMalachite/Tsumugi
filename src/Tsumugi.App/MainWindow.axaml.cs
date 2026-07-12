@@ -1,5 +1,5 @@
-using System.ComponentModel;
 using Avalonia.Controls;
+using Tsumugi.App.Navigation;
 using Tsumugi.App.ViewModels;
 
 namespace Tsumugi.App;
@@ -19,16 +19,17 @@ public partial class MainWindow : Window
         viewModel.RecipientList.EditRequested = dto =>
         {
             viewModel.RecipientEdit.LoadForEdit(dto);
-            MainTabs.SelectedIndex = 1;  // 利用者登録/編集タブ
+            viewModel.SelectedSection = AppSection.RecipientEdit;
         };
 
         // 起動時に一覧を初期ロード（View 単体に自動ロード手段がないため Window 側で起動）。
         _ = viewModel.RecipientList.LoadAsync();
 
         // 利用者一覧タブに切り替わるたびに最新を再取得（登録/更新の反映を保証）。
-        MainTabs.SelectionChanged += (_, _) =>
+        viewModel.PropertyChanged += (_, e) =>
         {
-            if (MainTabs.SelectedIndex == 0)
+            if (e.PropertyName == nameof(MainViewModel.SelectedSection)
+                && viewModel.SelectedSection == AppSection.RecipientList)
             {
                 _ = viewModel.RecipientList.LoadAsync();
             }

@@ -107,15 +107,20 @@ public sealed partial class CertificateViewModel(
     [ObservableProperty] private DateOnly? _providerTerminationDate;
     [ObservableProperty] private string _providerNotes = string.Empty;
     [ObservableProperty] private string? _providerSaveErrorMessage;
+    private bool _isApplyingNavigationContext;
 
     partial void OnSelectedRecipientChanged(RecipientDto? value)
     {
         RecipientId = value?.Id ?? Guid.Empty;
-        _ = ReloadCertificatesAsync();
+        if (!_isApplyingNavigationContext)
+            _ = ReloadCertificatesAsync();
     }
 
     partial void OnSelectedCertificateChanged(CertificateDto? value)
-        => _ = ReloadProvidersAsync();
+    {
+        if (!_isApplyingNavigationContext)
+            _ = ReloadProvidersAsync();
+    }
 
     /// <summary>View の Loaded から呼ばれる初期化フック。利用者一覧を読み込む。</summary>
     public Task InitializeAsync(CancellationToken ct = default) => LoadRecipientsAsync(ct);
@@ -138,20 +143,58 @@ public sealed partial class CertificateViewModel(
         foreach (var h in hits) ExpiringItems.Add(h);
     }
 
-    private async Task ReloadCertificatesAsync()
+    /// <summary>ナビゲーション由来の受給者証文脈だけを適用する。</summary>
+    public async Task<bool> ApplyNavigationContextAsync(
+        Guid? recipientId,
+        DateOnly? serviceDate,
+        Guid? certificateId,
+        CancellationToken ct = default)
+    {
+        if (serviceDate is { } date)
+            AsOfDate = date;
+
+        _isApplyingNavigationContext = true;
+        try
+        {
+            if (recipientId is { } id)
+            {
+                await LoadRecipientsAsync(ct);
+                SelectedRecipient = Recipients.SingleOrDefault(x => x.Id == id);
+                if (SelectedRecipient is null)
+                    return false;
+                await ReloadCertificatesAsync(ct);
+            }
+
+            if (certificateId is not { } selectedId)
+                return true;
+
+            SelectedCertificate = CertificatesForRecipient.SingleOrDefault(x => x.Id == selectedId);
+            if (SelectedCertificate is null)
+                return false;
+
+            await ReloadProvidersAsync(ct);
+            return true;
+        }
+        finally
+        {
+            _isApplyingNavigationContext = false;
+        }
+    }
+
+    private async Task ReloadCertificatesAsync(CancellationToken ct = default)
     {
         CertificatesForRecipient.Clear();
         SelectedCertificate = null;
         if (RecipientId == Guid.Empty) return;
-        var list = await listByRecipient.ExecuteAsync(RecipientId, default);
+        var list = await listByRecipient.ExecuteAsync(RecipientId, ct);
         foreach (var c in list) CertificatesForRecipient.Add(c);
     }
 
-    private async Task ReloadProvidersAsync()
+    private async Task ReloadProvidersAsync(CancellationToken ct = default)
     {
         ContractedProviders.Clear();
         if (SelectedCertificate is not { } cert) return;
-        var list = await listProviders.ExecuteAsync(cert.Id, default);
+        var list = await listProviders.ExecuteAsync(cert.Id, ct);
         foreach (var p in list) ContractedProviders.Add(p);
     }
 

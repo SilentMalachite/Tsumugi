@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Application.UseCases.DailyRecord;
 using Tsumugi.Application.UseCases.Recipient;
+using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.App.ViewModels;
 
@@ -25,6 +26,29 @@ public sealed partial class DailyRecordViewModel(
     // 後方互換 API。XAML からは ObservableProperty / SelectedRecipient を直接バインドする。
     public void SetRecipient(Guid id) => RecipientId = id;
     public void SetMonth(int year, int month) { Year = year; Month = month; }
+
+    /// <summary>ナビゲーション由来の利用者・サービス年月だけを適用する。</summary>
+    public async Task<bool> ApplyNavigationContextAsync(
+        Guid? recipientId,
+        DateOnly? serviceDate,
+        ServiceMonth? serviceMonth,
+        CancellationToken ct = default)
+    {
+        if (recipientId is { } id)
+        {
+            await LoadRecipientsAsync(ct);
+            SelectedRecipient = Recipients.SingleOrDefault(x => x.Id == id);
+            if (SelectedRecipient is null)
+                return false;
+        }
+
+        if (serviceDate is { } date)
+            SetMonth(date.Year, date.Month);
+        else if (serviceMonth is { } month)
+            SetMonth(month.Year, month.Month);
+
+        return true;
+    }
 
     /// <summary>View の Loaded から呼ばれる初期化フック。利用者一覧を読み込む。</summary>
     public Task InitializeAsync(CancellationToken ct = default) => LoadRecipientsAsync(ct);
