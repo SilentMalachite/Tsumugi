@@ -327,6 +327,110 @@ public sealed class CertificateViewModelTests
         vm.ProviderSaveErrorMessage.Should().Be(
             "他のユーザに先に更新されています。一覧を再選択して最新状態を読み込んでください。");
     }
+
+    [Fact]
+    public async Task Provider_reload_discards_delayed_response_for_previous_certificate()
+    {
+        var rid = Guid.NewGuid();
+        _recipients.Add(Recipient.Create(rid, "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid()));
+        var certA = Certificate.Create(Guid.NewGuid(), rid, "1111111111",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var certB = Certificate.Create(Guid.NewGuid(), rid, "2222222222",
+            new DateRange(new DateOnly(2027, 4, 1), new DateOnly(2028, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _certs.Add(certA);
+        _certs.Add(certB);
+        var providerA = ContractedProvider.Create(Guid.NewGuid(), certA.Id, "1010101010", "事業所A",
+            "就労継続支援B型", 20, new DateOnly(2026, 4, 1), "u",
+            DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var providerB = ContractedProvider.Create(Guid.NewGuid(), certB.Id, "2020202020", "事業所B",
+            "就労継続支援B型", 20, new DateOnly(2027, 4, 1), "u",
+            DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _providers.Add(providerA);
+        _providers.Add(providerB);
+        var vm = NewVm();
+        _providers.BlockNextList(certA.Id);
+
+        var loadA = vm.ApplyNavigationContextAsync(rid, null, certA.Id);
+        await _providers.BlockedListStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        (await vm.ApplyNavigationContextAsync(rid, null, certB.Id)).Should().BeTrue();
+        _providers.ReleaseBlockedList();
+        (await loadA).Should().BeTrue();
+
+        vm.SelectedCertificate!.Id.Should().Be(certB.Id);
+        vm.ContractedProviders.Should().ContainSingle();
+        vm.ContractedProviders.Single().Id.Should().Be(providerB.Id);
+    }
+
+    [Fact]
+    public async Task UpdateProviderCommand_rejects_provider_owned_by_another_certificate()
+    {
+        var rid = Guid.NewGuid();
+        _recipients.Add(Recipient.Create(rid, "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid()));
+        var certA = Certificate.Create(Guid.NewGuid(), rid, "1111111111",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var certB = Certificate.Create(Guid.NewGuid(), rid, "2222222222",
+            new DateRange(new DateOnly(2027, 4, 1), new DateOnly(2028, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _certs.Add(certA);
+        _certs.Add(certB);
+        var providerB = ContractedProvider.Create(Guid.NewGuid(), certB.Id, "2020202020", "事業所B",
+            "就労継続支援B型", 20, new DateOnly(2027, 4, 1), "u",
+            DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _providers.Add(providerB);
+        var vm = NewVm();
+        (await vm.ApplyNavigationContextAsync(rid, null, certA.Id)).Should().BeTrue();
+        vm.SelectedProvider = (await new ListContractedProvidersUseCase(_providers)
+            .ExecuteAsync(certB.Id, default)).Single();
+        vm.ProviderName = "不正更新";
+
+        await vm.UpdateProviderCommand.ExecuteAsync(null);
+
+        vm.ProviderSaveErrorMessage.Should().Be(
+            "対象の受給者証が変更されています。最新状態を再読込してください。");
+        _providers.AllForTest.Single().ProviderName.Should().Be("事業所B");
+        vm.SelectedCertificate!.Id.Should().Be(certA.Id);
+        vm.ContractedProviders.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task UpdateProviderCommand_revalidates_head_and_refuses_update_after_certificate_correction()
+    {
+        var rid = Guid.NewGuid();
+        _recipients.Add(Recipient.Create(rid, "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid()));
+        var root = Certificate.Create(Guid.NewGuid(), rid, "1111111111",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _certs.Add(root);
+        var provider = ContractedProvider.Create(Guid.NewGuid(), root.Id, "1010101010", "事業所A",
+            "就労継続支援B型", 20, new DateOnly(2026, 4, 1), "u",
+            DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _providers.Add(provider);
+        var vm = NewVm();
+        (await vm.ApplyNavigationContextAsync(rid, null, root.Id)).Should().BeTrue();
+        vm.SelectedProvider = vm.ContractedProviders.Single();
+        vm.ProviderName = "不正更新";
+        var correction = root with
+        {
+            Id = Guid.NewGuid(),
+            Revision = 2,
+            ExpectedHeadCertificateId = root.Id,
+        };
+        _certs.Add(correction);
+
+        await vm.UpdateProviderCommand.ExecuteAsync(null);
+
+        vm.ProviderSaveErrorMessage.Should().Be(
+            "対象の受給者証が変更されています。最新状態を再読込してください。");
+        _providers.AllForTest.Single().ProviderName.Should().Be("事業所A");
+        vm.SelectedCertificate!.Id.Should().Be(correction.Id);
+        vm.ContractedProviders.Should().BeEmpty();
+    }
 }
 
 internal sealed class InMemoryRecipientRepoForCertificate : Tsumugi.Application.Abstractions.IRecipientRepository
@@ -362,8 +466,19 @@ internal sealed class InMemoryCertRepo : Tsumugi.Application.Abstractions.ICerti
 internal sealed class InMemoryContractedProviderRepo : IContractedProviderRepository
 {
     private readonly List<ContractedProvider> _list = new();
+    private Guid? _blockedCertificateId;
+    private TaskCompletionSource? _releaseBlockedList;
+    public TaskCompletionSource BlockedListStarted { get; private set; } =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
     public IReadOnlyList<ContractedProvider> AllForTest => _list;
     public void Add(ContractedProvider provider) => _list.Add(provider);
+    public void BlockNextList(Guid certificateId)
+    {
+        _blockedCertificateId = certificateId;
+        _releaseBlockedList = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        BlockedListStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+    public void ReleaseBlockedList() => _releaseBlockedList?.TrySetResult();
     public void Replace(ContractedProvider provider)
     {
         var index = _list.FindIndex(item => item.Id == provider.Id);
@@ -378,7 +493,15 @@ internal sealed class InMemoryContractedProviderRepo : IContractedProviderReposi
         if (idx >= 0) _list[idx] = p;
         return Task.CompletedTask;
     }
-    public Task<IReadOnlyList<ContractedProvider>> ListByCertificateAsync(Guid certId, CancellationToken ct) =>
-        Task.FromResult<IReadOnlyList<ContractedProvider>>(
-            _list.Where(p => p.CertificateId == certId).ToArray());
+    public async Task<IReadOnlyList<ContractedProvider>> ListByCertificateAsync(
+        Guid certId, CancellationToken ct)
+    {
+        if (_blockedCertificateId == certId)
+        {
+            _blockedCertificateId = null;
+            BlockedListStarted.TrySetResult();
+            await _releaseBlockedList!.Task.WaitAsync(ct);
+        }
+        return _list.Where(p => p.CertificateId == certId).ToArray();
+    }
 }

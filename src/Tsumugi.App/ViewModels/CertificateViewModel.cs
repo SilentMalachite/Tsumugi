@@ -28,6 +28,9 @@ public sealed partial class CertificateViewModel(
     ListContractedProvidersUseCase listProviders,
     UpdateContractedProviderUseCase updateProvider) : ViewModelBase
 {
+    private const string ProviderContextReloadMessage =
+        "対象の受給者証が変更されています。最新状態を再読込してください。";
+
     public ObservableCollection<ExpiringCertificateDto> ExpiringItems { get; } = new();
     public ObservableCollection<RecipientDto> Recipients { get; } = new();
     public ObservableCollection<CertificateDto> CertificatesForRecipient { get; } = new();
@@ -222,11 +225,20 @@ public sealed partial class CertificateViewModel(
 
     private async Task ReloadProvidersAsync(CancellationToken ct = default)
     {
+        if (SelectedCertificate is not { } certificate)
+        {
+            ContractedProviders.Clear();
+            SelectedProvider = null;
+            return;
+        }
+
+        var requestedCertificateId = certificate.Id;
+        var list = await listProviders.ExecuteAsync(requestedCertificateId, ct);
+        if (SelectedCertificate?.Id != requestedCertificateId) return;
+
         ContractedProviders.Clear();
         SelectedProvider = null;
-        if (SelectedCertificate is not { } cert) return;
-        var list = await listProviders.ExecuteAsync(cert.Id, ct);
-        foreach (var p in list) ContractedProviders.Add(p);
+        foreach (var provider in list) ContractedProviders.Add(provider);
     }
 
     [RelayCommand]
@@ -384,9 +396,29 @@ public sealed partial class CertificateViewModel(
             ProviderSaveErrorMessage = "更新対象の契約事業所を選択してください。";
             return;
         }
+        if (SelectedCertificate is not { } certificate)
+        {
+            ProviderSaveErrorMessage = ProviderContextReloadMessage;
+            ContractedProviders.Clear();
+            SelectedProvider = null;
+            return;
+        }
 
         try
         {
+            if (provider.CertificateId != certificate.Id)
+            {
+                await RevalidateSelectedCertificateHeadAsync(certificate);
+                await ReloadProvidersAsync();
+                ProviderSaveErrorMessage = ProviderContextReloadMessage;
+                return;
+            }
+            if (!await RevalidateSelectedCertificateHeadAsync(certificate))
+            {
+                await ReloadProvidersAsync();
+                ProviderSaveErrorMessage = ProviderContextReloadMessage;
+                return;
+            }
             await updateProvider.ExecuteAsync(
                 provider.Id,
                 _providerConcurrencyToken,
