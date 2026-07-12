@@ -363,7 +363,7 @@ actual=$(rg --files /tmp/tsumugi-phase31-task13/sources | wc -l | tr -d ' ')
 receipt_count=$(jq -s 'length' /tmp/tsumugi-phase31-task13/acquisition.jsonl)
 test "$actual" = "$expected"
 test "$receipt_count" = "$expected"
-jq -e -s 'all(.;
+jq -e -s 'all(.[];
   .result == "PASS"
   and .expectedSha256 == .actualSha256
   and .bytes > 0
