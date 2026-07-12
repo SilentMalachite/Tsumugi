@@ -42,11 +42,20 @@ public sealed class OfficeViewModelTests
         vm.Name = "テスト事業所";
         vm.Category = ServiceCategory.TypeB;
         vm.Region = RegionGrade.Grade1;
+        vm.PostalCode = "100-0001";
+        vm.Address = "東京都千代田区";
+        vm.PhoneNumber = "03-1234-5678";
+        vm.RepresentativeTitleAndName = "代表 山田太郎";
 
         await vm.SaveCommand.ExecuteAsync(null);
 
         vm.SaveErrorMessage.Should().BeNull();
         vm.IsSaved.Should().BeTrue();
+        var stored = (await _repo.ListAsync(default)).Single();
+        stored.PostalCode.Should().Be("100-0001");
+        stored.Address.Should().Be("東京都千代田区");
+        stored.PhoneNumber.Should().Be("03-1234-5678");
+        stored.RepresentativeTitleAndName.Should().Be("代表 山田太郎");
     }
 
     [Fact]
@@ -126,6 +135,7 @@ public sealed class OfficeViewModelTests
 internal sealed class InMemoryOfficeRepo : IOfficeRepository
 {
     private readonly List<Office> _list = [];
+    public Func<CancellationToken, Task>? BeforeListAsync { get; set; }
     public void Add(Office o) => _list.Add(o);
     public Task AddAsync(Office o, CancellationToken ct) { _list.Add(o); return Task.CompletedTask; }
     public Task<Office?> FindByIdAsync(Guid id, CancellationToken ct) =>
@@ -138,6 +148,9 @@ internal sealed class InMemoryOfficeRepo : IOfficeRepository
         if (idx >= 0) _list[idx] = o;
         return Task.CompletedTask;
     }
-    public Task<IReadOnlyList<Office>> ListAsync(CancellationToken ct) =>
-        Task.FromResult<IReadOnlyList<Office>>(_list);
+    public async Task<IReadOnlyList<Office>> ListAsync(CancellationToken ct)
+    {
+        if (BeforeListAsync is not null) await BeforeListAsync(ct);
+        return _list;
+    }
 }

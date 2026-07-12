@@ -161,6 +161,72 @@ public sealed class CertificateViewModelTests
     }
 
     [Fact]
+    public async Task Certificate_selection_exposes_only_latest_head_and_navigation_from_old_revision_resolves_latest()
+    {
+        var rid = Guid.NewGuid();
+        _recipients.Add(Recipient.Create(rid, "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid()));
+        var root = Certificate.Create(Guid.NewGuid(), rid, "1234567890",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            municipalityNumber: "131156");
+        var correction = root with
+        {
+            Id = Guid.NewGuid(),
+            Revision = 2,
+            ExpectedHeadCertificateId = root.Id,
+            MunicipalityNumber = "131157",
+        };
+        var otherRoot = Certificate.Create(Guid.NewGuid(), rid, "9999999999",
+            new DateRange(new DateOnly(2027, 4, 1), new DateOnly(2028, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _certs.Add(root);
+        _certs.Add(correction);
+        _certs.Add(otherRoot);
+
+        var vm = NewVm();
+        (await vm.ApplyNavigationContextAsync(rid, null, root.Id)).Should().BeTrue();
+
+        vm.CertificatesForRecipient.Should().HaveCount(2);
+        vm.CertificatesForRecipient.Select(x => x.Id).Should().Equal(otherRoot.Id, correction.Id);
+        vm.SelectedCertificate!.Id.Should().Be(correction.Id);
+        vm.MunicipalityNumber.Should().Be("131157");
+    }
+
+    [Fact]
+    public async Task AddProviderCommand_revalidates_certificate_head_and_refuses_stale_selection()
+    {
+        var rid = Guid.NewGuid();
+        _recipients.Add(Recipient.Create(rid, "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid()));
+        var root = Certificate.Create(Guid.NewGuid(), rid, "1234567890",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _certs.Add(root);
+        var vm = NewVm();
+        (await vm.ApplyNavigationContextAsync(rid, null, root.Id)).Should().BeTrue();
+        var correction = root with
+        {
+            Id = Guid.NewGuid(),
+            Revision = 2,
+            ExpectedHeadCertificateId = root.Id,
+        };
+        _certs.Add(correction);
+        vm.ProviderNumber = "1010101010";
+        vm.ProviderName = "Tsumugi作業所";
+        vm.ProviderServiceCategory = "就労継続支援B型";
+        vm.ProviderSupplyDays = 23;
+        vm.ProviderContractDate = new DateOnly(2026, 4, 1);
+
+        await vm.AddProviderCommand.ExecuteAsync(null);
+
+        vm.ProviderSaveErrorMessage.Should().Be(
+            "受給者証は既に訂正されています。最新状態を再読込してください。");
+        vm.SelectedCertificate!.Id.Should().Be(correction.Id);
+        _providers.AllForTest.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task SaveCommand_without_selected_recipient_sets_error()
     {
         var vm = NewVm();

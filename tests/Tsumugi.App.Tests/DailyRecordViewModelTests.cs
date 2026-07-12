@@ -68,6 +68,36 @@ public sealed class DailyRecordViewModelTests
     }
 
     [Fact]
+    public async Task InitializeAsync_loads_offices_only_after_recipient_load_completes()
+    {
+        var recipientLoadStarted = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseRecipientLoad = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var officeLoadStarted = false;
+        _recipients.BeforeListAsync = async ct =>
+        {
+            recipientLoadStarted.TrySetResult();
+            await releaseRecipientLoad.Task.WaitAsync(ct);
+        };
+        _offices.BeforeListAsync = _ =>
+        {
+            officeLoadStarted = true;
+            return Task.CompletedTask;
+        };
+        var vm = NewVm();
+
+        var initialize = vm.InitializeAsync();
+        await recipientLoadStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        var overlapped = officeLoadStarted;
+        releaseRecipientLoad.TrySetResult();
+        await initialize;
+
+        overlapped.Should().BeFalse();
+        officeLoadStarted.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task LoadRecipientsAsync_populates_recipients_for_selection()
     {
         var r = Recipient.Create(Guid.NewGuid(), "氏名", "シメイ",
@@ -101,6 +131,68 @@ public sealed class DailyRecordViewModelTests
         vm.SetMonth(2026, 6);
         await vm.LoadAsync();
         vm.Cells.Should().HaveCount(30);
+        vm.Cells.Should().OnlyContain(cell => cell.RecipientId == vm.RecipientId);
+    }
+
+    [Theory]
+    [InlineData("recipient")]
+    [InlineData("year")]
+    [InlineData("month")]
+    public async Task Context_change_clears_loaded_day_and_rejects_stale_cell_save(
+        string changedContext)
+    {
+        var originalRecipientId = Guid.NewGuid();
+        var vm = NewVm();
+        vm.SetRecipient(originalRecipientId);
+        vm.SetMonth(2026, 6);
+        await vm.LoadAsync();
+        var staleCell = vm.Cells[0];
+        vm.SelectedCell = staleCell;
+        vm.EditorNote = "破棄対象";
+        vm.DailyRecordErrorMessage = "old";
+
+        switch (changedContext)
+        {
+            case "recipient":
+                vm.SetRecipient(Guid.NewGuid());
+                break;
+            case "year":
+                vm.SetMonth(2027, 6);
+                break;
+            case "month":
+                vm.SetMonth(2026, 7);
+                break;
+        }
+
+        vm.Cells.Should().BeEmpty();
+        vm.SelectedCell.Should().BeNull();
+        vm.EditorNote.Should().BeEmpty();
+        vm.DailyRecordErrorMessage.Should().BeNull();
+
+        vm.SelectedCell = staleCell;
+        await vm.SaveSelectedDailyRecordCommand.ExecuteAsync(null);
+
+        vm.DailyRecordErrorMessage.Should().Be(
+            "表示条件が変更されています。最新状態を再読込してください。");
+        _repo.Added.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task LoadAsync_discards_result_when_context_changes_while_query_is_in_flight()
+    {
+        var vm = NewVm();
+        vm.SetRecipient(Guid.NewGuid());
+        vm.SetMonth(2026, 6);
+        _repo.BlockMonthQuery = true;
+
+        var load = vm.LoadAsync();
+        await _repo.MonthQueryStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        vm.SetMonth(2026, 7);
+        _repo.ReleaseMonthQuery();
+        await load;
+
+        vm.Cells.Should().BeEmpty();
+        vm.SelectedCell.Should().BeNull();
     }
 
     [Fact]
@@ -328,6 +420,7 @@ public sealed class DailyRecordViewModelTests
         await vm.InitializeAsync();
         vm.SelectedOffice = vm.Offices.Single();
         vm.SelectedRecipient = vm.Recipients.Single();
+        await vm.LoadEpisodeAsync();
         vm.EpisodeStartDate = new DateOnly(2026, 4, 1);
         await vm.SaveEpisodeCommand.ExecuteAsync(null);
         var staleHead = vm.EpisodeCurrentHeadId!.Value;
@@ -343,6 +436,86 @@ public sealed class DailyRecordViewModelTests
             "重度支援対象期間は既に更新されています。最新状態を再読込してください。");
         vm.EpisodeRevisions.Should().HaveCount(2);
         vm.EpisodeStartDate.Should().Be(new DateOnly(2026, 5, 1));
+    }
+
+    [Theory]
+    [InlineData("office")]
+    [InlineData("recipient")]
+    public async Task IntensiveSupportEpisode_context_change_clears_history_and_requires_reload_before_new(
+        string changedContext)
+    {
+        var officeA = Office.Create(Guid.NewGuid(), "1234567890", "事業所A",
+            ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var officeB = Office.Create(Guid.NewGuid(), "1234567891", "事業所B",
+            ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _offices.Add(officeA);
+        _offices.Add(officeB);
+        var recipient = Recipient.Create(Guid.NewGuid(), "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var otherRecipient = Recipient.Create(Guid.NewGuid(), "別利用者", "ベツリヨウシャ",
+            new DateOnly(1991, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _recipients.Add(recipient);
+        _recipients.Add(otherRecipient);
+        var vm = NewVm();
+        await vm.InitializeAsync();
+        vm.SelectedOffice = vm.Offices.Single(x => x.Id == officeA.Id);
+        vm.SelectedRecipient = vm.Recipients.Single(x => x.Id == recipient.Id);
+        await vm.LoadEpisodeAsync();
+        vm.EpisodeStartDate = new DateOnly(2026, 4, 1);
+        await vm.SaveEpisodeCommand.ExecuteAsync(null);
+
+        if (changedContext == "office")
+            vm.SelectedOffice = vm.Offices.Single(x => x.Id == officeB.Id);
+        else
+            vm.SelectedRecipient = vm.Recipients.Single(x => x.Id == otherRecipient.Id);
+
+        vm.EpisodeHistoryLoaded.Should().BeFalse();
+        vm.EpisodeRevisions.Should().BeEmpty();
+        vm.EpisodeCurrentHeadId.Should().BeNull();
+        vm.EpisodeEffectiveHeadId.Should().BeNull();
+        vm.EpisodeStartDate.Should().BeNull();
+        vm.EpisodeErrorMessage.Should().BeNull();
+
+        vm.EpisodeStartDate = new DateOnly(2026, 5, 1);
+        await vm.SaveEpisodeCommand.ExecuteAsync(null);
+
+        vm.EpisodeErrorMessage.Should().Be(
+            "重度支援対象期間の履歴を再読込してください。");
+        _episodes.Items.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task LoadEpisodeAsync_discards_result_when_context_changes_while_query_is_in_flight()
+    {
+        var officeA = Office.Create(Guid.NewGuid(), "1234567890", "事業所A",
+            ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var officeB = Office.Create(Guid.NewGuid(), "1234567891", "事業所B",
+            ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _offices.Add(officeA);
+        _offices.Add(officeB);
+        var recipient = Recipient.Create(Guid.NewGuid(), "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _recipients.Add(recipient);
+        await new SetIntensiveSupportEpisodeUseCase(_episodes, _uow, _clock).ExecuteAsync(
+            new SetIntensiveSupportEpisodeRequest(
+                officeA.Id, recipient.Id, RecordKind.New, null, new DateOnly(2026, 4, 1)),
+            "seed", default);
+        var vm = NewVm();
+        await vm.InitializeAsync();
+        vm.SelectedOffice = vm.Offices.Single(x => x.Id == officeA.Id);
+        vm.SelectedRecipient = vm.Recipients.Single();
+        _episodes.BlockNextHistoryQuery();
+
+        var load = vm.LoadEpisodeAsync();
+        await _episodes.HistoryQueryStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        vm.SelectedOffice = vm.Offices.Single(x => x.Id == officeB.Id);
+        _episodes.ReleaseHistoryQuery();
+        await load;
+
+        vm.EpisodeHistoryLoaded.Should().BeFalse();
+        vm.EpisodeRevisions.Should().BeEmpty();
+        vm.EpisodeCurrentHeadId.Should().BeNull();
+        vm.EpisodeStartDate.Should().BeNull();
     }
 
     [Fact]
@@ -367,6 +540,7 @@ public sealed class DailyRecordViewModelTests
 internal sealed class InMemoryRecipientRepoForDaily : IRecipientRepository
 {
     private readonly List<Recipient> _list = [];
+    public Func<CancellationToken, Task>? BeforeListAsync { get; set; }
     public void Add(Recipient r) => _list.Add(r);
     public Task AddAsync(Recipient r, CancellationToken ct) { _list.Add(r); return Task.CompletedTask; }
     public Task<Recipient?> FindByIdAsync(Guid id, CancellationToken ct) =>
@@ -377,34 +551,59 @@ internal sealed class InMemoryRecipientRepoForDaily : IRecipientRepository
         if (idx >= 0) _list[idx] = r;
         return Task.CompletedTask;
     }
-    public Task<IReadOnlyList<Recipient>> ListAsync(bool includeArchived, CancellationToken ct)
+    public async Task<IReadOnlyList<Recipient>> ListAsync(bool includeArchived, CancellationToken ct)
     {
+        if (BeforeListAsync is not null) await BeforeListAsync(ct);
         IEnumerable<Recipient> source = includeArchived ? _list : _list.Where(r => !r.IsArchived);
-        return Task.FromResult<IReadOnlyList<Recipient>>(source.ToArray());
+        return source.ToArray();
     }
 }
 
 internal sealed class FakeDailyRecordRepo : IDailyRecordRepository
 {
     public List<DailyRecord> Added { get; } = new();
+    private readonly TaskCompletionSource _releaseMonthQuery =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+    public TaskCompletionSource MonthQueryStarted { get; } =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+    public bool BlockMonthQuery { get; set; }
+    public void ReleaseMonthQuery() => _releaseMonthQuery.TrySetResult();
     public Task AddAsync(DailyRecord r, CancellationToken ct) { Added.Add(r); return Task.CompletedTask; }
     public Task<DailyRecord?> FindByIdAsync(Guid id, CancellationToken ct) =>
         Task.FromResult(Added.SingleOrDefault(r => r.Id == id));
     public Task<IReadOnlyList<DailyRecord>> ListByRecipientAndDateAsync(Guid rid, DateOnly d, CancellationToken ct) =>
         Task.FromResult<IReadOnlyList<DailyRecord>>(
             Added.Where(r => r.RecipientId == rid && r.ServiceDate == d).ToArray());
-    public Task<IReadOnlyList<DailyRecord>> ListByRecipientAndMonthAsync(Guid rid, int y, int m, CancellationToken ct)
+    public async Task<IReadOnlyList<DailyRecord>> ListByRecipientAndMonthAsync(
+        Guid rid, int y, int m, CancellationToken ct)
     {
+        MonthQueryStarted.TrySetResult();
+        if (BlockMonthQuery)
+            await _releaseMonthQuery.Task.WaitAsync(ct);
         var from = new DateOnly(y, m, 1);
         var to = from.AddMonths(1).AddDays(-1);
-        return Task.FromResult<IReadOnlyList<DailyRecord>>(
-            Added.Where(r => r.RecipientId == rid && r.ServiceDate >= from && r.ServiceDate <= to).ToArray());
+        return Added
+            .Where(r => r.RecipientId == rid && r.ServiceDate >= from && r.ServiceDate <= to)
+            .ToArray();
     }
 }
 
 internal sealed class FakeIntensiveSupportEpisodeRepo : IIntensiveSupportEpisodeRepository
 {
     public List<IntensiveSupportEpisode> Items { get; } = [];
+    private TaskCompletionSource? _releaseHistoryQuery;
+    public TaskCompletionSource HistoryQueryStarted { get; private set; } =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private bool _blockNextHistoryQuery;
+
+    public void BlockNextHistoryQuery()
+    {
+        HistoryQueryStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        _releaseHistoryQuery = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        _blockNextHistoryQuery = true;
+    }
+
+    public void ReleaseHistoryQuery() => _releaseHistoryQuery?.TrySetResult();
 
     public Task AddAsync(IntensiveSupportEpisode episode, CancellationToken ct)
     {
@@ -412,8 +611,15 @@ internal sealed class FakeIntensiveSupportEpisodeRepo : IIntensiveSupportEpisode
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<IntensiveSupportEpisode>> ListHistoryAsync(
-        Guid officeId, Guid recipientId, CancellationToken ct) =>
-        Task.FromResult<IReadOnlyList<IntensiveSupportEpisode>>(
-            Items.Where(x => x.OfficeId == officeId && x.RecipientId == recipientId).ToArray());
+    public async Task<IReadOnlyList<IntensiveSupportEpisode>> ListHistoryAsync(
+        Guid officeId, Guid recipientId, CancellationToken ct)
+    {
+        if (_blockNextHistoryQuery)
+        {
+            _blockNextHistoryQuery = false;
+            HistoryQueryStarted.TrySetResult();
+            await _releaseHistoryQuery!.Task.WaitAsync(ct);
+        }
+        return Items.Where(x => x.OfficeId == officeId && x.RecipientId == recipientId).ToArray();
+    }
 }

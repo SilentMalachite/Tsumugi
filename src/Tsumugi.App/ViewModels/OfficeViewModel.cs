@@ -81,6 +81,8 @@ public sealed partial class OfficeViewModel(
         {
             await registerUseCase.ExecuteAsync(
                 OfficeNumber, Name, Category, Region,
+                NullIfEmpty(PostalCode), NullIfEmpty(Address), NullIfEmpty(PhoneNumber),
+                NullIfEmpty(RepresentativeTitleAndName),
                 actor: Environment.UserName, default);
             SaveErrorMessage = null;
             IsSaved = true;

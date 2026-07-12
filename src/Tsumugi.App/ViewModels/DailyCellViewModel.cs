@@ -14,6 +14,7 @@ public sealed partial class DailyCellViewModel(
     Func<Task> reload) : ViewModelBase
 {
     public DateOnly Date { get; } = date;
+    public Guid RecipientId { get; } = recipientId;
 
     [ObservableProperty] private Guid? _effectiveId;
     [ObservableProperty] private Attendance? _effectiveAttendance;
@@ -40,7 +41,7 @@ public sealed partial class DailyCellViewModel(
     {
         if (EffectiveId is null)
         {
-            await record.ExecuteAsync(recipientId, Date,
+            await record.ExecuteAsync(RecipientId, Date,
                 attendance, TransportKind.None, mealProvided: false, note: null,
                 serviceStartTime: null, serviceEndTime: null,
                 specialVisitSupportMinutes: null, offsiteSupportApplied: null,
@@ -66,7 +67,7 @@ public sealed partial class DailyCellViewModel(
     [RelayCommand]
     private async Task RecordAsync(Attendance attendance)
     {
-        await record.ExecuteAsync(recipientId, Date,
+        await record.ExecuteAsync(RecipientId, Date,
             attendance, TransportKind.None, mealProvided: false, note: null,
             serviceStartTime: null, serviceEndTime: null,
             specialVisitSupportMinutes: null, offsiteSupportApplied: null,

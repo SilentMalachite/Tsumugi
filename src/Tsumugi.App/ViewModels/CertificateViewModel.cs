@@ -114,6 +114,7 @@ public sealed partial class CertificateViewModel(
     [ObservableProperty] private ContractedProviderDto? _selectedProvider;
     [ObservableProperty] private string? _providerSaveErrorMessage;
     private Guid _providerConcurrencyToken;
+    private readonly Dictionary<Guid, Guid> _certificateRootByRevisionId = [];
     private bool _isApplyingNavigationContext;
 
     partial void OnSelectedRecipientChanged(RecipientDto? value)
@@ -192,7 +193,11 @@ public sealed partial class CertificateViewModel(
             if (certificateId is not { } selectedId)
                 return true;
 
-            SelectedCertificate = CertificatesForRecipient.SingleOrDefault(x => x.Id == selectedId);
+            if (!_certificateRootByRevisionId.TryGetValue(selectedId, out var selectedRootId))
+                return false;
+
+            SelectedCertificate = CertificatesForRecipient
+                .SingleOrDefault(x => x.RootCertificateId == selectedRootId);
             if (SelectedCertificate is null)
                 return false;
 
@@ -209,9 +214,10 @@ public sealed partial class CertificateViewModel(
     {
         CertificatesForRecipient.Clear();
         SelectedCertificate = null;
+        _certificateRootByRevisionId.Clear();
         if (RecipientId == Guid.Empty) return;
-        var list = await listByRecipient.ExecuteAsync(RecipientId, ct);
-        foreach (var c in list) CertificatesForRecipient.Add(c);
+        var heads = await QueryCertificateHeadsAsync(ct);
+        foreach (var certificate in heads) CertificatesForRecipient.Add(certificate);
     }
 
     private async Task ReloadProvidersAsync(CancellationToken ct = default)
@@ -282,6 +288,13 @@ public sealed partial class CertificateViewModel(
         var rootId = selected.RootCertificateId;
         try
         {
+            if (!await RevalidateSelectedCertificateHeadAsync(selected))
+            {
+                SaveErrorMessage =
+                    "受給者証は既に訂正されています。最新状態を再読込してください。";
+                IsSaved = false;
+                return;
+            }
             await correctUseCase.ExecuteAsync(
                 new CorrectCertificateInput(
                     rootId,
@@ -323,8 +336,7 @@ public sealed partial class CertificateViewModel(
     {
         await ReloadCertificatesAsync();
         SelectedCertificate = CertificatesForRecipient
-            .Where(item => item.RootCertificateId == rootId)
-            .MaxBy(item => item.Revision);
+            .SingleOrDefault(item => item.RootCertificateId == rootId);
     }
 
     [RelayCommand]
@@ -335,6 +347,12 @@ public sealed partial class CertificateViewModel(
             if (SelectedCertificate is not { } cert)
             {
                 ProviderSaveErrorMessage = "対象の受給者証を選択してください。";
+                return;
+            }
+            if (!await RevalidateSelectedCertificateHeadAsync(cert))
+            {
+                ProviderSaveErrorMessage =
+                    "受給者証は既に訂正されています。最新状態を再読込してください。";
                 return;
             }
             await registerProvider.ExecuteAsync(
@@ -395,6 +413,39 @@ public sealed partial class CertificateViewModel(
                 "他のユーザに先に更新されています。一覧を再選択して最新状態を読み込んでください。";
             await ReloadProvidersAsync();
         }
+    }
+
+    private async Task<IReadOnlyList<CertificateDto>> QueryCertificateHeadsAsync(
+        CancellationToken ct = default)
+    {
+        var history = await listByRecipient.ExecuteAsync(RecipientId, ct);
+        _certificateRootByRevisionId.Clear();
+        foreach (var certificate in history)
+            _certificateRootByRevisionId[certificate.Id] = certificate.RootCertificateId;
+
+        return history
+            .GroupBy(certificate => certificate.RootCertificateId)
+            .Select(group => group.MaxBy(certificate => certificate.Revision)!)
+            .OrderByDescending(certificate => certificate.Validity.Start)
+            .ThenBy(certificate => certificate.CertificateNumber, StringComparer.Ordinal)
+            .ThenBy(certificate => certificate.RootCertificateId)
+            .ToArray();
+    }
+
+    private async Task<bool> RevalidateSelectedCertificateHeadAsync(
+        CertificateDto selected,
+        CancellationToken ct = default)
+    {
+        var heads = await QueryCertificateHeadsAsync(ct);
+        var latest = heads.SingleOrDefault(
+            certificate => certificate.RootCertificateId == selected.RootCertificateId);
+        if (latest?.Id == selected.Id) return true;
+
+        CertificatesForRecipient.Clear();
+        SelectedCertificate = null;
+        foreach (var certificate in heads) CertificatesForRecipient.Add(certificate);
+        SelectedCertificate = latest;
+        return false;
     }
 
     private static string? NullIfEmpty(string? s) => string.IsNullOrWhiteSpace(s) ? null : s;
