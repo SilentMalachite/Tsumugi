@@ -161,6 +161,12 @@ public sealed class DateRangeConverter : IValueConverter
 
 public sealed class DateTimeOffsetConverter : IValueConverter
 {
+    private static readonly string[] AcceptedFormats =
+    [
+        "yyyy-MM-dd'T'HH:mm:sszzz",
+        "yyyy-MM-dd'T'HH:mm:ss.FFFFFFFzzz",
+    ];
+
     public static readonly DateTimeOffsetConverter Instance = new();
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
@@ -172,8 +178,8 @@ public sealed class DateTimeOffsetConverter : IValueConverter
         object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (ClaimInputConverter.TryBlank(value, targetType, out var blank)) return blank;
-        return value is string text && DateTimeOffset.TryParse( // InvariantCulture is supplied below.
-            text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind,
+        return value is string text && DateTimeOffset.TryParseExact( // InvariantCulture is supplied below.
+            text, AcceptedFormats, CultureInfo.InvariantCulture, DateTimeStyles.None,
             out var dateTime)
             ? dateTime
             : ClaimInputConverter.Error("日時はISO 8601形式で入力してください。");

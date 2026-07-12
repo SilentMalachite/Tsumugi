@@ -85,6 +85,61 @@ public sealed class ClaimInputValueConverterTests
         ((BindingNotification)result!).ErrorType.Should().Be(BindingErrorType.Error);
     }
 
+    [Theory]
+    [InlineData("2026-07-12T10:30:00+09:00", 0)]
+    [InlineData("2026-07-12T10:30:00.1234567+09:00", 1_234_567)]
+    public void Date_time_offset_accepts_explicit_iso_with_offset(
+        string text,
+        int expectedTicksWithinSecond)
+    {
+        var result = ConvertBack(
+            DateTimeOffsetConverter.Instance, text, typeof(DateTimeOffset?));
+
+        result.Should().BeOfType<DateTimeOffset>();
+        var parsed = (DateTimeOffset)result!;
+        parsed.Offset.Should().Be(TimeSpan.FromHours(9));
+        (parsed.Ticks % TimeSpan.TicksPerSecond).Should().Be(expectedTicksWithinSecond);
+    }
+
+    [Theory]
+    [InlineData("07/12/2026 10:30:00 +09:00")]
+    [InlineData("2026年7月12日 10時30分00秒 +09:00")]
+    [InlineData("2026-07-12 10:30:00 +09:00")]
+    public void Date_time_offset_rejects_non_iso_text(string text)
+    {
+        var result = ConvertBack(
+            DateTimeOffsetConverter.Instance, text, typeof(DateTimeOffset?));
+
+        result.Should().BeOfType<BindingNotification>();
+        ((BindingNotification)result!).ErrorType.Should().Be(BindingErrorType.Error);
+    }
+
+    [Fact]
+    public void Date_time_offset_convert_roundtrips_and_preserves_offset()
+    {
+        var source = new DateTimeOffset(
+            2026, 7, 12, 10, 30, 0, 123, TimeSpan.FromHours(9)).AddTicks(4_567);
+        var text = DateTimeOffsetConverter.Instance.Convert(
+            source, typeof(string), null, CultureInfo.InvariantCulture);
+
+        var result = DateTimeOffsetConverter.Instance.ConvertBack(
+            text, typeof(DateTimeOffset?), null, CultureInfo.InvariantCulture);
+
+        result.Should().Be(source);
+        ((DateTimeOffset)result!).Offset.Should().Be(source.Offset);
+    }
+
+    [Fact]
+    public void Date_time_offset_null_and_empty_are_safe_nullable_values()
+    {
+        DateTimeOffsetConverter.Instance.Convert(
+                null, typeof(string), null, CultureInfo.InvariantCulture)
+            .Should().Be(string.Empty);
+        DateTimeOffsetConverter.Instance.ConvertBack(
+                string.Empty, typeof(DateTimeOffset?), null, CultureInfo.InvariantCulture)
+            .Should().BeNull();
+    }
+
     private static object? ConvertBack(
         IValueConverter converter,
         string text,
