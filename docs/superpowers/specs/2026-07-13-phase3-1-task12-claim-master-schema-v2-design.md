@@ -124,8 +124,9 @@ master-values
 - 全entryは`effective-period`を有効正本で覆う。
 - service code entryは`service-identity`、`selectors`及び`unit-rule-kind`を有効正本で覆う。
 - `fixed-composite-unit`は`unit-rule-value`を有効正本で覆う。
-- `unit-addition`は`unit-rule-value`及び`unit-rule-step`を有効正本で覆う。`units-per-count`と`percentage-of-target`は`unit-rule-target`も必須とし、percentage amountだけ`unit-rule-rounding`も必須とする。
-- `formula`は`unit-rule-value`、`unit-rule-target`、`unit-rule-step`及び`unit-rule-rounding`を有効正本で覆う。
+- `unit-addition`は`unit-rule-value`及び`unit-rule-step`を有効正本で覆う。`units-per-count`、`percentage-of-target`及び`prorated-units`は`unit-rule-target`も必須とし、percentage amount及びprorated amountは`unit-rule-rounding`も必須とする。
+- `formula / base-component-pass-through`は`unit-rule-target`及び`unit-rule-step`を有効正本で覆う。`unit-rule-value`及び`unit-rule-rounding`は要求しない。
+- `formula / factor-chain`は`unit-rule-value`、`unit-rule-target`、`unit-rule-step`及び`unit-rule-rounding`を有効正本で覆う。
 - `conditionSelectors`が非空のservice code entryは`conditions`を有効正本で覆う。
 - condition definitionは`conditions`及び`effective-period`を有効正本で覆う。
 - その他のmaster entryは`master-values`を有効正本で覆う。
