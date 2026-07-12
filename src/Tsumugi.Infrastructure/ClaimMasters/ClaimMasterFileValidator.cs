@@ -110,6 +110,7 @@ internal static class ClaimMasterFileValidator
         }
 
         ValidateReferences(basicRewards, percentageAdjustments, serviceCodes);
+        ValidateSelectorCycles(percentageAdjustments);
         ValidateCalculationOrder(percentageAdjustments);
 
         return new ClaimCalculationMasterBundle(
@@ -545,6 +546,52 @@ internal static class ClaimMasterFileValidator
                     "Percentage adjustment calculationOrder must be unique and contiguous from one.");
             }
         }
+    }
+
+    private static void ValidateSelectorCycles(
+        IReadOnlyCollection<PercentageAdjustmentMasterRow> rows)
+    {
+        foreach (var month in rows.Select(row => row.EffectiveFrom).Distinct().Order())
+        {
+            var activeRows = rows
+                .Where(row => row.EffectiveFrom <= month
+                              && (row.EffectiveTo is null || month <= row.EffectiveTo.Value))
+                .ToArray();
+            var dependencies = activeRows.ToDictionary(
+                row => row.Key,
+                row => row.TargetSelector,
+                StringComparer.Ordinal);
+            var visited = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var key in dependencies.Keys)
+            {
+                if (HasSelectorCycle(
+                        key,
+                        dependencies,
+                        new HashSet<string>(StringComparer.Ordinal),
+                        visited))
+                {
+                    throw new InvalidDataException(
+                        "Percentage adjustment selectors contain a dependency cycle.");
+                }
+            }
+        }
+    }
+
+    private static bool HasSelectorCycle(
+        string key,
+        IReadOnlyDictionary<string, string> dependencies,
+        HashSet<string> visiting,
+        HashSet<string> visited)
+    {
+        if (visited.Contains(key)) return false;
+        if (!visiting.Add(key)) return true;
+
+        var hasCycle = dependencies.TryGetValue(key, out var target)
+                       && dependencies.ContainsKey(target)
+                       && HasSelectorCycle(target, dependencies, visiting, visited);
+        visiting.Remove(key);
+        visited.Add(key);
+        return hasCycle;
     }
 
     private static void ValidatePeriods(

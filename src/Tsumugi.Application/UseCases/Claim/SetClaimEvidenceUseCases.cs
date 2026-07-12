@@ -1,7 +1,9 @@
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Domain.Entities;
+using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic.Claim;
+using Tsumugi.Domain.Logic.Claim.Models;
 
 namespace Tsumugi.Application.UseCases.Claim;
 
@@ -81,11 +83,36 @@ public sealed class SetOfficeClaimProfileUseCase(
         ArgumentNullException.ThrowIfNull(request);
         ClaimInputSaveGuard.ValidateActor(actor);
         ClaimInputSaveGuard.ValidateIdentities(request.OfficeId);
-        if (request.MasterVersion is not { } masterVersion)
+        if (request.Kind != RecordKind.Cancel && request.MasterVersion is null)
         {
             throw new ClaimInputSaveException(
                 ClaimInputSaveErrorCode.InvalidRequest,
                 ClaimInputFieldCode.Values);
+        }
+
+        var candidates = await repo.ListByOfficeAsync(request.OfficeId, ct);
+        var history = candidates
+            .Where(item => item.EffectiveFrom == request.EffectiveFrom
+                           && item.EffectiveTo == request.EffectiveTo)
+            .ToArray();
+        ClaimMasterVersion masterVersion;
+        if (request.Kind == RecordKind.Cancel)
+        {
+            var latestNonCancel = history
+                .Where(item => item.Kind != RecordKind.Cancel)
+                .MaxBy(item => item.Revision);
+            if (latestNonCancel?.MasterVersion is not { } historyMasterVersion)
+            {
+                throw new ClaimInputSaveException(
+                    ClaimInputSaveErrorCode.InvalidHistory,
+                    ClaimInputFieldCode.History);
+            }
+
+            masterVersion = historyMasterVersion;
+        }
+        else
+        {
+            masterVersion = request.MasterVersion!.Value;
         }
 
         OfficeClaimProfilePolicy policy;
@@ -100,11 +127,6 @@ public sealed class SetOfficeClaimProfileUseCase(
                 ClaimInputFieldCode.Values);
         }
 
-        var candidates = await repo.ListByOfficeAsync(request.OfficeId, ct);
-        var history = candidates
-            .Where(item => item.EffectiveFrom == request.EffectiveFrom
-                           && item.EffectiveTo == request.EffectiveTo)
-            .ToArray();
         ClaimInputSaveGuard.ValidateExistingHistory(() => policy.ValidateHistory(history));
         var head = history.MaxBy(item => item.Revision);
         ClaimInputSaveGuard.ValidateRequestedRevision(

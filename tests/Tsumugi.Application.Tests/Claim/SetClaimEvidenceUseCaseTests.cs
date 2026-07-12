@@ -143,6 +143,43 @@ public sealed class SetClaimEvidenceUseCaseTests
     }
 
     [Fact]
+    public async Task Office_claim_profile_cancel_resolves_the_latest_non_cancel_version_then_allows_reentry()
+    {
+        var repo = new FakeOfficeClaimProfileRepository();
+        var provider = new FakePolicyProvider(CreateOfficePolicy());
+        var sut = new SetOfficeClaimProfileUseCase(
+            repo, new FakeUnitOfWork(), new FixedTimeProvider(Now), provider);
+        var officeId = Guid.NewGuid();
+
+        var created = await sut.ExecuteAsync(
+            ValidOfficeProfileRequest(officeId, RecordKind.New, null),
+            "operator",
+            default);
+        var cancelled = await sut.ExecuteAsync(
+            new SetOfficeClaimProfileRequest(
+                officeId,
+                new DateOnly(2026, 6, 1),
+                null,
+                RecordKind.Cancel,
+                created.Id),
+            "operator",
+            default);
+        var reentered = await sut.ExecuteAsync(
+            ValidOfficeProfileRequest(officeId, RecordKind.Correct, cancelled.Id),
+            "operator",
+            default);
+
+        repo.Items.Select(item => item.Kind).Should()
+            .Equal(RecordKind.New, RecordKind.Cancel, RecordKind.Correct);
+        repo.Items[1].MasterVersion.Should().BeNull();
+        reentered.Revision.Should().Be(3);
+        provider.RequestedVersions.Should().Equal(
+            MasterVersion,
+            MasterVersion,
+            MasterVersion);
+    }
+
+    [Fact]
     public async Task Certificate_claim_evidence_rejects_inconsistent_management_fields()
     {
         var repo = new FakeCertificateClaimEvidenceRepository();
@@ -331,10 +368,12 @@ public sealed class SetClaimEvidenceUseCaseTests
         public FakePolicyProvider(ClaimMasterPolicyUnavailableException error) => _error = error;
 
         public int ResolveCalls { get; private set; }
+        public List<ClaimMasterVersion> RequestedVersions { get; } = [];
 
         public OfficeClaimProfilePolicy Resolve(ClaimMasterVersion masterVersion)
         {
             ResolveCalls++;
+            RequestedVersions.Add(masterVersion);
             if (_error is not null) throw _error;
             return _policy!;
         }

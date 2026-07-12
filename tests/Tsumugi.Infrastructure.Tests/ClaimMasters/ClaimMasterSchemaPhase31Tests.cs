@@ -93,6 +93,27 @@ public sealed class ClaimMasterSchemaPhase31Tests
         action.Should().Throw<InvalidDataException>();
     }
 
+    [Fact]
+    public void Load_rejects_a_two_node_percentage_selector_cycle_in_the_same_period()
+    {
+        var masters = ValidMasters();
+        var additions = JsonNode.Parse(masters["additions.json"])!.AsObject();
+        var first = additions["entries"]![0]!.AsObject();
+        first["key"] = "selector:a";
+        first["values"]!["targetSelector"] = "selector:b";
+        var second = first.DeepClone().AsObject();
+        second["key"] = "selector:b";
+        second["values"]!["targetSelector"] = "selector:a";
+        additions["entries"]!.AsArray().Add(second);
+        masters["additions.json"] = additions.ToJsonString();
+        MutateFirstEntry(masters, "service-codes.json", entry =>
+            entry["values"]!["selectors"] = new JsonArray("selector:a", "selector:b"));
+
+        var action = () => Load(masters);
+
+        action.Should().Throw<InvalidDataException>();
+    }
+
     internal static JsonClaimMasterProvider CreateProvider(
         IReadOnlyDictionary<string, string> masterJsons)
     {
