@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Logic.Claim.Models;
@@ -8,6 +9,14 @@ namespace Tsumugi.Infrastructure.Persistence.Configurations;
 
 public sealed class OfficeClaimProfileConfiguration : IEntityTypeConfiguration<OfficeClaimProfile>
 {
+    private static readonly ValueComparer<ClaimMasterVersion> VersionComparer = new(
+        (left, right) => string.Equals(
+            ToProviderValueOrNull(left),
+            ToProviderValueOrNull(right),
+            StringComparison.Ordinal),
+        version => GetVersionHashCode(version),
+        version => version);
+
     public void Configure(EntityTypeBuilder<OfficeClaimProfile> builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -95,10 +104,13 @@ public sealed class OfficeClaimProfileConfiguration : IEntityTypeConfiguration<O
         {
             versioned.IsRequired(false);
             versioned.Ignore(nameof(VersionedAverageWageBandOption.Option));
-            versioned.Property<ClaimMasterVersion>(nameof(VersionedAverageWageBandOption.MasterVersion))
+            var masterVersion = versioned
+                .Property<ClaimMasterVersion>(nameof(VersionedAverageWageBandOption.MasterVersion));
+            masterVersion
                 .HasConversion(value => value.Value, value => new ClaimMasterVersion(value))
                 .HasMaxLength(ClaimMasterVersion.MaxLength)
                 .HasColumnName($"{prefix}_MasterVersion");
+            masterVersion.Metadata.SetValueComparer(VersionComparer);
             versioned.Property<AverageWageBandOptionKind>("Kind")
                 .HasConversion<int>().HasColumnName($"{prefix}_Option_Kind");
             versioned.Property<int>("OfficialOptionCode")
@@ -115,4 +127,22 @@ public sealed class OfficeClaimProfileConfiguration : IEntityTypeConfiguration<O
             $"\"{prefix}_Option_OfficialOptionCode\" IS NOT NULL " +
             $"AND length(trim(\"{prefix}_MasterVersion\")) BETWEEN 1 AND 64 " +
             $"AND \"{prefix}_Option_Kind\" IN (1, 2, 3) AND \"{prefix}_Option_OfficialOptionCode\" > 0))");
+
+    private static string? ToProviderValueOrNull(ClaimMasterVersion version)
+    {
+        try
+        {
+            return version.Value;
+        }
+        catch (InvalidOperationException)
+        {
+            return null;
+        }
+    }
+
+    private static int GetVersionHashCode(ClaimMasterVersion version)
+    {
+        var value = ToProviderValueOrNull(version);
+        return value is null ? 0 : StringComparer.Ordinal.GetHashCode(value);
+    }
 }

@@ -235,6 +235,55 @@ public sealed class ClaimInputRepositoryTests : IClassFixture<SqliteFixture>
     }
 
     [Fact]
+    public async Task Profile_repository_round_trips_cancel_sentinel_through_real_unit_of_work()
+    {
+        var officeId = Guid.NewGuid();
+        await using var context = _fixture.NewContext();
+        context.Add(ClaimRows.Office(officeId));
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+        var root = ClaimRows.Profile(
+            Guid.NewGuid(),
+            officeId,
+            new DateOnly(2026, 4, 1),
+            new DateOnly(2027, 3, 31));
+        var cancel = ClaimRows.CancelProfile(root);
+        var repository = new OfficeClaimProfileRepository(context);
+
+        await repository.AddAsync(root, default);
+        await repository.AddAsync(cancel, default);
+
+        context.ChangeTracker.Entries<OfficeClaimProfile>()
+            .Should().OnlyContain(entry => entry.State == EntityState.Added);
+        (await new EfUnitOfWork(context).SaveChangesAsync(default)).Should().Be(2);
+        context.ChangeTracker.Entries().Should().BeEmpty();
+
+        await using var verification = _fixture.NewContext();
+        var history = await new OfficeClaimProfileRepository(verification)
+            .ListByOfficeAsync(officeId, default);
+        history.Should().HaveCount(2);
+        var persisted = history[1];
+        persisted.Kind.Should().Be(RecordKind.Cancel);
+        persisted.MasterVersion.Should().BeNull();
+        persisted.ReformStatus.Should().BeNull();
+        persisted.AverageWageBandOption.Should().BeNull();
+        persisted.DesignationDate.Should().BeNull();
+        persisted.SupportStartDate.Should().BeNull();
+        persisted.EarlierRegisteredBandOption.Should().BeNull();
+        persisted.EarlierRegistrationMonth.Should().BeNull();
+        persisted.LaterRegisteredBandOption.Should().BeNull();
+        persisted.LaterRegistrationMonth.Should().BeNull();
+        persisted.ReformComparisonEvidenceDocumentId.Should().BeNull();
+        persisted.FiledTransitionPeriod.Should().BeNull();
+        persisted.FiledTransitionEvidenceDocumentId.Should().BeNull();
+        persisted.EvidenceDocumentId.Should().BeNull();
+        persisted.ConfirmedAt.Should().BeNull();
+        persisted.ConfirmedBy.Should().BeNull();
+        persisted.ConfirmationReason.Should().BeNull();
+        verification.ChangeTracker.Entries().Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task Certificate_evidence_list_returns_multiple_validities_with_open_end_last_then_root_and_revision()
     {
         var recipientId = Guid.NewGuid();
@@ -517,6 +566,37 @@ public sealed class ClaimInputRepositoryTests : IClassFixture<SqliteFixture>
             Kind = RecordKind.Correct,
             ExpectedHeadId = root.Id,
             CreatedAt = DateTimeOffset.UnixEpoch.AddMinutes(1),
+            ConcurrencyToken = Guid.NewGuid(),
+        };
+
+        public static OfficeClaimProfile CancelProfile(OfficeClaimProfile root) => new()
+        {
+            Id = Guid.NewGuid(),
+            OfficeId = root.OfficeId,
+            EffectiveFrom = root.EffectiveFrom,
+            EffectiveTo = root.EffectiveTo,
+            RootId = root.RootId,
+            Revision = 2,
+            Kind = RecordKind.Cancel,
+            ExpectedHeadId = root.Id,
+            MasterVersion = null,
+            ReformStatus = null,
+            AverageWageBandOption = null,
+            DesignationDate = null,
+            SupportStartDate = null,
+            EarlierRegisteredBandOption = null,
+            EarlierRegistrationMonth = null,
+            LaterRegisteredBandOption = null,
+            LaterRegistrationMonth = null,
+            ReformComparisonEvidenceDocumentId = null,
+            FiledTransitionPeriod = null,
+            FiledTransitionEvidenceDocumentId = null,
+            EvidenceDocumentId = null,
+            ConfirmedAt = null,
+            ConfirmedBy = null,
+            ConfirmationReason = null,
+            CreatedAt = DateTimeOffset.UnixEpoch.AddMinutes(1),
+            CreatedBy = "tester",
             ConcurrencyToken = Guid.NewGuid(),
         };
 
