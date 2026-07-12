@@ -45,6 +45,7 @@ public sealed partial class OfficeViewModel(
         return SelectedItem is not null;
     }
 
+    [RelayCommand]
     public async Task LoadAsync(CancellationToken ct = default)
     {
         var list = await listUseCase.ExecuteAsync(ct);

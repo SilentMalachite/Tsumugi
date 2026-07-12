@@ -6,6 +6,7 @@
              x:Class="Tsumugi.App.Views.OfficeView"
              x:DataType="vm:OfficeViewModel">
     <UserControl.KeyBindings>
+        <KeyBinding Gesture="F5" Command="{Binding LoadCommand}" />
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCurrentCommand}" />
         <KeyBinding Gesture="Escape" Command="{Binding DiscardCommand}" />
     </UserControl.KeyBindings>

@@ -25,6 +25,15 @@ public sealed class ViewInputWiringTests
     }
 
     [Fact]
+    public void OfficeView_binds_F5_to_LoadCommand()
+    {
+        var xml = ReadView("OfficeView.axaml");
+
+        xml.Should().Contain("Gesture=\"F5\"");
+        xml.Should().Contain("{Binding LoadCommand}");
+    }
+
+    [Fact]
     public void Phase31_owned_certificate_and_office_fields_are_exposed_without_evidence_fields()
     {
         var certificate = ReadView("CertificateView.axaml");
