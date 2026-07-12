@@ -109,6 +109,9 @@ manifestのdocument ID、URL、期待SHA-256は`src/Tsumugi.Infrastructure/Claim
       "disposition": "seed",
       "masterKind": "service-codes",
       "seedKey": "...",
+      "aggregationId": null,
+      "aggregationKind": null,
+      "aggregationReason": null,
       "exclusionReason": null
     }
   ]
@@ -120,6 +123,8 @@ manifestのdocument ID、URL、期待SHA-256は`src/Tsumugi.Infrastructure/Claim
 - `seed`: `masterKind`と`seedKey`を必須とし、production seedのちょうど1 rowへ対応させる。
 - `excluded`: `exclusionReason`を必須とし、A型専用、別service、見出し、重複掲載などの具体的理由を記録する。
 - `schema-gap`: 現行6型へ損失なく分類できない理由を必須とし、Task 13を停止する。
+
+複数source rowを1 production rowへ明示的に集約する場合、対象rowは同じ`masterKind + seedKey`と`aggregationId`を持ち、`aggregationKind = multi-source-one-seed`及び非空の`aggregationReason`を必須にする。1対1対応では3つのaggregation fieldをnullにする。completenessはsource row数とproduction row数を直接比較せず、manifestのdistinct `masterKind + seedKey`集合とproduction key集合を比較する。
 
 各rowの`rangeId`は同じdocument内の`extractionRanges.rangeId`へちょうど1件対応させる。rangeごとの`expectedItemCount`、manifestのrow数、公式資料から実際に列挙したrow数を一致させる。独立reviewerはseedだけでなく、この範囲とmanifestの全rowを照合する。
 
