@@ -2007,7 +2007,7 @@
     },
     {
       "fieldId": "provider:J611:01:117",
-      "requiredCondition": "modelPresent(DailyRecord.MedicalCoordinationType)",
+      "requiredCondition": "modelIn(DailyRecord.MedicalCoordinationType;TypeI;TypeII;TypeIII;TypeIV;TypeV;TypeVI)",
       "notes": "",
       "status": "generated",
       "generatorRule": "count(target=provider:J611:01:117;selector=DailyRecord.MedicalCoordinationType;value=present;source=provider-r7-10:p66:item117)"
@@ -2063,7 +2063,7 @@
     },
     {
       "fieldId": "provider:J611:01:125",
-      "requiredCondition": "modelPresent(DailyRecord.TrialUseSupportType)",
+      "requiredCondition": "modelIn(DailyRecord.TrialUseSupportType;TypeI;TypeII)",
       "notes": "",
       "status": "generated",
       "generatorRule": "count(target=provider:J611:01:125;selector=DailyRecord.TrialUseSupportType;value=present;source=provider-r7-10:p67:item125)"
@@ -2931,7 +2931,7 @@
     },
     {
       "fieldId": "provider:J611:02:074",
-      "requiredCondition": "modelPresent(DailyRecord.MedicalCoordinationType)",
+      "requiredCondition": "modelIn(DailyRecord.MedicalCoordinationType;TypeI;TypeII;TypeIII;TypeIV;TypeV;TypeVI)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "DailyRecord",
@@ -2997,7 +2997,7 @@
     },
     {
       "fieldId": "provider:J611:02:083",
-      "requiredCondition": "modelPresent(DailyRecord.TrialUseSupportType)",
+      "requiredCondition": "modelIn(DailyRecord.TrialUseSupportType;TypeI;TypeII)",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "DailyRecord",

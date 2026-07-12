@@ -129,7 +129,7 @@
     },
     {
       "fieldId": "report:service-performance:daily:010",
-      "requiredCondition": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.MedicalCoordinationType))",
+      "requiredCondition": "all(rowPresent(service-performance.daily);modelIn(DailyRecord.MedicalCoordinationType;TypeI;TypeII;TypeIII;TypeIV;TypeV;TypeVI))",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "DailyRecord",
@@ -140,7 +140,7 @@
     },
     {
       "fieldId": "report:service-performance:daily:011",
-      "requiredCondition": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.TrialUseSupportType))",
+      "requiredCondition": "all(rowPresent(service-performance.daily);modelIn(DailyRecord.TrialUseSupportType;TypeI;TypeII))",
       "notes": "Phase 3-1 AC3-8",
       "status": "missing",
       "targetModel": "DailyRecord",
@@ -244,7 +244,7 @@
     },
     {
       "fieldId": "report:service-performance:totals:005",
-      "requiredCondition": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.MedicalCoordinationType))",
+      "requiredCondition": "all(rowPresent(service-performance.daily);modelIn(DailyRecord.MedicalCoordinationType;TypeI;TypeII;TypeIII;TypeIV;TypeV;TypeVI))",
       "notes": "",
       "status": "generated",
       "generatorRule": "render(target=report:service-performance:totals:005;field=provider:J611:01:117;format=service-performance.totals.position5;source=service-performance-examples-r6-04-pdf:p12)",
@@ -252,7 +252,7 @@
     },
     {
       "fieldId": "report:service-performance:totals:006",
-      "requiredCondition": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.TrialUseSupportType))",
+      "requiredCondition": "all(rowPresent(service-performance.daily);modelIn(DailyRecord.TrialUseSupportType;TypeI;TypeII))",
       "notes": "",
       "status": "generated",
       "generatorRule": "render(target=report:service-performance:totals:006;field=provider:J611:01:125;format=service-performance.totals.position6;source=service-performance-examples-r6-04-pdf:p12)",

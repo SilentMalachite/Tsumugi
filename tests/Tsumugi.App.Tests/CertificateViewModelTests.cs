@@ -65,6 +65,7 @@ public sealed class CertificateViewModelTests
         vm.SupplyDays = 23;
         vm.MonthlyCostCap = 9300;
         vm.Municipality = "杉並区";
+        vm.MunicipalityNumber = "131156";
 
         // 各セクションを埋める
         vm.RecipientAddress = "東京都杉並区...";
@@ -88,6 +89,7 @@ public sealed class CertificateViewModelTests
         stored.Disabilities.Mental.Should().BeTrue();
         stored.SupportCategory.Should().Be(SupportCategory.Category2);
         stored.PaymentBurden.Should().Be(PaymentBurdenCategory.LowIncome);
+        stored.MunicipalityNumber.Should().Be("131156");
         stored.MealProvisionApplicable.Should().BeTrue();
         stored.ConsultationProviderName.Should().Be("相談センターA");
     }

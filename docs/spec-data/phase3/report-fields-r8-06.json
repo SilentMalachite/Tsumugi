@@ -173,7 +173,7 @@
       "section": "daily",
       "position": 10,
       "officialName": "医療連携体制加算",
-      "requiredWhen": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.MedicalCoordinationType))",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelIn(DailyRecord.MedicalCoordinationType;TypeI;TypeII;TypeIII;TypeIV;TypeV;TypeVI))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
       "sourcePage": 12,
       "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 10"
@@ -184,7 +184,7 @@
       "section": "daily",
       "position": 11,
       "officialName": "体験利用支援加算",
-      "requiredWhen": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.TrialUseSupportType))",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelIn(DailyRecord.TrialUseSupportType;TypeI;TypeII))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
       "sourcePage": 12,
       "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 11"
@@ -307,7 +307,7 @@
       "section": "totals",
       "position": 5,
       "officialName": "医療連携体制加算 合計",
-      "requiredWhen": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.MedicalCoordinationType))",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelIn(DailyRecord.MedicalCoordinationType;TypeI;TypeII;TypeIII;TypeIV;TypeV;TypeVI))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
       "sourcePage": 12,
       "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 5"
@@ -318,7 +318,7 @@
       "section": "totals",
       "position": 6,
       "officialName": "体験利用支援加算 合計",
-      "requiredWhen": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.TrialUseSupportType))",
+      "requiredWhen": "all(rowPresent(service-performance.daily);modelIn(DailyRecord.TrialUseSupportType;TypeI;TypeII))",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
       "sourcePage": 12,
       "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance totals row 6"

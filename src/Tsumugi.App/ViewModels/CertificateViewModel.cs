@@ -77,6 +77,7 @@ public sealed partial class CertificateViewModel(
     [ObservableProperty] private int _supplyDays = 23;
     [ObservableProperty] private int _monthlyCostCap;
     [ObservableProperty] private string _municipality = string.Empty;
+    [ObservableProperty] private string _municipalityNumber = string.Empty;
     [ObservableProperty] private string _supplyNotes = string.Empty;
 
     // 4. 計画相談支援
@@ -182,6 +183,7 @@ public sealed partial class CertificateViewModel(
                 UpperLimitManagementProvider = NullIfEmpty(UpperLimitManagementProvider),
                 MealProvisionApplicable = MealProvisionApplicable,
                 HighCostBenefitApplicable = HighCostBenefitApplicable,
+                MunicipalityNumber = NullIfEmpty(MunicipalityNumber),
             };
 
             var (_, warnings) = await registerUseCase.ExecuteAsync(input, Environment.UserName, default);

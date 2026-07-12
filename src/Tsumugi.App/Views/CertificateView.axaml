@@ -157,6 +157,10 @@
                                 <TextBlock Text="市町村" />
                                 <TextBox Text="{Binding Municipality}" Watermark="例：杉並区" />
                             </StackPanel>
+                            <StackPanel Spacing="2" Width="120">
+                                <TextBlock Text="市町村番号" />
+                                <TextBox Text="{Binding MunicipalityNumber}" Watermark="6桁" MaxLength="6" />
+                            </StackPanel>
                         </StackPanel>
                         <StackPanel Spacing="2">
                             <TextBlock Text="支給決定内容に関する特記事項" />
