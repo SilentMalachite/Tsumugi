@@ -54,6 +54,17 @@ public sealed class ClaimMasterSeedPhase31Tests
         "r8-service-codes-2-pdf",
     ];
 
+    private static readonly string[] ExpectedAuthoritativeDocumentIds =
+    [
+        "mhlw-unit-price-notice-observed-946c3d96",
+        "r6-disability-support-guide-202404",
+        "r6-capability-202404",
+        "r6-capability-202406",
+        "r6-service-codes-2-xlsx",
+        "r8-capability-202606",
+        "r8-service-codes-2-xlsx",
+    ];
+
     [Fact]
     public void Source_manifest_exists_and_has_a_closed_root_contract()
     {
@@ -64,7 +75,9 @@ public sealed class ClaimMasterSeedPhase31Tests
             .Should().Equal("schemaVersion", "documents", "rows");
         root.GetProperty("schemaVersion").GetString().Should().Be("1");
         root.GetProperty("documents").ValueKind.Should().Be(JsonValueKind.Array);
-        root.GetProperty("rows").ValueKind.Should().Be(JsonValueKind.Array);
+        var rows = root.GetProperty("rows");
+        rows.ValueKind.Should().Be(JsonValueKind.Array);
+        rows.GetArrayLength().Should().Be(0);
     }
 
     [Fact]
@@ -90,6 +103,8 @@ public sealed class ClaimMasterSeedPhase31Tests
         var documentIds = documents
             .Select(document => document.GetProperty("documentId").GetString()!)
             .ToArray();
+        var expectedAuthoritativeIds = ExpectedAuthoritativeDocumentIds
+            .ToHashSet(StringComparer.Ordinal);
 
         documentIds.Distinct(StringComparer.Ordinal).Should().HaveCount(documentIds.Length);
         documentIds.Should().BeEquivalentTo(ExpectedDocumentIds);
@@ -108,7 +123,7 @@ public sealed class ClaimMasterSeedPhase31Tests
             document.GetProperty("sourceSha256").GetString().Should()
                 .Be(catalogSources[id].GetProperty("sha256").GetString());
             document.GetProperty("role").GetString().Should()
-                .BeOneOf("authoritative", "cross-check");
+                .Be(expectedAuthoritativeIds.Contains(id) ? "authoritative" : "cross-check");
 
             var ranges = document.GetProperty("extractionRanges");
             ranges.ValueKind.Should().Be(JsonValueKind.Array);
