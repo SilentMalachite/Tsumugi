@@ -581,6 +581,11 @@ namespace Tsumugi.Infrastructure.Migrations
                 sql: "\"Revision\" >= 1 AND ((\"Revision\" = 1 AND \"RootCertificateId\" = \"Id\" AND \"ExpectedHeadCertificateId\" IS NULL) OR (\"Revision\" >= 2 AND \"RootCertificateId\" <> \"Id\" AND \"ExpectedHeadCertificateId\" IS NOT NULL))");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AverageWageAnnualEvidences_OfficeId_SourceFiscalYear",
+                table: "AverageWageAnnualEvidences",
+                columns: new[] { "OfficeId", "SourceFiscalYear" });
+
+            migrationBuilder.CreateIndex(
                 name: "UX_AverageWageAnnualEvidences_ExpectedHeadId",
                 table: "AverageWageAnnualEvidences",
                 column: "ExpectedHeadId",
@@ -601,6 +606,11 @@ namespace Tsumugi.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_CertificateClaimEvidences_CertificateId",
+                table: "CertificateClaimEvidences",
+                column: "CertificateId");
+
+            migrationBuilder.CreateIndex(
                 name: "UX_CertificateClaimEvidences_CertificateId_Validity_NewOnly",
                 table: "CertificateClaimEvidences",
                 columns: new[] { "CertificateId", "Validity" },
@@ -619,6 +629,11 @@ namespace Tsumugi.Infrastructure.Migrations
                 table: "CertificateClaimEvidences",
                 columns: new[] { "RootId", "Revision" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ClaimInputs_OfficeId_RecipientId_ServiceMonthKey",
+                table: "ClaimInputs",
+                columns: new[] { "OfficeId", "RecipientId", "ServiceMonthKey" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ClaimInputs_RecipientId",
@@ -646,6 +661,11 @@ namespace Tsumugi.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_IntensiveSupportEpisodes_OfficeId_RecipientId",
+                table: "IntensiveSupportEpisodes",
+                columns: new[] { "OfficeId", "RecipientId" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_IntensiveSupportEpisodes_RecipientId",
                 table: "IntensiveSupportEpisodes",
                 column: "RecipientId");
@@ -669,6 +689,11 @@ namespace Tsumugi.Infrastructure.Migrations
                 table: "IntensiveSupportEpisodes",
                 columns: new[] { "RootId", "Revision" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OfficeClaimProfiles_OfficeId",
+                table: "OfficeClaimProfiles",
+                column: "OfficeId");
 
             migrationBuilder.CreateIndex(
                 name: "UX_OfficeClaimProfiles_ExpectedHeadId",
@@ -715,9 +740,9 @@ namespace Tsumugi.Infrastructure.Migrations
                 column: "CertificateId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UpperLimitManagementStatements_ManagingOfficeId",
+                name: "IX_UpperLimitManagementStatements_ManagingOfficeId_RecipientId_ServiceMonthKey",
                 table: "UpperLimitManagementStatements",
-                column: "ManagingOfficeId");
+                columns: new[] { "ManagingOfficeId", "RecipientId", "ServiceMonthKey" });
 
             migrationBuilder.CreateIndex(
                 name: "UX_UpperLimitManagementStatements_ExpectedHeadId",

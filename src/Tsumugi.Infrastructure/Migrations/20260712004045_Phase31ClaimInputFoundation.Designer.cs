@@ -12,7 +12,7 @@ using Tsumugi.Infrastructure.Persistence;
 namespace Tsumugi.Infrastructure.Migrations
 {
     [DbContext(typeof(TsumugiDbContext))]
-    [Migration("20260712000017_Phase31ClaimInputFoundation")]
+    [Migration("20260712004045_Phase31ClaimInputFoundation")]
     partial class Phase31ClaimInputFoundation
     {
         /// <inheritdoc />
@@ -156,6 +156,9 @@ namespace Tsumugi.Infrastructure.Migrations
                     b.HasIndex("RootId", "Revision")
                         .IsUnique()
                         .HasDatabaseName("UX_AverageWageAnnualEvidences_RootId_Revision");
+
+                    b.HasIndex(new[] { "OfficeId", "SourceFiscalYear" }, "IX_AverageWageAnnualEvidences_OfficeId_SourceFiscalYear")
+                        .HasDatabaseName("IX_AverageWageAnnualEvidences_OfficeId_SourceFiscalYear");
 
                     b.ToTable("AverageWageAnnualEvidences", null, t =>
                         {
@@ -416,6 +419,9 @@ namespace Tsumugi.Infrastructure.Migrations
                         });
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CertificateId")
+                        .HasDatabaseName("IX_CertificateClaimEvidences_CertificateId");
 
                     b.HasIndex("ExpectedHeadId")
                         .IsUnique()
@@ -718,6 +724,9 @@ namespace Tsumugi.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("UX_ClaimInputs_OfficeId_RecipientId_ServiceMonthKey_NewOnly")
                         .HasFilter("\"Kind\" = 1");
+
+                    b.HasIndex(new[] { "OfficeId", "RecipientId", "ServiceMonth" }, "IX_ClaimInputs_OfficeId_RecipientId_ServiceMonthKey")
+                        .HasDatabaseName("IX_ClaimInputs_OfficeId_RecipientId_ServiceMonthKey");
 
                     b.ToTable("ClaimInputs", null, t =>
                         {
@@ -1141,6 +1150,9 @@ namespace Tsumugi.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("UX_IntensiveSupportEpisodes_RootId_Revision");
 
+                    b.HasIndex(new[] { "OfficeId", "RecipientId" }, "IX_IntensiveSupportEpisodes_OfficeId_RecipientId")
+                        .HasDatabaseName("IX_IntensiveSupportEpisodes_OfficeId_RecipientId");
+
                     b.ToTable("IntensiveSupportEpisodes", null, t =>
                         {
                             t.HasCheckConstraint("CK_IntensiveSupportEpisodes_CancelPayload", "(\"Kind\" = 3 AND \"StartDate\" IS NULL) OR (\"Kind\" IN (1, 2) AND \"StartDate\" IS NOT NULL)");
@@ -1377,6 +1389,9 @@ namespace Tsumugi.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("UX_OfficeClaimProfiles_ExpectedHeadId")
                         .HasFilter("\"ExpectedHeadId\" IS NOT NULL");
+
+                    b.HasIndex("OfficeId")
+                        .HasDatabaseName("IX_OfficeClaimProfiles_OfficeId");
 
                     b.HasIndex("OfficeId", "EffectiveFrom")
                         .IsUnique()
@@ -1708,11 +1723,12 @@ namespace Tsumugi.Infrastructure.Migrations
                         .HasDatabaseName("UX_UpperLimitManagementStatements_ExpectedHeadId")
                         .HasFilter("\"ExpectedHeadId\" IS NOT NULL");
 
-                    b.HasIndex("ManagingOfficeId");
-
                     b.HasIndex("RootId", "Revision")
                         .IsUnique()
                         .HasDatabaseName("UX_UpperLimitManagementStatements_RootId_Revision");
+
+                    b.HasIndex("ManagingOfficeId", "RecipientId", "ServiceMonth")
+                        .HasDatabaseName("IX_UpperLimitManagementStatements_ManagingOfficeId_RecipientId_ServiceMonthKey");
 
                     b.HasIndex("RecipientId", "CertificateId", "ManagingOfficeId", "ServiceMonth")
                         .IsUnique()

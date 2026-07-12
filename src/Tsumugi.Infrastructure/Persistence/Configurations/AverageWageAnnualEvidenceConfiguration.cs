@@ -24,6 +24,10 @@ public sealed class AverageWageAnnualEvidenceConfiguration : IEntityTypeConfigur
         builder.Property(x => x.PeriodStart).IsRequired();
         builder.Property(x => x.PeriodEnd).IsRequired();
         builder.Property(x => x.Completeness).HasConversion<int?>();
+        builder.HasIndex(
+                x => new { x.OfficeId, x.SourceFiscalYear },
+                "IX_AverageWageAnnualEvidences_OfficeId_SourceFiscalYear")
+            .HasDatabaseName("IX_AverageWageAnnualEvidences_OfficeId_SourceFiscalYear");
         builder.HasIndex(x => new { x.OfficeId, x.SourceFiscalYear }).HasFilter("\"Kind\" = 1").IsUnique()
             .HasDatabaseName("UX_AverageWageAnnualEvidences_OfficeId_SourceFiscalYear_NewOnly");
         builder.HasOne<Office>().WithMany().HasForeignKey(x => x.OfficeId)

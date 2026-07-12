@@ -43,6 +43,8 @@ public sealed class CertificateClaimEvidenceConfiguration : IEntityTypeConfigura
             .HasColumnName("Article31EffectivePeriod");
         ClaimInputConfigurationShared.ConfigureEnteredYen(builder, nameof(CertificateClaimEvidence.MonthlyCostCap), "MonthlyCostCap");
         ClaimInputConfigurationShared.ConfigureEnteredYen(builder, nameof(CertificateClaimEvidence.Article31AmountYen), "Article31AmountYen");
+        builder.HasIndex(x => x.CertificateId)
+            .HasDatabaseName("IX_CertificateClaimEvidences_CertificateId");
         builder.HasIndex(x => new { x.CertificateId, x.Validity }).HasFilter("\"Kind\" = 1").IsUnique()
             .HasDatabaseName("UX_CertificateClaimEvidences_CertificateId_Validity_NewOnly");
         builder.HasOne<Certificate>().WithMany().HasForeignKey(x => x.CertificateId)

@@ -85,6 +85,8 @@ public sealed class OfficeClaimProfileConfiguration : IEntityTypeConfiguration<O
         });
         ConfigureVersionedOption(builder, nameof(OfficeClaimProfile.EarlierRegisteredBandOption), "EarlierRegisteredBandOption");
         ConfigureVersionedOption(builder, nameof(OfficeClaimProfile.LaterRegisteredBandOption), "LaterRegisteredBandOption");
+        builder.HasIndex(x => x.OfficeId)
+            .HasDatabaseName("IX_OfficeClaimProfiles_OfficeId");
         builder.HasIndex(x => new { x.OfficeId, x.EffectiveFrom, x.EffectiveTo })
             .HasFilter("\"Kind\" = 1 AND \"EffectiveTo\" IS NOT NULL").IsUnique()
             .HasDatabaseName("UX_OfficeClaimProfiles_OfficeId_EffectiveFrom_EffectiveTo_ClosedNewOnly");

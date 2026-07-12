@@ -146,6 +146,28 @@ public sealed class Phase31ClaimInputMigrationTests
         ("UpperLimitManagementStatements", "Result"),
     ];
 
+    private static readonly LookupIndexSpec[] LookupIndexSpecs =
+    [
+        new(
+            "ClaimInputs",
+            "IX_ClaimInputs_OfficeId_RecipientId_ServiceMonthKey",
+            ["OfficeId", "RecipientId", "ServiceMonthKey"]),
+        new(
+            "IntensiveSupportEpisodes",
+            "IX_IntensiveSupportEpisodes_OfficeId_RecipientId",
+            ["OfficeId", "RecipientId"]),
+        new(
+            "AverageWageAnnualEvidences",
+            "IX_AverageWageAnnualEvidences_OfficeId_SourceFiscalYear",
+            ["OfficeId", "SourceFiscalYear"]),
+        new("OfficeClaimProfiles", "IX_OfficeClaimProfiles_OfficeId", ["OfficeId"]),
+        new("CertificateClaimEvidences", "IX_CertificateClaimEvidences_CertificateId", ["CertificateId"]),
+        new(
+            "UpperLimitManagementStatements",
+            "IX_UpperLimitManagementStatements_ManagingOfficeId_RecipientId_ServiceMonthKey",
+            ["ManagingOfficeId", "RecipientId", "ServiceMonthKey"]),
+    ];
+
     [Fact]
     public async Task Target_up_preserves_legacy_rows_backfills_certificate_lineage_and_leaves_claim_inputs_unset()
     {
@@ -230,6 +252,9 @@ public sealed class Phase31ClaimInputMigrationTests
 
         foreach (var table in NewTables)
             (await TableExistsAsync(database.Connection, table)).Should().BeTrue();
+
+        foreach (var spec in LookupIndexSpecs)
+            await AssertNonPartialIndexAsync(database.Connection, spec);
 
         await AssertColumnAsync(database.Connection, "Certificates", "RootCertificateId", "TEXT", true, null);
         await AssertColumnAsync(database.Connection, "Certificates", "Revision", "INTEGER", true, null);
@@ -392,6 +417,17 @@ public sealed class Phase31ClaimInputMigrationTests
             .Be(new SqliteForeignKey("StatementId", "UpperLimitManagementStatements", "Id", "RESTRICT"));
         (await ReadCreateTableSqlAsync(database.Connection, "UpperLimitManagementStatementLines"))
             .Should().Contain("FK_UpperLimitManagementStatementLines_UpperLimitManagementStatements_StatementId");
+    }
+
+    [Fact]
+    public async Task Lookup_predicates_use_their_nonpartial_indexes()
+    {
+        await using var database = await TemporarySqliteDatabase.CreateAsync();
+        var (target, _) = ResolveMigration(database.Context);
+        await database.Context.GetService<IMigrator>().MigrateAsync(target);
+
+        foreach (var spec in LookupIndexSpecs)
+            await AssertQueryPlanUsesIndexAsync(database.Connection, spec);
     }
 
     [Fact]
@@ -1279,6 +1315,45 @@ public sealed class Phase31ClaimInputMigrationTests
                 CanonicalizeSqlExpression(expectedWhereClause.Replace("WHERE", "", StringComparison.OrdinalIgnoreCase)));
     }
 
+    private static async Task AssertNonPartialIndexAsync(
+        SqliteConnection connection,
+        LookupIndexSpec spec)
+    {
+        var indexes = await ReadIndexesAsync(connection, spec.Table);
+        indexes.Should().ContainKey(spec.Name);
+        indexes[spec.Name].Should().Be(new SqliteIndex(Unique: false, Partial: false));
+        (await ReadIndexColumnsAsync(connection, spec.Name)).Should().Equal(spec.Columns);
+        ExtractWhereClause(await ReadCreateIndexSqlAsync(connection, spec.Name)).Should().BeNull();
+    }
+
+    private static async Task AssertQueryPlanUsesIndexAsync(
+        SqliteConnection connection,
+        LookupIndexSpec spec)
+    {
+        var predicates = spec.Columns.Select((column, index) => $"\"{column}\" = $value{index}");
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            $"EXPLAIN QUERY PLAN SELECT \"Id\" FROM \"{spec.Table}\" WHERE {string.Join(" AND ", predicates)};";
+        for (var index = 0; index < spec.Columns.Count; index++)
+        {
+            var column = spec.Columns[index];
+            var value = column is "ServiceMonthKey" or "SourceFiscalYear"
+                ? (object)202607
+                : Guid.NewGuid();
+            command.Parameters.AddWithValue($"$value{index}", value);
+        }
+
+        await using var reader = await command.ExecuteReaderAsync();
+        var details = new List<string>();
+        while (await reader.ReadAsync())
+            details.Add(reader.GetString(3));
+
+        details.Should().Contain(
+            detail => detail.Contains("SEARCH", StringComparison.OrdinalIgnoreCase)
+                      && detail.Contains(spec.Name, StringComparison.Ordinal),
+            $"{spec.Table} natural-key lookup must use {spec.Name}; actual plan: {string.Join(" | ", details)}");
+    }
+
     private static async Task AssertNamedCheckAsync(
         SqliteConnection connection,
         string table,
@@ -1561,6 +1636,11 @@ public sealed class Phase31ClaimInputMigrationTests
         string BusinessIndexName,
         IReadOnlyList<SqliteForeignKey> ForeignKeys,
         IReadOnlyList<string> CancelPayloadColumns);
+
+    private sealed record LookupIndexSpec(
+        string Table,
+        string Name,
+        IReadOnlyList<string> Columns);
 
     private sealed record OfficeProfileOptionState(
         string ConstraintName,

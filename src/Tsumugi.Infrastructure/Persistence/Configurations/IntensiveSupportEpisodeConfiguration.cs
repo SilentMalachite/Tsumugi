@@ -16,6 +16,10 @@ public sealed class IntensiveSupportEpisodeConfiguration : IEntityTypeConfigurat
         builder.Property(x => x.OfficeId).IsRequired();
         builder.Property(x => x.RecipientId).IsRequired();
         builder.Property(x => x.StartDate);
+        builder.HasIndex(
+                x => new { x.OfficeId, x.RecipientId },
+                "IX_IntensiveSupportEpisodes_OfficeId_RecipientId")
+            .HasDatabaseName("IX_IntensiveSupportEpisodes_OfficeId_RecipientId");
         builder.HasIndex(x => new { x.OfficeId, x.RecipientId }).HasFilter("\"Kind\" = 1").IsUnique()
             .HasDatabaseName("UX_IntensiveSupportEpisodes_OfficeId_RecipientId_NewOnly");
         builder.HasOne<Office>().WithMany().HasForeignKey(x => x.OfficeId)

@@ -37,6 +37,10 @@ public sealed class ClaimInputConfiguration : IEntityTypeConfiguration<ClaimInpu
                 value => value.HasValue ? value.Value.ToInt() : (int?)null,
                 value => value.HasValue ? ServiceMonth.FromInt(value.Value) : (ServiceMonth?)null)
             .HasColumnName("ExceptionalUsageEndMonthKey");
+        builder.HasIndex(
+                x => new { x.OfficeId, x.RecipientId, x.ServiceMonth },
+                "IX_ClaimInputs_OfficeId_RecipientId_ServiceMonthKey")
+            .HasDatabaseName("IX_ClaimInputs_OfficeId_RecipientId_ServiceMonthKey");
         builder.HasIndex(x => new { x.OfficeId, x.RecipientId, x.ServiceMonth })
             .HasFilter("\"Kind\" = 1")
             .IsUnique()

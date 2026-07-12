@@ -59,6 +59,8 @@ public sealed class UpperLimitManagementStatementConfiguration
             builder, nameof(UpperLimitManagementStatement.TotalPreManagementBurdenYen), "TotalPreManagementBurdenYen");
         ClaimInputConfigurationShared.ConfigureEnteredYen(
             builder, nameof(UpperLimitManagementStatement.TotalManagedBurdenYen), "TotalManagedBurdenYen");
+        builder.HasIndex(x => new { x.ManagingOfficeId, x.RecipientId, x.ServiceMonth })
+            .HasDatabaseName("IX_UpperLimitManagementStatements_ManagingOfficeId_RecipientId_ServiceMonthKey");
         builder.HasIndex(x => new { x.RecipientId, x.CertificateId, x.ManagingOfficeId, x.ServiceMonth })
             .HasFilter("\"Kind\" = 1").IsUnique()
             .HasDatabaseName(
