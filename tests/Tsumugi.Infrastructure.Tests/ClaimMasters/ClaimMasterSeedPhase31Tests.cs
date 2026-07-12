@@ -318,6 +318,8 @@ public sealed class ClaimMasterSeedPhase31Tests
         AssertPeriod(rows, "r8-capability-202606", "workbook-order=1;row=242", "2026-06", null);
         AssertPeriod(rows, "r6-service-codes-2-xlsx", "workbook-order=38;row=7", "2024-04", "2026-05");
         AssertPeriod(rows, "r6-service-codes-2-xlsx", "workbook-order=38;row=1061", "2024-06", "2026-05");
+        AssertPeriod(rows, "r6-service-codes-2-xlsx", "workbook-order=38;row=1069", "2024-06", "2025-03");
+        AssertPeriod(rows, "r6-service-codes-2-xlsx", "workbook-order=38;row=1096", "2024-06", "2025-03");
         AssertPeriod(rows, "r6-service-codes-2-xlsx", "workbook-order=38;row=1097", "2024-04", "2024-05");
         AssertPeriod(rows, "r8-service-codes-2-xlsx", "workbook-order=38;row=7", "2026-06", null);
 
@@ -327,7 +329,18 @@ public sealed class ClaimMasterSeedPhase31Tests
             (row.GetProperty("effectiveFrom").GetString() == "2024-04"
              || row.GetProperty("effectiveFrom").GetString() == "2024-06")
             && (row.GetProperty("effectiveTo").GetString() == "2024-05"
+                || row.GetProperty("effectiveTo").GetString() == "2025-03"
                 || row.GetProperty("effectiveTo").GetString() == "2026-05"));
+
+        foreach (var rowNumber in Enumerable.Range(1069, 28))
+        {
+            AssertPeriod(
+                rows,
+                "r6-service-codes-2-xlsx",
+                $"workbook-order=38;row={rowNumber}",
+                "2024-06",
+                "2025-03");
+        }
 
         var r8ServiceRows = rows.Where(row =>
             row.GetProperty("sourceDocumentId").GetString() == "r8-service-codes-2-xlsx");
