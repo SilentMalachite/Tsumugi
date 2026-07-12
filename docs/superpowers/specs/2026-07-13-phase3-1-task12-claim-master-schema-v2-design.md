@@ -230,9 +230,17 @@ percentage-of-target
   percentageBaseScope: per-service-code-unit | monthly-target-unit-sum
   targetSelector: non-blank string
   calculationOrder: positive integer
+
+prorated-units
+  poolUnitsPerStaff: positive integer
+  staffCountSelector: non-blank string
+  recipientCountSelector: non-blank string
+  maximumRecipientsPerStaff: positive integer
 ```
 
 canonical percentageは倍率で表し、`0.10`を10%と解釈する。`10`を10%として解釈しない。
+
+`prorated-units`は各対象利用者について`poolUnitsPerStaff × staff count ÷ recipient count`を計算し、指定rounding後の整数単位を加算する閉じたshapeとする。staff count及びrecipient countは正のruntime factを必須とし、`recipient count <= staff count × maximumRecipientsPerStaff`を満たさない入力は算定不能とする。任意の分子、分母又は式文字列は許可しない。
 
 代表fixture:
 
@@ -298,9 +306,10 @@ claim.rounding.units.half-up.v1
 | unit-addition / units-per-count | `claim.step.units.service-code.multiply-count.v1` | `null` |
 | unit-addition / percentage-of-target / per-service-code-unit | `claim.step.units.per-service-code.percentage.v1` | `claim.rounding.units.half-up.v1` |
 | unit-addition / percentage-of-target / monthly-target-unit-sum | `claim.step.units.monthly-target.percentage.v1` | `claim.rounding.units.half-up.v1` |
+| unit-addition / prorated-units | `claim.step.units.service-code.prorate-by-recipient-count.v1` | `claim.rounding.units.half-up.v1` |
 | formula factor | `claim.step.units.per-service-code.percentage.v1` | `claim.rounding.units.half-up.v1` |
 
-`claim.step.units.service-code.fixed.v1`だけを新規closed IDとして追加する。他のIDはADR 0025の既存contractを再利用する。fixed unitは公式の整数をそのservice code単位として受け取り、丸めない。formulaはADR 0025どおり割合適用のたびに丸め、`after-chain`又は末尾一括丸めをschema上許可しない。上記以外のID、null位置又は組合せを拒否する。
+`claim.step.units.service-code.fixed.v1`及び`claim.step.units.service-code.prorate-by-recipient-count.v1`を新規closed IDとして追加する。他のIDはADR 0025の既存contractを再利用する。fixed unitは公式の整数をそのservice code単位として受け取り、丸めない。prorationはpool、staff count及びrecipient countから得たdecimal単位を既存の`claim.rounding.units.half-up.v1`で整数へ戻す。formulaはADR 0025どおり割合適用のたびに丸め、`after-chain`又は末尾一括丸めをschema上許可しない。上記以外のID、null位置又は組合せを拒否する。
 
 ## 9. Condition definitions
 
@@ -386,7 +395,7 @@ UnitAdjustmentMasterRow
   SourceRefs[]
 ```
 
-`Amount`は§8.2と同じ`fixed-units`、`units-per-count`、`percentage-of-target`の閉じたunionを使う。service codeを公式請求行の正本、additionを正規化componentとするため、validatorは`adjustmentComponentKey`が解決する全適用月で、service code側の`amount`、`calculationStepId`、`roundingRuleId`及び`billingUnit`とcomponent側の対応fieldが構造的に完全一致することを要求する。これにより両方へ値を保持しても相互に乖離できない。
+`Amount`は§8.2と同じ`fixed-units`、`units-per-count`、`percentage-of-target`、`prorated-units`の閉じたunionを使う。service codeを公式請求行の正本、additionを正規化componentとするため、validatorは`adjustmentComponentKey`が解決する全適用月で、service code側の`amount`、`calculationStepId`、`roundingRuleId`及び`billingUnit`とcomponent側の対応fieldが構造的に完全一致することを要求する。これにより両方へ値を保持しても相互に乖離できない。
 
 名称を次のように区別する。
 
@@ -403,6 +412,8 @@ UnitAdditionRule.AddedUnits / UnitsPerCount
 - `baseComponentKey`及び`adjustmentComponentKey`: `ComponentRef.key`。
 - `targetSelector`: `ServiceCodeMasterRow.Selectors`。参照元期間の各月で1件以上のtarget service codeへ解決し、参照元自身だけに解決するselectorを拒否する。
 - `countSelector`: runtime input factのclosed key。Task 12では`previous-year-six-month-employment-count`だけを許可する。
+- `staffCountSelector`: runtime input factのclosed key。Task 12では`medical-coordination-v-visiting-nurse-count`だけを許可する。
+- `recipientCountSelector`: runtime input factのclosed key。Task 12では`medical-coordination-v-supported-recipient-count`だけを許可する。
 - `conditionSelectors`: 同じ`service-codes.json`内の`conditionDefinitions.key`。
 
 循環検証は`UnitAdjustmentMasterRow.Amount`の`percentage-of-target.targetSelector`によるadjustment graphと、service code unit-additionの同branchによるtarget selector graphを別々に行う。`fixed-units`及び`units-per-count`はtarget selector graphへ含めない。component annotationとadditionからservice selectorへの参照を同一graphへ混ぜない。
@@ -504,9 +515,10 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 - 3 unit rule kindが全値を保持する。
 - fixed-composite-unitが正の最終単位と負の独立減算単位を保持し、0を拒否する。
 - nested amount unionが種類別fieldを保持する。
+- prorated-unitsがpool、staff count selector、recipient count selector及び上限を保持する。
 - factorがstep及びrounding境界を保持する。
 - source refs、supports、condition definition及びcomponent refsを保持する。
-- `UnitAdjustmentMasterRow`が3種類のamount、step、rounding及びbilling unitを保持する。
+- `UnitAdjustmentMasterRow`が4種類のamount、step、rounding及びbilling unitを保持する。
 - `OfficialLabel`、`BaseUnits`及び`FinalUnits`の意味が混在しない。
 
 ### 15.2 Schema tests
@@ -531,6 +543,7 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 - unit-additionと参照addition componentのamount、step、rounding又はbilling unitの不一致を拒否する。
 - adjustment selector graph及びunit-addition target selector graphの自己参照・循環を種類別に拒否する。
 - reference namespace違反、target selector空集合、count selector未知値及びfactor condition subset違反を拒否する。
+- proration selector未知値、0以下のruntime count及びrecipient上限超過を拒否する。
 - factor orderの穴・重複、rate範囲外、step／rounding matrix不整合及び末尾一括丸めfieldを拒否する。
 - service code retirement及びcondition retirementを受理する。
 
@@ -547,6 +560,8 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 source refのdocument ID及びSHAはTask 13 manifestとcatalogの実値を使う。公式値を巨大fixtureへ複製せず、上表の各union代表field、source ref、condition、component及びperiodだけを固定する。
 
 同表の3 gap代表に加え、signed boundary fixtureとして`r6-service-codes-2-xlsx / workbook-order=38;row=913`の`finalUnits = -5`及び`per-day`を固定する。
+
+operation boundary fixtureとして`r6-service-codes-2-xlsx / workbook-order=38;row=1044`のservice code `469992`、official label `就継Ｂ医療連携体制加算Ⅴ`、`prorated-units`、`poolUnitsPerStaff = 500`、staff／recipient count selector、`maximumRecipientsPerStaff = 8`、`per-day`、proration step及びhalf-upを固定する。pool値は適用版の報酬告示、按分shapeはservice-code rowを有効正本として、それぞれ対応supportsで覆う。
 
 ### 15.5 Scale test
 
@@ -615,6 +630,7 @@ Task 12とTask 13 seed転記を同じcommitへ混ぜない。
 - 正値及び負値の`FinalUnits`が保持され、0が拒否される。
 - component参照とformula参照の不足・role不整合・期間外が拒否される。
 - unit-additionと参照addition componentのamount、step、rounding及びbilling unitが一致し、不一致が拒否される。
+- 利用者数按分が閉じたprorated-unitsとして保持され、未知selector、0除算相当及び上限超過が拒否される。
 - adjustment selector graph及びunit-addition target selector graphの自己参照・循環が拒否される。
 - service code及びconditionの明示的retirementが受理される。
 - 14,709件scale fixtureがvalidatorを通る。
