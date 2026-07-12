@@ -193,7 +193,7 @@ r8-service-codes-2-pdf
 }
 ```
 
-存在するrangeでは、`xlsx-rows`は`workbookOrder / rowFrom / rowTo / expectedItemCount`、`pdf-pages`は`pageFrom / pageTo / expectedItemCount`、`html-page`は`pageNo / expectedItemCount = 1`を持つ。R6/R8 service code workbookのworkbook順38〜41、capability workbookのsheet順、未確定cross-check頁はTask 3で取得バイトから確定し、基本報酬範囲より後ろの行を省略しない。
+存在するrangeでは、`xlsx-rows`は`workbookOrder / rowFrom / rowTo / expectedItemCount`、`pdf-pages`は`pageFrom / pageTo / expectedItemCount`、`html-page`は`pageNo / expectedItemCount`を持つ。`expectedItemCount`はkindにかかわらず正の数とし、HTML内の複数の対象rowは個別locatorで列挙する。R6/R8 service code workbookのworkbook順38〜41、capability workbookのsheet順、未確定cross-check頁はTask 3で取得バイトから確定し、基本報酬範囲より後ろの行を省略しない。
 
 - [ ] **Step 4: manifest documentがcatalogとreleaseに存在するtestを書く**
 

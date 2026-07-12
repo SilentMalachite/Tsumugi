@@ -299,6 +299,132 @@ public sealed class ClaimMasterSeedPhase31Tests
         }
     }
 
+    [Fact]
+    public void Source_manifest_uses_inclusive_period_boundaries_for_critical_rows()
+    {
+        using var manifest = OpenRepositoryJson(ManifestPath);
+        var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().ToArray();
+
+        rows.Where(row =>
+                row.GetProperty("sourceDocumentId").GetString()
+                    == "r6-disability-support-guide-202404")
+            .Should().HaveCount(4)
+            .And.OnlyContain(row =>
+                row.GetProperty("effectiveFrom").GetString() == "2024-04"
+                && row.GetProperty("effectiveTo").ValueKind == JsonValueKind.Null);
+
+        AssertPeriod(rows, "r6-capability-202404", "workbook-order=1;row=273", "2024-04", "2024-05");
+        AssertPeriod(rows, "r6-capability-202406", "workbook-order=1;row=240", "2024-06", "2026-05");
+        AssertPeriod(rows, "r8-capability-202606", "workbook-order=1;row=242", "2026-06", null);
+        AssertPeriod(rows, "r6-service-codes-2-xlsx", "workbook-order=38;row=7", "2024-04", "2026-05");
+        AssertPeriod(rows, "r6-service-codes-2-xlsx", "workbook-order=38;row=1061", "2024-06", "2026-05");
+        AssertPeriod(rows, "r6-service-codes-2-xlsx", "workbook-order=38;row=1097", "2024-04", "2024-05");
+        AssertPeriod(rows, "r8-service-codes-2-xlsx", "workbook-order=38;row=7", "2026-06", null);
+
+        var r6ServiceRows = rows.Where(row =>
+            row.GetProperty("sourceDocumentId").GetString() == "r6-service-codes-2-xlsx");
+        r6ServiceRows.Should().OnlyContain(row =>
+            (row.GetProperty("effectiveFrom").GetString() == "2024-04"
+             || row.GetProperty("effectiveFrom").GetString() == "2024-06")
+            && (row.GetProperty("effectiveTo").GetString() == "2024-05"
+                || row.GetProperty("effectiveTo").GetString() == "2026-05"));
+
+        var r8ServiceRows = rows.Where(row =>
+            row.GetProperty("sourceDocumentId").GetString() == "r8-service-codes-2-xlsx");
+        r8ServiceRows.Should().OnlyContain(row =>
+            row.GetProperty("effectiveFrom").GetString() == "2026-06"
+            && row.GetProperty("effectiveTo").ValueKind == JsonValueKind.Null);
+    }
+
+    [Fact]
+    public void Source_manifest_html_region_rows_and_service_gap_categories_are_precise()
+    {
+        using var manifest = OpenRepositoryJson(ManifestPath);
+        var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().ToArray();
+        var regionRows = rows.Where(row =>
+                row.GetProperty("sourceDocumentId").GetString()
+                    == "mhlw-unit-price-notice-observed-946c3d96")
+            .ToArray();
+
+        regionRows.Should().HaveCount(8);
+        regionRows.Should().OnlyContain(row =>
+            row.GetProperty("disposition").GetString() == "seed"
+            && row.GetProperty("masterKind").GetString() == "region-unit-prices"
+            && row.GetProperty("effectiveFrom").GetString() == "2024-04"
+            && row.GetProperty("effectiveTo").ValueKind == JsonValueKind.Null);
+        regionRows.Select(row => row.GetProperty("seedKey").GetString())
+            .Should().OnlyHaveUniqueItems();
+
+        string[] continuationLocators =
+        [
+            "workbook-order=38;row=1064",
+            "workbook-order=38;row=1074",
+            "workbook-order=38;row=1076",
+            "workbook-order=38;row=1080",
+            "workbook-order=38;row=1086",
+            "workbook-order=38;row=1092",
+        ];
+        foreach (var locator in continuationLocators)
+        {
+            var row = FindRow(rows, "r6-service-codes-2-xlsx", locator);
+            row.GetProperty("disposition").GetString().Should().Be("excluded");
+            row.GetProperty("exclusionReason").GetString().Should().Contain("継続行");
+        }
+
+        foreach (var locator in new[]
+                 {
+                     "workbook-order=38;row=2266",
+                     "workbook-order=38;row=2268",
+                 })
+        {
+            var row = FindRow(rows, "r8-service-codes-2-xlsx", locator);
+            row.GetProperty("disposition").GetString().Should().Be("excluded");
+            row.GetProperty("exclusionReason").GetString().Should().Contain("継続行");
+        }
+
+        var allowedGapReasons = new[]
+        {
+            "numeric-composite-unit:",
+            "unit-addition-or-other-operation:",
+            "condition-rate-calculation-structure:",
+        };
+        rows.Where(row =>
+                row.GetProperty("disposition").GetString() == "schema-gap"
+                && row.GetProperty("sourceDocumentId").GetString()!.EndsWith(
+                    "service-codes-2-xlsx",
+                    StringComparison.Ordinal))
+            .Should().OnlyContain(row => allowedGapReasons.Any(prefix =>
+                row.GetProperty("exclusionReason").GetString()!.StartsWith(
+                    prefix,
+                    StringComparison.Ordinal)));
+    }
+
+    private static void AssertPeriod(
+        IEnumerable<JsonElement> rows,
+        string documentId,
+        string locator,
+        string effectiveFrom,
+        string? effectiveTo)
+    {
+        var row = FindRow(rows, documentId, locator);
+        row.GetProperty("effectiveFrom").GetString().Should().Be(effectiveFrom);
+        if (effectiveTo is null)
+        {
+            row.GetProperty("effectiveTo").ValueKind.Should().Be(JsonValueKind.Null);
+        }
+        else
+        {
+            row.GetProperty("effectiveTo").GetString().Should().Be(effectiveTo);
+        }
+    }
+
+    private static JsonElement FindRow(
+        IEnumerable<JsonElement> rows,
+        string documentId,
+        string locator) => rows.Single(row =>
+            row.GetProperty("sourceDocumentId").GetString() == documentId
+            && row.GetProperty("sourceLocator").GetString() == locator);
+
     private static void AssertRangeContract(JsonElement range)
     {
         var kind = range.GetProperty("kind").GetString();
@@ -342,7 +468,6 @@ public sealed class ClaimMasterSeedPhase31Tests
                     "pageNo",
                     "expectedItemCount");
                 range.GetProperty("pageNo").GetInt32().Should().BeGreaterThan(0);
-                range.GetProperty("expectedItemCount").GetInt32().Should().Be(1);
                 break;
         }
     }
