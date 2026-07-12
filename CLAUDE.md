@@ -95,7 +95,7 @@ dotnet list package --vulnerable --include-transitive  # 脆弱性確認
 - **本書(Claude Code)が実装、Codexがレビュー**。Codex指摘は重大度付きで返り、Claude Code向け修正指示に**トリアージして取り込む**。
 - 不明点・公式仕様の未確定事項は推測で実装せず `docs/open-questions.md` に起票し、設計相談へ回す。
 - フェーズは 0→1→2→3 の順（基盤→記録→工賃→国保連請求）。前フェーズの受け入れ基準を満たすまで次に着手しない。
-- **現在地**: フェーズ0・1・2 完了（`v0.2.0-phase2`）。次は **フェーズ3（国保連 請求データ CSV 生成）**。フェーズ2の AC2-8 のみ正式定義未確定の暫定式 → `docs/open-questions.md` 参照。
+- **現在地**: フェーズ0・1・2とPhase 3-0は完了。Phase 3-1は現行計画Tasks 2〜10（請求入力モデル、migration、repository、保存ユースケース、typed requirements、readiness gate）まで実装済みで、Task 11の入力UIから継続する。Phase 3-1全体は未受け入れ。Phase 2の`AverageWageMetric`は互換保持し、請求用正式定義はADR 0023、実装はPhase 3-1 Task 15で扱う。
 
 ---
 
@@ -106,6 +106,9 @@ dotnet list package --vulnerable --include-transitive  # 脆弱性確認
 - `04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md` — フェーズ1（マスタ・記録）の実装指示と受け入れ基準
 - `05_ClaudeCode_Phase2実装指示_工賃計算_Tsumugi.md` — フェーズ2（工賃計算）の実装指示と受け入れ基準
 - `docs/phase2-acceptance.md` — フェーズ2 受け入れ基準セルフチェック
+- `06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md` — フェーズ3（国保連請求）の実装指示と受け入れ基準
+- `docs/phase3-0-acceptance.md` — Phase 3-0受け入れ証跡と後続進捗
+- `docs/superpowers/plans/2026-07-11-phase3-1-claim-calculation-and-input-foundation.md` — Phase 3-1現行実装計画
 - `docs/decisions/` — ADR / `docs/open-questions.md` — 未確定事項
 
 > Codex レビューのフォーマット（重大度・観点カテゴリ・該当行・推奨アクション・根拠）は本書のワークフロー節に従う。

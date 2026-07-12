@@ -10,6 +10,13 @@
 
 ---
 
+## 実装進捗 (2026-07-12 / `d812e31`)
+
+- 実装済み: Tasks 2〜10（Certificate revision、Office / ContractedProvider / DailyRecord請求入力、月次入力・算定根拠履歴、永続化、保存ユースケース、typed requirements、readiness gate）。
+- 次の実装対象: Task 11（typed navigationと入力UI）。
+- Phase 3-1全体は未受け入れ。Tasks 12〜28の制度実値、純粋算定、snapshot、validated finalization、UI配線、品質ゲート、受け入れ証跡が残る。
+- 以下の詳細checkboxはRed / Green / commitを含む当初の実行契約を保存するため書き換えず、現況は本節を正本とする。
+
 ## 実行契約
 
 - 設計正本: `docs/superpowers/specs/2026-07-11-phase3-1-claim-calculation-and-input-foundation-design.md`

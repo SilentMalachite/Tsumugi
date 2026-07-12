@@ -1,8 +1,8 @@
 # Tsumugi Phase 3-1 設計 — 請求計算・入力基盤
 
 > **Source**: `06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md`、ADR 0020〜0026、`docs/phase3-0-acceptance.md`
-> **Status**: 設計合意済（2026-07-11）
-> **Execution boundary**: 2026-06-29付けの旧Phase 3-1計画は実行対象外。本書から新しい実装計画を作成してから着手する。
+> **Status**: 設計合意済（2026-07-11）/ 実装中（2026-07-12、現行計画Tasks 2〜10実装済み、Phase 3-1未受け入れ）
+> **Execution boundary**: 2026-06-29付けの旧Phase 3-1計画は実行対象外。実行正本は [`docs/superpowers/plans/2026-07-11-phase3-1-claim-calculation-and-input-foundation.md`](../plans/2026-07-11-phase3-1-claim-calculation-and-input-foundation.md) とする。
 
 ## 1. 目的
 
@@ -66,6 +66,8 @@ Phase 3-1は次の依存順5スライスで実装する。
 5. **validated finalization**: production codecとreaderを登録し、`CloseClaimUseCase`から既存`ClaimFinalizationStore`へ接続する。
 
 各スライスは前スライスの契約を入力にし、前提が未完成なら後続を解禁しない。
+
+2026-07-12時点ではTasks 2〜10の入力モデル、永続化、保存ユースケース、typed requirements、readiness gateまで実装済み。Task 11の実UIが未実装のため、請求準備入力スライス全体は未完了である。
 
 ## 5. データモデル
 

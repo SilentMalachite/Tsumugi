@@ -88,7 +88,7 @@ Phase 3-1は、自由記述やnullable金額ではなく、次の三値を持つ
 
 `Applicable`の0円は、原本参照と入力済み状態を検証できる場合だけ有効である。対象月内で状態、金額又は適用期間が切り替わり、各サービス日に適用する値を一意にできない場合は算定不能とする。`status = null`、`amountYen = null`、既存の`SupplyNotes`その他の自由記述から`NotApplicable`又は金額を推測しない。`NotApplicable`なのに金額がある、`Applicable`なのに必須項目がない、対象日が有効期間外、原本と登録スナップショットが不一致のときも拒否する。
 
-現行Domainにはこの三値、特例額の入力済み状態、期間及び原本参照がない。したがってPhase 3-1の`missing`入力としてモデル、migration、Application DTO、入力UI、原本再確認フローへ追加し、既存null又は自由記述を自動移行しない。
+本ADR決定時点のDomainにはこの三値、特例額の入力済み状態、期間及び原本参照がなかった。2026-07-12時点で`Article31SpecialBurdenStatus`、入力済み金額、期間、原本参照、migration、Application DTO、保存ユースケースは実装済みで、入力UIと原本再確認フローが残る。既存null又は自由記述を自動移行しない。
 
 ### `RoundingPolicy`の安定`roundingRuleId`
 
@@ -221,7 +221,7 @@ ADR 0023の平均工賃計算
 - `ClaimCalculator`はsource rowの`percentageBaseScope`、`percentageApplicationKind`、`targetSelector`及び`calculationOrder`を検証し、per-service-codeとmonthly-targetを別の`calculationStepId`で実行する。仕様境界例と公式例を別のテーブル駆動テストにする。
 - `ClaimCalculator`はサービスコード明細の円額を先に作らず、全monthly-target結果を反映したサービス種別ごとの最終月次給付単位数を構築してから地域単価を適用する。
 - `BurdenCalculator`は1割相当額の切捨てだけを`RoundingPolicy`へ委譲し、法31条三値入力、証上限、制度上限、正式結果票及び優先順を`calculationStepId`で扱う。
-- Phase 3-1で`Article31SpecialBurdenStatus`、特例額、`effectiveFrom` / `effectiveTo`、受給者証原本document reference及び確認証跡をモデル、migration、DTO、入力UIへ追加する。既存null又は`SupplyNotes`は`NotApplicable`へ自動移行しない。
+- Phase 3-1で`Article31SpecialBurdenStatus`、特例額、`effectiveFrom` / `effectiveTo`、受給者証原本document reference及び確認証跡をモデル、migration、DTO、入力UIへ追加する。2026-07-12時点で入力UI以外は実装済み。既存null又は`SupplyNotes`は`NotApplicable`へ自動移行しない。
 - 確定スナップショットは、`roundingRuleId`と`calculationStepId`を別フィールドで、丸め前値、丸め後値、scope、selector、適用順、masterVersion、sourceDocumentIds及びsource pageとともに保持する。合成サービスコードでは「公式表で端数処理済み」であることとsource rowを保持する。
 - 2026-06-29版Phase 3-1計画の`MultiplyAndFloor`を明細ごとに呼ぶ設計例、`double`の`InlineData`及びR9仮データは現行設計の実装契約にしない。Phase 3-1再計画時に本ADRと2026-06-29設計の現行化注記へ合わせる。
 - ADR 0012の工賃支払額用`RoundingPolicy`と、請求算定用`roundingRuleId` / `calculationStepId`のnamespace又は型を分け、同名の`HalfUp`を暗黙共有しない。

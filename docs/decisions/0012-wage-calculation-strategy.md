@@ -41,6 +41,6 @@
 - Domain は `IWageMethodStrategy` で 4 実装を持つ。`HourlyWageStrategy` がレート別集計後 ROUND（HalfUp）/ 作業手当・職能手当加算に対応。
 - `RoundingPolicy` + `RoundingRule.HalfUp` / `.Ceiling` として実装。
 - 報酬告示由来の数値は本 ADR に**含めない**（ハードコード禁止）。
-- 残 open-question: 平均工賃月額（AC2-8）の正式定義は一次資料入手時にクローズ。
+- 平均工賃月額（AC2-8）の請求用正式定義はADR 0023でクローズ済み。既存`AverageWageMetric`はPhase 2の暫定集計として互換保持し、請求用計算へ流用しない。
 - 参照仕様: `docs/superpowers/specs/2026-07-05-phase4-s0-kouchinmodule-and-avgwage-design.md`
 - 関連 ADR: [0018 WageAdjustment append-only](0018-wage-adjustment-append-only.md) / [0019 RecipientHourlyRate 期間マスタ](0019-recipient-hourly-rate-periodic-master.md)

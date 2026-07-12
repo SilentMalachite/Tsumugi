@@ -8,6 +8,7 @@
 
 ### 計画
 - フェーズ 3-0（出典・契約・土台）— final-fix後のtargeted test、fresh full quality gate、最終レビュー（Critical / High / Medium 0件）を通過し、2026-07-11に受け入れ済み。詳細は [`docs/phase3-0-acceptance.md`](docs/phase3-0-acceptance.md)。
+- フェーズ 3-1（請求計算・入力基盤）— 現行計画Tasks 2〜10の入力契約スライスを実装済み。Task 11の入力UIから継続する。Phase 3-1全体は未受け入れ。
 - フェーズ 4（リリース準備・運用ハードニング）残り: 暗号化方針決定・バックアップ自動化・記録UI補完・配布パッケージング・運用ガイド・bulk operations ガード。詳細は `07_ClaudeCode_Phase4実装指示_リリース準備_Tsumugi.md`。
 
 ### 追加（Added）— Phase 3-0: 国保連請求の出典・契約・土台
@@ -17,8 +18,15 @@
 - `ClaimBatch` / `ClaimDetail`、専用履歴policy、AppendOnlyGuard、partial unique index、migration、raw repository、operation-local finalization storeのappend-only土台を追加し、operation replayでも対象headだけでなく全履歴を検証するようhardening。
 - Phase 3-0のtargeted test、停止条件audit、deferredを [`docs/phase3-0-acceptance.md`](docs/phase3-0-acceptance.md) に記録。
 
+### 追加（Added）— Phase 3-1: 請求入力基盤（実装中）
+
+- `Certificate`、`Office`、`ContractedProvider`、`DailyRecord`へ51 mapping entries / 26 implementation targetsに対応する請求入力を追加し、`ClaimInput`と請求根拠aggregateをappend-only履歴として追加。
+- EF Core configuration、migration、repository、append-only guard、入力保存ユースケースを追加。
+- embedded field mappingを51 entries / 26 targetsのtyped requirementsへ変換し、入力不足、履歴不整合、原本未確認、master版不明を個人情報非保持のissueとして返す`ClaimPreparationReadiness`を追加。
+
 ### 本番投入前に必須の deferred
-- Phase 3-1〜3-3は未実装。**51 missing fieldIds / 26 implementation targets**（CSV 30件＋帳票21件。正本は `docs/phase3-claim-field-mapping.md`）について、モデル・migration・実UIを追加する。
+
+- Phase 3-1は未受け入れ。**51 missing fieldIds / 26 implementation targets**（CSV 30件＋帳票21件。正本は `docs/phase3-claim-field-mapping.md`）のモデル・migration・repository・保存ユースケース・typed requirements・readiness gateは実装済みだが、実UIと一貫snapshot readerは未実装。Phase 3-2 / 3-3も未実装。
 - 令和6/8報酬master実値、平均工賃・基本報酬・加算減算・地域単価・利用者負担の計算、production snapshot codec、validated finalization / `IValidatedClaimSnapshotReader`を実装する。
 - 3帳票と国保連提出CSV（CP932 / CRLF）の生成・保存UIを実装する。現時点では請求CSV生成完了ではない。
 

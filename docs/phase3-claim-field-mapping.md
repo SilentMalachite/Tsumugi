@@ -576,6 +576,8 @@
 
 ## Phase 3-1へ送る未実装入力 (51 mapping entries)
 
+> **実装進捗 (2026-07-12 / `d812e31`)**: 51 entries / 26 targetsのモデル、migration、repository、保存ユースケース、typed requirements、readiness gateは実装済み。実UIとoperation-local snapshot readerは未実装である。表の`missing`分類は`ClaimInputRequirementProvider`が算定前必須条件を抽出する契約でもあるため、UIからend-to-endで到達可能になるまで維持する。
+
 | target | fieldId | UI | migration |
 | --- | --- | --- | --- |
 | Certificate.MunicipalityNumber | provider:J111:01:004 | CertificateView | required |
@@ -630,4 +632,4 @@
 | ClaimInput.UpperLimitManagedAmountYen | report:benefit-claim-detail:upper-limit-management:004 | ClaimInputView | required |
 | ClaimInput.MunicipalSubsidyAmountYen | report:benefit-claim-detail:summary:015 | ClaimPreparationView | required |
 
-未実装項目は既存の備考、別用途の真偽値、0、空文字から推測しない。モデル・migration・入力UIが揃うまで生成をfail closedとする。
+未完了項目は既存の備考、別用途の真偽値、0、空文字から推測しない。入力UI、snapshot reader、validated finalizationまで揃うまで生成をfail closedとする。
