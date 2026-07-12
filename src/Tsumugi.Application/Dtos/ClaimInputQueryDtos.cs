@@ -23,8 +23,8 @@ public sealed record ClaimInputRevisionChainDto<TRevision>(
 
 public sealed record ClaimInputWorkspaceDto(
     ClaimInputRevisionChainDto<ClaimInputQueryRevisionDto>? ClaimInputChain,
-    IReadOnlyList<ClaimInputRevisionChainDto<AverageWageAnnualEvidenceQueryRevisionDto>>
-        AverageWageAnnualEvidenceChains,
+    ClaimInputRevisionChainDto<AverageWageAnnualEvidenceQueryRevisionDto>?
+        AverageWageAnnualEvidenceChain,
     IReadOnlyList<ClaimInputRevisionChainDto<OfficeClaimProfileQueryRevisionDto>>
         OfficeClaimProfileChains,
     IReadOnlyList<ClaimInputRevisionChainDto<CertificateClaimEvidenceQueryRevisionDto>>

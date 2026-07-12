@@ -31,7 +31,7 @@ public sealed class QueryClaimInputWorkspaceUseCaseTests
         var result = await sut.ExecuteAsync(ValidRequest(), default);
 
         result.ClaimInputChain.Should().BeNull();
-        result.AverageWageAnnualEvidenceChains.Should().BeEmpty();
+        result.AverageWageAnnualEvidenceChain.Should().BeNull();
         result.OfficeClaimProfileChains.Should().BeEmpty();
         result.CertificateClaimEvidenceChains.Should().BeEmpty();
         result.UpperLimitManagementStatementChain.Should().BeNull();
@@ -95,8 +95,8 @@ public sealed class QueryClaimInputWorkspaceUseCaseTests
             claimNew, options => options.ExcludingMissingMembers());
         result.ClaimInputChain.Revisions[2].UpperLimitManagedAmountYen.Should().Be(2_000);
 
-        result.AverageWageAnnualEvidenceChains.Should().ContainSingle();
-        result.AverageWageAnnualEvidenceChains[0].Revisions.Should().ContainSingle()
+        result.AverageWageAnnualEvidenceChain.Should().NotBeNull();
+        result.AverageWageAnnualEvidenceChain!.Revisions.Should().ContainSingle()
             .Which.Should().BeEquivalentTo(wage, options => options.ExcludingMissingMembers());
         result.OfficeClaimProfileChains.Should().ContainSingle();
         result.OfficeClaimProfileChains[0].Revisions.Should().ContainSingle()
@@ -122,7 +122,7 @@ public sealed class QueryClaimInputWorkspaceUseCaseTests
     }
 
     [Fact]
-    public async Task Execute_groups_multi_root_evidence_and_sets_null_effective_head_for_cancelled_chain()
+    public async Task Execute_rejects_multiple_average_wage_roots_with_sanitized_error()
     {
         var repositories = new WorkspaceRepositories();
         var laterRoot = Guid.Parse("00000000-0000-0000-0000-000000000702");
@@ -134,15 +134,12 @@ public sealed class QueryClaimInputWorkspaceUseCaseTests
             AverageWageRevision(earlierRoot, earlierRoot, 1, RecordKind.New, null),
         ]);
 
-        var result = await CreateSut(repositories).ExecuteAsync(ValidRequest(), default);
+        var act = () => CreateSut(repositories).ExecuteAsync(ValidRequest(), default);
 
-        result.AverageWageAnnualEvidenceChains.Select(chain => chain.RootId)
-            .Should().Equal(earlierRoot, laterRoot);
-        result.AverageWageAnnualEvidenceChains[0].CurrentHeadId.Should().Be(earlierCancelId);
-        result.AverageWageAnnualEvidenceChains[0].EffectiveHeadId.Should().BeNull();
-        result.AverageWageAnnualEvidenceChains[0].Revisions.Select(item => item.Revision)
-            .Should().Equal(1, 2);
-        result.AverageWageAnnualEvidenceChains[1].EffectiveHeadId.Should().Be(laterRoot);
+        var error = (await act.Should().ThrowAsync<ClaimInputQueryException>()).Which;
+        error.Code.Should().Be(ClaimInputQueryErrorCode.InvalidHistory);
+        error.Message.Should().NotContain(earlierRoot.ToString())
+            .And.NotContain(laterRoot.ToString());
     }
 
     [Fact]
@@ -254,6 +251,90 @@ public sealed class QueryClaimInputWorkspaceUseCaseTests
             error.Code.Should().Be(ClaimInputQueryErrorCode.InvalidHistory);
             error.Message.Should().NotContain(changedCertificateId.ToString());
         }
+    }
+
+    [Fact]
+    public async Task Execute_validates_all_statement_roots_then_selects_requested_certificate_chain()
+    {
+        var repositories = new WorkspaceRepositories();
+        var selectedRoot = Guid.Parse("00000000-0000-0000-0000-000000001021");
+        var otherRoot = Guid.Parse("00000000-0000-0000-0000-000000001022");
+        var otherCertificateId = Guid.Parse("00000000-0000-0000-0000-000000001023");
+        var selected = StatementRevision(
+            selectedRoot, selectedRoot, 1, RecordKind.New, null);
+        var other = StatementRevision(
+            otherRoot, otherRoot, 1, RecordKind.New, null) with
+        {
+            CertificateId = otherCertificateId,
+        };
+        repositories.Statement.Aggregates.AddRange([
+            StatementAggregate(other),
+            StatementAggregate(selected),
+        ]);
+
+        var result = await CreateSut(repositories).ExecuteAsync(ValidRequest(), default);
+
+        result.UpperLimitManagementStatementChain.Should().NotBeNull();
+        result.UpperLimitManagementStatementChain!.RootId.Should().Be(selectedRoot);
+        result.UpperLimitManagementStatementChain.CurrentHeadId.Should().Be(selectedRoot);
+        result.UpperLimitManagementStatementChain.Revisions.Should().ContainSingle()
+            .Which.CertificateId.Should().Be(CertificateId);
+    }
+
+    [Fact]
+    public async Task Execute_rejects_corrupt_nonselected_statement_root_before_selecting_requested_certificate_chain()
+    {
+        var repositories = new WorkspaceRepositories();
+        var selectedRoot = Guid.Parse("00000000-0000-0000-0000-000000001031");
+        var otherRoot = Guid.Parse("00000000-0000-0000-0000-000000001032");
+        var otherCorrectionId = Guid.Parse("00000000-0000-0000-0000-000000001033");
+        var otherCertificateId = Guid.Parse("00000000-0000-0000-0000-000000001034");
+        var changedCertificateId = Guid.Parse("00000000-0000-0000-0000-000000001035");
+        var selected = StatementRevision(
+            selectedRoot, selectedRoot, 1, RecordKind.New, null);
+        var other = StatementRevision(
+            otherRoot, otherRoot, 1, RecordKind.New, null) with
+        {
+            CertificateId = otherCertificateId,
+        };
+        var corruptOtherCorrection = StatementRevision(
+            otherCorrectionId, otherRoot, 2, RecordKind.Correct, otherRoot) with
+        {
+            CertificateId = changedCertificateId,
+        };
+        repositories.Statement.Aggregates.AddRange([
+            StatementAggregate(selected),
+            StatementAggregate(other),
+            StatementAggregate(corruptOtherCorrection),
+        ]);
+
+        var act = () => CreateSut(repositories).ExecuteAsync(ValidRequest(), default);
+
+        var error = (await act.Should().ThrowAsync<ClaimInputQueryException>()).Which;
+        error.Code.Should().Be(ClaimInputQueryErrorCode.InvalidHistory);
+        error.Message.Should().NotContain(otherCertificateId.ToString())
+            .And.NotContain(changedCertificateId.ToString());
+    }
+
+    [Fact]
+    public async Task Execute_rejects_multiple_statement_roots_for_requested_certificate()
+    {
+        var repositories = new WorkspaceRepositories();
+        var firstRoot = Guid.Parse("00000000-0000-0000-0000-000000001041");
+        var secondRoot = Guid.Parse("00000000-0000-0000-0000-000000001042");
+        repositories.Statement.Aggregates.AddRange([
+            StatementAggregate(StatementRevision(
+                firstRoot, firstRoot, 1, RecordKind.New, null)),
+            StatementAggregate(StatementRevision(
+                secondRoot, secondRoot, 1, RecordKind.New, null)),
+        ]);
+
+        var act = () => CreateSut(repositories).ExecuteAsync(ValidRequest(), default);
+
+        var error = (await act.Should().ThrowAsync<ClaimInputQueryException>()).Which;
+        error.Code.Should().Be(ClaimInputQueryErrorCode.InvalidHistory);
+        error.Message.Should().NotContain(firstRoot.ToString())
+            .And.NotContain(secondRoot.ToString());
     }
 
     private static QueryClaimInputWorkspaceUseCase CreateSut(WorkspaceRepositories repositories) =>

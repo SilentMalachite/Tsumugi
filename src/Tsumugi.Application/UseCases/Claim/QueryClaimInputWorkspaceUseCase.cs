@@ -33,10 +33,10 @@ public sealed class QueryClaimInputWorkspaceUseCase(
 
         return new ClaimInputWorkspaceDto(
             MapClaimInputChain(claimInputs),
-            MapAverageWageChains(averageWageEvidence),
+            MapAverageWageChain(averageWageEvidence),
             MapOfficeProfileChains(officeProfiles),
             MapCertificateEvidenceChains(certificateEvidence),
-            MapStatementChain(statements));
+            MapStatementChain(statements, request.CertificateId));
     }
 
     private static ClaimInputRevisionChainDto<ClaimInputQueryRevisionDto>? MapClaimInputChain(
@@ -56,22 +56,23 @@ public sealed class QueryClaimInputWorkspaceUseCase(
             Map);
     }
 
-    private static ClaimInputRevisionChainDto<AverageWageAnnualEvidenceQueryRevisionDto>[]
-        MapAverageWageChains(IReadOnlyList<AverageWageAnnualEvidence> items) =>
-        GroupByRoot(items, item => item.RootId)
-            .Select(group =>
-            {
-                ClaimInputQueryGuard.ValidateHistory(
-                    () => AverageWageAnnualEvidencePolicy.ValidateHistory(group.Items));
-                return CreateChain(
-                    group.RootId,
-                    group.Items,
-                    item => item.Revision,
-                    item => item.Id,
-                    item => item.Kind,
-                    Map);
-            })
-            .ToArray();
+    private static ClaimInputRevisionChainDto<AverageWageAnnualEvidenceQueryRevisionDto>?
+        MapAverageWageChain(IReadOnlyList<AverageWageAnnualEvidence> items)
+    {
+        var groups = GroupByRoot(items, item => item.RootId);
+        if (groups.Length == 0) return null;
+        ClaimInputQueryGuard.RequireSingleRoot(groups.Length);
+        var history = groups[0].Items;
+        ClaimInputQueryGuard.ValidateHistory(
+            () => AverageWageAnnualEvidencePolicy.ValidateHistory(history));
+        return CreateChain(
+            groups[0].RootId,
+            history,
+            item => item.Revision,
+            item => item.Id,
+            item => item.Kind,
+            Map);
+    }
 
     private ClaimInputRevisionChainDto<OfficeClaimProfileQueryRevisionDto>[]
         MapOfficeProfileChains(IReadOnlyList<OfficeClaimProfile> items) =>
@@ -108,7 +109,9 @@ public sealed class QueryClaimInputWorkspaceUseCase(
             .ToArray();
 
     private static ClaimInputRevisionChainDto<UpperLimitManagementStatementQueryRevisionDto>?
-        MapStatementChain(IReadOnlyList<UpperLimitManagementStatementAggregate> aggregates)
+        MapStatementChain(
+            IReadOnlyList<UpperLimitManagementStatementAggregate> aggregates,
+            Guid certificateId)
     {
         var groups = aggregates
             .GroupBy(item => item.Header.RootId)
@@ -116,13 +119,23 @@ public sealed class QueryClaimInputWorkspaceUseCase(
             .Select(group => new StatementGroup(group.Key, group.ToArray()))
             .ToArray();
         if (groups.Length == 0) return null;
-        ClaimInputQueryGuard.RequireSingleRoot(groups.Length);
 
-        var selected = groups[0];
+        foreach (var group in groups)
+        {
+            var groupHistory = group.Aggregates.Select(item => item.Header).ToArray();
+            var groupLines = group.Aggregates.SelectMany(item => item.Lines).ToArray();
+            ClaimInputQueryGuard.ValidateHistory(
+                () => UpperLimitManagementStatementPolicy.ValidateHistory(
+                    groupHistory, groupLines));
+        }
+
+        var candidates = groups
+            .Where(group => group.Aggregates[0].Header.CertificateId == certificateId)
+            .ToArray();
+        if (candidates.Length == 0) return null;
+        ClaimInputQueryGuard.RequireSingleRoot(candidates.Length);
+        var selected = candidates[0];
         var history = selected.Aggregates.Select(item => item.Header).ToArray();
-        var lines = selected.Aggregates.SelectMany(item => item.Lines).ToArray();
-        ClaimInputQueryGuard.ValidateHistory(
-            () => UpperLimitManagementStatementPolicy.ValidateHistory(history, lines));
         var linesByStatement = selected.Aggregates.ToDictionary(
             item => item.Header.Id,
             item => item.Lines);
