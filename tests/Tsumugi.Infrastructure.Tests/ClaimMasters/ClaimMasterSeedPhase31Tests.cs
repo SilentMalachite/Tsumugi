@@ -305,49 +305,49 @@ public sealed class ClaimMasterSeedPhase31Tests
             switch (kind)
             {
                 case "xlsx-rows":
-                {
-                    var match = Regex.Match(
-                        locator,
-                        @"^workbook-order=([1-9]\d*);row=([1-9]\d*)$");
-                    match.Success.Should().BeTrue();
-                    var workbookOrder = int.Parse(
-                        match.Groups[1].Value,
-                        CultureInfo.InvariantCulture);
-                    var rowNumber = int.Parse(
-                        match.Groups[2].Value,
-                        CultureInfo.InvariantCulture);
-                    workbookOrder.Should().Be(range.GetProperty("workbookOrder").GetInt32());
-                    rowNumber.Should().BeInRange(
-                        range.GetProperty("rowFrom").GetInt32(),
-                        range.GetProperty("rowTo").GetInt32());
-                    break;
-                }
-                case "pdf-pages":
-                {
-                    var match = Regex.Match(locator, @"^pdf:physical-page=([1-9]\d*)(?:;.+)?$");
-                    match.Success.Should().BeTrue();
-                    var pageNumber = int.Parse(
-                        match.Groups[1].Value,
-                        CultureInfo.InvariantCulture);
-                    pageNumber.Should().BeInRange(
-                        range.GetProperty("pageFrom").GetInt32(),
-                        range.GetProperty("pageTo").GetInt32());
-                    break;
-                }
-                case "html-page":
-                {
-                    var match = Regex.Match(locator, @"^html:pageNo=([1-9]\d*)(?:;.+)?$");
-                    match.Success.Should().BeTrue();
-                    int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture)
-                        .Should().Be(range.GetProperty("pageNo").GetInt32());
-                    if (documentId == "mhlw-unit-price-notice-observed-946c3d96")
                     {
-                        locator.Should().MatchRegex(
-                            @"^html:pageNo=1;table=e\d+;row=e\d+;service=e\d+$");
+                        var match = Regex.Match(
+                            locator,
+                            @"^workbook-order=([1-9]\d*);row=([1-9]\d*)$");
+                        match.Success.Should().BeTrue();
+                        var workbookOrder = int.Parse(
+                            match.Groups[1].Value,
+                            CultureInfo.InvariantCulture);
+                        var rowNumber = int.Parse(
+                            match.Groups[2].Value,
+                            CultureInfo.InvariantCulture);
+                        workbookOrder.Should().Be(range.GetProperty("workbookOrder").GetInt32());
+                        rowNumber.Should().BeInRange(
+                            range.GetProperty("rowFrom").GetInt32(),
+                            range.GetProperty("rowTo").GetInt32());
+                        break;
                     }
+                case "pdf-pages":
+                    {
+                        var match = Regex.Match(locator, @"^pdf:physical-page=([1-9]\d*)(?:;.+)?$");
+                        match.Success.Should().BeTrue();
+                        var pageNumber = int.Parse(
+                            match.Groups[1].Value,
+                            CultureInfo.InvariantCulture);
+                        pageNumber.Should().BeInRange(
+                            range.GetProperty("pageFrom").GetInt32(),
+                            range.GetProperty("pageTo").GetInt32());
+                        break;
+                    }
+                case "html-page":
+                    {
+                        var match = Regex.Match(locator, @"^html:pageNo=([1-9]\d*)(?:;.+)?$");
+                        match.Success.Should().BeTrue();
+                        int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture)
+                            .Should().Be(range.GetProperty("pageNo").GetInt32());
+                        if (documentId == "mhlw-unit-price-notice-observed-946c3d96")
+                        {
+                            locator.Should().MatchRegex(
+                                @"^html:pageNo=1;table=e\d+;row=e\d+;service=e\d+$");
+                        }
 
-                    break;
-                }
+                        break;
+                    }
                 default:
                     false.Should().BeTrue(because: $"unknown range kind must fail: {kind}");
                     break;
@@ -530,33 +530,33 @@ public sealed class ClaimMasterSeedPhase31Tests
         switch (kind)
         {
             case "xlsx-rows":
-            {
-                range.EnumerateObject().Select(property => property.Name).Should().Equal(
-                    "rangeId",
-                    "kind",
-                    "workbookOrder",
-                    "rowFrom",
-                    "rowTo",
-                    "expectedItemCount");
-                range.GetProperty("workbookOrder").GetInt32().Should().BeGreaterThan(0);
-                var rowFrom = range.GetProperty("rowFrom").GetInt32();
-                rowFrom.Should().BeGreaterThan(0);
-                range.GetProperty("rowTo").GetInt32().Should().BeGreaterThanOrEqualTo(rowFrom);
-                break;
-            }
+                {
+                    range.EnumerateObject().Select(property => property.Name).Should().Equal(
+                        "rangeId",
+                        "kind",
+                        "workbookOrder",
+                        "rowFrom",
+                        "rowTo",
+                        "expectedItemCount");
+                    range.GetProperty("workbookOrder").GetInt32().Should().BeGreaterThan(0);
+                    var rowFrom = range.GetProperty("rowFrom").GetInt32();
+                    rowFrom.Should().BeGreaterThan(0);
+                    range.GetProperty("rowTo").GetInt32().Should().BeGreaterThanOrEqualTo(rowFrom);
+                    break;
+                }
             case "pdf-pages":
-            {
-                range.EnumerateObject().Select(property => property.Name).Should().Equal(
-                    "rangeId",
-                    "kind",
-                    "pageFrom",
-                    "pageTo",
-                    "expectedItemCount");
-                var pageFrom = range.GetProperty("pageFrom").GetInt32();
-                pageFrom.Should().BeGreaterThan(0);
-                range.GetProperty("pageTo").GetInt32().Should().BeGreaterThanOrEqualTo(pageFrom);
-                break;
-            }
+                {
+                    range.EnumerateObject().Select(property => property.Name).Should().Equal(
+                        "rangeId",
+                        "kind",
+                        "pageFrom",
+                        "pageTo",
+                        "expectedItemCount");
+                    var pageFrom = range.GetProperty("pageFrom").GetInt32();
+                    pageFrom.Should().BeGreaterThan(0);
+                    range.GetProperty("pageTo").GetInt32().Should().BeGreaterThanOrEqualTo(pageFrom);
+                    break;
+                }
             case "html-page":
                 range.EnumerateObject().Select(property => property.Name).Should().Equal(
                     "rangeId",
