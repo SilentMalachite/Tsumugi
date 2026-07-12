@@ -23,6 +23,12 @@ public sealed class CertificateClaimEvidenceConfiguration : IEntityTypeConfigura
             {
                 ClaimInputConfigurationShared.AddEnteredYenCheck(table, "CertificateClaimEvidences", "MonthlyCostCap");
                 ClaimInputConfigurationShared.AddEnteredYenCheck(table, "CertificateClaimEvidences", "Article31AmountYen");
+                table.HasCheckConstraint(
+                    "CK_CertificateClaimEvidences_UpperLimitManagementApplicability_ClosedSet",
+                    "\"UpperLimitManagementApplicability\" IN (0, 1, 2)");
+                table.HasCheckConstraint(
+                    "CK_CertificateClaimEvidences_Article31Status_ClosedSet",
+                    "\"Article31Status\" IN (0, 1, 2)");
             });
         builder.Property(x => x.CertificateId).IsRequired();
         builder.Property(x => x.Validity)

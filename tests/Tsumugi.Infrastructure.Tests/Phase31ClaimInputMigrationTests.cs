@@ -135,6 +135,17 @@ public sealed class Phase31ClaimInputMigrationTests
         ("UpperLimitManagementStatementLines", "ManagedBurdenYen"),
     ];
 
+    private static readonly (string Table, string Column)[] ClosedEnumSpecs =
+    [
+        ("ClaimInputs", "UpperLimitManagementResult"),
+        ("AverageWageAnnualEvidences", "Completeness"),
+        ("OfficeClaimProfiles", "ReformStatus"),
+        ("CertificateClaimEvidences", "UpperLimitManagementApplicability"),
+        ("CertificateClaimEvidences", "Article31Status"),
+        ("UpperLimitManagementStatements", "UpperLimitManagementApplicability"),
+        ("UpperLimitManagementStatements", "Result"),
+    ];
+
     [Fact]
     public async Task Target_up_preserves_legacy_rows_backfills_certificate_lineage_and_leaves_claim_inputs_unset()
     {
@@ -481,6 +492,149 @@ public sealed class Phase31ClaimInputMigrationTests
                     (await CountRowsAsync(connection, spec.Table)).Should().Be(3);
                 }
             });
+    }
+
+    [Fact]
+    public async Task Entered_yen_checks_reject_every_inconsistent_raw_state()
+    {
+        var invalidStates = new (bool IsEntered, int? ValueYen)[]
+        {
+            (false, 1),
+            (true, null),
+            (true, -1),
+        };
+
+        foreach (var (table, prefix) in EnteredYenSpecs)
+        {
+            foreach (var (isEntered, valueYen) in invalidStates)
+            {
+                await AssertViolationAsync(
+                    async (connection, seed) =>
+                    {
+                        var ids = await SeedValidClaimHeadersAsync(connection, seed);
+                        await ExecuteNonQueryAsync(
+                            connection,
+                            $"""
+                             UPDATE "{table}"
+                             SET "{prefix}_IsEntered" = $isEntered, "{prefix}_ValueYen" = $valueYen
+                             WHERE "Id" = $id;
+                             """,
+                            ("$isEntered", isEntered),
+                            ("$valueYen", valueYen),
+                            ("$id", ids[table]));
+                    },
+                    expectedExtendedErrorCode: 275,
+                    expectedCheckName: $"CK_{table}_{prefix}_EnteredYen");
+            }
+        }
+    }
+
+    [Fact]
+    public async Task Office_profile_option_checks_reject_every_partial_null_raw_state()
+    {
+        var cases = new[]
+        {
+            new OfficeProfileOptionState("CK_OfficeClaimProfiles_AverageWageBandOption", 1, null, null, null, null, null, null, null),
+            new OfficeProfileOptionState("CK_OfficeClaimProfiles_AverageWageBandOption", null, 1, null, null, null, null, null, null),
+            new OfficeProfileOptionState("CK_OfficeClaimProfiles_EarlierRegisteredBandOption", null, null, null, 1, 1, null, null, null),
+            new OfficeProfileOptionState("CK_OfficeClaimProfiles_EarlierRegisteredBandOption", null, null, "r8-06", null, 1, null, null, null),
+            new OfficeProfileOptionState("CK_OfficeClaimProfiles_EarlierRegisteredBandOption", null, null, "r8-06", 1, null, null, null, null),
+            new OfficeProfileOptionState("CK_OfficeClaimProfiles_LaterRegisteredBandOption", null, null, null, null, null, null, 1, 1),
+            new OfficeProfileOptionState("CK_OfficeClaimProfiles_LaterRegisteredBandOption", null, null, null, null, null, "r8-06", null, 1),
+            new OfficeProfileOptionState("CK_OfficeClaimProfiles_LaterRegisteredBandOption", null, null, null, null, null, "r8-06", 1, null),
+        };
+
+        foreach (var state in cases)
+        {
+            await AssertViolationAsync(
+                (connection, seed) => InsertOfficeClaimProfileWithOptionStateAsync(connection, seed, state),
+                expectedExtendedErrorCode: 275,
+                expectedCheckName: state.ConstraintName);
+        }
+    }
+
+    [Fact]
+    public async Task Header_lineage_unique_indexes_reject_each_duplicate_branch()
+    {
+        foreach (var spec in HeaderSpecs)
+        {
+            await AssertViolationAsync(
+                async (connection, seed) =>
+                {
+                    var roots = await SeedValidClaimHeadersAsync(connection, seed);
+                    var firstCorrectionId = Guid.NewGuid();
+                    await CloneHeaderRevisionAsync(
+                        connection, spec, roots[spec.Table], firstCorrectionId, 2, 2, roots[spec.Table], false);
+                    await CloneHeaderRevisionAsync(
+                        connection, spec, firstCorrectionId, Guid.NewGuid(), 2, 2, firstCorrectionId, false);
+                },
+                expectedExtendedErrorCode: 2067);
+
+            await AssertViolationAsync(
+                async (connection, seed) =>
+                {
+                    var roots = await SeedValidClaimHeadersAsync(connection, seed);
+                    var firstCorrectionId = Guid.NewGuid();
+                    await CloneHeaderRevisionAsync(
+                        connection, spec, roots[spec.Table], firstCorrectionId, 2, 2, roots[spec.Table], false);
+                    await CloneHeaderRevisionAsync(
+                        connection, spec, firstCorrectionId, Guid.NewGuid(), 3, 2, roots[spec.Table], false);
+                },
+                expectedExtendedErrorCode: 2067);
+        }
+    }
+
+    [Fact]
+    public async Task Statement_line_constraints_reject_orphan_and_each_duplicate_branch()
+    {
+        await AssertViolationAsync(
+            async (connection, seed) =>
+            {
+                var ids = await SeedValidClaimHeadersAsync(connection, seed);
+                await CloneStatementLineAsync(
+                    connection, ids["UpperLimitManagementStatementLines"], Guid.NewGuid(), Guid.NewGuid(), 2,
+                    "orphan-office");
+            },
+            expectedExtendedErrorCode: 787);
+
+        await AssertViolationAsync(
+            async (connection, seed) =>
+            {
+                var ids = await SeedValidClaimHeadersAsync(connection, seed);
+                await CloneStatementLineAsync(
+                    connection, ids["UpperLimitManagementStatementLines"], Guid.NewGuid(),
+                    ids["UpperLimitManagementStatements"], 1, "duplicate-line-office");
+            },
+            expectedExtendedErrorCode: 2067);
+
+        await AssertViolationAsync(
+            async (connection, seed) =>
+            {
+                var ids = await SeedValidClaimHeadersAsync(connection, seed);
+                await CloneStatementLineAsync(
+                    connection, ids["UpperLimitManagementStatementLines"], Guid.NewGuid(),
+                    ids["UpperLimitManagementStatements"], 2, "1310000001");
+            },
+            expectedExtendedErrorCode: 2067);
+    }
+
+    [Fact]
+    public async Task Persisted_closed_enums_reject_unknown_raw_values()
+    {
+        foreach (var (table, column) in ClosedEnumSpecs)
+        {
+            await AssertViolationAsync(
+                async (connection, seed) =>
+                {
+                    var ids = await SeedValidClaimHeadersAsync(connection, seed);
+                    await ExecuteNonQueryAsync(
+                        connection,
+                        $"UPDATE \"{table}\" SET \"{column}\" = 999 WHERE \"Id\" = $id;",
+                        ("$id", ids[table]));
+                },
+                expectedExtendedErrorCode: 275,
+                expectedCheckName: $"CK_{table}_{column}_ClosedSet");
+        }
     }
 
     [Fact]
@@ -831,6 +985,74 @@ public sealed class Phase31ClaimInputMigrationTests
             ("$sourceId", sourceId));
     }
 
+    private static async Task InsertOfficeClaimProfileWithOptionStateAsync(
+        SqliteConnection connection,
+        LegacySeed seed,
+        OfficeProfileOptionState state)
+    {
+        var id = Guid.NewGuid();
+        await ExecuteNonQueryAsync(
+            connection,
+            """
+            INSERT INTO "OfficeClaimProfiles"
+                ("Id", "OfficeId", "EffectiveFrom", "RootId", "Revision", "Kind", "ExpectedHeadId",
+                 "AverageWageBandOption_Kind", "AverageWageBandOption_OfficialOptionCode",
+                 "EarlierRegisteredBandOption_MasterVersion", "EarlierRegisteredBandOption_Option_Kind",
+                 "EarlierRegisteredBandOption_Option_OfficialOptionCode",
+                 "LaterRegisteredBandOption_MasterVersion", "LaterRegisteredBandOption_Option_Kind",
+                 "LaterRegisteredBandOption_Option_OfficialOptionCode", "CreatedAt", "CreatedBy", "ConcurrencyToken")
+            VALUES ($id, $officeId, '2026-07-01', $id, 1, 1, NULL,
+                    $averageKind, $averageCode, $earlierVersion, $earlierKind, $earlierCode,
+                    $laterVersion, $laterKind, $laterCode, $createdAt, 'migration-test', $token);
+            """,
+            ("$id", id),
+            ("$officeId", seed.OfficeId),
+            ("$averageKind", state.AverageKind),
+            ("$averageCode", state.AverageCode),
+            ("$earlierVersion", state.EarlierVersion),
+            ("$earlierKind", state.EarlierKind),
+            ("$earlierCode", state.EarlierCode),
+            ("$laterVersion", state.LaterVersion),
+            ("$laterKind", state.LaterKind),
+            ("$laterCode", state.LaterCode),
+            ("$createdAt", DateTimeOffset.UnixEpoch),
+            ("$token", Guid.NewGuid()));
+    }
+
+    private static async Task CloneStatementLineAsync(
+        SqliteConnection connection,
+        Guid sourceId,
+        Guid id,
+        Guid statementId,
+        int lineNumber,
+        string officeNumber)
+    {
+        var columns = await ReadColumnNamesInOrderAsync(connection, "UpperLimitManagementStatementLines");
+        var projection = columns.Select(column => column switch
+        {
+            "Id" => "$id",
+            "StatementId" => "$statementId",
+            "LineNumber" => "$lineNumber",
+            "OfficeNumber" => "$officeNumber",
+            "ConcurrencyToken" => "$token",
+            _ => $"\"{column}\"",
+        });
+        var insertColumns = string.Join(", ", columns.Select(column => $"\"{column}\""));
+        await ExecuteNonQueryAsync(
+            connection,
+            $"""
+             INSERT INTO "UpperLimitManagementStatementLines" ({insertColumns})
+             SELECT {string.Join(", ", projection)}
+             FROM "UpperLimitManagementStatementLines" WHERE "Id" = $sourceId;
+             """,
+            ("$id", id),
+            ("$statementId", statementId),
+            ("$lineNumber", lineNumber),
+            ("$officeNumber", officeNumber),
+            ("$token", Guid.NewGuid()),
+            ("$sourceId", sourceId));
+    }
+
     private static async Task CloneInvalidCertificateLineageAsync(
         SqliteConnection connection,
         Guid sourceId)
@@ -925,6 +1147,23 @@ public sealed class Phase31ClaimInputMigrationTests
             {
                 var valueColumn = column.Replace("_IsEntered", "_ValueYen", StringComparison.Ordinal);
                 assignment = $"\"{column}\" = 1, \"{valueColumn}\" = 0";
+            }
+            else if (column.StartsWith("AverageWageBandOption_", StringComparison.Ordinal))
+            {
+                assignment = "\"AverageWageBandOption_Kind\" = 1, " +
+                             "\"AverageWageBandOption_OfficialOptionCode\" = 1";
+            }
+            else if (column.StartsWith("EarlierRegisteredBandOption_", StringComparison.Ordinal))
+            {
+                assignment = "\"EarlierRegisteredBandOption_MasterVersion\" = 'r8-06', " +
+                             "\"EarlierRegisteredBandOption_Option_Kind\" = 1, " +
+                             "\"EarlierRegisteredBandOption_Option_OfficialOptionCode\" = 1";
+            }
+            else if (column.StartsWith("LaterRegisteredBandOption_", StringComparison.Ordinal))
+            {
+                assignment = "\"LaterRegisteredBandOption_MasterVersion\" = 'r8-06', " +
+                             "\"LaterRegisteredBandOption_Option_Kind\" = 1, " +
+                             "\"LaterRegisteredBandOption_Option_OfficialOptionCode\" = 1";
             }
             else
             {
@@ -1115,7 +1354,8 @@ public sealed class Phase31ClaimInputMigrationTests
                 table,
                 $"CK_{table}_{prefix}_EnteredYen",
                 $"\"{prefix}_IsEntered\" = 0 AND \"{prefix}_ValueYen\" IS NULL",
-                $"\"{prefix}_IsEntered\" = 1 AND \"{prefix}_ValueYen\" >= 0");
+                $"\"{prefix}_IsEntered\" = 1 AND \"{prefix}_ValueYen\" IS NOT NULL",
+                $"\"{prefix}_ValueYen\" >= 0");
         }
     }
 
@@ -1321,6 +1561,17 @@ public sealed class Phase31ClaimInputMigrationTests
         string BusinessIndexName,
         IReadOnlyList<SqliteForeignKey> ForeignKeys,
         IReadOnlyList<string> CancelPayloadColumns);
+
+    private sealed record OfficeProfileOptionState(
+        string ConstraintName,
+        int? AverageKind,
+        int? AverageCode,
+        string? EarlierVersion,
+        int? EarlierKind,
+        int? EarlierCode,
+        string? LaterVersion,
+        int? LaterKind,
+        int? LaterCode);
 
     private sealed record LegacySeed(
         Guid OfficeId,

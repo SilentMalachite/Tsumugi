@@ -16,7 +16,10 @@ public sealed class ClaimInputConfiguration : IEntityTypeConfiguration<ClaimInpu
             "\"Kind\" <> 3 OR (\"UpperLimitManagementResult\" IS NULL AND \"UpperLimitManagedAmountYen\" IS NULL " +
             "AND \"MunicipalSubsidyAmountYen\" IS NULL AND \"ExceptionalUsageStartMonthKey\" IS NULL " +
             "AND \"ExceptionalUsageEndMonthKey\" IS NULL AND \"ExceptionalUsageDays\" IS NULL " +
-            "AND \"StandardUsageDayTotal\" IS NULL)");
+            "AND \"StandardUsageDayTotal\" IS NULL)",
+            table => table.HasCheckConstraint(
+                "CK_ClaimInputs_UpperLimitManagementResult_ClosedSet",
+                "\"UpperLimitManagementResult\" IS NULL OR \"UpperLimitManagementResult\" IN (1, 2, 3)"));
         builder.Property(x => x.OfficeId).IsRequired();
         builder.Property(x => x.RecipientId).IsRequired();
         builder.Property(x => x.ServiceMonth)
@@ -100,5 +103,6 @@ internal static class ClaimInputConfigurationShared
         table.HasCheckConstraint(
             $"CK_{tableName}_{prefix}_EnteredYen",
             $"((\"{prefix}_IsEntered\" = 0 AND \"{prefix}_ValueYen\" IS NULL) OR " +
-            $"(\"{prefix}_IsEntered\" = 1 AND \"{prefix}_ValueYen\" >= 0))");
+            $"(\"{prefix}_IsEntered\" = 1 AND \"{prefix}_ValueYen\" IS NOT NULL " +
+            $"AND \"{prefix}_ValueYen\" >= 0))");
 }

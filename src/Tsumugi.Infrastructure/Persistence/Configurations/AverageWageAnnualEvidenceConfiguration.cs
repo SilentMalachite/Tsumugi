@@ -15,7 +15,10 @@ public sealed class AverageWageAnnualEvidenceConfiguration : IEntityTypeConfigur
             "\"Kind\" <> 3 OR (\"AnnualWagePaidYen\" IS NULL AND \"AnnualExtendedUsers\" IS NULL " +
             "AND \"AnnualOpeningDays\" IS NULL AND \"Completeness\" IS NULL AND \"EvidenceDocumentId\" IS NULL " +
             "AND \"DailyEvidenceReference\" IS NULL AND \"MonthlyEvidenceReference\" IS NULL " +
-            "AND \"ConfirmedAt\" IS NULL AND \"ConfirmedBy\" IS NULL AND \"ConfirmationReason\" IS NULL)");
+            "AND \"ConfirmedAt\" IS NULL AND \"ConfirmedBy\" IS NULL AND \"ConfirmationReason\" IS NULL)",
+            table => table.HasCheckConstraint(
+                "CK_AverageWageAnnualEvidences_Completeness_ClosedSet",
+                "\"Completeness\" IS NULL OR \"Completeness\" IN (1, 2)"));
         builder.Property(x => x.OfficeId).IsRequired();
         builder.Property(x => x.SourceFiscalYear).IsRequired();
         builder.Property(x => x.PeriodStart).IsRequired();

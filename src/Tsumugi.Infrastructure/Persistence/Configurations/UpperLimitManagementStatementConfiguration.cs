@@ -29,6 +29,12 @@ public sealed class UpperLimitManagementStatementConfiguration
                 ClaimInputConfigurationShared.AddEnteredYenCheck(table, "UpperLimitManagementStatements", "TotalCostYen");
                 ClaimInputConfigurationShared.AddEnteredYenCheck(table, "UpperLimitManagementStatements", "TotalPreManagementBurdenYen");
                 ClaimInputConfigurationShared.AddEnteredYenCheck(table, "UpperLimitManagementStatements", "TotalManagedBurdenYen");
+                table.HasCheckConstraint(
+                    "CK_UpperLimitManagementStatements_UpperLimitManagementApplicability_ClosedSet",
+                    "\"UpperLimitManagementApplicability\" IN (0, 1, 2)");
+                table.HasCheckConstraint(
+                    "CK_UpperLimitManagementStatements_Result_ClosedSet",
+                    "\"Result\" IN (0, 1, 2, 3)");
             });
         builder.Property(x => x.ServiceMonth)
             .HasConversion(value => value.ToInt(), value => ServiceMonth.FromInt(value))

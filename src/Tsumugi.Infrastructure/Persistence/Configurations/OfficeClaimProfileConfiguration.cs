@@ -32,7 +32,13 @@ public sealed class OfficeClaimProfileConfiguration : IEntityTypeConfiguration<O
                 table.HasCheckConstraint(
                     "CK_OfficeClaimProfiles_AverageWageBandOption",
                     "((\"AverageWageBandOption_Kind\" IS NULL AND \"AverageWageBandOption_OfficialOptionCode\" IS NULL) OR " +
-                    "(\"AverageWageBandOption_Kind\" IN (1, 2, 3) AND \"AverageWageBandOption_OfficialOptionCode\" > 0))");
+                    "(\"AverageWageBandOption_Kind\" IS NOT NULL " +
+                    "AND \"AverageWageBandOption_OfficialOptionCode\" IS NOT NULL " +
+                    "AND \"AverageWageBandOption_Kind\" IN (1, 2, 3) " +
+                    "AND \"AverageWageBandOption_OfficialOptionCode\" > 0))");
+                table.HasCheckConstraint(
+                    "CK_OfficeClaimProfiles_ReformStatus_ClosedSet",
+                    "\"ReformStatus\" IS NULL OR \"ReformStatus\" IN (1, 2, 3, 4)");
                 AddVersionedOptionCheck(table, "EarlierRegisteredBandOption");
                 AddVersionedOptionCheck(table, "LaterRegisteredBandOption");
             });
@@ -105,6 +111,8 @@ public sealed class OfficeClaimProfileConfiguration : IEntityTypeConfiguration<O
             $"CK_OfficeClaimProfiles_{prefix}",
             $"((\"{prefix}_MasterVersion\" IS NULL AND \"{prefix}_Option_Kind\" IS NULL AND " +
             $"\"{prefix}_Option_OfficialOptionCode\" IS NULL) OR " +
-            $"(length(trim(\"{prefix}_MasterVersion\")) BETWEEN 1 AND 64 AND " +
-            $"\"{prefix}_Option_Kind\" IN (1, 2, 3) AND \"{prefix}_Option_OfficialOptionCode\" > 0))");
+            $"(\"{prefix}_MasterVersion\" IS NOT NULL AND \"{prefix}_Option_Kind\" IS NOT NULL AND " +
+            $"\"{prefix}_Option_OfficialOptionCode\" IS NOT NULL " +
+            $"AND length(trim(\"{prefix}_MasterVersion\")) BETWEEN 1 AND 64 " +
+            $"AND \"{prefix}_Option_Kind\" IN (1, 2, 3) AND \"{prefix}_Option_OfficialOptionCode\" > 0))");
 }

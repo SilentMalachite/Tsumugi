@@ -12,7 +12,7 @@ using Tsumugi.Infrastructure.Persistence;
 namespace Tsumugi.Infrastructure.Migrations
 {
     [DbContext(typeof(TsumugiDbContext))]
-    [Migration("20260711234159_Phase31ClaimInputFoundation")]
+    [Migration("20260712000017_Phase31ClaimInputFoundation")]
     partial class Phase31ClaimInputFoundation
     {
         /// <inheritdoc />
@@ -160,6 +160,8 @@ namespace Tsumugi.Infrastructure.Migrations
                     b.ToTable("AverageWageAnnualEvidences", null, t =>
                         {
                             t.HasCheckConstraint("CK_AverageWageAnnualEvidences_CancelPayload", "\"Kind\" <> 3 OR (\"AnnualWagePaidYen\" IS NULL AND \"AnnualExtendedUsers\" IS NULL AND \"AnnualOpeningDays\" IS NULL AND \"Completeness\" IS NULL AND \"EvidenceDocumentId\" IS NULL AND \"DailyEvidenceReference\" IS NULL AND \"MonthlyEvidenceReference\" IS NULL AND \"ConfirmedAt\" IS NULL AND \"ConfirmedBy\" IS NULL AND \"ConfirmationReason\" IS NULL)");
+
+                            t.HasCheckConstraint("CK_AverageWageAnnualEvidences_Completeness_ClosedSet", "\"Completeness\" IS NULL OR \"Completeness\" IN (1, 2)");
 
                             t.HasCheckConstraint("CK_AverageWageAnnualEvidences_RevisionLineage", "\"Revision\" >= 1 AND \"Kind\" IN (1, 2, 3) AND ((\"Revision\" = 1 AND \"RootId\" = \"Id\" AND \"Kind\" = 1 AND \"ExpectedHeadId\" IS NULL) OR (\"Revision\" >= 2 AND \"RootId\" <> \"Id\" AND \"Kind\" IN (2, 3) AND \"ExpectedHeadId\" IS NOT NULL))");
                         });
@@ -431,13 +433,17 @@ namespace Tsumugi.Infrastructure.Migrations
 
                     b.ToTable("CertificateClaimEvidences", null, t =>
                         {
-                            t.HasCheckConstraint("CK_CertificateClaimEvidences_Article31AmountYen_EnteredYen", "((\"Article31AmountYen_IsEntered\" = 0 AND \"Article31AmountYen_ValueYen\" IS NULL) OR (\"Article31AmountYen_IsEntered\" = 1 AND \"Article31AmountYen_ValueYen\" >= 0))");
+                            t.HasCheckConstraint("CK_CertificateClaimEvidences_Article31AmountYen_EnteredYen", "((\"Article31AmountYen_IsEntered\" = 0 AND \"Article31AmountYen_ValueYen\" IS NULL) OR (\"Article31AmountYen_IsEntered\" = 1 AND \"Article31AmountYen_ValueYen\" IS NOT NULL AND \"Article31AmountYen_ValueYen\" >= 0))");
+
+                            t.HasCheckConstraint("CK_CertificateClaimEvidences_Article31Status_ClosedSet", "\"Article31Status\" IN (0, 1, 2)");
 
                             t.HasCheckConstraint("CK_CertificateClaimEvidences_CancelPayload", "\"Kind\" <> 3 OR (\"MonthlyCostCap_IsEntered\" = 0 AND \"MonthlyCostCap_ValueYen\" IS NULL AND \"UpperLimitManagementApplicability\" = 0 AND \"UpperLimitManagementOfficeNumber\" IS NULL AND \"Article31Status\" = 0 AND \"Article31AmountYen_IsEntered\" = 0 AND \"Article31AmountYen_ValueYen\" IS NULL AND \"Article31EffectivePeriod\" IS NULL AND \"OriginalDocumentReference\" IS NULL AND \"ConfirmedAt\" IS NULL AND \"ConfirmedBy\" IS NULL AND \"ConfirmationReason\" IS NULL)");
 
-                            t.HasCheckConstraint("CK_CertificateClaimEvidences_MonthlyCostCap_EnteredYen", "((\"MonthlyCostCap_IsEntered\" = 0 AND \"MonthlyCostCap_ValueYen\" IS NULL) OR (\"MonthlyCostCap_IsEntered\" = 1 AND \"MonthlyCostCap_ValueYen\" >= 0))");
+                            t.HasCheckConstraint("CK_CertificateClaimEvidences_MonthlyCostCap_EnteredYen", "((\"MonthlyCostCap_IsEntered\" = 0 AND \"MonthlyCostCap_ValueYen\" IS NULL) OR (\"MonthlyCostCap_IsEntered\" = 1 AND \"MonthlyCostCap_ValueYen\" IS NOT NULL AND \"MonthlyCostCap_ValueYen\" >= 0))");
 
                             t.HasCheckConstraint("CK_CertificateClaimEvidences_RevisionLineage", "\"Revision\" >= 1 AND \"Kind\" IN (1, 2, 3) AND ((\"Revision\" = 1 AND \"RootId\" = \"Id\" AND \"Kind\" = 1 AND \"ExpectedHeadId\" IS NULL) OR (\"Revision\" >= 2 AND \"RootId\" <> \"Id\" AND \"Kind\" IN (2, 3) AND \"ExpectedHeadId\" IS NOT NULL))");
+
+                            t.HasCheckConstraint("CK_CertificateClaimEvidences_UpperLimitManagementApplicability_ClosedSet", "\"UpperLimitManagementApplicability\" IN (0, 1, 2)");
                         });
                 });
 
@@ -718,6 +724,8 @@ namespace Tsumugi.Infrastructure.Migrations
                             t.HasCheckConstraint("CK_ClaimInputs_CancelPayload", "\"Kind\" <> 3 OR (\"UpperLimitManagementResult\" IS NULL AND \"UpperLimitManagedAmountYen\" IS NULL AND \"MunicipalSubsidyAmountYen\" IS NULL AND \"ExceptionalUsageStartMonthKey\" IS NULL AND \"ExceptionalUsageEndMonthKey\" IS NULL AND \"ExceptionalUsageDays\" IS NULL AND \"StandardUsageDayTotal\" IS NULL)");
 
                             t.HasCheckConstraint("CK_ClaimInputs_RevisionLineage", "\"Revision\" >= 1 AND \"Kind\" IN (1, 2, 3) AND ((\"Revision\" = 1 AND \"RootId\" = \"Id\" AND \"Kind\" = 1 AND \"ExpectedHeadId\" IS NULL) OR (\"Revision\" >= 2 AND \"RootId\" <> \"Id\" AND \"Kind\" IN (2, 3) AND \"ExpectedHeadId\" IS NOT NULL))");
+
+                            t.HasCheckConstraint("CK_ClaimInputs_UpperLimitManagementResult_ClosedSet", "\"UpperLimitManagementResult\" IS NULL OR \"UpperLimitManagementResult\" IN (1, 2, 3)");
                         });
                 });
 
@@ -1386,13 +1394,15 @@ namespace Tsumugi.Infrastructure.Migrations
 
                     b.ToTable("OfficeClaimProfiles", null, t =>
                         {
-                            t.HasCheckConstraint("CK_OfficeClaimProfiles_AverageWageBandOption", "((\"AverageWageBandOption_Kind\" IS NULL AND \"AverageWageBandOption_OfficialOptionCode\" IS NULL) OR (\"AverageWageBandOption_Kind\" IN (1, 2, 3) AND \"AverageWageBandOption_OfficialOptionCode\" > 0))");
+                            t.HasCheckConstraint("CK_OfficeClaimProfiles_AverageWageBandOption", "((\"AverageWageBandOption_Kind\" IS NULL AND \"AverageWageBandOption_OfficialOptionCode\" IS NULL) OR (\"AverageWageBandOption_Kind\" IS NOT NULL AND \"AverageWageBandOption_OfficialOptionCode\" IS NOT NULL AND \"AverageWageBandOption_Kind\" IN (1, 2, 3) AND \"AverageWageBandOption_OfficialOptionCode\" > 0))");
 
                             t.HasCheckConstraint("CK_OfficeClaimProfiles_CancelPayload", "\"Kind\" <> 3 OR (\"MasterVersion\" IS NULL AND \"ReformStatus\" IS NULL AND \"AverageWageBandOption_Kind\" IS NULL AND \"AverageWageBandOption_OfficialOptionCode\" IS NULL AND \"DesignationDate\" IS NULL AND \"SupportStartDate\" IS NULL AND \"EarlierRegisteredBandOption_MasterVersion\" IS NULL AND \"EarlierRegisteredBandOption_Option_Kind\" IS NULL AND \"EarlierRegisteredBandOption_Option_OfficialOptionCode\" IS NULL AND \"EarlierRegistrationMonthKey\" IS NULL AND \"LaterRegisteredBandOption_MasterVersion\" IS NULL AND \"LaterRegisteredBandOption_Option_Kind\" IS NULL AND \"LaterRegisteredBandOption_Option_OfficialOptionCode\" IS NULL AND \"LaterRegistrationMonthKey\" IS NULL AND \"ReformComparisonEvidenceDocumentId\" IS NULL AND \"FiledTransitionPeriod\" IS NULL AND \"FiledTransitionEvidenceDocumentId\" IS NULL AND \"EvidenceDocumentId\" IS NULL AND \"ConfirmedAt\" IS NULL AND \"ConfirmedBy\" IS NULL AND \"ConfirmationReason\" IS NULL)");
 
-                            t.HasCheckConstraint("CK_OfficeClaimProfiles_EarlierRegisteredBandOption", "((\"EarlierRegisteredBandOption_MasterVersion\" IS NULL AND \"EarlierRegisteredBandOption_Option_Kind\" IS NULL AND \"EarlierRegisteredBandOption_Option_OfficialOptionCode\" IS NULL) OR (length(trim(\"EarlierRegisteredBandOption_MasterVersion\")) BETWEEN 1 AND 64 AND \"EarlierRegisteredBandOption_Option_Kind\" IN (1, 2, 3) AND \"EarlierRegisteredBandOption_Option_OfficialOptionCode\" > 0))");
+                            t.HasCheckConstraint("CK_OfficeClaimProfiles_EarlierRegisteredBandOption", "((\"EarlierRegisteredBandOption_MasterVersion\" IS NULL AND \"EarlierRegisteredBandOption_Option_Kind\" IS NULL AND \"EarlierRegisteredBandOption_Option_OfficialOptionCode\" IS NULL) OR (\"EarlierRegisteredBandOption_MasterVersion\" IS NOT NULL AND \"EarlierRegisteredBandOption_Option_Kind\" IS NOT NULL AND \"EarlierRegisteredBandOption_Option_OfficialOptionCode\" IS NOT NULL AND length(trim(\"EarlierRegisteredBandOption_MasterVersion\")) BETWEEN 1 AND 64 AND \"EarlierRegisteredBandOption_Option_Kind\" IN (1, 2, 3) AND \"EarlierRegisteredBandOption_Option_OfficialOptionCode\" > 0))");
 
-                            t.HasCheckConstraint("CK_OfficeClaimProfiles_LaterRegisteredBandOption", "((\"LaterRegisteredBandOption_MasterVersion\" IS NULL AND \"LaterRegisteredBandOption_Option_Kind\" IS NULL AND \"LaterRegisteredBandOption_Option_OfficialOptionCode\" IS NULL) OR (length(trim(\"LaterRegisteredBandOption_MasterVersion\")) BETWEEN 1 AND 64 AND \"LaterRegisteredBandOption_Option_Kind\" IN (1, 2, 3) AND \"LaterRegisteredBandOption_Option_OfficialOptionCode\" > 0))");
+                            t.HasCheckConstraint("CK_OfficeClaimProfiles_LaterRegisteredBandOption", "((\"LaterRegisteredBandOption_MasterVersion\" IS NULL AND \"LaterRegisteredBandOption_Option_Kind\" IS NULL AND \"LaterRegisteredBandOption_Option_OfficialOptionCode\" IS NULL) OR (\"LaterRegisteredBandOption_MasterVersion\" IS NOT NULL AND \"LaterRegisteredBandOption_Option_Kind\" IS NOT NULL AND \"LaterRegisteredBandOption_Option_OfficialOptionCode\" IS NOT NULL AND length(trim(\"LaterRegisteredBandOption_MasterVersion\")) BETWEEN 1 AND 64 AND \"LaterRegisteredBandOption_Option_Kind\" IN (1, 2, 3) AND \"LaterRegisteredBandOption_Option_OfficialOptionCode\" > 0))");
+
+                            t.HasCheckConstraint("CK_OfficeClaimProfiles_ReformStatus_ClosedSet", "\"ReformStatus\" IS NULL OR \"ReformStatus\" IN (1, 2, 3, 4)");
 
                             t.HasCheckConstraint("CK_OfficeClaimProfiles_RevisionLineage", "\"Revision\" >= 1 AND \"Kind\" IN (1, 2, 3) AND ((\"Revision\" = 1 AND \"RootId\" = \"Id\" AND \"Kind\" = 1 AND \"ExpectedHeadId\" IS NULL) OR (\"Revision\" >= 2 AND \"RootId\" <> \"Id\" AND \"Kind\" IN (2, 3) AND \"ExpectedHeadId\" IS NOT NULL))");
                         });
@@ -1713,15 +1723,19 @@ namespace Tsumugi.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CK_UpperLimitManagementStatements_CancelPayload", "\"Kind\" <> 3 OR (\"MunicipalityNumber\" = '' AND \"CertificateNumber\" = '' AND \"CertificateMonthlyCostCap_IsEntered\" = 0 AND \"CertificateMonthlyCostCap_ValueYen\" IS NULL AND \"UpperLimitManagementApplicability\" = 0 AND \"CertificateManagingOfficeNumber\" = '' AND \"ManagingOfficeNumber\" = '' AND \"ManagingOfficeName\" = '' AND \"OriginalCreationKind\" = '' AND \"ReceivedAt\" IS NULL AND \"OriginalDocumentReference\" IS NULL AND \"IsConfirmed\" = 0 AND \"ConfirmedAt\" IS NULL AND \"ConfirmedBy\" IS NULL AND \"ConfirmationReason\" IS NULL AND \"Result\" = 0 AND \"TotalCostYen_IsEntered\" = 0 AND \"TotalCostYen_ValueYen\" IS NULL AND \"TotalPreManagementBurdenYen_IsEntered\" = 0 AND \"TotalPreManagementBurdenYen_ValueYen\" IS NULL AND \"TotalManagedBurdenYen_IsEntered\" = 0 AND \"TotalManagedBurdenYen_ValueYen\" IS NULL)");
 
-                            t.HasCheckConstraint("CK_UpperLimitManagementStatements_CertificateMonthlyCostCap_EnteredYen", "((\"CertificateMonthlyCostCap_IsEntered\" = 0 AND \"CertificateMonthlyCostCap_ValueYen\" IS NULL) OR (\"CertificateMonthlyCostCap_IsEntered\" = 1 AND \"CertificateMonthlyCostCap_ValueYen\" >= 0))");
+                            t.HasCheckConstraint("CK_UpperLimitManagementStatements_CertificateMonthlyCostCap_EnteredYen", "((\"CertificateMonthlyCostCap_IsEntered\" = 0 AND \"CertificateMonthlyCostCap_ValueYen\" IS NULL) OR (\"CertificateMonthlyCostCap_IsEntered\" = 1 AND \"CertificateMonthlyCostCap_ValueYen\" IS NOT NULL AND \"CertificateMonthlyCostCap_ValueYen\" >= 0))");
+
+                            t.HasCheckConstraint("CK_UpperLimitManagementStatements_Result_ClosedSet", "\"Result\" IN (0, 1, 2, 3)");
 
                             t.HasCheckConstraint("CK_UpperLimitManagementStatements_RevisionLineage", "\"Revision\" >= 1 AND \"Kind\" IN (1, 2, 3) AND ((\"Revision\" = 1 AND \"RootId\" = \"Id\" AND \"Kind\" = 1 AND \"ExpectedHeadId\" IS NULL) OR (\"Revision\" >= 2 AND \"RootId\" <> \"Id\" AND \"Kind\" IN (2, 3) AND \"ExpectedHeadId\" IS NOT NULL))");
 
-                            t.HasCheckConstraint("CK_UpperLimitManagementStatements_TotalCostYen_EnteredYen", "((\"TotalCostYen_IsEntered\" = 0 AND \"TotalCostYen_ValueYen\" IS NULL) OR (\"TotalCostYen_IsEntered\" = 1 AND \"TotalCostYen_ValueYen\" >= 0))");
+                            t.HasCheckConstraint("CK_UpperLimitManagementStatements_TotalCostYen_EnteredYen", "((\"TotalCostYen_IsEntered\" = 0 AND \"TotalCostYen_ValueYen\" IS NULL) OR (\"TotalCostYen_IsEntered\" = 1 AND \"TotalCostYen_ValueYen\" IS NOT NULL AND \"TotalCostYen_ValueYen\" >= 0))");
 
-                            t.HasCheckConstraint("CK_UpperLimitManagementStatements_TotalManagedBurdenYen_EnteredYen", "((\"TotalManagedBurdenYen_IsEntered\" = 0 AND \"TotalManagedBurdenYen_ValueYen\" IS NULL) OR (\"TotalManagedBurdenYen_IsEntered\" = 1 AND \"TotalManagedBurdenYen_ValueYen\" >= 0))");
+                            t.HasCheckConstraint("CK_UpperLimitManagementStatements_TotalManagedBurdenYen_EnteredYen", "((\"TotalManagedBurdenYen_IsEntered\" = 0 AND \"TotalManagedBurdenYen_ValueYen\" IS NULL) OR (\"TotalManagedBurdenYen_IsEntered\" = 1 AND \"TotalManagedBurdenYen_ValueYen\" IS NOT NULL AND \"TotalManagedBurdenYen_ValueYen\" >= 0))");
 
-                            t.HasCheckConstraint("CK_UpperLimitManagementStatements_TotalPreManagementBurdenYen_EnteredYen", "((\"TotalPreManagementBurdenYen_IsEntered\" = 0 AND \"TotalPreManagementBurdenYen_ValueYen\" IS NULL) OR (\"TotalPreManagementBurdenYen_IsEntered\" = 1 AND \"TotalPreManagementBurdenYen_ValueYen\" >= 0))");
+                            t.HasCheckConstraint("CK_UpperLimitManagementStatements_TotalPreManagementBurdenYen_EnteredYen", "((\"TotalPreManagementBurdenYen_IsEntered\" = 0 AND \"TotalPreManagementBurdenYen_ValueYen\" IS NULL) OR (\"TotalPreManagementBurdenYen_IsEntered\" = 1 AND \"TotalPreManagementBurdenYen_ValueYen\" IS NOT NULL AND \"TotalPreManagementBurdenYen_ValueYen\" >= 0))");
+
+                            t.HasCheckConstraint("CK_UpperLimitManagementStatements_UpperLimitManagementApplicability_ClosedSet", "\"UpperLimitManagementApplicability\" IN (0, 1, 2)");
                         });
                 });
 
@@ -1809,11 +1823,11 @@ namespace Tsumugi.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CK_UpperLimitManagementStatementLines_LineNumber", "\"LineNumber\" > 0");
 
-                            t.HasCheckConstraint("CK_UpperLimitManagementStatementLines_ManagedBurdenYen_EnteredYen", "((\"ManagedBurdenYen_IsEntered\" = 0 AND \"ManagedBurdenYen_ValueYen\" IS NULL) OR (\"ManagedBurdenYen_IsEntered\" = 1 AND \"ManagedBurdenYen_ValueYen\" >= 0))");
+                            t.HasCheckConstraint("CK_UpperLimitManagementStatementLines_ManagedBurdenYen_EnteredYen", "((\"ManagedBurdenYen_IsEntered\" = 0 AND \"ManagedBurdenYen_ValueYen\" IS NULL) OR (\"ManagedBurdenYen_IsEntered\" = 1 AND \"ManagedBurdenYen_ValueYen\" IS NOT NULL AND \"ManagedBurdenYen_ValueYen\" >= 0))");
 
-                            t.HasCheckConstraint("CK_UpperLimitManagementStatementLines_PreManagementBurdenYen_EnteredYen", "((\"PreManagementBurdenYen_IsEntered\" = 0 AND \"PreManagementBurdenYen_ValueYen\" IS NULL) OR (\"PreManagementBurdenYen_IsEntered\" = 1 AND \"PreManagementBurdenYen_ValueYen\" >= 0))");
+                            t.HasCheckConstraint("CK_UpperLimitManagementStatementLines_PreManagementBurdenYen_EnteredYen", "((\"PreManagementBurdenYen_IsEntered\" = 0 AND \"PreManagementBurdenYen_ValueYen\" IS NULL) OR (\"PreManagementBurdenYen_IsEntered\" = 1 AND \"PreManagementBurdenYen_ValueYen\" IS NOT NULL AND \"PreManagementBurdenYen_ValueYen\" >= 0))");
 
-                            t.HasCheckConstraint("CK_UpperLimitManagementStatementLines_TotalCostYen_EnteredYen", "((\"TotalCostYen_IsEntered\" = 0 AND \"TotalCostYen_ValueYen\" IS NULL) OR (\"TotalCostYen_IsEntered\" = 1 AND \"TotalCostYen_ValueYen\" >= 0))");
+                            t.HasCheckConstraint("CK_UpperLimitManagementStatementLines_TotalCostYen_EnteredYen", "((\"TotalCostYen_IsEntered\" = 0 AND \"TotalCostYen_ValueYen\" IS NULL) OR (\"TotalCostYen_IsEntered\" = 1 AND \"TotalCostYen_ValueYen\" IS NOT NULL AND \"TotalCostYen_ValueYen\" >= 0))");
                         });
                 });
 
