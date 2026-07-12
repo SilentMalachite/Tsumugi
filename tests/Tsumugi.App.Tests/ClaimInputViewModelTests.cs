@@ -1,4 +1,6 @@
+using System.Globalization;
 using FluentAssertions;
+using Tsumugi.App.Converters;
 using Tsumugi.App.ViewModels;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Dtos;
@@ -252,11 +254,16 @@ public sealed class ClaimInputViewModelTests
             withActiveClaimInput: false,
             new UnavailableOfficeClaimProfilePolicyProvider());
         await fixture.Sut.LoadAsync();
-        fixture.Sut.ProfileEffectiveFrom = new DateOnly(2026, 6, 1);
-        fixture.Sut.MasterVersion = new ClaimMasterVersion("not-seeded");
+        fixture.Sut.ProfileEffectiveFrom = (DateOnly)DateOnlyConverter.Instance.ConvertBack(
+            "2026-06-01", typeof(DateOnly), null, CultureInfo.InvariantCulture)!;
+        fixture.Sut.MasterVersion = (ClaimMasterVersion)ClaimMasterVersionConverter.Instance
+            .ConvertBack("not-seeded", typeof(ClaimMasterVersion?), null,
+                CultureInfo.InvariantCulture)!;
         fixture.Sut.ReformStatus = R8ReformStatus.ReformTarget;
-        fixture.Sut.AverageWageBandOption =
-            new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 1);
+        fixture.Sut.AverageWageBandOption = (AverageWageBandOption)
+            AverageWageBandOptionConverter.Instance.ConvertBack(
+                "Numeric:1", typeof(AverageWageBandOption?), null,
+                CultureInfo.InvariantCulture)!;
 
         await fixture.Sut.SaveOfficeProfileAsync();
 

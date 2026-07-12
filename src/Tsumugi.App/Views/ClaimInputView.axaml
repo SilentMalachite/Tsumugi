@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Tsumugi.App.ViewModels"
+             xmlns:conv="using:Tsumugi.App.Converters"
              x:Class="Tsumugi.App.Views.ClaimInputView"
              x:DataType="vm:ClaimInputViewModel">
   <UserControl.KeyBindings>
@@ -60,8 +61,8 @@
                 <TextBlock Text="CurrentHeadId" /><TextBlock Text="{Binding AverageWageCurrentHeadId}" />
                 <TextBlock Text="EffectiveHeadId" /><TextBlock Text="{Binding AverageWageEffectiveHeadId}" />
               </StackPanel>
-              <TextBox Text="{Binding AverageWagePeriodStart}" Watermark="期間開始" />
-              <TextBox Text="{Binding AverageWagePeriodEnd}" Watermark="期間終了" />
+              <TextBox Text="{Binding AverageWagePeriodStart, Mode=TwoWay, Converter={x:Static conv:DateOnlyConverter.Instance}}" Watermark="期間開始 (yyyy-MM-dd)" />
+              <TextBox Text="{Binding AverageWagePeriodEnd, Mode=TwoWay, Converter={x:Static conv:DateOnlyConverter.Instance}}" Watermark="期間終了 (yyyy-MM-dd)" />
               <NumericUpDown Value="{Binding AnnualWagePaidYen}" />
               <NumericUpDown Value="{Binding AnnualExtendedUsers}" />
               <NumericUpDown Value="{Binding AnnualOpeningDays}" />
@@ -69,7 +70,7 @@
               <TextBox Text="{Binding AverageWageEvidenceDocumentId}" Watermark="根拠文書ID" />
               <TextBox Text="{Binding DailyEvidenceReference}" Watermark="日次根拠" />
               <TextBox Text="{Binding MonthlyEvidenceReference}" Watermark="月次根拠" />
-              <TextBox Text="{Binding AverageWageConfirmedAt}" Watermark="確認日時" />
+              <TextBox Text="{Binding AverageWageConfirmedAt, Mode=TwoWay, Converter={x:Static conv:DateTimeOffsetConverter.Instance}}" Watermark="確認日時 (ISO 8601)" />
               <TextBox Text="{Binding AverageWageConfirmedBy}" Watermark="確認者" />
               <TextBox Text="{Binding AverageWageConfirmationReason}" Watermark="確認理由" />
               <StackPanel Orientation="Horizontal" Spacing="8">
@@ -88,22 +89,22 @@
                 <TextBlock Text="CurrentHeadId" /><TextBlock Text="{Binding OfficeProfileCurrentHeadId}" />
                 <TextBlock Text="EffectiveHeadId" /><TextBlock Text="{Binding OfficeProfileEffectiveHeadId}" />
               </StackPanel>
-              <TextBox Text="{Binding ProfileEffectiveFrom}" Watermark="適用開始" />
-              <TextBox Text="{Binding ProfileEffectiveTo}" Watermark="適用終了" />
-              <TextBox Text="{Binding MasterVersion}" Watermark="請求master版" />
+              <TextBox Text="{Binding ProfileEffectiveFrom, Mode=TwoWay, Converter={x:Static conv:DateOnlyConverter.Instance}}" Watermark="適用開始 (yyyy-MM-dd)" />
+              <TextBox Text="{Binding ProfileEffectiveTo, Mode=TwoWay, Converter={x:Static conv:DateOnlyConverter.Instance}}" Watermark="適用終了 (yyyy-MM-dd)" />
+              <TextBox Text="{Binding MasterVersion, Mode=TwoWay, Converter={x:Static conv:ClaimMasterVersionConverter.Instance}}" Watermark="請求master版" />
               <ComboBox ItemsSource="{Binding ReformStatusOptions}" SelectedItem="{Binding ReformStatus}" />
-              <TextBox Text="{Binding AverageWageBandOption}" Watermark="平均工賃option" />
-              <TextBox Text="{Binding DesignationDate}" Watermark="指定日" />
-              <TextBox Text="{Binding SupportStartDate}" Watermark="支援開始日" />
-              <TextBox Text="{Binding EarlierRegisteredBandOption}" Watermark="前登録option" />
-              <TextBox Text="{Binding EarlierRegistrationMonth}" Watermark="前登録月" />
-              <TextBox Text="{Binding LaterRegisteredBandOption}" Watermark="後登録option" />
-              <TextBox Text="{Binding LaterRegistrationMonth}" Watermark="後登録月" />
+              <TextBox Text="{Binding AverageWageBandOption, Mode=TwoWay, Converter={x:Static conv:AverageWageBandOptionConverter.Instance}}" Watermark="平均工賃option (Kind:Code)" />
+              <TextBox Text="{Binding DesignationDate, Mode=TwoWay, Converter={x:Static conv:DateOnlyConverter.Instance}}" Watermark="指定日 (yyyy-MM-dd)" />
+              <TextBox Text="{Binding SupportStartDate, Mode=TwoWay, Converter={x:Static conv:DateOnlyConverter.Instance}}" Watermark="支援開始日 (yyyy-MM-dd)" />
+              <TextBox Text="{Binding EarlierRegisteredBandOption, Mode=TwoWay, Converter={x:Static conv:VersionedAverageWageBandOptionConverter.Instance}}" Watermark="前登録option (Version|Kind:Code)" />
+              <TextBox Text="{Binding EarlierRegistrationMonth, Mode=TwoWay, Converter={x:Static conv:ServiceMonthConverter.Instance}}" Watermark="前登録月 (yyyy-MM)" />
+              <TextBox Text="{Binding LaterRegisteredBandOption, Mode=TwoWay, Converter={x:Static conv:VersionedAverageWageBandOptionConverter.Instance}}" Watermark="後登録option (Version|Kind:Code)" />
+              <TextBox Text="{Binding LaterRegistrationMonth, Mode=TwoWay, Converter={x:Static conv:ServiceMonthConverter.Instance}}" Watermark="後登録月 (yyyy-MM)" />
               <TextBox Text="{Binding ReformComparisonEvidenceDocumentId}" Watermark="改定比較根拠" />
-              <TextBox Text="{Binding FiledTransitionPeriod}" Watermark="経過措置期間" />
+              <TextBox Text="{Binding FiledTransitionPeriod, Mode=TwoWay, Converter={x:Static conv:DateRangeConverter.Instance}}" Watermark="経過措置期間 (開始..終了)" />
               <TextBox Text="{Binding FiledTransitionEvidenceDocumentId}" Watermark="経過措置根拠" />
               <TextBox Text="{Binding OfficeProfileEvidenceDocumentId}" Watermark="指定権者根拠" />
-              <TextBox Text="{Binding OfficeProfileConfirmedAt}" Watermark="確認日時" />
+              <TextBox Text="{Binding OfficeProfileConfirmedAt, Mode=TwoWay, Converter={x:Static conv:DateTimeOffsetConverter.Instance}}" Watermark="確認日時 (ISO 8601)" />
               <TextBox Text="{Binding OfficeProfileConfirmedBy}" Watermark="確認者" />
               <TextBox Text="{Binding OfficeProfileConfirmationReason}" Watermark="確認理由" />
               <StackPanel Orientation="Horizontal" Spacing="8">
@@ -122,8 +123,8 @@
                 <TextBlock Text="CurrentHeadId" /><TextBlock Text="{Binding CertificateEvidenceCurrentHeadId}" />
                 <TextBlock Text="EffectiveHeadId" /><TextBlock Text="{Binding CertificateEvidenceEffectiveHeadId}" />
               </StackPanel>
-              <TextBox Text="{Binding CertificateValidityStart}" Watermark="有効開始" />
-              <TextBox Text="{Binding CertificateValidityEnd}" Watermark="有効終了" />
+              <TextBox Text="{Binding CertificateValidityStart, Mode=TwoWay, Converter={x:Static conv:DateOnlyConverter.Instance}}" Watermark="有効開始 (yyyy-MM-dd)" />
+              <TextBox Text="{Binding CertificateValidityEnd, Mode=TwoWay, Converter={x:Static conv:DateOnlyConverter.Instance}}" Watermark="有効終了 (yyyy-MM-dd)" />
               <CheckBox Content="月額上限入力済み" IsChecked="{Binding MonthlyCostCapIsEntered}" />
               <NumericUpDown Value="{Binding MonthlyCostCapYen}" />
               <ComboBox ItemsSource="{Binding ApplicabilityOptions}"
@@ -132,9 +133,9 @@
               <ComboBox ItemsSource="{Binding Article31StatusOptions}" SelectedItem="{Binding Article31Status}" />
               <CheckBox Content="法31条額入力済み" IsChecked="{Binding Article31AmountIsEntered}" />
               <NumericUpDown Value="{Binding Article31AmountYen}" />
-              <TextBox Text="{Binding Article31EffectivePeriod}" Watermark="法31条適用期間" />
+              <TextBox Text="{Binding Article31EffectivePeriod, Mode=TwoWay, Converter={x:Static conv:DateRangeConverter.Instance}}" Watermark="法31条適用期間 (開始..終了)" />
               <TextBox Text="{Binding CertificateOriginalDocumentReference}" Watermark="原本参照" />
-              <TextBox Text="{Binding CertificateEvidenceConfirmedAt}" Watermark="確認日時" />
+              <TextBox Text="{Binding CertificateEvidenceConfirmedAt, Mode=TwoWay, Converter={x:Static conv:DateTimeOffsetConverter.Instance}}" Watermark="確認日時 (ISO 8601)" />
               <TextBox Text="{Binding CertificateEvidenceConfirmedBy}" Watermark="確認者" />
               <TextBox Text="{Binding CertificateEvidenceConfirmationReason}" Watermark="確認理由" />
               <StackPanel Orientation="Horizontal" Spacing="8">
@@ -161,10 +162,10 @@
               <TextBox Text="{Binding ManagingOfficeNumber}" Watermark="管理事業所番号" />
               <TextBox Text="{Binding ManagingOfficeName}" Watermark="管理事業所名" />
               <TextBox Text="{Binding OriginalCreationKind}" Watermark="原票作成区分" />
-              <TextBox Text="{Binding StatementReceivedAt}" Watermark="受領日時" />
+              <TextBox Text="{Binding StatementReceivedAt, Mode=TwoWay, Converter={x:Static conv:DateTimeOffsetConverter.Instance}}" Watermark="受領日時 (ISO 8601)" />
               <TextBox Text="{Binding StatementOriginalDocumentReference}" Watermark="原票参照" />
               <CheckBox Content="確認済み" IsChecked="{Binding StatementIsConfirmed}" />
-              <TextBox Text="{Binding StatementConfirmedAt}" Watermark="確認日時" />
+              <TextBox Text="{Binding StatementConfirmedAt, Mode=TwoWay, Converter={x:Static conv:DateTimeOffsetConverter.Instance}}" Watermark="確認日時 (ISO 8601)" />
               <TextBox Text="{Binding StatementConfirmedBy}" Watermark="確認者" />
               <TextBox Text="{Binding StatementConfirmationReason}" Watermark="確認理由" />
               <ComboBox ItemsSource="{Binding UpperLimitResultOptions}" SelectedItem="{Binding StatementResult}" />

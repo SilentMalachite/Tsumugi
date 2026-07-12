@@ -127,6 +127,40 @@ public sealed class ViewInputWiringTests
     }
 
     [Fact]
+    public void ClaimInputView_uses_safe_two_way_converters_for_value_object_text_inputs()
+    {
+        var xml = ReadView("ClaimInputView.axaml");
+        foreach (var (binding, converter) in new[]
+        {
+            ("AverageWagePeriodStart", "DateOnlyConverter.Instance"),
+            ("AverageWagePeriodEnd", "DateOnlyConverter.Instance"),
+            ("AverageWageConfirmedAt", "DateTimeOffsetConverter.Instance"),
+            ("ProfileEffectiveFrom", "DateOnlyConverter.Instance"),
+            ("ProfileEffectiveTo", "DateOnlyConverter.Instance"),
+            ("MasterVersion", "ClaimMasterVersionConverter.Instance"),
+            ("AverageWageBandOption", "AverageWageBandOptionConverter.Instance"),
+            ("DesignationDate", "DateOnlyConverter.Instance"),
+            ("SupportStartDate", "DateOnlyConverter.Instance"),
+            ("EarlierRegisteredBandOption", "VersionedAverageWageBandOptionConverter.Instance"),
+            ("EarlierRegistrationMonth", "ServiceMonthConverter.Instance"),
+            ("LaterRegisteredBandOption", "VersionedAverageWageBandOptionConverter.Instance"),
+            ("LaterRegistrationMonth", "ServiceMonthConverter.Instance"),
+            ("FiledTransitionPeriod", "DateRangeConverter.Instance"),
+            ("OfficeProfileConfirmedAt", "DateTimeOffsetConverter.Instance"),
+            ("CertificateValidityStart", "DateOnlyConverter.Instance"),
+            ("CertificateValidityEnd", "DateOnlyConverter.Instance"),
+            ("Article31EffectivePeriod", "DateRangeConverter.Instance"),
+            ("CertificateEvidenceConfirmedAt", "DateTimeOffsetConverter.Instance"),
+            ("StatementReceivedAt", "DateTimeOffsetConverter.Instance"),
+            ("StatementConfirmedAt", "DateTimeOffsetConverter.Instance"),
+        })
+        {
+            xml.Should().Contain(
+                $"{{Binding {binding}, Mode=TwoWay, Converter={{x:Static conv:{converter}}}}}");
+        }
+    }
+
+    [Fact]
     public void ContractView_exposes_PeriodEnd_input()
     {
         var xml = ReadView("ContractView.axaml");
