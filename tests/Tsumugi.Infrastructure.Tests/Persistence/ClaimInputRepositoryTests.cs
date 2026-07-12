@@ -352,6 +352,213 @@ public sealed class ClaimInputRepositoryTests : IClassFixture<SqliteFixture>
         aggregate.Lines.Select(line => line.LineNumber).Should().Equal(1, 2);
     }
 
+    [Fact]
+    public async Task Statement_AddAsync_stages_header_and_all_lines_until_real_unit_of_work_saves()
+    {
+        var statement = ClaimRows.Statement();
+        var lines = new[]
+        {
+            ClaimRows.Line(statement.Id, 2),
+            ClaimRows.Line(statement.Id, 1),
+        };
+        await using var context = _fixture.NewContext();
+        context.AddRange(
+            ClaimRows.Office(statement.ManagingOfficeId),
+            ClaimRows.Recipient(statement.RecipientId),
+            ClaimRows.Certificate(statement.CertificateId, statement.RecipientId));
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        await new UpperLimitManagementStatementRepository(context)
+            .AddAsync(statement, lines, default);
+
+        context.Entry(statement).State.Should().Be(EntityState.Added);
+        lines.Should().OnlyContain(line => context.Entry(line).State == EntityState.Added);
+        (await context.UpperLimitManagementStatements.AsNoTracking()
+                .CountAsync(row => row.Id == statement.Id))
+            .Should().Be(0);
+        (await context.UpperLimitManagementStatementLines.AsNoTracking()
+                .CountAsync(row => row.StatementId == statement.Id))
+            .Should().Be(0);
+
+        (await new EfUnitOfWork(context).SaveChangesAsync(default)).Should().Be(3);
+        context.ChangeTracker.Entries().Should().BeEmpty();
+
+        await using var verification = _fixture.NewContext();
+        var persisted = await new UpperLimitManagementStatementRepository(verification)
+            .ListHistoryAggregatesAsync(
+                statement.ManagingOfficeId,
+                statement.RecipientId,
+                statement.ServiceMonth,
+                default);
+        persisted.Should().ContainSingle();
+        persisted[0].Header.Should().Be(statement);
+        persisted[0].Lines.Should().Equal(lines.OrderBy(line => line.LineNumber));
+        verification.ChangeTracker.Entries().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Statement_list_filters_only_three_scope_keys_and_orders_certificates_roots_revisions_and_lines()
+    {
+        var officeId = Guid.NewGuid();
+        var otherOfficeId = Guid.NewGuid();
+        var recipientId = Guid.NewGuid();
+        var otherRecipientId = Guid.NewGuid();
+        var month = new ServiceMonth(2026, 7);
+        var otherMonth = new ServiceMonth(2026, 8);
+        var earlyCertificateId = Guid.Parse("20000000-0000-0000-0000-000000000000");
+        var lateCertificateId = Guid.Parse("e0000000-0000-0000-0000-000000000000");
+        var otherCertificateId = Guid.NewGuid();
+        var early = ClaimRows.Statement(
+            ClaimRows.LateRootId, earlyCertificateId, officeId, recipientId, month);
+        var earlyCorrection = ClaimRows.CorrectStatement(early);
+        var late = ClaimRows.Statement(
+            ClaimRows.EarlyRootId, lateCertificateId, officeId, recipientId, month);
+        var lateCancel = ClaimRows.CancelStatement(late);
+        var included = new[] { lateCancel, earlyCorrection, late, early };
+        await using var context = _fixture.NewContext();
+        context.AddRange(
+            ClaimRows.Office(officeId),
+            ClaimRows.Office(otherOfficeId),
+            ClaimRows.Recipient(recipientId),
+            ClaimRows.Recipient(otherRecipientId),
+            ClaimRows.Certificate(earlyCertificateId, recipientId),
+            ClaimRows.Certificate(lateCertificateId, recipientId),
+            ClaimRows.Certificate(otherCertificateId, recipientId));
+        context.AddRange(included);
+        context.AddRange(included.SelectMany(statement => statement.Kind == RecordKind.Cancel
+            ? []
+            : new[]
+            {
+                ClaimRows.Line(statement.Id, 2),
+                ClaimRows.Line(statement.Id, 1),
+            }));
+        context.AddRange(
+            ClaimRows.Statement(Guid.NewGuid(), otherCertificateId, otherOfficeId, recipientId, month),
+            ClaimRows.Statement(Guid.NewGuid(), otherCertificateId, officeId, otherRecipientId, month),
+            ClaimRows.Statement(Guid.NewGuid(), otherCertificateId, officeId, recipientId, otherMonth));
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        var result = await new UpperLimitManagementStatementRepository(context)
+            .ListHistoryAggregatesAsync(officeId, recipientId, month, default);
+
+        result.Select(item =>
+                (item.Header.CertificateId, item.Header.RootId, item.Header.Revision))
+            .Should().Equal(
+                (earlyCertificateId, ClaimRows.LateRootId, 1),
+                (earlyCertificateId, ClaimRows.LateRootId, 2),
+                (lateCertificateId, ClaimRows.EarlyRootId, 1),
+                (lateCertificateId, ClaimRows.EarlyRootId, 2));
+        result.Take(3).Select(item => item.Lines.Select(line => line.LineNumber))
+            .Should().AllSatisfy(lineNumbers => lineNumbers.Should().Equal(1, 2));
+        result[3].Lines.Should().BeEmpty();
+        context.ChangeTracker.Entries().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Statement_repository_round_trips_entered_zero_unentered_null_and_cancel_sentinels()
+    {
+        var root = ClaimRows.Statement() with
+        {
+            MunicipalityNumber = "municipality-roundtrip",
+            CertificateNumber = "certificate-roundtrip",
+            CertificateMonthlyCostCap = new EnteredYen(true, 0),
+            CertificateManagingOfficeNumber = "certificate-office",
+            ManagingOfficeNumber = "managing-office-roundtrip",
+            ManagingOfficeName = "管理事業所",
+            OriginalCreationKind = "imported",
+            ReceivedAt = DateTimeOffset.UnixEpoch.AddHours(1),
+            OriginalDocumentReference = "statement-original",
+            ConfirmedAt = DateTimeOffset.UnixEpoch.AddHours(2),
+            ConfirmedBy = "confirmer",
+            ConfirmationReason = "verified",
+            TotalCostYen = new EnteredYen(true, 0),
+            TotalPreManagementBurdenYen = new EnteredYen(false, null),
+            TotalManagedBurdenYen = new EnteredYen(true, 0),
+        };
+        var line = ClaimRows.Line(root.Id, 1) with
+        {
+            OfficeNumber = "line-office",
+            OfficeName = "明細事業所",
+            TotalCostYen = new EnteredYen(true, 0),
+            PreManagementBurdenYen = new EnteredYen(false, null),
+            ManagedBurdenYen = new EnteredYen(true, 0),
+        };
+        var cancel = ClaimRows.CancelStatement(root);
+        await using var context = _fixture.NewContext();
+        context.AddRange(
+            ClaimRows.Office(root.ManagingOfficeId),
+            ClaimRows.Recipient(root.RecipientId),
+            ClaimRows.Certificate(root.CertificateId, root.RecipientId));
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+        var repository = new UpperLimitManagementStatementRepository(context);
+
+        await repository.AddAsync(root, [line], default);
+        await repository.AddAsync(cancel, [], default);
+        (await new EfUnitOfWork(context).SaveChangesAsync(default)).Should().Be(3);
+
+        await using var verification = _fixture.NewContext();
+        var roundTripped = await new UpperLimitManagementStatementRepository(verification)
+            .ListHistoryAggregatesAsync(
+                root.ManagingOfficeId,
+                root.RecipientId,
+                root.ServiceMonth,
+                default);
+
+        roundTripped.Should().HaveCount(2);
+        roundTripped[0].Header.Should().Be(root);
+        roundTripped[0].Lines.Should().Equal(line);
+        roundTripped[1].Header.Should().Be(cancel);
+        roundTripped[1].Lines.Should().BeEmpty();
+        verification.ChangeTracker.Entries().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Statement_invalid_line_constraint_rolls_back_header_and_all_lines_atomically()
+    {
+        var statement = ClaimRows.Statement();
+        var duplicateLineNumber = new[]
+        {
+            ClaimRows.Line(statement.Id, 1),
+            ClaimRows.Line(statement.Id, 1),
+        };
+        await using var context = _fixture.NewContext();
+        context.AddRange(
+            ClaimRows.Office(statement.ManagingOfficeId),
+            ClaimRows.Recipient(statement.RecipientId),
+            ClaimRows.Certificate(statement.CertificateId, statement.RecipientId));
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+        await new UpperLimitManagementStatementRepository(context)
+            .AddAsync(statement, duplicateLineNumber, default);
+
+        Func<Task> save = () => new EfUnitOfWork(context).SaveChangesAsync(default);
+
+        await save.Should().ThrowAsync<DbUpdateException>();
+        await using var verification = _fixture.NewContext();
+        (await verification.UpperLimitManagementStatements.AsNoTracking()
+                .CountAsync(row => row.Id == statement.Id))
+            .Should().Be(0);
+        (await verification.UpperLimitManagementStatementLines.AsNoTracking()
+                .CountAsync(row => row.StatementId == statement.Id))
+            .Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Statement_AddAsync_rejects_null_header_and_lines()
+    {
+        await using var context = _fixture.NewContext();
+        var repository = new UpperLimitManagementStatementRepository(context);
+        var statement = ClaimRows.Statement();
+        Func<Task> addNullHeader = () => repository.AddAsync(null!, [], default);
+        Func<Task> addNullLines = () => repository.AddAsync(statement, null!, default);
+
+        await addNullHeader.Should().ThrowAsync<ArgumentNullException>();
+        await addNullLines.Should().ThrowAsync<ArgumentNullException>();
+    }
+
     private static class ClaimRows
     {
         internal static readonly Guid EarlyRootId =
@@ -656,16 +863,30 @@ public sealed class ClaimInputRepositoryTests : IClassFixture<SqliteFixture>
         public static UpperLimitManagementStatement Statement()
         {
             var id = Guid.NewGuid();
-            return new UpperLimitManagementStatement
+            return Statement(
+                id,
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                Guid.NewGuid(),
+                new ServiceMonth(2026, 7));
+        }
+
+        public static UpperLimitManagementStatement Statement(
+            Guid rootId,
+            Guid certificateId,
+            Guid managingOfficeId,
+            Guid recipientId,
+            ServiceMonth serviceMonth)
+            => new()
             {
-                Id = id,
-                RootId = id,
+                Id = rootId,
+                RootId = rootId,
                 Revision = 1,
                 Kind = RecordKind.New,
-                ServiceMonth = new ServiceMonth(2026, 7),
-                RecipientId = Guid.NewGuid(),
-                CertificateId = Guid.NewGuid(),
-                ManagingOfficeId = Guid.NewGuid(),
+                ServiceMonth = serviceMonth,
+                RecipientId = recipientId,
+                CertificateId = certificateId,
+                ManagingOfficeId = managingOfficeId,
                 MunicipalityNumber = "municipality",
                 CertificateNumber = "certificate",
                 CertificateMonthlyCostCap = new EnteredYen(true, 1_000),
@@ -683,7 +904,48 @@ public sealed class ClaimInputRepositoryTests : IClassFixture<SqliteFixture>
                 CreatedBy = "tester",
                 ConcurrencyToken = Guid.NewGuid(),
             };
-        }
+
+        public static UpperLimitManagementStatement CorrectStatement(UpperLimitManagementStatement root)
+            => root with
+            {
+                Id = Guid.NewGuid(),
+                RootId = root.RootId,
+                Revision = 2,
+                Kind = RecordKind.Correct,
+                ExpectedHeadId = root.Id,
+                CreatedAt = DateTimeOffset.UnixEpoch.AddMinutes(1),
+                ConcurrencyToken = Guid.NewGuid(),
+            };
+
+        public static UpperLimitManagementStatement CancelStatement(UpperLimitManagementStatement root)
+            => root with
+            {
+                Id = Guid.NewGuid(),
+                RootId = root.RootId,
+                Revision = 2,
+                Kind = RecordKind.Cancel,
+                ExpectedHeadId = root.Id,
+                MunicipalityNumber = string.Empty,
+                CertificateNumber = string.Empty,
+                CertificateMonthlyCostCap = new EnteredYen(false, null),
+                UpperLimitManagementApplicability = UpperLimitManagementApplicability.Unknown,
+                CertificateManagingOfficeNumber = string.Empty,
+                ManagingOfficeNumber = string.Empty,
+                ManagingOfficeName = string.Empty,
+                OriginalCreationKind = string.Empty,
+                ReceivedAt = null,
+                OriginalDocumentReference = null,
+                IsConfirmed = false,
+                ConfirmedAt = null,
+                ConfirmedBy = null,
+                ConfirmationReason = null,
+                Result = (UpperLimitManagementResult)0,
+                TotalCostYen = new EnteredYen(false, null),
+                TotalPreManagementBurdenYen = new EnteredYen(false, null),
+                TotalManagedBurdenYen = new EnteredYen(false, null),
+                CreatedAt = DateTimeOffset.UnixEpoch.AddMinutes(1),
+                ConcurrencyToken = Guid.NewGuid(),
+            };
 
         public static UpperLimitManagementStatementLine Line(Guid statementId, int lineNumber)
             => new()
