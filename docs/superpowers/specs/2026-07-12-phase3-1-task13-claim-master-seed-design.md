@@ -1,6 +1,6 @@
 # Phase 3-1 Task 13 Claim Master Seed Design
 
-**Status:** Schema v2 review candidate
+**Status:** Spec review approved; awaiting user confirmation
 **Date:** 2026-07-13
 **Scope:** Task 13のみ — manifest v2変換・再監査、一次資料取得、R6／R8制度実値seed、機械検証、独立全件照合
 **Normative dependency:** `docs/superpowers/specs/2026-07-13-phase3-1-task12-claim-master-schema-v2-design.md`
