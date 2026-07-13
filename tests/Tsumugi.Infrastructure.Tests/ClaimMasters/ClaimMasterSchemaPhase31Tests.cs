@@ -208,18 +208,24 @@ public sealed class ClaimMasterSchemaPhase31Tests
     }
 
     [Theory]
-    [InlineData("add")]
-    [InlineData("subtract")]
-    [InlineData("replace")]
-    public void Load_accepts_known_percentage_application_kinds(string applicationKind)
+    [InlineData("add", PercentageApplicationKind.Add)]
+    [InlineData("subtract", PercentageApplicationKind.Subtract)]
+    [InlineData("replace", PercentageApplicationKind.Replace)]
+    public void Load_accepts_known_percentage_application_kinds(
+        string applicationKind,
+        PercentageApplicationKind expectedApplicationKind)
     {
         var masters = ValidMasters();
         MutateEntryByKey(masters, "additions.json", "add-percentage", entry =>
             entry["values"]!["amount"]!["applicationKind"] = applicationKind);
 
-        var action = () => Load(masters);
+        var bundle = LoadBundle(masters);
+        UnitAdjustmentMasterRow adjustment = bundle.UnitAdjustments
+            .Single(row => row.Key == "add-percentage");
+        var amount = adjustment.Amount
+            .Should().BeOfType<PercentageOfTargetAmount>().Subject;
 
-        action.Should().NotThrow();
+        amount.ApplicationKind.Should().Be(expectedApplicationKind);
     }
 
     [Fact]
