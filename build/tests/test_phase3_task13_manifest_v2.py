@@ -4,6 +4,8 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -31,7 +33,16 @@ def fixture_identity_digest(rows: list[dict]) -> str:
 
 
 def make_v1_manifest() -> dict:
-    documents = [{"documentId": f"document-{index:02d}"} for index in range(41)]
+    documents = [
+        {
+            "documentId": f"document-{index:02d}",
+            "extractionRanges": [
+                {"rangeId": f"range-{range_index}"}
+                for range_index in range(2 if index < 10 else 1)
+            ],
+        }
+        for index in range(41)
+    ]
     rows = []
     for index in range(14_709):
         disposition = "seed" if index == 0 else "excluded" if index == 1 else "schema-gap"
@@ -101,6 +112,15 @@ def write_decisions(path: Path, decisions: list[dict]) -> None:
     path.write_text(
         "".join(json.dumps(decision, ensure_ascii=False) + "\n" for decision in decisions),
         encoding="utf-8",
+    )
+
+
+def run_cli(*arguments: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(MODULE_PATH), *arguments],
+        check=False,
+        capture_output=True,
+        text=True,
     )
 
 
@@ -234,6 +254,57 @@ class ConverterBehaviorTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     manifest_v2.validate_decision(invalid)
 
+    def test_validate_decision_rejects_invalid_shapes_types_and_duplicate_targets(self) -> None:
+        row = make_v2_row(0)
+        valid = make_decision(row)
+        without_locator = dict(valid)
+        without_locator.pop("sourceLocator")
+        duplicate_target = make_target()
+        invalid_decisions = [
+            ([], "decision must be an object"),
+            (without_locator, "decision has unexpected fields"),
+            ({**valid, "unexpected": "field"}, "decision has unexpected fields"),
+            ({**valid, "sourceDocumentId": "  "}, "identity fields must be nonblank strings"),
+            ({**valid, "rangeId": 42}, "identity fields must be nonblank strings"),
+            ({**valid, "sourceLabel": ""}, "sourceLabel must be a nonblank string"),
+            ({**valid, "effectiveFrom": None}, "effectiveFrom must be a nonblank string"),
+            ({**valid, "effectiveTo": 42}, "effectiveTo must be null or a nonblank string"),
+            ({**valid, "productionTargets": make_target()}, "productionTargets must be a list"),
+            ({**valid, "productionTargets": [42]}, "target must be an object"),
+            (
+                {**valid, "productionTargets": [make_target(supports="conditions")]},
+                "supports must be a nonempty list of strings",
+            ),
+            (
+                {**valid, "productionTargets": [make_target(supports=[42])]},
+                "supports must be a nonempty list of strings",
+            ),
+            (
+                {**valid, "productionTargets": [make_target(mappingReason=42)]},
+                "mappingReason must be null or a nonblank string",
+            ),
+            (
+                {**valid, "productionTargets": [make_target(mappingReason={})]},
+                "mappingReason must be null or a nonblank string",
+            ),
+            (
+                {**valid, "productionTargets": [make_target(mappingReason="  ")]},
+                "mappingReason must be null or a nonblank string",
+            ),
+            (
+                {
+                    **valid,
+                    "productionTargets": [duplicate_target, dict(duplicate_target)],
+                },
+                "duplicate target",
+            ),
+        ]
+
+        for invalid, message in invalid_decisions:
+            with self.subTest(message=message, invalid=invalid):
+                with self.assertRaisesRegex(ValueError, message):
+                    manifest_v2.validate_decision(invalid)
+
     def test_apply_decisions_requires_exact_unique_identity_coverage(self) -> None:
         rows = [make_v2_row(index) for index in range(3)]
         manifest = {"schemaVersion": "2", "documents": [], "rows": rows}
@@ -292,6 +363,16 @@ class ConverterBehaviorTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 manifest_v2.write_chunks(manifest, output_dir, 200)
 
+    def test_write_chunks_rejects_nonpositive_chunk_size(self) -> None:
+        manifest = {"schemaVersion": "2", "documents": [], "rows": [make_v2_row(0)]}
+        with tempfile.TemporaryDirectory() as temporary:
+            for chunk_size in (0, -1):
+                with self.subTest(chunk_size=chunk_size):
+                    output_dir = Path(temporary) / f"chunks-{chunk_size}"
+                    with self.assertRaisesRegex(ValueError, "chunk_size must be positive"):
+                        manifest_v2.write_chunks(manifest, output_dir, chunk_size)
+                    self.assertFalse(output_dir.exists())
+
     def test_write_chunks_splits_401_rows_deterministically(self) -> None:
         rows = [make_v2_row(index) for index in range(401)]
         manifest = {"schemaVersion": "2", "documents": [], "rows": rows}
@@ -325,6 +406,89 @@ class ConverterBehaviorTests(unittest.TestCase):
                 [fixture_identity(row) for row in rows],
                 [fixture_identity(row) for row in chunk_rows],
             )
+
+    def test_chunk_cli_rejects_nonpositive_chunk_size(self) -> None:
+        manifest = {"schemaVersion": "2", "documents": [], "rows": [make_v2_row(0)]}
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_path = Path(temporary)
+            manifest_path = temporary_path / "manifest.json"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            for chunk_size in (0, -1):
+                with self.subTest(chunk_size=chunk_size):
+                    output_dir = temporary_path / f"chunks-{chunk_size}"
+                    result = run_cli(
+                        "chunk",
+                        "--manifest",
+                        str(manifest_path),
+                        "--output-dir",
+                        str(output_dir),
+                        "--chunk-size",
+                        str(chunk_size),
+                    )
+                    self.assertNotEqual(0, result.returncode)
+                    self.assertEqual("", result.stdout)
+                    self.assertIn(
+                        "argument --chunk-size: must be a positive integer",
+                        result.stderr,
+                    )
+                    self.assertFalse(output_dir.exists())
+
+    def test_migrate_cli_writes_output_and_prints_deterministic_summary(self) -> None:
+        source = make_v1_manifest()
+        expected_digest = fixture_identity_digest(source["rows"])
+        expected_inventory = {
+            "documents": 41,
+            "ranges": 51,
+            "rows": 14_709,
+            "identitySha256": expected_digest,
+        }
+        expected_summary = {
+            "before": expected_inventory,
+            "after": expected_inventory,
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_path = Path(temporary)
+            input_path = temporary_path / "manifest-v1.json"
+            output_path = temporary_path / "manifest-v2.json"
+            input_path.write_text(
+                json.dumps(source, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            result = run_cli(
+                "migrate",
+                "--input",
+                str(input_path),
+                "--output",
+                str(output_path),
+                "--expected-digest",
+                expected_digest,
+            )
+
+            self.assertEqual(0, result.returncode, msg=result.stderr)
+            self.assertEqual("", result.stderr)
+            self.assertEqual(
+                json.dumps(expected_summary, separators=(",", ":")) + "\n",
+                result.stdout,
+            )
+            self.assertEqual(
+                manifest_v2.migrate(source, expected_digest),
+                json.loads(output_path.read_text(encoding="utf-8")),
+            )
+
+            failed_output_path = temporary_path / "failed-manifest-v2.json"
+            failed = run_cli(
+                "migrate",
+                "--input",
+                str(input_path),
+                "--output",
+                str(failed_output_path),
+                "--expected-digest",
+                "0" * 64,
+            )
+            self.assertNotEqual(0, failed.returncode)
+            self.assertEqual("", failed.stdout)
+            self.assertFalse(failed_output_path.exists())
 
 
 if __name__ == "__main__":

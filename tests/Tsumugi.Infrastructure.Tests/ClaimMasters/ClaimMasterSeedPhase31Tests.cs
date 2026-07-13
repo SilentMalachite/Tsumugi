@@ -1,4 +1,7 @@
 using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using FluentAssertions;
@@ -8,8 +11,16 @@ namespace Tsumugi.Infrastructure.Tests.ClaimMasters;
 
 public sealed class ClaimMasterSeedPhase31Tests
 {
+    private const string ExpectedOrderedIdentityDigest =
+        "0d0e7361bf37e1f604f9dc59dcc408d2f64d513e7259596bed04499575bb3377";
+
     private const string ManifestPath =
         "docs/spec-data/phase3/claim-master-source-row-manifest.json";
+
+    private static readonly JsonSerializerOptions IdentityJsonOptions = new()
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
 
     private static readonly string[] AllowedTargetKinds =
     [
@@ -225,38 +236,78 @@ public sealed class ClaimMasterSeedPhase31Tests
         using var manifest = OpenRepositoryJson(ManifestPath);
         foreach (var row in manifest.RootElement.GetProperty("rows").EnumerateArray())
         {
+            var rowContext = $"manifest row "
+                             + $"{row.GetProperty("sourceDocumentId").GetString()} / "
+                             + $"{row.GetProperty("rangeId").GetString()} / "
+                             + row.GetProperty("sourceLocator").GetString();
             var disposition = row.GetProperty("disposition").GetString();
             var targets = GetProductionTargets(row);
             var reason = row.GetProperty("exclusionReason");
 
             if (disposition == "seed")
             {
-                targets.Should().NotBeEmpty();
+                targets.Should().NotBeEmpty(because: rowContext);
                 reason.ValueKind.Should().Be(JsonValueKind.Null);
             }
             else
             {
                 disposition.Should().BeOneOf("excluded", "schema-gap");
-                targets.Should().BeEmpty();
+                targets.Should().BeEmpty(because: rowContext);
                 reason.GetString().Should().NotBeNullOrWhiteSpace();
             }
 
             foreach (var target in targets)
             {
+                var targetContext = $"target contract for {rowContext}";
                 target.EnumerateObject().Select(property => property.Name).Should().Equal(
-                    "masterKind", "seedKey", "mappingRole", "supports", "mappingReason");
-                target.GetProperty("masterKind").GetString().Should().BeOneOf(AllowedTargetKinds);
-                target.GetProperty("seedKey").GetString().Should().NotBeNullOrWhiteSpace();
+                    ["masterKind", "seedKey", "mappingRole", "supports", "mappingReason"],
+                    because: targetContext);
+                target.GetProperty("masterKind").ValueKind.Should().Be(
+                    JsonValueKind.String,
+                    because: targetContext);
+                target.GetProperty("masterKind").GetString().Should().BeOneOf(
+                    AllowedTargetKinds,
+                    because: targetContext);
+                target.GetProperty("seedKey").ValueKind.Should().Be(
+                    JsonValueKind.String,
+                    because: targetContext);
+                target.GetProperty("seedKey").GetString().Should().NotBeNullOrWhiteSpace(
+                    because: targetContext);
+                target.GetProperty("mappingRole").ValueKind.Should().Be(
+                    JsonValueKind.String,
+                    because: targetContext);
                 var role = target.GetProperty("mappingRole").GetString();
-                role.Should().BeOneOf(AllowedMappingRoles);
-                var supports = target.GetProperty("supports").EnumerateArray()
+                role.Should().BeOneOf(AllowedMappingRoles, because: targetContext);
+                var supportsElement = target.GetProperty("supports");
+                supportsElement.ValueKind.Should().Be(
+                    JsonValueKind.Array,
+                    because: targetContext);
+                var supportElements = supportsElement.EnumerateArray().ToArray();
+                supportElements.Should().OnlyContain(
+                    item => item.ValueKind == JsonValueKind.String,
+                    because: targetContext);
+                var supports = supportElements
                     .Select(item => item.GetString()!).ToArray();
-                supports.Should().NotBeEmpty().And.OnlyHaveUniqueItems();
-                supports.Should().OnlyContain(support => AllowedSupports.Contains(support));
+                supports.Should().NotBeEmpty(because: targetContext)
+                    .And.OnlyHaveUniqueItems(because: targetContext);
+                supports.Should().OnlyContain(
+                    support => AllowedSupports.Contains(support),
+                    because: targetContext);
+                var mappingReason = target.GetProperty("mappingReason");
+                mappingReason.ValueKind.Should().BeOneOf(
+                    [JsonValueKind.String, JsonValueKind.Null],
+                    because: targetContext);
+                if (mappingReason.ValueKind == JsonValueKind.String)
+                {
+                    mappingReason.GetString().Should().NotBeNullOrWhiteSpace(
+                        because: targetContext);
+                }
+
                 if (role is "component" or "supporting-evidence")
                 {
-                    target.GetProperty("mappingReason").GetString()
-                        .Should().NotBeNullOrWhiteSpace();
+                    mappingReason.ValueKind.Should().Be(
+                        JsonValueKind.String,
+                        because: targetContext);
                 }
             }
         }
@@ -275,6 +326,26 @@ public sealed class ClaimMasterSeedPhase31Tests
         ranges.Should().HaveCount(51);
         ranges.Sum(range => range.GetProperty("expectedItemCount").GetInt32())
             .Should().Be(14_709);
+    }
+
+    [Fact]
+    public void Source_manifest_v2_preserves_the_ordered_row_identity_digest()
+    {
+        using var manifest = OpenRepositoryJson(ManifestPath);
+        var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().ToArray();
+
+        CalculateOrderedIdentityDigest(rows).Should().Be(ExpectedOrderedIdentityDigest);
+    }
+
+    [Fact]
+    public void Ordered_row_identity_digest_detects_reordering()
+    {
+        using var manifest = OpenRepositoryJson(ManifestPath);
+        var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().Take(2).ToArray();
+
+        CalculateOrderedIdentityDigest(rows).Should().NotBe(
+            CalculateOrderedIdentityDigest(rows.Reverse()),
+            because: "the manifest digest must detect row reordering");
     }
 
     [Fact]
@@ -513,6 +584,25 @@ public sealed class ClaimMasterSeedPhase31Tests
             because: $"schema v2 requires productionTargets to be an array for "
                      + $"{documentId} / {sourceLocator}");
         return productionTargets.EnumerateArray().ToArray();
+    }
+
+    private static string CalculateOrderedIdentityDigest(IEnumerable<JsonElement> rows)
+    {
+        var payload = new StringBuilder();
+        foreach (var row in rows)
+        {
+            string[] identity =
+            [
+                row.GetProperty("sourceDocumentId").GetString()!,
+                row.GetProperty("rangeId").GetString()!,
+                row.GetProperty("sourceLocator").GetString()!,
+            ];
+            payload.Append(JsonSerializer.Serialize(identity, IdentityJsonOptions));
+            payload.Append('\n');
+        }
+
+        var digest = SHA256.HashData(Encoding.UTF8.GetBytes(payload.ToString()));
+        return Convert.ToHexStringLower(digest);
     }
 
     private static void AssertPeriod(
