@@ -4,7 +4,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
+import tempfile
 
 
 OLD_MAPPING_FIELDS = (
@@ -36,17 +38,15 @@ ALLOWED_SUPPORTS = {
     "effective-period",
     "master-values",
 }
-DECISION_FIELDS = {
+REQUIRED_DECISION_FIELDS = {
     "sourceDocumentId",
     "rangeId",
     "sourceLocator",
-    "sourceLabel",
-    "effectiveFrom",
-    "effectiveTo",
     "disposition",
     "productionTargets",
     "exclusionReason",
 }
+OPTIONAL_DECISION_FIELDS = {"sourceLabel", "effectiveFrom", "effectiveTo"}
 TARGET_FIELDS = {
     "masterKind",
     "seedKey",
@@ -61,10 +61,25 @@ def load_json(path: Path) -> dict:
 
 
 def write_json(path: Path, value: dict) -> None:
-    path.write_text(
-        json.dumps(value, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    payload = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as stream:
+            temporary_path = Path(stream.name)
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        temporary_path.replace(path)
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
 
 
 def identity(row: dict) -> tuple[str, str, str]:
@@ -77,6 +92,67 @@ def identity_digest(rows: list[dict]) -> str:
         for row in rows
     ).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
+
+
+def inventory_summary(manifest: dict, label: str) -> dict:
+    if not isinstance(manifest, dict):
+        raise ValueError(f"{label} manifest must be an object")
+    documents = manifest.get("documents")
+    rows = manifest.get("rows")
+    if not isinstance(documents, list):
+        raise ValueError(f"{label} documents must be a list")
+    if not isinstance(rows, list):
+        raise ValueError(f"{label} rows must be a list")
+
+    range_count = 0
+    expected_row_count = 0
+    for document_index, document in enumerate(documents):
+        if not isinstance(document, dict):
+            raise ValueError(f"{label} documents[{document_index}] must be an object")
+        extraction_ranges = document.get("extractionRanges")
+        if not isinstance(extraction_ranges, list):
+            raise ValueError(
+                f"{label} documents[{document_index}].extractionRanges must be a list"
+            )
+        range_count += len(extraction_ranges)
+        for range_index, extraction_range in enumerate(extraction_ranges):
+            if not isinstance(extraction_range, dict):
+                raise ValueError(
+                    f"{label} documents[{document_index}].extractionRanges"
+                    f"[{range_index}] must be an object"
+                )
+            expected_count = extraction_range.get("expectedItemCount")
+            if (
+                not isinstance(expected_count, int)
+                or isinstance(expected_count, bool)
+                or expected_count <= 0
+            ):
+                raise ValueError(
+                    f"{label} documents[{document_index}].extractionRanges"
+                    f"[{range_index}].expectedItemCount must be a positive integer"
+                )
+            expected_row_count += expected_count
+
+    if expected_row_count != len(rows):
+        raise ValueError(
+            f"{label} expectedItemCount total mismatch: "
+            f"expected={expected_row_count}, rows={len(rows)}"
+        )
+
+    return {
+        "documents": len(documents),
+        "ranges": range_count,
+        "rows": len(rows),
+        "identitySha256": identity_digest(rows),
+    }
+
+
+def migration_summary(source: dict, migrated: dict) -> dict:
+    before = inventory_summary(source, "source")
+    after = inventory_summary(migrated, "migrated")
+    if before != after:
+        raise ValueError("migration inventory summary mismatch")
+    return {"before": before, "after": after}
 
 
 def positive_int(value: str) -> int:
@@ -168,24 +244,31 @@ def write_chunks(manifest: dict, output_dir: Path, chunk_size: int) -> None:
 def validate_decision(decision: dict) -> None:
     if not isinstance(decision, dict):
         raise ValueError("decision must be an object")
-    if set(decision) != DECISION_FIELDS:
+    decision_fields = set(decision)
+    if not REQUIRED_DECISION_FIELDS <= decision_fields or not decision_fields <= (
+        REQUIRED_DECISION_FIELDS | OPTIONAL_DECISION_FIELDS
+    ):
         raise ValueError("decision has unexpected fields")
     if any(
         not isinstance(decision[field], str) or not decision[field].strip()
         for field in ("sourceDocumentId", "rangeId", "sourceLocator")
     ):
         raise ValueError("decision identity fields must be nonblank strings")
-    if not isinstance(decision["sourceLabel"], str) or not decision["sourceLabel"].strip():
-        raise ValueError("sourceLabel must be a nonblank string")
-    if not isinstance(decision["effectiveFrom"], str) or not decision[
-        "effectiveFrom"
-    ].strip():
-        raise ValueError("effectiveFrom must be a nonblank string")
-    effective_to = decision["effectiveTo"]
-    if effective_to is not None and (
-        not isinstance(effective_to, str) or not effective_to.strip()
+    if "sourceLabel" in decision and (
+        not isinstance(decision["sourceLabel"], str) or not decision["sourceLabel"].strip()
     ):
-        raise ValueError("effectiveTo must be null or a nonblank string")
+        raise ValueError("sourceLabel must be a nonblank string")
+    if "effectiveFrom" in decision and (
+        not isinstance(decision["effectiveFrom"], str)
+        or not decision["effectiveFrom"].strip()
+    ):
+        raise ValueError("effectiveFrom must be a nonblank string")
+    if "effectiveTo" in decision:
+        effective_to = decision["effectiveTo"]
+        if effective_to is not None and (
+            not isinstance(effective_to, str) or not effective_to.strip()
+        ):
+            raise ValueError("effectiveTo must be null or a nonblank string")
 
     targets = decision["productionTargets"]
     disposition = decision["disposition"]
@@ -239,7 +322,7 @@ def validate_decision(decision: dict) -> None:
             target["masterKind"],
             target["seedKey"],
             target["mappingRole"],
-            tuple(supports),
+            tuple(sorted(supports)),
             mapping_reason,
         )
         if canonical_target in seen_targets:
@@ -273,6 +356,9 @@ def apply_decisions(manifest: dict, decision_dir: Path) -> dict:
     updated_rows = []
     for row in manifest["rows"]:
         decision = decisions[identity(row)]
+        for field in OPTIONAL_DECISION_FIELDS:
+            if field in decision and decision[field] != row[field]:
+                raise ValueError(f"decision context mismatch: {field} for {identity(row)}")
         updated = dict(row)
         updated["disposition"] = decision["disposition"]
         updated["productionTargets"] = decision["productionTargets"]
@@ -304,27 +390,11 @@ def main() -> None:
     if args.command == "migrate":
         source = load_json(args.input)
         migrated = migrate(source, args.expected_digest)
+        summary = migration_summary(source, migrated)
         write_json(args.output, migrated)
-        before = {
-            "documents": len(source["documents"]),
-            "ranges": sum(
-                len(document["extractionRanges"]) for document in source["documents"]
-            ),
-            "rows": len(source["rows"]),
-            "identitySha256": identity_digest(source["rows"]),
-        }
-        after = {
-            "documents": len(migrated["documents"]),
-            "ranges": sum(
-                len(document["extractionRanges"])
-                for document in migrated["documents"]
-            ),
-            "rows": len(migrated["rows"]),
-            "identitySha256": identity_digest(migrated["rows"]),
-        }
         print(
             json.dumps(
-                {"before": before, "after": after},
+                summary,
                 ensure_ascii=False,
                 separators=(",", ":"),
             )

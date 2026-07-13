@@ -33,16 +33,24 @@ def fixture_identity_digest(rows: list[dict]) -> str:
 
 
 def make_v1_manifest() -> dict:
-    documents = [
-        {
-            "documentId": f"document-{index:02d}",
-            "extractionRanges": [
-                {"rangeId": f"range-{range_index}"}
-                for range_index in range(2 if index < 10 else 1)
-            ],
-        }
-        for index in range(41)
-    ]
+    documents = []
+    range_index = 0
+    for document_index in range(41):
+        extraction_ranges = []
+        for _ in range(2 if document_index < 10 else 1):
+            extraction_ranges.append(
+                {
+                    "rangeId": f"range-{range_index}",
+                    "expectedItemCount": 14_659 if range_index == 0 else 1,
+                }
+            )
+            range_index += 1
+        documents.append(
+            {
+                "documentId": f"document-{document_index:02d}",
+                "extractionRanges": extraction_ranges,
+            }
+        )
     rows = []
     for index in range(14_709):
         disposition = "seed" if index == 0 else "excluded" if index == 1 else "schema-gap"
@@ -100,6 +108,19 @@ def make_decision(row: dict, **overrides: object) -> dict:
         "sourceLabel": row["sourceLabel"],
         "effectiveFrom": row["effectiveFrom"],
         "effectiveTo": row["effectiveTo"],
+        "disposition": "seed",
+        "productionTargets": [make_target()],
+        "exclusionReason": None,
+    }
+    decision.update(overrides)
+    return decision
+
+
+def make_plan_style_decision(row: dict, **overrides: object) -> dict:
+    decision = {
+        "sourceDocumentId": row["sourceDocumentId"],
+        "rangeId": row["rangeId"],
+        "sourceLocator": row["sourceLocator"],
         "disposition": "seed",
         "productionTargets": [make_target()],
         "exclusionReason": None,
@@ -298,6 +319,19 @@ class ConverterBehaviorTests(unittest.TestCase):
                 },
                 "duplicate target",
             ),
+            (
+                {
+                    **valid,
+                    "productionTargets": [
+                        duplicate_target,
+                        {
+                            **duplicate_target,
+                            "supports": list(reversed(duplicate_target["supports"])),
+                        },
+                    ],
+                },
+                "duplicate target",
+            ),
         ]
 
         for invalid, message in invalid_decisions:
@@ -354,6 +388,42 @@ class ConverterBehaviorTests(unittest.TestCase):
         )
         self.assertTrue(all(row["disposition"] == "seed" for row in applied["rows"]))
         self.assertTrue(all(row["exclusionReason"] is None for row in applied["rows"]))
+
+    def test_apply_decisions_accepts_exact_plan_style_decision_without_context(self) -> None:
+        row = make_v2_row(0)
+        manifest = {"schemaVersion": "2", "documents": [], "rows": [row]}
+        decision = make_plan_style_decision(row)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            decision_dir = Path(temporary)
+            write_decisions(decision_dir / "decisions.jsonl", [decision])
+            applied = manifest_v2.apply_decisions(manifest, decision_dir)
+
+        self.assertEqual("seed", applied["rows"][0]["disposition"])
+        self.assertEqual([make_target()], applied["rows"][0]["productionTargets"])
+        self.assertIsNone(applied["rows"][0]["exclusionReason"])
+
+    def test_apply_decisions_checks_optional_context_when_present(self) -> None:
+        row = make_v2_row(0)
+        manifest = {"schemaVersion": "2", "documents": [], "rows": [row]}
+
+        with tempfile.TemporaryDirectory() as temporary:
+            decision_dir = Path(temporary)
+            decision_path = decision_dir / "decisions.jsonl"
+            write_decisions(decision_path, [make_decision(row)])
+            applied = manifest_v2.apply_decisions(manifest, decision_dir)
+            self.assertEqual("seed", applied["rows"][0]["disposition"])
+
+            mismatches = {
+                "sourceLabel": "different label",
+                "effectiveFrom": "2026-06",
+                "effectiveTo": "2026-05",
+            }
+            for field, value in mismatches.items():
+                with self.subTest(field=field):
+                    write_decisions(decision_path, [make_decision(row, **{field: value})])
+                    with self.assertRaisesRegex(ValueError, f"context mismatch: {field}"):
+                        manifest_v2.apply_decisions(manifest, decision_dir)
 
     def test_write_chunks_rejects_nonempty_output_directory(self) -> None:
         manifest = {"schemaVersion": "2", "documents": [], "rows": [make_v2_row(0)]}
@@ -489,6 +559,84 @@ class ConverterBehaviorTests(unittest.TestCase):
             self.assertNotEqual(0, failed.returncode)
             self.assertEqual("", failed.stdout)
             self.assertFalse(failed_output_path.exists())
+
+    def test_migrate_cli_rejects_malformed_inventory_without_touching_output(self) -> None:
+        source = make_v1_manifest()
+        expected_digest = fixture_identity_digest(source["rows"])
+        malformed_cases = []
+
+        documents_with_invalid_ranges = list(source["documents"])
+        documents_with_invalid_ranges[0] = {
+            **documents_with_invalid_ranges[0],
+            "extractionRanges": {"not": "a list"},
+        }
+        malformed_cases.append(
+            (
+                "invalid-ranges",
+                {**source, "documents": documents_with_invalid_ranges},
+                "documents[0].extractionRanges must be a list",
+                None,
+            )
+        )
+
+        documents_with_invalid_expected_count = list(source["documents"])
+        invalid_expected_count_ranges = list(
+            documents_with_invalid_expected_count[0]["extractionRanges"]
+        )
+        invalid_expected_count_ranges[0] = {
+            **invalid_expected_count_ranges[0],
+            "expectedItemCount": "14709",
+        }
+        documents_with_invalid_expected_count[0] = {
+            **documents_with_invalid_expected_count[0],
+            "extractionRanges": invalid_expected_count_ranges,
+        }
+        malformed_cases.append(
+            (
+                "invalid-expected-count",
+                {**source, "documents": documents_with_invalid_expected_count},
+                "expectedItemCount must be a positive integer",
+                "preserve-existing-output\n",
+            )
+        )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_path = Path(temporary)
+            for name, malformed, error_message, existing_output in malformed_cases:
+                with self.subTest(name=name):
+                    input_path = temporary_path / f"{name}.json"
+                    output_path = temporary_path / f"{name}-output.json"
+                    input_path.write_text(
+                        json.dumps(malformed, ensure_ascii=False),
+                        encoding="utf-8",
+                    )
+                    if existing_output is not None:
+                        output_path.write_text(existing_output, encoding="utf-8")
+
+                    result = run_cli(
+                        "migrate",
+                        "--input",
+                        str(input_path),
+                        "--output",
+                        str(output_path),
+                        "--expected-digest",
+                        expected_digest,
+                    )
+
+                    self.assertNotEqual(0, result.returncode)
+                    self.assertEqual("", result.stdout)
+                    self.assertIn(error_message, result.stderr)
+                    if existing_output is None:
+                        self.assertFalse(output_path.exists())
+                    else:
+                        self.assertEqual(
+                            existing_output,
+                            output_path.read_text(encoding="utf-8"),
+                        )
+                    self.assertEqual(
+                        [],
+                        list(temporary_path.glob(f".{output_path.name}.*.tmp")),
+                    )
 
 
 if __name__ == "__main__":
