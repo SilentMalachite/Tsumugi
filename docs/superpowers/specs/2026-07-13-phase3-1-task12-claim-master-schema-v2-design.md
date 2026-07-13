@@ -229,6 +229,7 @@ units-per-count
 
 percentage-of-target
   percentage: canonical decimal string, greater than 0
+  applicationKind: add | subtract | replace
   percentageBaseScope: per-service-code-unit | monthly-target-unit-sum
   targetSelector: non-blank string
   calculationOrder: positive integer
@@ -241,6 +242,14 @@ prorated-units
 ```
 
 canonical percentageは倍率で表し、`0.10`を10%と解釈する。`10`を10%として解釈しない。
+
+`applicationKind`は必須のclosed enumとし、既定値や旧shapeからの暗黙補完を持たせない。`calculationOrder`適用時点の対象単位を`T`、`percentage`を`P`、既存`roundingRuleId`による丸めを`R`とすると、意味契約は次のとおりとする。
+
+- `add`: `T + R(T × P)`
+- `subtract`: `T - R(T × P)`
+- `replace`: `R(T × P)`
+
+`percentage`は全kindで正値のまま保持し、符号へoperationを埋め込まない。たとえば所定単位数の98.4%とする`r8-service-codes-2-xlsx / workbook-order=38;row=1993 / 46Z006`は`applicationKind = replace`、`percentage = 0.984`で表し、`subtract / 0.016`へ意味変換しない。Task 12 follow-upはこの静的contractとtyped保持までを実装し、実際の算定は後続calculatorが同じ意味契約で実行する。
 
 `prorated-units`は各対象利用者について`poolUnitsPerStaff × staff count ÷ recipient count`を計算し、指定rounding後の整数単位を加算する閉じたshapeとする。任意の分子、分母又は式文字列は許可しない。
 
@@ -537,6 +546,7 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 - 3 unit rule kindが全値を保持する。
 - fixed-composite-unitが正の最終単位と負の独立減算単位を保持し、0を拒否する。
 - nested amount unionが種類別fieldを保持する。
+- percentage-of-targetが`add`、`subtract`、`replace`を区別して保持する。
 - prorated-unitsがpool、staff count selector、recipient count selector及び上限を保持する。
 - factorがstep及びrounding境界を保持する。
 - formula modeがbase-component-pass-throughとfactor-chainを排他的に保持する。
@@ -552,6 +562,7 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 - source catalog v1を受理する。
 - 未知field、未知union kind及びkind固有fieldの過不足を拒否する。
 - canonical decimal string以外を拒否する。
+- percentage-of-targetの`applicationKind`欠落及び未知値を拒否し、3つの既知値を受理する。
 - condition kindとoperatorの不正組合せを拒否する。
 
 ### 15.3 Validator tests
@@ -658,6 +669,7 @@ Task 12とTask 13 seed転記を同じcommitへ混ぜない。
 - unit-additionと参照addition componentのamount、step、rounding及びbilling unitが一致し、不一致が拒否される。
 - 利用者数按分が閉じたprorated-unitsとして保持され、未知selector、非正のpool／maximum及びstep／rounding不整合が拒否される。runtime fact値の判定は後続calculator契約として分離される。
 - factorなしの基準service codeがbase-component-pass-throughとして保持され、factor-chainとのfield混在が拒否される。
+- percentage-of-targetの`applicationKind`が必須の`add | subtract | replace`としてDomain、JSON Schema及びruntime validatorで一致し、暗黙defaultを持たない。
 - adjustment selector graph及びunit-addition target selector graphの自己参照・循環が拒否される。
 - service code及びconditionの明示的retirementが受理される。
 - 14,709件scale fixtureがvalidatorを通る。

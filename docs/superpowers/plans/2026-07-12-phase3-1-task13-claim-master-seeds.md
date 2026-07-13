@@ -1333,7 +1333,7 @@ manifestの`additions` target revision集合とseed集合を比較し、各amoun
 ```text
 fixed-units          -> addedUnits > 0
 units-per-count      -> unitsPerCount > 0 + closed countSelector
-percentage-of-target -> canonical percentage + targetSelector + calculationOrder
+percentage-of-target -> canonical percentage + applicationKind + percentageBaseScope + targetSelector + calculationOrder
 prorated-units       -> poolUnitsPerStaff + staff/recipient selectors + maximum
 ```
 

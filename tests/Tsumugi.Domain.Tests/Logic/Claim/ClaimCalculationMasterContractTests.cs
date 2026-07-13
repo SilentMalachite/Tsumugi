@@ -56,6 +56,7 @@ public sealed class ClaimCalculationMasterContractTests
             new UnitsPerCountAmount(93, "previous-year-six-month-employment-count");
         UnitAdjustmentAmount percentage = new PercentageOfTargetAmount(
             0.10m,
+            PercentageApplicationKind.Add,
             PercentageBaseScope.MonthlyTargetUnitSum,
             "selector:monthly-target",
             2);
@@ -71,6 +72,7 @@ public sealed class ClaimCalculationMasterContractTests
         percentage.Should().Be(
             new PercentageOfTargetAmount(
                 0.10m,
+                PercentageApplicationKind.Add,
                 PercentageBaseScope.MonthlyTargetUnitSum,
                 "selector:monthly-target",
                 2));
@@ -80,6 +82,23 @@ public sealed class ClaimCalculationMasterContractTests
                 "medical-coordination-v-visiting-nurse-count",
                 "medical-coordination-v-supported-recipient-count",
                 8));
+    }
+
+    [Theory]
+    [InlineData(PercentageApplicationKind.Add)]
+    [InlineData(PercentageApplicationKind.Subtract)]
+    [InlineData(PercentageApplicationKind.Replace)]
+    public void Percentage_of_target_amount_retains_application_kind(
+        PercentageApplicationKind applicationKind)
+    {
+        var amount = new PercentageOfTargetAmount(
+            0.984m,
+            applicationKind,
+            PercentageBaseScope.MonthlyTargetUnitSum,
+            "selector:monthly-target",
+            1);
+
+        amount.ApplicationKind.Should().Be(applicationKind);
     }
 
     [Fact]

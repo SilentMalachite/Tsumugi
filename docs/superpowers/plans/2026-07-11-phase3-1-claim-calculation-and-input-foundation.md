@@ -909,7 +909,7 @@ git commit -m "feat(phase3-1/AC3-8): wire claim input screens"
 
 - [ ] **Step 1: schema negative testsを書く**
 
-不足する`sourceLocator`、未知`percentageBaseScope`、未知`percentageApplicationKind`、重複`calculationOrder`、`double`由来の非10進値、未知`roundingRuleId`を拒否するtestを追加する。
+不足する`sourceLocator`、未知`percentageBaseScope`、未知`applicationKind`、重複`calculationOrder`、`double`由来の非10進値、未知`roundingRuleId`を拒否するtestを追加する。
 
 - [ ] **Step 2: testが赤になることを確認する**
 

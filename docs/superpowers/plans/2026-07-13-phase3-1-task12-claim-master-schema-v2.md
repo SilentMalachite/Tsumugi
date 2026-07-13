@@ -225,3 +225,42 @@ Expected: exit 0.
 - [x] **Step 7: 最終差分をレビューする**
 
 @superpowers:requesting-code-review で設計書§18、変更17ファイル、focused testとCI結果を渡し、Major指摘がなくなるまで修正と再検証する。
+
+---
+
+### Task 6: follow-upでpercentage application kindを追加する
+
+**Files:**
+- Modify: docs/superpowers/specs/2026-07-13-phase3-1-task12-claim-master-schema-v2-design.md
+- Modify: tests/Tsumugi.Domain.Tests/Logic/Claim/ClaimCalculationMasterContractTests.cs
+- Modify: tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimMasterSchemaPhase31Tests.cs
+- Modify: tests/Tsumugi.Infrastructure.Tests/ClaimMasters/JsonClaimMasterProviderTests.cs
+- Modify: src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs
+- Modify: src/Tsumugi.Infrastructure/ClaimMasters/Schema/claim-master-file.schema.json
+- Modify: src/Tsumugi.Infrastructure/ClaimMasters/ClaimMasterFileValidator.cs
+
+- [x] **Step 1: applicationKind contractの失敗testを書く**
+
+Domainで`add`、`subtract`、`replace`の値保持を要求する。runtime validatorでfield欠落と未知値を拒否し、public JSON Schemaで必須closed enumであることを固定する。
+
+- [x] **Step 2: focused testが期待理由でRedになることを確認する**
+
+Run:
+
+    dotnet test tests/Tsumugi.Domain.Tests --filter FullyQualifiedName~ClaimCalculationMasterContractTests -v normal
+    dotnet test tests/Tsumugi.Infrastructure.Tests --filter 'FullyQualifiedName~ClaimMasterSchemaPhase31Tests|FullyQualifiedName~JsonClaimMasterProviderTests.Embedded_schema_resources_express_the_runtime_contract' -v normal
+
+Expected: FAIL because Domain enum、JSON Schema及びvalidatorに`applicationKind`がない。
+
+- [x] **Step 3: required closed contractを実装する**
+
+Domainへ`PercentageApplicationKind`を追加し、`PercentageOfTargetAmount`で保持する。JSON fieldは`applicationKind`とし、`add | subtract | replace`以外を拒否する。既定値やsigned percentageへの変換は追加しない。
+
+- [x] **Step 4: focused testと回帰testを通す**
+
+Run:
+
+    dotnet test tests/Tsumugi.Domain.Tests --filter FullyQualifiedName~ClaimCalculationMasterContractTests -v normal
+    dotnet test tests/Tsumugi.Infrastructure.Tests --filter 'FullyQualifiedName~ClaimMasterSchemaPhase31Tests|FullyQualifiedName~JsonClaimMasterProviderTests' -v normal
+
+Expected: PASS, warnings 0. Task 13 manifest、seed及び監査decisionは変更しない。

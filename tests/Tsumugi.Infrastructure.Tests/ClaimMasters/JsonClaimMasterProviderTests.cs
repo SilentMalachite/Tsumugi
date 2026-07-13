@@ -606,6 +606,12 @@ public sealed class JsonClaimMasterProviderTests
             .GetInt32().Should().Be(1);
         masterRoot.GetProperty("$defs").GetProperty("unitAdjustmentAmount")
             .GetProperty("oneOf").GetArrayLength().Should().Be(4);
+        var percentageAmount = masterRoot.GetProperty("$defs")
+            .GetProperty("percentageOfTargetAmount");
+        Required(percentageAmount).Should().Contain("applicationKind");
+        percentageAmount.GetProperty("properties").GetProperty("applicationKind")
+            .GetProperty("enum").EnumerateArray().Select(item => item.GetString())
+            .Should().Equal("add", "subtract", "replace");
         masterRoot.GetProperty("$defs").GetProperty("serviceCodeUnitRule")
             .GetProperty("oneOf").GetArrayLength().Should().Be(3);
         var definitions = masterRoot.GetProperty("$defs");

@@ -1082,9 +1082,25 @@ internal static class ClaimMasterFileValidator
             "amount",
             "kind",
             "percentage",
+            "applicationKind",
             "percentageBaseScope",
             "targetSelector",
             "calculationOrder");
+        var applicationKind = RequiredString(
+            element,
+            "applicationKind",
+            fileName,
+            key) switch
+        {
+            "add" => PercentageApplicationKind.Add,
+            "subtract" => PercentageApplicationKind.Subtract,
+            "replace" => PercentageApplicationKind.Replace,
+            var value => throw Invalid(
+                fileName,
+                key,
+                "applicationKind",
+                $"unknown value '{value}'"),
+        };
         var baseScope = RequiredString(
             element,
             "percentageBaseScope",
@@ -1101,6 +1117,7 @@ internal static class ClaimMasterFileValidator
         };
         return new PercentageOfTargetAmount(
             PositiveDecimalString(element, "percentage", fileName, key),
+            applicationKind,
             baseScope,
             RequiredString(element, "targetSelector", fileName, key),
             PositiveInt(element, "calculationOrder", fileName, key));

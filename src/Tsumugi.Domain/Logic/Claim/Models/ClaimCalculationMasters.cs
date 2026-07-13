@@ -8,6 +8,13 @@ public enum PercentageBaseScope
     MonthlyTargetUnitSum = 2,
 }
 
+public enum PercentageApplicationKind
+{
+    Add = 1,
+    Subtract = 2,
+    Replace = 3,
+}
+
 public enum BillingUnit
 {
     PerDay = 1,
@@ -95,6 +102,7 @@ public sealed record UnitsPerCountAmount(
 
 public sealed record PercentageOfTargetAmount(
     decimal Percentage,
+    PercentageApplicationKind ApplicationKind,
     PercentageBaseScope PercentageBaseScope,
     string TargetSelector,
     int CalculationOrder) : UnitAdjustmentAmount;

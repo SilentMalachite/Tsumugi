@@ -182,6 +182,47 @@ public sealed class ClaimMasterSchemaPhase31Tests
     }
 
     [Fact]
+    public void Load_rejects_missing_percentage_application_kind()
+    {
+        var masters = ValidMasters();
+        MutateEntryByKey(masters, "additions.json", "add-percentage", entry =>
+            entry["values"]!["amount"]!.AsObject().Remove("applicationKind"));
+
+        var action = () => Load(masters);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*applicationKind*required*");
+    }
+
+    [Fact]
+    public void Load_rejects_unknown_percentage_application_kind()
+    {
+        var masters = ValidMasters();
+        MutateEntryByKey(masters, "additions.json", "add-percentage", entry =>
+            entry["values"]!["amount"]!["applicationKind"] = "unknown");
+
+        var action = () => Load(masters);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*applicationKind*unknown value 'unknown'*");
+    }
+
+    [Theory]
+    [InlineData("add")]
+    [InlineData("subtract")]
+    [InlineData("replace")]
+    public void Load_accepts_known_percentage_application_kinds(string applicationKind)
+    {
+        var masters = ValidMasters();
+        MutateEntryByKey(masters, "additions.json", "add-percentage", entry =>
+            entry["values"]!["amount"]!["applicationKind"] = applicationKind);
+
+        var action = () => Load(masters);
+
+        action.Should().NotThrow();
+    }
+
+    [Fact]
     public void Load_rejects_condition_kind_operator_mismatches()
     {
         var masters = ValidMasters();
@@ -597,6 +638,7 @@ public sealed class ClaimMasterSchemaPhase31Tests
         {
             ["kind"] = "percentage-of-target",
             ["percentage"] = "0.10",
+            ["applicationKind"] = "add",
             ["percentageBaseScope"] = "per-service-code-unit",
             ["targetSelector"] = "selector:fixed",
             ["calculationOrder"] = 2,
@@ -1066,6 +1108,7 @@ public sealed class ClaimMasterSchemaPhase31Tests
                       "amount": {
                         "kind": "percentage-of-target",
                         "percentage": "0.10",
+                        "applicationKind": "add",
                         "percentageBaseScope": "per-service-code-unit",
                         "targetSelector": "selector:fixed",
                         "calculationOrder": 1

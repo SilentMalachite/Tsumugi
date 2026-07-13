@@ -223,6 +223,7 @@
       "required": [
         "kind",
         "percentage",
+        "applicationKind",
         "percentageBaseScope",
         "targetSelector",
         "calculationOrder"
@@ -230,6 +231,9 @@
       "properties": {
         "kind": { "const": "percentage-of-target" },
         "percentage": { "$ref": "#/$defs/canonicalPositiveDecimal" },
+        "applicationKind": {
+          "enum": ["add", "subtract", "replace"]
+        },
         "percentageBaseScope": {
           "enum": ["per-service-code-unit", "monthly-target-unit-sum"]
         },
