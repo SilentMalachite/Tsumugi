@@ -256,7 +256,7 @@ Run:
 ```bash
 jq -e -s '
   length == 41
-  and all(.[].result == "PASS")
+  and all(.[]; .result == "PASS")
   and all(.[]; .expectedSha256 == .actualSha256 and .bytes > 0)
 ' /tmp/tsumugi-phase31-task13/acquisition.jsonl
 
