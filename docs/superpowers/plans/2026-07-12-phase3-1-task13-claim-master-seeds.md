@@ -413,10 +413,33 @@ Expected: FAIL because manifest `schemaVersion` is `1` and v1 rows do not contai
 
 **Files:**
 - Create: `build/phase3_task13_manifest_v2.py`
+- Create: `build/tests/test_phase3_task13_manifest_v2.py`
 - Modify: `docs/spec-data/phase3/claim-master-source-row-manifest.json`
 - Modify: `tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimMasterSeedPhase31Tests.cs`
 
-- [ ] **Step 1: converterのCLIとpure functionsを実装する**
+- [ ] **Step 1: converter pure functionsの失敗testを書く**
+
+標準libraryの`unittest`で`build/tests/test_phase3_task13_manifest_v2.py`を作り、最低限次を固定する。
+
+- `migrate`が41 documents／14,709 rows／row identity digestを保持し、既存`seed`だけをprimary targetへ機械投影する。
+- schema version、inventory count又はexpected digestが違えば`ValueError`。
+- `validate_decision`がunknown kind／role／support、duplicate support、blank key、dispositionとtarget／reasonの不整合を拒否する。
+- `apply_decisions`がmissing／extra／duplicate identityを拒否し、全件一致時だけrow順序とidentityを保持する。
+- `write_chunks`が非空output directoryを拒否し、200-row境界を決定的なfile名へ分割する。
+
+14,709行fixtureは小さなrow templateからtest内で生成し、repository manifestをtest fixtureとして書き換えない。
+
+- [ ] **Step 2: converter未実装を理由にRedになることを確認する**
+
+Run:
+
+```bash
+python3 -m unittest build/tests/test_phase3_task13_manifest_v2.py -v
+```
+
+Expected: FAIL because `build/phase3_task13_manifest_v2.py` does not exist。syntax error又はtest discovery errorではなく、対象module未実装が理由であること。
+
+- [ ] **Step 3: converterのCLIとpure functionsを実装する**
 
 `build/phase3_task13_manifest_v2.py`へ次の責務を実装する。
 
@@ -627,11 +650,13 @@ if __name__ == "__main__":
     main()
 ```
 
-- [ ] **Step 2: converterを一時出力へ実行する**
+- [ ] **Step 4: converter unit testsをGreenにして一時出力へ実行する**
 
 Run:
 
 ```bash
+python3 -m unittest build/tests/test_phase3_task13_manifest_v2.py -v
+
 python3 build/phase3_task13_manifest_v2.py migrate \
   --input docs/spec-data/phase3/claim-master-source-row-manifest.json \
   --output /tmp/tsumugi-phase31-task13/manifest-v2-mechanical.json \
@@ -641,9 +666,9 @@ jq -e '.schemaVersion == "2" and (.rows | length) == 14709' \
   /tmp/tsumugi-phase31-task13/manifest-v2-mechanical.json
 ```
 
-Expected: exit 0。identity不一致ならoutputを採用せず停止する。
+Expected: unit tests PASS、conversion exit 0。identity不一致ならoutputを採用せず停止する。
 
-- [ ] **Step 3: mechanical outputのidentity digestを再確認する**
+- [ ] **Step 5: mechanical outputのidentity digestを再確認する**
 
 Run:
 
@@ -655,11 +680,11 @@ jq -c '.rows[] | [.sourceDocumentId,.rangeId,.sourceLocator]' \
 
 Expected: `0d0e7361bf37e1f604f9dc59dcc408d2f64d513e7259596bed04499575bb3377`。
 
-- [ ] **Step 4: manifestをmechanical outputへ置換する**
+- [ ] **Step 6: manifestをmechanical outputへ置換する**
 
 Use `apply_patch` to replace `docs/spec-data/phase3/claim-master-source-row-manifest.json` with the verified temporary output. Do not copy any acquisition files into the repository.
 
-- [ ] **Step 5: v2 contract testsをGreenにする**
+- [ ] **Step 7: v2 contract testsをGreenにする**
 
 `Source_manifest_schema_audit_snapshot_stays_stopped`は次へ変更し、13,950 gapsがまだ停止状態であることを保持する。
 
@@ -686,10 +711,11 @@ dotnet test tests/Tsumugi.Infrastructure.Tests \
 
 Expected: PASS。`schema-gap = 0`testはまだ追加しない。
 
-- [ ] **Step 6: mechanical migrationをcommitする**
+- [ ] **Step 8: mechanical migrationをcommitする**
 
 ```bash
 git add build/phase3_task13_manifest_v2.py \
+  build/tests/test_phase3_task13_manifest_v2.py \
   docs/spec-data/phase3/claim-master-source-row-manifest.json \
   tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimMasterSeedPhase31Tests.cs
 git commit -m "test(phase3-1/AC3-1): migrate claim source manifest to v2"
