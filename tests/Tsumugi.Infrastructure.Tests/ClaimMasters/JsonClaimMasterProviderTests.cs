@@ -142,7 +142,10 @@ public sealed class JsonClaimMasterProviderTests
 
     public static IEnumerable<object[]> InvalidMasterCases()
     {
-        yield return ["schema mismatch", MasterJson("basic-rewards", "[]").Replace("\"1\"", "\"2\"", StringComparison.Ordinal)];
+        yield return ["schema mismatch", MasterJson("basic-rewards", "[]").Replace(
+            "\"schemaVersion\": \"2\"",
+            "\"schemaVersion\": \"1\"",
+            StringComparison.Ordinal)];
         yield return ["unknown kind", MasterJson("unknown", "[]")];
         yield return ["duplicate key and start", MasterJson("basic-rewards", Entries(
             Entry("a", "2024-04", "2024-05"),
@@ -503,14 +506,26 @@ public sealed class JsonClaimMasterProviderTests
     public void Load_wraps_master_json_errors_with_the_filename()
     {
         var masters = ValidMasterJsons();
-        masters["basic-rewards.json"] = MasterJson("basic-rewards", "[]")
-            .Replace("\"masterKind\"", "\"MasterKind\"", StringComparison.Ordinal);
+        masters["basic-rewards.json"] = "{\"schemaVersion\":\"2\"";
 
         var action = () => Load(ValidCatalogJson, masters);
 
         action.Should().Throw<InvalidDataException>()
             .WithMessage("*basic-rewards.json*")
             .WithInnerException<JsonException>();
+    }
+
+    [Fact]
+    public void Load_reports_master_structure_errors_before_catalog_json_errors()
+    {
+        var masters = ValidMasterJsons();
+        masters["basic-rewards.json"] = MasterJson("basic-rewards", "[]")
+            .Replace("\"entries\":", "\"unknown\": true, \"entries\":", StringComparison.Ordinal);
+
+        var action = () => Load("{\"schemaVersion\":", masters);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*basic-rewards.json*unknown*");
     }
 
     [Fact]
@@ -570,6 +585,8 @@ public sealed class JsonClaimMasterProviderTests
         masterRoot.GetProperty("$schema").GetString().Should().Contain("2020-12");
         masterRoot.GetProperty("additionalProperties").GetBoolean().Should().BeFalse();
         Required(masterRoot).Should().BeEquivalentTo(["schemaVersion", "masterKind", "entries"]);
+        masterRoot.GetProperty("properties").GetProperty("schemaVersion")
+            .GetProperty("const").GetString().Should().Be("2");
         masterRoot.GetProperty("properties").GetProperty("masterKind").GetProperty("enum")
             .EnumerateArray().Select(item => item.GetString()).Should().Equal(
                 "basic-rewards", "additions", "region-unit-prices", "burden-caps",
@@ -578,14 +595,42 @@ public sealed class JsonClaimMasterProviderTests
         entry.GetProperty("additionalProperties").GetBoolean().Should().BeFalse();
         Required(entry).Should().BeEquivalentTo(
             [
-                "key", "effectiveFrom", "effectiveTo", "sourceDocumentId", "sourceSha256",
-                "sourceLocator", "values",
+                "key", "effectiveFrom", "effectiveTo", "sourceRefs", "values",
             ]);
         Types(entry.GetProperty("properties").GetProperty("effectiveTo")).Should().Contain("null");
-        entry.GetProperty("properties").GetProperty("values").GetProperty("type").GetString()
-            .Should().Be("object");
-        entry.GetProperty("properties").GetProperty("values").GetProperty("minProperties").GetInt32()
-            .Should().Be(1);
+        var sourceRef = masterRoot.GetProperty("$defs").GetProperty("sourceRef");
+        sourceRef.GetProperty("additionalProperties").GetBoolean().Should().BeFalse();
+        Required(sourceRef).Should().BeEquivalentTo(
+            ["documentId", "sha256", "locator", "evidenceRole", "supports"]);
+        sourceRef.GetProperty("properties").GetProperty("supports").GetProperty("minItems")
+            .GetInt32().Should().Be(1);
+        masterRoot.GetProperty("$defs").GetProperty("unitAdjustmentAmount")
+            .GetProperty("oneOf").GetArrayLength().Should().Be(4);
+        masterRoot.GetProperty("$defs").GetProperty("serviceCodeUnitRule")
+            .GetProperty("oneOf").GetArrayLength().Should().Be(3);
+        var definitions = masterRoot.GetProperty("$defs");
+        var conditionDefinition = definitions.GetProperty("conditionDefinition");
+        var r8ConditionRule = conditionDefinition.GetProperty("allOf")
+            .EnumerateArray()
+            .Single(rule => rule.TryGetProperty("if", out var condition)
+                && condition.TryGetProperty("properties", out var properties)
+                && properties.TryGetProperty("kind", out var kindProperty)
+                && kindProperty.TryGetProperty("const", out var kind)
+                && kind.GetString() == "r8-reform-status");
+        var r8Values = r8ConditionRule.GetProperty("then").GetProperty("properties");
+        r8Values.GetProperty("value").GetProperty("enum").EnumerateArray()
+            .Select(item => item.GetString()).Should().Equal(
+                "not-applicable-before-r8",
+                "reform-target",
+                "reform-exempt",
+                "unchanged-below-15000");
+        r8Values.GetProperty("values").GetProperty("items").GetProperty("enum")
+            .EnumerateArray().Select(item => item.GetString()).Should().Equal(
+                "not-applicable-before-r8",
+                "reform-target",
+                "reform-exempt",
+                "unchanged-below-15000");
+        definitions.TryGetProperty("componentRef", out _).Should().BeTrue();
     }
 
     private static JsonClaimMasterProvider Load(
@@ -674,13 +719,19 @@ public sealed class JsonClaimMasterProviderTests
         _ => throw new InvalidOperationException("Schema type must be a string or array."),
     };
 
-    private static string MasterJson(string kind, string entries) => $$"""
-        {
-          "schemaVersion": "1",
-          "masterKind": "{{kind}}",
-          "entries": {{entries}}
-        }
-        """;
+    private static string MasterJson(string kind, string entries)
+    {
+        var conditions = string.Equals(kind, "service-codes", StringComparison.Ordinal)
+            ? "  \"conditionDefinitions\": [],\n"
+            : string.Empty;
+        return
+            "{\n" +
+            "  \"schemaVersion\": \"2\",\n" +
+            "  \"masterKind\": \"" + kind + "\",\n" +
+            conditions +
+            "  \"entries\": " + entries + "\n" +
+            "}\n";
+    }
 
     private static string Entries(params string[] entries) => $"[{string.Join(',', entries)}]";
 
@@ -689,12 +740,20 @@ public sealed class JsonClaimMasterProviderTests
         string effectiveFrom,
         string? effectiveTo,
         string sourceDocumentId = "doc-1",
-        string values = "{\"value\":1}") => $$"""
+        string values = "{\"paymentBand\":\"band-1\",\"staffingKey\":\"staffing-1\",\"capacityKey\":\"capacity-1\",\"serviceCode\":\"100001\",\"baseUnits\":100}") => $$"""
         {
           "key": "{{key}}",
           "effectiveFrom": "{{effectiveFrom}}",
           "effectiveTo": {{(effectiveTo is null ? "null" : $"\"{effectiveTo}\"")}},
-          "sourceDocumentId": "{{sourceDocumentId}}",
+          "sourceRefs": [
+            {
+              "documentId": "{{sourceDocumentId}}",
+              "sha256": "{{Sha256}}",
+              "locator": "source:{{sourceDocumentId}}",
+              "evidenceRole": "authoritative",
+              "supports": ["master-values", "effective-period"]
+            }
+          ],
           "values": {{values}}
         }
         """;

@@ -358,8 +358,9 @@ public sealed class ClaimSpecificationBoundaryTests
 
     [Theory]
     [InlineData(null, "<missing>")]
+    [InlineData("", "<empty>")]
     [InlineData("unknown-source", "unknown-source")]
-    public void Scan_detects_missing_or_unknown_master_source_reference(
+    public void Scan_detects_missing_empty_or_unknown_master_source_reference(
         string? sourceDocumentId,
         string expectedLiteral)
     {
@@ -373,7 +374,36 @@ public sealed class ClaimSpecificationBoundaryTests
         violation.RelativePath.Should().Be(SpecificationFixture.MasterPath);
         violation.LineNumber.Should().BeGreaterThan(0);
         violation.Literal.Should().Be(expectedLiteral);
-        violation.CatalogPath.Should().Be(SpecificationFixture.MasterPath + "#/entries/0/sourceDocumentId");
+        violation.CatalogPath.Should().Be(
+            SpecificationFixture.MasterPath +
+            (string.IsNullOrEmpty(sourceDocumentId)
+                ? "#/entries/0/sourceRefs"
+                : "#/entries/0/sourceRefs/0/documentId"));
+    }
+
+    [Theory]
+    [InlineData(null, "<missing>")]
+    [InlineData("", "<empty>")]
+    [InlineData("unknown-source", "unknown-source")]
+    public void Scan_detects_missing_empty_or_unknown_condition_source_reference(
+        string? sourceDocumentId,
+        string expectedLiteral)
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.WriteCondition(sourceDocumentId);
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-source");
+
+        violation.RelativePath.Should().Be(SpecificationFixture.MasterPath);
+        violation.LineNumber.Should().BeGreaterThan(0);
+        violation.Literal.Should().Be(expectedLiteral);
+        violation.CatalogPath.Should().Be(
+            SpecificationFixture.MasterPath +
+            (string.IsNullOrEmpty(sourceDocumentId)
+                ? "#/conditionDefinitions/0/sourceRefs"
+                : "#/conditionDefinitions/0/sourceRefs/0/documentId"));
     }
 
     [Theory]
@@ -484,12 +514,12 @@ public sealed class ClaimSpecificationBoundaryTests
 
         public const string MasterJson =
             "{\n" +
-            "  \"schemaVersion\": \"1\",\n" +
+            "  \"schemaVersion\": \"2\",\n" +
             "  \"masterKind\": \"fixture\",\n" +
             "  \"entries\": [\n" +
             "    {\n" +
             "      \"effectiveFrom\": \"2026-06\",\n" +
-            "      \"sourceDocumentId\": \"known-source\",\n" +
+            "      \"sourceRefs\": [{ \"documentId\": \"known-source\" }],\n" +
             "      \"values\": {\n" +
             "        \"units\": 123,\n" +
             "        \"serviceCode\": \"CLAIM-CODE\",\n" +
@@ -537,12 +567,12 @@ public sealed class ClaimSpecificationBoundaryTests
             Write(
                 MasterPath,
                 "{\n" +
-                "  \"schemaVersion\": \"1\",\n" +
+                "  \"schemaVersion\": \"2\",\n" +
                 "  \"masterKind\": \"fixture\",\n" +
                 "  \"entries\": [\n" +
                 "    {\n" +
                 "      \"effectiveFrom\": \"2026-06\",\n" +
-                "      \"sourceDocumentId\": \"known-source\",\n" +
+                "      \"sourceRefs\": [{ \"documentId\": \"known-source\" }],\n" +
                 "      \"values\": { \"units\": " + number + " }\n" +
                 "    }\n" +
                 "  ]\n" +
@@ -554,14 +584,12 @@ public sealed class ClaimSpecificationBoundaryTests
             var effectiveFromProperty = effectiveFrom is null
                 ? string.Empty
                 : "      \"effectiveFrom\": \"" + effectiveFrom + "\",\n";
-            var sourceProperty = sourceDocumentId is null
-                ? string.Empty
-                : "      \"sourceDocumentId\": \"" + sourceDocumentId + "\",\n";
+            var sourceProperty = SourceRefsProperty(sourceDocumentId, "      ");
 
             Write(
                 MasterPath,
                 "{\n" +
-                "  \"schemaVersion\": \"1\",\n" +
+                "  \"schemaVersion\": \"2\",\n" +
                 "  \"masterKind\": \"fixture\",\n" +
                 "  \"entries\": [\n" +
                 "    {\n" +
@@ -571,6 +599,37 @@ public sealed class ClaimSpecificationBoundaryTests
                 "    }\n" +
                 "  ]\n" +
                 "}\n");
+        }
+
+        public void WriteCondition(string? sourceDocumentId)
+        {
+            Write(
+                MasterPath,
+                "{\n" +
+                "  \"schemaVersion\": \"2\",\n" +
+                "  \"masterKind\": \"fixture\",\n" +
+                "  \"conditionDefinitions\": [\n" +
+                "    {\n" +
+                "      \"key\": \"condition-1\",\n" +
+                "      \"effectiveFrom\": \"2026-06\",\n" +
+                SourceRefsProperty(sourceDocumentId, "      ") +
+                "      \"kind\": \"capacity\",\n" +
+                "      \"operator\": \"equals\",\n" +
+                "      \"value\": 20\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"entries\": []\n" +
+                "}\n");
+        }
+
+        private static string SourceRefsProperty(string? sourceDocumentId, string indent)
+        {
+            if (sourceDocumentId is null)
+                return string.Empty;
+            if (sourceDocumentId.Length == 0)
+                return indent + "\"sourceRefs\": [],\n";
+            return indent + "\"sourceRefs\": [{ \"documentId\": \"" +
+                   sourceDocumentId + "\" }],\n";
         }
 
         public void Write(string relativePath, string contents)

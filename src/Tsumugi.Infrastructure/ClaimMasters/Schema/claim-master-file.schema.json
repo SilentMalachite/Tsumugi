@@ -1,14 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://tsumugi.local/schema/claim-master-file.schema.json",
-  "title": "Tsumugi claim master file",
+  "title": "Tsumugi claim master file v2",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "masterKind", "entries"],
   "properties": {
-    "schemaVersion": { "const": "1" },
+    "schemaVersion": { "const": "2" },
     "masterKind": {
-      "type": "string",
       "enum": [
         "basic-rewards",
         "additions",
@@ -18,6 +17,10 @@
         "service-codes"
       ]
     },
+    "conditionDefinitions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/conditionDefinition" }
+    },
     "entries": {
       "type": "array",
       "items": { "$ref": "#/$defs/entry" }
@@ -25,66 +28,95 @@
   },
   "allOf": [
     {
+      "if": {
+        "properties": { "masterKind": { "const": "service-codes" } },
+        "required": ["masterKind"]
+      },
+      "then": { "required": ["conditionDefinitions"] },
+      "else": { "not": { "required": ["conditionDefinitions"] } }
+    },
+    {
       "if": { "properties": { "masterKind": { "const": "basic-rewards" } } },
-      "then": { "properties": { "entries": { "items": { "properties": { "values": { "$ref": "#/$defs/basicRewardValues" } } } } } }
-    },
-    {
-      "if": { "properties": { "masterKind": { "const": "additions" } } },
-      "then": { "properties": { "entries": { "items": { "properties": { "values": { "$ref": "#/$defs/percentageAdjustmentValues" } } } } } }
-    },
-    {
-      "if": { "properties": { "masterKind": { "const": "region-unit-prices" } } },
-      "then": { "properties": { "entries": { "items": { "properties": { "values": { "$ref": "#/$defs/regionUnitPriceValues" } } } } } }
-    },
-    {
-      "if": { "properties": { "masterKind": { "const": "burden-caps" } } },
-      "then": { "properties": { "entries": { "items": { "properties": { "values": { "$ref": "#/$defs/burdenCapValues" } } } } } }
-    },
-    {
-      "if": { "properties": { "masterKind": { "const": "transition-rules" } } },
-      "then": { "properties": { "entries": { "items": { "properties": { "values": { "$ref": "#/$defs/transitionRuleValues" } } } } } }
-    },
-    {
-      "if": { "properties": { "masterKind": { "const": "service-codes" } } },
-      "then": { "properties": { "entries": { "items": { "properties": { "values": { "$ref": "#/$defs/serviceCodeValues" } } } } } }
-    }
-  ],
-  "$defs": {
-    "entry": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "key",
-        "effectiveFrom",
-        "effectiveTo",
-        "sourceDocumentId",
-        "sourceSha256",
-        "sourceLocator",
-        "values"
-      ],
-      "properties": {
-        "key": { "$ref": "#/$defs/nonBlank" },
-        "effectiveFrom": { "$ref": "#/$defs/serviceMonth" },
-        "effectiveTo": {
-          "type": ["string", "null"],
-          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
-        },
-        "sourceDocumentId": { "$ref": "#/$defs/nonBlank" },
-        "sourceSha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        },
-        "sourceLocator": { "$ref": "#/$defs/nonBlank" },
-        "values": {
-          "type": "object",
-          "minProperties": 1
+      "then": {
+        "properties": {
+          "entries": {
+            "items": {
+              "properties": { "values": { "$ref": "#/$defs/basicRewardValues" } }
+            }
+          }
         }
       }
     },
+    {
+      "if": { "properties": { "masterKind": { "const": "additions" } } },
+      "then": {
+        "properties": {
+          "entries": {
+            "items": {
+              "properties": { "values": { "$ref": "#/$defs/unitAdjustmentValues" } }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "masterKind": { "const": "region-unit-prices" } } },
+      "then": {
+        "properties": {
+          "entries": {
+            "items": {
+              "properties": { "values": { "$ref": "#/$defs/regionUnitPriceValues" } }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "masterKind": { "const": "burden-caps" } } },
+      "then": {
+        "properties": {
+          "entries": {
+            "items": {
+              "properties": { "values": { "$ref": "#/$defs/burdenCapValues" } }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "masterKind": { "const": "transition-rules" } } },
+      "then": {
+        "properties": {
+          "entries": {
+            "items": {
+              "properties": { "values": { "$ref": "#/$defs/transitionRuleValues" } }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "masterKind": { "const": "service-codes" } } },
+      "then": {
+        "properties": {
+          "entries": {
+            "items": {
+              "properties": { "values": { "$ref": "#/$defs/serviceCodeValues" } }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
     "nonBlank": {
       "type": "string",
       "minLength": 1,
       "pattern": "^\\S(?:.*\\S)?$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
     },
     "serviceMonth": {
       "type": "string",
@@ -94,9 +126,665 @@
       "type": "string",
       "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
     },
-    "decimalString": {
+    "canonicalNonnegativeDecimal": {
       "type": "string",
       "pattern": "^(0|[1-9][0-9]*)(\\.[0-9]+)?$"
+    },
+    "canonicalPositiveDecimal": {
+      "type": "string",
+      "pattern": "^(0\\.(?:0*[1-9][0-9]*)|[1-9][0-9]*(?:\\.[0-9]+)?)$"
+    },
+    "canonicalRateAtMostOne": {
+      "type": "string",
+      "pattern": "^(0\\.(?:0*[1-9][0-9]*)|1(?:\\.0+)?)$"
+    },
+    "billingUnit": {
+      "enum": ["per-day", "per-month", "per-use"]
+    },
+    "sourceSupport": {
+      "enum": [
+        "service-identity",
+        "selectors",
+        "unit-rule-kind",
+        "unit-rule-value",
+        "unit-rule-target",
+        "unit-rule-step",
+        "unit-rule-rounding",
+        "conditions",
+        "effective-period",
+        "master-values"
+      ]
+    },
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["documentId", "sha256", "locator", "evidenceRole", "supports"],
+      "properties": {
+        "documentId": { "$ref": "#/$defs/nonBlank" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "locator": { "$ref": "#/$defs/nonBlank" },
+        "evidenceRole": {
+          "enum": ["authoritative", "correction", "cross-check"]
+        },
+        "supports": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/sourceSupport" }
+        }
+      }
+    },
+    "sourceRefs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/sourceRef" }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "effectiveFrom", "effectiveTo", "sourceRefs", "values"],
+      "properties": {
+        "key": { "$ref": "#/$defs/nonBlank" },
+        "effectiveFrom": { "$ref": "#/$defs/serviceMonth" },
+        "effectiveTo": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+        },
+        "sourceRefs": { "$ref": "#/$defs/sourceRefs" },
+        "values": {
+          "type": "object",
+          "minProperties": 1
+        }
+      }
+    },
+    "fixedUnitsAmount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "addedUnits"],
+      "properties": {
+        "kind": { "const": "fixed-units" },
+        "addedUnits": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "unitsPerCountAmount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "unitsPerCount", "countSelector"],
+      "properties": {
+        "kind": { "const": "units-per-count" },
+        "unitsPerCount": { "type": "integer", "minimum": 1 },
+        "countSelector": { "$ref": "#/$defs/nonBlank" }
+      }
+    },
+    "percentageOfTargetAmount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "percentage",
+        "percentageBaseScope",
+        "targetSelector",
+        "calculationOrder"
+      ],
+      "properties": {
+        "kind": { "const": "percentage-of-target" },
+        "percentage": { "$ref": "#/$defs/canonicalPositiveDecimal" },
+        "percentageBaseScope": {
+          "enum": ["per-service-code-unit", "monthly-target-unit-sum"]
+        },
+        "targetSelector": { "$ref": "#/$defs/nonBlank" },
+        "calculationOrder": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "proratedUnitsAmount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "poolUnitsPerStaff",
+        "staffCountSelector",
+        "recipientCountSelector",
+        "maximumRecipientsPerStaff"
+      ],
+      "properties": {
+        "kind": { "const": "prorated-units" },
+        "poolUnitsPerStaff": { "type": "integer", "minimum": 1 },
+        "staffCountSelector": { "$ref": "#/$defs/nonBlank" },
+        "recipientCountSelector": { "$ref": "#/$defs/nonBlank" },
+        "maximumRecipientsPerStaff": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "unitAdjustmentAmount": {
+      "oneOf": [
+        { "$ref": "#/$defs/fixedUnitsAmount" },
+        { "$ref": "#/$defs/unitsPerCountAmount" },
+        { "$ref": "#/$defs/percentageOfTargetAmount" },
+        { "$ref": "#/$defs/proratedUnitsAmount" }
+      ]
+    },
+    "unitAdjustmentValues": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "amount",
+        "calculationStepId",
+        "roundingRuleId",
+        "billingUnit"
+      ],
+      "properties": {
+        "amount": { "$ref": "#/$defs/unitAdjustmentAmount" },
+        "calculationStepId": { "$ref": "#/$defs/nonBlank" },
+        "roundingRuleId": {
+          "type": ["string", "null"],
+          "enum": ["claim.rounding.units.half-up.v1", null]
+        },
+        "billingUnit": { "$ref": "#/$defs/billingUnit" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "amount": {
+                "properties": { "kind": { "const": "fixed-units" } }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "calculationStepId": {
+                "const": "claim.step.units.service-code.fixed.v1"
+              },
+              "roundingRuleId": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "amount": {
+                "properties": { "kind": { "const": "units-per-count" } }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "calculationStepId": {
+                "const": "claim.step.units.service-code.multiply-count.v1"
+              },
+              "roundingRuleId": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "amount": {
+                "properties": {
+                  "kind": { "const": "percentage-of-target" },
+                  "percentageBaseScope": {
+                    "const": "per-service-code-unit"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "calculationStepId": {
+                "const": "claim.step.units.per-service-code.percentage.v1"
+              },
+              "roundingRuleId": {
+                "const": "claim.rounding.units.half-up.v1"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "amount": {
+                "properties": {
+                  "kind": { "const": "percentage-of-target" },
+                  "percentageBaseScope": {
+                    "const": "monthly-target-unit-sum"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "calculationStepId": {
+                "const": "claim.step.units.monthly-target.percentage.v1"
+              },
+              "roundingRuleId": {
+                "const": "claim.rounding.units.half-up.v1"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "amount": {
+                "properties": { "kind": { "const": "prorated-units" } }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "calculationStepId": {
+                "const": "claim.step.units.service-code.prorate-by-recipient-count.v1"
+              },
+              "roundingRuleId": {
+                "const": "claim.rounding.units.half-up.v1"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "fixedCompositeUnitRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "finalUnits", "billingUnit"],
+      "properties": {
+        "kind": { "const": "fixed-composite-unit" },
+        "finalUnits": {
+          "type": "integer",
+          "not": { "const": 0 }
+        },
+        "billingUnit": { "$ref": "#/$defs/billingUnit" }
+      }
+    },
+    "unitAdditionRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "adjustmentComponentKey",
+        "amount",
+        "calculationStepId",
+        "roundingRuleId",
+        "billingUnit"
+      ],
+      "properties": {
+        "kind": { "const": "unit-addition" },
+        "adjustmentComponentKey": { "$ref": "#/$defs/nonBlank" },
+        "amount": { "$ref": "#/$defs/unitAdjustmentAmount" },
+        "calculationStepId": { "$ref": "#/$defs/nonBlank" },
+        "roundingRuleId": {
+          "type": ["string", "null"],
+          "enum": ["claim.rounding.units.half-up.v1", null]
+        },
+        "billingUnit": { "$ref": "#/$defs/billingUnit" }
+      },
+      "allOf": [
+        { "$ref": "#/$defs/unitAdjustmentMatrix" }
+      ]
+    },
+    "unitAdjustmentMatrix": {
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "amount": {
+                "properties": { "kind": { "const": "fixed-units" } }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "calculationStepId": {
+                "const": "claim.step.units.service-code.fixed.v1"
+              },
+              "roundingRuleId": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "amount": {
+                "properties": { "kind": { "const": "units-per-count" } }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "calculationStepId": {
+                "const": "claim.step.units.service-code.multiply-count.v1"
+              },
+              "roundingRuleId": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "amount": {
+                "properties": {
+                  "kind": { "const": "percentage-of-target" },
+                  "percentageBaseScope": {
+                    "const": "per-service-code-unit"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "calculationStepId": {
+                "const": "claim.step.units.per-service-code.percentage.v1"
+              },
+              "roundingRuleId": {
+                "const": "claim.rounding.units.half-up.v1"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "amount": {
+                "properties": {
+                  "kind": { "const": "percentage-of-target" },
+                  "percentageBaseScope": {
+                    "const": "monthly-target-unit-sum"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "calculationStepId": {
+                "const": "claim.step.units.monthly-target.percentage.v1"
+              },
+              "roundingRuleId": {
+                "const": "claim.rounding.units.half-up.v1"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "amount": {
+                "properties": { "kind": { "const": "prorated-units" } }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "calculationStepId": {
+                "const": "claim.step.units.service-code.prorate-by-recipient-count.v1"
+              },
+              "roundingRuleId": {
+                "const": "claim.rounding.units.half-up.v1"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "formulaFactor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "order",
+        "rate",
+        "conditionSelectors",
+        "calculationStepId",
+        "roundingRuleId"
+      ],
+      "properties": {
+        "order": { "type": "integer", "minimum": 1 },
+        "rate": { "$ref": "#/$defs/canonicalRateAtMostOne" },
+        "conditionSelectors": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/nonBlank" }
+        },
+        "calculationStepId": {
+          "const": "claim.step.units.per-service-code.percentage.v1"
+        },
+        "roundingRuleId": {
+          "const": "claim.rounding.units.half-up.v1"
+        }
+      }
+    },
+    "baseComponentPassThroughRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "mode",
+        "baseComponentKey",
+        "calculationStepId",
+        "roundingRuleId",
+        "billingUnit"
+      ],
+      "properties": {
+        "kind": { "const": "formula" },
+        "mode": { "const": "base-component-pass-through" },
+        "baseComponentKey": { "$ref": "#/$defs/nonBlank" },
+        "calculationStepId": {
+          "const": "claim.step.units.service-code.base-component-pass-through.v1"
+        },
+        "roundingRuleId": { "type": "null" },
+        "billingUnit": { "$ref": "#/$defs/billingUnit" }
+      }
+    },
+    "factorChainRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "mode", "baseComponentKey", "factors", "billingUnit"],
+      "properties": {
+        "kind": { "const": "formula" },
+        "mode": { "const": "factor-chain" },
+        "baseComponentKey": { "$ref": "#/$defs/nonBlank" },
+        "factors": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/formulaFactor" }
+        },
+        "billingUnit": { "$ref": "#/$defs/billingUnit" }
+      }
+    },
+    "formulaRule": {
+      "oneOf": [
+        { "$ref": "#/$defs/baseComponentPassThroughRule" },
+        { "$ref": "#/$defs/factorChainRule" }
+      ]
+    },
+    "serviceCodeUnitRule": {
+      "oneOf": [
+        { "$ref": "#/$defs/fixedCompositeUnitRule" },
+        { "$ref": "#/$defs/unitAdditionRule" },
+        { "$ref": "#/$defs/formulaRule" }
+      ]
+    },
+    "componentRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["masterKind", "key", "role"],
+      "properties": {
+        "masterKind": { "enum": ["basic-rewards", "additions"] },
+        "key": { "$ref": "#/$defs/nonBlank" },
+        "role": { "enum": ["base", "adjustment"] }
+      }
+    },
+    "conditionDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "effectiveFrom",
+        "effectiveTo",
+        "kind",
+        "operator",
+        "sourceRefs"
+      ],
+      "properties": {
+        "key": { "$ref": "#/$defs/nonBlank" },
+        "effectiveFrom": { "$ref": "#/$defs/serviceMonth" },
+        "effectiveTo": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+        },
+        "kind": {
+          "enum": [
+            "reward-system",
+            "payment-band",
+            "capacity",
+            "staffing",
+            "average-wage-band",
+            "plan-status",
+            "shortage-duration",
+            "municipality-ownership",
+            "r8-reform-status",
+            "facility-classification",
+            "employment-outcome-count"
+          ]
+        },
+        "operator": {
+          "enum": [
+            "equals",
+            "in",
+            "less-than",
+            "less-than-or-equal",
+            "greater-than",
+            "greater-than-or-equal"
+          ]
+        },
+        "value": {},
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "sourceRefs": { "$ref": "#/$defs/sourceRefs" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "operator": { "const": "in" } } },
+          "then": {
+            "required": ["values"],
+            "not": { "required": ["value"] }
+          },
+          "else": {
+            "required": ["value"],
+            "not": { "required": ["values"] }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "reward-system",
+                  "payment-band",
+                  "staffing",
+                  "average-wage-band",
+                  "plan-status",
+                  "r8-reform-status",
+                  "facility-classification"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "operator": { "enum": ["equals", "in"] },
+              "value": { "$ref": "#/$defs/nonBlank" },
+              "values": {
+                "items": { "$ref": "#/$defs/nonBlank" }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "capacity",
+                  "shortage-duration",
+                  "employment-outcome-count"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "operator": {
+                "enum": [
+                  "equals",
+                  "less-than",
+                  "less-than-or-equal",
+                  "greater-than",
+                  "greater-than-or-equal"
+                ]
+              },
+              "value": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "municipality-ownership" }
+            }
+          },
+          "then": {
+            "properties": {
+              "operator": { "const": "equals" },
+              "value": { "type": "boolean" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "plan-status" } } },
+          "then": {
+            "properties": {
+              "value": { "enum": ["created", "not-created"] },
+              "values": {
+                "items": { "enum": ["created", "not-created"] }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "r8-reform-status" } }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "enum": [
+                  "not-applicable-before-r8",
+                  "reform-target",
+                  "reform-exempt",
+                  "unchanged-below-15000"
+                ]
+              },
+              "values": {
+                "items": {
+                  "enum": [
+                    "not-applicable-before-r8",
+                    "reform-target",
+                    "reform-exempt",
+                    "unchanged-below-15000"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "averageWageBandOption": {
       "type": "object",
@@ -112,44 +800,19 @@
     "basicRewardValues": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["paymentBand", "staffingKey", "capacityKey", "serviceCode", "units"],
+      "required": [
+        "paymentBand",
+        "staffingKey",
+        "capacityKey",
+        "serviceCode",
+        "baseUnits"
+      ],
       "properties": {
         "paymentBand": { "$ref": "#/$defs/nonBlank" },
         "staffingKey": { "$ref": "#/$defs/nonBlank" },
         "capacityKey": { "$ref": "#/$defs/nonBlank" },
         "serviceCode": { "$ref": "#/$defs/nonBlank" },
-        "units": { "type": "integer", "minimum": 0 }
-      }
-    },
-    "percentageAdjustmentValues": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "percentage",
-        "percentageBaseScope",
-        "percentageApplicationKind",
-        "targetSelector",
-        "calculationOrder",
-        "roundingRuleId",
-        "calculationStepId"
-      ],
-      "properties": {
-        "percentage": { "$ref": "#/$defs/decimalString" },
-        "percentageBaseScope": {
-          "enum": ["per-service-code-unit", "monthly-target-unit-sum"]
-        },
-        "percentageApplicationKind": {
-          "enum": ["replace", "add", "subtract"]
-        },
-        "targetSelector": { "$ref": "#/$defs/nonBlank" },
-        "calculationOrder": { "type": "integer", "minimum": 1 },
-        "roundingRuleId": { "const": "claim.rounding.units.half-up.v1" },
-        "calculationStepId": {
-          "enum": [
-            "claim.step.units.per-service-code.percentage.v1",
-            "claim.step.units.monthly-target.percentage.v1"
-          ]
-        }
+        "baseUnits": { "type": "integer", "minimum": 0 }
       }
     },
     "regionUnitPriceValues": {
@@ -159,7 +822,7 @@
       "properties": {
         "regionKey": { "$ref": "#/$defs/nonBlank" },
         "serviceKind": { "$ref": "#/$defs/nonBlank" },
-        "unitPriceYen": { "$ref": "#/$defs/decimalString" }
+        "unitPriceYen": { "$ref": "#/$defs/canonicalNonnegativeDecimal" }
       }
     },
     "burdenCapValues": {
@@ -229,15 +892,35 @@
     "serviceCodeValues": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["serviceCode", "serviceKind", "selectors"],
+      "required": [
+        "serviceCode",
+        "officialLabel",
+        "serviceKind",
+        "selectors",
+        "conditionSelectors",
+        "unitRule",
+        "componentRefs"
+      ],
       "properties": {
         "serviceCode": { "$ref": "#/$defs/nonBlank" },
+        "officialLabel": { "$ref": "#/$defs/nonBlank" },
         "serviceKind": { "$ref": "#/$defs/nonBlank" },
         "selectors": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
           "items": { "$ref": "#/$defs/nonBlank" }
+        },
+        "conditionSelectors": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/nonBlank" }
+        },
+        "unitRule": { "$ref": "#/$defs/serviceCodeUnitRule" },
+        "componentRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/componentRef" }
         }
       }
     }

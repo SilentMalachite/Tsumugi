@@ -228,7 +228,7 @@ internal static class ExternalSpecificationLiteralGuard
             }
 
             ValidateEffectiveFrom(jsonFile.RelativePath, entry, entryPointer, entryLine, violations);
-            ValidateSourceReference(
+            ValidateSourceReferences(
                 jsonFile.RelativePath,
                 entry,
                 entryPointer,
@@ -246,6 +246,28 @@ internal static class ExternalSpecificationLiteralGuard
             }
 
             entryIndex++;
+        }
+
+        if (root.TryGetProperty("conditionDefinitions", out var conditions)
+            && conditions.ValueKind == JsonValueKind.Array)
+        {
+            searchOffset = 0;
+            var conditionIndex = 0;
+            foreach (var condition in conditions.EnumerateArray())
+            {
+                var conditionPointer = $"/conditionDefinitions/{conditionIndex}";
+                var conditionOffset = FindElementOffset(jsonFile.Text, condition, searchOffset);
+                searchOffset = Math.Max(conditionOffset, searchOffset) +
+                               condition.GetRawText().Length;
+                ValidateSourceReferences(
+                    jsonFile.RelativePath,
+                    condition,
+                    conditionPointer,
+                    GetLineNumber(jsonFile.Text, conditionOffset),
+                    knownSources,
+                    violations);
+                conditionIndex++;
+            }
         }
     }
 
@@ -271,30 +293,73 @@ internal static class ExternalSpecificationLiteralGuard
             CatalogPath(relativePath, entryPointer + "/effectiveFrom")));
     }
 
-    private static void ValidateSourceReference(
+    private static void ValidateSourceReferences(
         string relativePath,
-        JsonElement entry,
-        string entryPointer,
-        int entryLine,
+        JsonElement element,
+        string elementPointer,
+        int elementLine,
         IReadOnlySet<string> knownSources,
         List<Violation> violations)
     {
-        var sourceDocumentId = entry.TryGetProperty("sourceDocumentId", out var source) &&
-                               source.ValueKind == JsonValueKind.String
-            ? source.GetString()
-            : null;
-        if (!string.IsNullOrWhiteSpace(sourceDocumentId) && knownSources.Contains(sourceDocumentId))
+        if (element.ValueKind != JsonValueKind.Object
+            || !element.TryGetProperty("sourceRefs", out var sourceRefs)
+            || sourceRefs.ValueKind != JsonValueKind.Array)
         {
+            AddSourceViolation(
+                relativePath,
+                elementPointer + "/sourceRefs",
+                elementLine,
+                "<missing>",
+                violations);
             return;
         }
 
+        if (sourceRefs.GetArrayLength() == 0)
+        {
+            AddSourceViolation(
+                relativePath,
+                elementPointer + "/sourceRefs",
+                elementLine,
+                "<empty>",
+                violations);
+            return;
+        }
+
+        var sourceIndex = 0;
+        foreach (var sourceRef in sourceRefs.EnumerateArray())
+        {
+            var documentId = sourceRef.ValueKind == JsonValueKind.Object
+                             && sourceRef.TryGetProperty("documentId", out var documentIdElement)
+                             && documentIdElement.ValueKind == JsonValueKind.String
+                ? documentIdElement.GetString()
+                : null;
+            if (string.IsNullOrWhiteSpace(documentId) || !knownSources.Contains(documentId))
+            {
+                AddSourceViolation(
+                    relativePath,
+                    elementPointer + "/sourceRefs/" +
+                    sourceIndex.ToString(CultureInfo.InvariantCulture) + "/documentId",
+                    elementLine,
+                    string.IsNullOrWhiteSpace(documentId) ? "<missing>" : documentId,
+                    violations);
+            }
+
+            sourceIndex++;
+        }
+    }
+
+    private static void AddSourceViolation(
+        string relativePath,
+        string pointer,
+        int line,
+        string literal,
+        List<Violation> violations) =>
         violations.Add(new Violation(
             relativePath,
-            entryLine,
+            line,
             "claim-master-source",
-            string.IsNullOrWhiteSpace(sourceDocumentId) ? "<missing>" : sourceDocumentId,
-            CatalogPath(relativePath, entryPointer + "/sourceDocumentId")));
-    }
+            literal,
+            CatalogPath(relativePath, pointer)));
 
     private static void CollectMasterValues(
         JsonElement element,

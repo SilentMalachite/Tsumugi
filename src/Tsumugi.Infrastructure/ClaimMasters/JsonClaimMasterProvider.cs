@@ -12,7 +12,7 @@ namespace Tsumugi.Infrastructure.ClaimMasters;
 
 public sealed class JsonClaimMasterProvider : IClaimMasterProvider, IOfficeClaimProfilePolicyProvider
 {
-    private const string SupportedSchemaVersion = "1";
+    private const string SupportedSourceCatalogSchemaVersion = "1";
 
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web)
     {
@@ -97,19 +97,22 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider, IOfficeClaim
         ArgumentNullException.ThrowIfNull(sources);
         ArgumentNullException.ThrowIfNull(masters);
 
+        var preparedMasters = ClaimMasterFileValidator.Prepare(
+            masters,
+            sanitizeTransitionHeaders);
         var catalog = Deserialize<SourceCatalogFile>(sources, "sources.json");
         ValidateSchemaVersion(catalog.SchemaVersion, "sources.json");
         ValidateCatalog(catalog);
 
-        var sourceSha256ByDocumentId = catalog.Sources
-            .ToDictionary(
-                source => source.DocumentId,
-                source => source.Sha256,
-                StringComparer.Ordinal);
+        var sourceMetadata = catalog.Sources
+            .Select(source => new ClaimSourceCatalogMetadata(
+                source.DocumentId,
+                source.Sha256,
+                source.Corrects ?? []))
+            .ToArray();
         var calculationMasters = ClaimMasterFileValidator.ValidateAll(
-            masters,
-            sourceSha256ByDocumentId,
-            sanitizeTransitionHeaders);
+            preparedMasters,
+            sourceMetadata);
         ValidateTransitionRuleReferences(calculationMasters.TransitionRules, catalog.Releases);
 
         var domainSources = catalog.Sources.Select(ToDomainSource).ToImmutableArray();
@@ -185,9 +188,10 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider, IOfficeClaim
             var release = releases.SingleOrDefault(item =>
                 string.Equals(item.MasterVersion, row.MasterVersion.Value, StringComparison.Ordinal));
             if (release is null
-                || !release.SourceDocumentIds.Contains(
-                    row.Source.DocumentId,
-                    StringComparer.Ordinal))
+                || row.SourceRefs.Any(sourceRef =>
+                    !release.SourceDocumentIds.Contains(
+                        sourceRef.DocumentId,
+                        StringComparer.Ordinal)))
             {
                 throw new ClaimMasterPolicyUnavailableException(
                     ClaimMasterPolicyUnavailableCode.InvalidMaster);
@@ -424,7 +428,10 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider, IOfficeClaim
 
     private static void ValidateSchemaVersion(string actual, string fileName)
     {
-        if (!string.Equals(actual, SupportedSchemaVersion, StringComparison.Ordinal))
+        if (!string.Equals(
+                actual,
+                SupportedSourceCatalogSchemaVersion,
+                StringComparison.Ordinal))
         {
             throw new InvalidDataException(
                 $"Claim master resource '{fileName}' has unsupported schemaVersion '{actual}'.");

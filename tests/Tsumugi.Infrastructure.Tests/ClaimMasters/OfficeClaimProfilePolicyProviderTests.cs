@@ -79,13 +79,43 @@ public sealed class OfficeClaimProfilePolicyProviderTests
         ClaimMasterSchemaPhase31Tests.MutateFirstEntry(
             masters,
             "transition-rules.json",
-            entry => entry.Remove("sourceLocator"));
+            entry => entry.Remove("sourceRefs"));
 
         var action = () => ClaimMasterSchemaPhase31Tests.CreateProvider(masters);
 
         var error = action.Should().Throw<ClaimMasterPolicyUnavailableException>().Which;
         error.Code.Should().Be(ClaimMasterPolicyUnavailableCode.InvalidMaster);
-        error.Message.Should().NotContain("sourceLocator");
+        error.Message.Should().NotContain("sourceRefs");
+    }
+
+    [Fact]
+    public void Load_rejects_any_transition_source_reference_outside_its_release()
+    {
+        var masters = ClaimMasterSchemaPhase31Tests.ValidMasters();
+        ClaimMasterSchemaPhase31Tests.MutateFirstEntry(
+            masters,
+            "transition-rules.json",
+            entry =>
+            {
+                var crossCheck = entry["sourceRefs"]![0]!.DeepClone().AsObject();
+                crossCheck["documentId"] = "doc-2";
+                crossCheck["locator"] = "source:doc-2";
+                crossCheck["evidenceRole"] = "cross-check";
+                entry["sourceRefs"]!.AsArray().Add(crossCheck);
+            });
+        var catalog = JsonNode.Parse(MultiVersionCatalogJson)!.AsObject();
+        var secondSource = catalog["sources"]![0]!.DeepClone().AsObject();
+        secondSource["documentId"] = "doc-2";
+        secondSource["url"] = "https://example.test/doc-2.pdf";
+        catalog["sources"]!.AsArray().Add(secondSource);
+
+        var action = () => ClaimMasterSchemaPhase31Tests.CreateProvider(
+            masters,
+            catalog.ToJsonString());
+
+        var error = action.Should().Throw<ClaimMasterPolicyUnavailableException>().Which;
+        error.Code.Should().Be(ClaimMasterPolicyUnavailableCode.InvalidMaster);
+        error.Message.Should().NotContain("doc-2");
     }
 
     [Theory]
