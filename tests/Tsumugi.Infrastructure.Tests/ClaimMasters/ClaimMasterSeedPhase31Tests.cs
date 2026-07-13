@@ -11,6 +11,29 @@ public sealed class ClaimMasterSeedPhase31Tests
     private const string ManifestPath =
         "docs/spec-data/phase3/claim-master-source-row-manifest.json";
 
+    private static readonly string[] AllowedTargetKinds =
+    [
+        "basic-rewards",
+        "additions",
+        "region-unit-prices",
+        "burden-caps",
+        "transition-rules",
+        "service-codes",
+        "service-code-conditions",
+    ];
+
+    private static readonly string[] AllowedMappingRoles =
+    [
+        "primary", "component", "supporting-evidence",
+    ];
+
+    private static readonly string[] AllowedSupports =
+    [
+        "service-identity", "selectors", "unit-rule-kind", "unit-rule-value",
+        "unit-rule-target", "unit-rule-step", "unit-rule-rounding", "conditions",
+        "effective-period", "master-values",
+    ];
+
     private static readonly string[] ExpectedDocumentIds =
     [
         "mhlw-unit-price-notice-observed-946c3d96",
@@ -68,18 +91,35 @@ public sealed class ClaimMasterSeedPhase31Tests
     ];
 
     [Fact]
-    public void Source_manifest_exists_and_has_a_closed_root_contract()
+    public void Source_manifest_exists_and_has_a_closed_v2_contract()
     {
         using var manifest = OpenRepositoryJson(ManifestPath);
         var root = manifest.RootElement;
 
         root.EnumerateObject().Select(property => property.Name)
             .Should().Equal("schemaVersion", "documents", "rows");
-        root.GetProperty("schemaVersion").GetString().Should().Be("1");
-        root.GetProperty("documents").ValueKind.Should().Be(JsonValueKind.Array);
-        var rows = root.GetProperty("rows");
-        rows.ValueKind.Should().Be(JsonValueKind.Array);
-        rows.GetArrayLength().Should().BeGreaterThan(0);
+        root.GetProperty("schemaVersion").GetString().Should().Be("2");
+        root.GetProperty("documents").GetArrayLength().Should().Be(41);
+        root.GetProperty("rows").GetArrayLength().Should().Be(14_709);
+
+        foreach (var row in root.GetProperty("rows").EnumerateArray())
+        {
+            row.EnumerateObject().Select(property => property.Name).Should().Equal(
+                "sourceDocumentId",
+                "rangeId",
+                "sourceLocator",
+                "sourceLabel",
+                "effectiveFrom",
+                "effectiveTo",
+                "disposition",
+                "productionTargets",
+                "exclusionReason");
+
+            row.GetProperty("sourceLabel").GetString().Should().NotBeNullOrWhiteSpace();
+            row.GetProperty("effectiveFrom").GetString().Should().NotBeNullOrWhiteSpace();
+            row.GetProperty("effectiveTo").ValueKind.Should()
+                .BeOneOf(JsonValueKind.String, JsonValueKind.Null);
+        }
     }
 
     [Fact]
@@ -180,103 +220,61 @@ public sealed class ClaimMasterSeedPhase31Tests
     }
 
     [Fact]
-    public void Source_manifest_rows_have_closed_and_consistent_dispositions()
+    public void Source_manifest_v2_targets_have_closed_roles_and_supports()
     {
         using var manifest = OpenRepositoryJson(ManifestPath);
-        var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().ToArray();
-
-        foreach (var row in rows)
+        foreach (var row in manifest.RootElement.GetProperty("rows").EnumerateArray())
         {
-            row.EnumerateObject().Select(property => property.Name).Should().Equal(
-                "sourceDocumentId",
-                "rangeId",
-                "sourceLocator",
-                "sourceLabel",
-                "effectiveFrom",
-                "effectiveTo",
-                "disposition",
-                "masterKind",
-                "seedKey",
-                "aggregationId",
-                "aggregationKind",
-                "aggregationReason",
-                "exclusionReason");
-
-            row.GetProperty("sourceLabel").GetString().Should().NotBeNullOrWhiteSpace();
-            row.GetProperty("effectiveFrom").GetString().Should().NotBeNullOrWhiteSpace();
-            row.GetProperty("effectiveTo").ValueKind.Should()
-                .BeOneOf(JsonValueKind.String, JsonValueKind.Null);
-
             var disposition = row.GetProperty("disposition").GetString();
-            disposition.Should().BeOneOf("seed", "excluded", "schema-gap");
-
-            var masterKind = row.GetProperty("masterKind");
-            var seedKey = row.GetProperty("seedKey");
-            var aggregationId = row.GetProperty("aggregationId");
-            var aggregationKind = row.GetProperty("aggregationKind");
-            var aggregationReason = row.GetProperty("aggregationReason");
+            var targets = GetProductionTargets(row);
             var reason = row.GetProperty("exclusionReason");
+
             if (disposition == "seed")
             {
-                masterKind.GetString().Should().BeOneOf(
-                    "basic-rewards",
-                    "additions",
-                    "region-unit-prices",
-                    "burden-caps",
-                    "transition-rules",
-                    "service-codes");
-                seedKey.GetString().Should().NotBeNullOrWhiteSpace();
+                targets.Should().NotBeEmpty();
                 reason.ValueKind.Should().Be(JsonValueKind.Null);
-                if (aggregationId.ValueKind == JsonValueKind.Null)
-                {
-                    aggregationKind.ValueKind.Should().Be(JsonValueKind.Null);
-                    aggregationReason.ValueKind.Should().Be(JsonValueKind.Null);
-                }
-                else
-                {
-                    aggregationId.GetString().Should().NotBeNullOrWhiteSpace();
-                    aggregationKind.GetString().Should().Be("multi-source-one-seed");
-                    aggregationReason.GetString().Should().NotBeNullOrWhiteSpace();
-                }
             }
             else
             {
-                masterKind.ValueKind.Should().Be(JsonValueKind.Null);
-                seedKey.ValueKind.Should().Be(JsonValueKind.Null);
-                aggregationId.ValueKind.Should().Be(JsonValueKind.Null);
-                aggregationKind.ValueKind.Should().Be(JsonValueKind.Null);
-                aggregationReason.ValueKind.Should().Be(JsonValueKind.Null);
+                disposition.Should().BeOneOf("excluded", "schema-gap");
+                targets.Should().BeEmpty();
                 reason.GetString().Should().NotBeNullOrWhiteSpace();
             }
-        }
 
-        var seedGroups = rows
-            .Where(row => row.GetProperty("disposition").GetString() == "seed")
-            .GroupBy(row => (
-                MasterKind: row.GetProperty("masterKind").GetString(),
-                SeedKey: row.GetProperty("seedKey").GetString()))
-            .ToArray();
-        foreach (var group in seedGroups)
-        {
-            var items = group.ToArray();
-            if (items.Length == 1)
+            foreach (var target in targets)
             {
-                items[0].GetProperty("aggregationId").ValueKind
-                    .Should().Be(JsonValueKind.Null);
-                continue;
+                target.EnumerateObject().Select(property => property.Name).Should().Equal(
+                    "masterKind", "seedKey", "mappingRole", "supports", "mappingReason");
+                target.GetProperty("masterKind").GetString().Should().BeOneOf(AllowedTargetKinds);
+                target.GetProperty("seedKey").GetString().Should().NotBeNullOrWhiteSpace();
+                var role = target.GetProperty("mappingRole").GetString();
+                role.Should().BeOneOf(AllowedMappingRoles);
+                var supports = target.GetProperty("supports").EnumerateArray()
+                    .Select(item => item.GetString()!).ToArray();
+                supports.Should().NotBeEmpty().And.OnlyHaveUniqueItems();
+                supports.Should().OnlyContain(support => AllowedSupports.Contains(support));
+                if (role is "component" or "supporting-evidence")
+                {
+                    target.GetProperty("mappingReason").GetString()
+                        .Should().NotBeNullOrWhiteSpace();
+                }
             }
-
-            var aggregationIds = items
-                .Select(item => item.GetProperty("aggregationId").GetString())
-                .Distinct(StringComparer.Ordinal)
-                .ToArray();
-            aggregationIds.Should().ContainSingle();
-            aggregationIds[0].Should().NotBeNullOrWhiteSpace();
-            items.Should().OnlyContain(item =>
-                item.GetProperty("aggregationKind").GetString() == "multi-source-one-seed");
-            items.Select(item => item.GetProperty("aggregationReason").GetString())
-                .Should().OnlyContain(item => !string.IsNullOrWhiteSpace(item));
         }
+    }
+
+    [Fact]
+    public void Source_manifest_v2_preserves_the_v1_inventory_size()
+    {
+        using var manifest = OpenRepositoryJson(ManifestPath);
+        var root = manifest.RootElement;
+        root.GetProperty("documents").GetArrayLength().Should().Be(41);
+        root.GetProperty("rows").GetArrayLength().Should().Be(14_709);
+        var ranges = root.GetProperty("documents").EnumerateArray()
+            .SelectMany(document => document.GetProperty("extractionRanges").EnumerateArray())
+            .ToArray();
+        ranges.Should().HaveCount(51);
+        ranges.Sum(range => range.GetProperty("expectedItemCount").GetInt32())
+            .Should().Be(14_709);
     }
 
     [Fact]
@@ -356,7 +354,7 @@ public sealed class ClaimMasterSeedPhase31Tests
     }
 
     [Fact]
-    public void Source_manifest_schema_audit_snapshot_stays_stopped()
+    public void Source_manifest_v2_mechanical_migration_remains_stopped_for_reaudit()
     {
         using var manifest = OpenRepositoryJson(ManifestPath);
         var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().ToArray();
@@ -366,20 +364,9 @@ public sealed class ClaimMasterSeedPhase31Tests
             .Should().Be(15);
         rows.Count(row => row.GetProperty("disposition").GetString() == "excluded")
             .Should().Be(744);
-        var schemaGaps = rows.Where(row =>
+        rows.Count(row =>
                 row.GetProperty("disposition").GetString() == "schema-gap")
-            .ToArray();
-        schemaGaps.Should().HaveCount(13_950).And.NotBeEmpty();
-
-        var countsByReasonPrefix = schemaGaps
-            .GroupBy(row => row.GetProperty("exclusionReason").GetString()!.Split(':')[0])
-            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
-        countsByReasonPrefix.Should().BeEquivalentTo(new Dictionary<string, int>
-        {
-            ["numeric-composite-unit"] = 13_539,
-            ["unit-addition-or-other-operation"] = 352,
-            ["condition-rate-calculation-structure"] = 59,
-        });
+            .Should().Be(13_950);
     }
 
     [Fact]
@@ -443,13 +430,29 @@ public sealed class ClaimMasterSeedPhase31Tests
             .ToArray();
 
         regionRows.Should().HaveCount(8);
-        regionRows.Should().OnlyContain(row =>
-            row.GetProperty("disposition").GetString() == "seed"
-            && row.GetProperty("masterKind").GetString() == "region-unit-prices"
-            && row.GetProperty("effectiveFrom").GetString() == "2024-04"
-            && row.GetProperty("effectiveTo").ValueKind == JsonValueKind.Null);
-        regionRows.Select(row => row.GetProperty("seedKey").GetString())
-            .Should().OnlyHaveUniqueItems();
+        var regionTargets = new List<JsonElement>();
+        foreach (var row in regionRows)
+        {
+            row.GetProperty("disposition").GetString().Should().Be("seed");
+            row.GetProperty("effectiveFrom").GetString().Should().Be("2024-04");
+            row.GetProperty("effectiveTo").ValueKind.Should().Be(JsonValueKind.Null);
+
+            var primaryTargets = GetProductionTargets(row)
+                .Where(target =>
+                    target.GetProperty("masterKind").GetString() == "region-unit-prices"
+                    && target.GetProperty("mappingRole").GetString() == "primary")
+                .ToArray();
+            primaryTargets.Should().ContainSingle(
+                because: $"region source row {row.GetProperty("sourceLocator").GetString()} "
+                         + "must map to exactly one primary region-unit-prices target");
+            regionTargets.Add(primaryTargets.Single());
+        }
+
+        var regionSeedKeys = regionTargets
+            .Select(target => target.GetProperty("seedKey").GetString())
+            .ToArray();
+        regionSeedKeys.Should().OnlyContain(seedKey => !string.IsNullOrWhiteSpace(seedKey));
+        regionSeedKeys.Should().OnlyHaveUniqueItems();
 
         string[] continuationLocators =
         [
@@ -493,6 +496,23 @@ public sealed class ClaimMasterSeedPhase31Tests
                 row.GetProperty("exclusionReason").GetString()!.StartsWith(
                     prefix,
                     StringComparison.Ordinal)));
+    }
+
+    private static JsonElement[] GetProductionTargets(JsonElement row)
+    {
+        var documentId = row.GetProperty("sourceDocumentId").GetString();
+        var sourceLocator = row.GetProperty("sourceLocator").GetString();
+        var hasProductionTargets = row.TryGetProperty(
+            "productionTargets",
+            out var productionTargets);
+
+        hasProductionTargets.Should().BeTrue(
+            because: $"schema v2 requires productionTargets for {documentId} / {sourceLocator}");
+        productionTargets.ValueKind.Should().Be(
+            JsonValueKind.Array,
+            because: $"schema v2 requires productionTargets to be an array for "
+                     + $"{documentId} / {sourceLocator}");
+        return productionTargets.EnumerateArray().ToArray();
     }
 
     private static void AssertPeriod(
