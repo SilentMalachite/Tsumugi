@@ -219,11 +219,11 @@ while IFS=$'\t' read -r document_id url expected_sha suffix; do
   output="$TASK13_TMP/sources/$document_id$suffix"
   curl --fail --location --retry 3 --retry-all-errors \
     --user-agent 'Tsumugi-ClaimMaster-Audit/2.0' \
-    --output "$output" "$url"
+    --output "$output" "$url" || exit 1
 
-  test -s "$output"
+  test -s "$output" || exit 1
   actual_sha=$(shasum -a 256 "$output" | awk '{print $1}')
-  test "$actual_sha" = "$expected_sha"
+  test "$actual_sha" = "$expected_sha" || exit 1
   bytes=$(wc -c < "$output" | tr -d ' ')
   retrieved_at=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
 
