@@ -945,6 +945,15 @@ internal static class ClaimMasterFileValidator
             Required(entry.Values, "componentRefs", entry.FileName, entry.Key),
             entry.FileName,
             entry.Key);
+        if (unitRule is ProtectedFacilityBenchmarkMinimumRule && componentRefs.Length != 0)
+        {
+            throw Invalid(
+                entry.FileName,
+                entry.Key,
+                "componentRefs",
+                "must be empty for protected-facility-benchmark-minimum");
+        }
+
         var requiredSupports = new HashSet<ClaimSourceSupport>
         {
             ClaimSourceSupport.ServiceIdentity,
@@ -980,6 +989,21 @@ internal static class ClaimMasterFileValidator
                 requiredSupports.Add(ClaimSourceSupport.UnitRuleTarget);
                 requiredSupports.Add(ClaimSourceSupport.UnitRuleStep);
                 requiredSupports.Add(ClaimSourceSupport.UnitRuleRounding);
+                break;
+            case ProtectedFacilityBenchmarkMinimumRule protectedFacility:
+                requiredSupports.Add(ClaimSourceSupport.UnitRuleFormula);
+                requiredSupports.Add(ClaimSourceSupport.UnitRuleComparison);
+                requiredSupports.Add(ClaimSourceSupport.UnitRuleLocalGovernmentAdjustment);
+                requiredSupports.Add(ClaimSourceSupport.UnitRuleRuntimeInput);
+                requiredSupports.Add(ClaimSourceSupport.UnitRuleRuntimeInputProvenance);
+                requiredSupports.Add(ClaimSourceSupport.UnitRuleStep);
+                requiredSupports.Add(ClaimSourceSupport.UnitRuleRounding);
+                if (protectedFacility.Factors.Count > 0)
+                {
+                    requiredSupports.Add(ClaimSourceSupport.UnitRuleValue);
+                    requiredSupports.Add(ClaimSourceSupport.UnitRuleTarget);
+                }
+
                 break;
         }
 
@@ -1333,6 +1357,19 @@ internal static class ClaimMasterFileValidator
                     key));
         }
 
+        if (string.Equals(
+                mode,
+                "protected-facility-benchmark-minimum",
+                StringComparison.Ordinal))
+        {
+            return ParseProtectedFacilityBenchmarkMinimumRule(
+                element,
+                fileName,
+                key,
+                entryConditionSelectors,
+                validateCrossReferences);
+        }
+
         if (!string.Equals(mode, "factor-chain", StringComparison.Ordinal))
             throw Invalid(fileName, key, "unitRule.mode", $"unknown value '{mode}'");
         RequireProperties(
@@ -1358,10 +1395,7 @@ internal static class ClaimMasterFileValidator
             .ToArray();
         if (factors.Length == 0)
             throw Invalid(fileName, key, "factors", "must be non-empty");
-        var orders = factors.Select(factor => factor.Order).Order().ToArray();
-        if (validateCrossReferences
-            && !orders.SequenceEqual(Enumerable.Range(1, orders.Length)))
-            throw Invalid(fileName, key, "factors.order", "must be unique and contiguous from one");
+        ValidateFactorOrder(factors, fileName, key, validateCrossReferences);
         return new FactorChainRule(
             RequiredString(element, "baseComponentKey", fileName, key),
             factors,
@@ -1369,6 +1403,321 @@ internal static class ClaimMasterFileValidator
                 RequiredString(element, "billingUnit", fileName, key),
                 fileName,
                 key));
+    }
+
+    private static ProtectedFacilityBenchmarkMinimumRule
+        ParseProtectedFacilityBenchmarkMinimumRule(
+            JsonElement element,
+            string fileName,
+            string key,
+            IReadOnlyList<string> entryConditionSelectors,
+            bool validateCrossReferences)
+    {
+        RequireProperties(
+            element,
+            fileName,
+            key,
+            "unitRule",
+            "kind",
+            "mode",
+            "runtimeInputRequirement",
+            "statutoryFormula",
+            "benchmark",
+            "selection",
+            "factors",
+            "billingUnit");
+
+        var runtimeInput = Required(element, "runtimeInputRequirement", fileName, key);
+        RequireProperties(
+            runtimeInput,
+            fileName,
+            key,
+            "unitRule.runtimeInputRequirement",
+            "key",
+            "valueKind",
+            "valueUnit",
+            "scope",
+            "asOfPolicy",
+            "provenancePolicyId");
+        var runtimeInputRequirement =
+            new ProtectedFacilityAdministrativeExpenseRequirement(
+                ExactString(
+                    runtimeInput,
+                    "key",
+                    "protected-facility-administrative-expense-yen",
+                    fileName,
+                    key,
+                    "unitRule.runtimeInputRequirement.key"),
+                ExactString(
+                    runtimeInput,
+                    "valueKind",
+                    "entered-yen",
+                    fileName,
+                    key,
+                    "unitRule.runtimeInputRequirement.valueKind"),
+                ExactString(
+                    runtimeInput,
+                    "valueUnit",
+                    "yen-per-person-per-month",
+                    fileName,
+                    key,
+                    "unitRule.runtimeInputRequirement.valueUnit"),
+                ExactString(
+                    runtimeInput,
+                    "scope",
+                    "facility-and-service-fiscal-year",
+                    fileName,
+                    key,
+                    "unitRule.runtimeInputRequirement.scope"),
+                ExactString(
+                    runtimeInput,
+                    "asOfPolicy",
+                    "service-fiscal-year-april-first",
+                    fileName,
+                    key,
+                    "unitRule.runtimeInputRequirement.asOfPolicy"),
+                ExactString(
+                    runtimeInput,
+                    "provenancePolicyId",
+                    "claim.input.protected-facility-administrative-expense.v1",
+                    fileName,
+                    key,
+                    "unitRule.runtimeInputRequirement.provenancePolicyId"));
+
+        var formulaElement = Required(element, "statutoryFormula", fileName, key);
+        RequireProperties(
+            formulaElement,
+            fileName,
+            key,
+            "unitRule.statutoryFormula",
+            "daysDivisor",
+            "expenseAdjustmentDivisor",
+            "unitPriceDivisorYen",
+            "fixedAdditionUnits",
+            "upliftRate",
+            "calculationStepId",
+            "roundingRuleId");
+        var statutoryFormula = new ProtectedFacilityStatutoryFormula(
+            ExactInt(
+                formulaElement,
+                "daysDivisor",
+                22,
+                fileName,
+                key,
+                "unitRule.statutoryFormula.daysDivisor"),
+            ExactPositiveDecimalString(
+                formulaElement,
+                "expenseAdjustmentDivisor",
+                "0.945",
+                fileName,
+                key,
+                "unitRule.statutoryFormula.expenseAdjustmentDivisor"),
+            ExactInt(
+                formulaElement,
+                "unitPriceDivisorYen",
+                10,
+                fileName,
+                key,
+                "unitRule.statutoryFormula.unitPriceDivisorYen"),
+            ExactInt(
+                formulaElement,
+                "fixedAdditionUnits",
+                23,
+                fileName,
+                key,
+                "unitRule.statutoryFormula.fixedAdditionUnits"),
+            ExactPositiveDecimalString(
+                formulaElement,
+                "upliftRate",
+                "1.046",
+                fileName,
+                key,
+                "unitRule.statutoryFormula.upliftRate"),
+            ExactString(
+                formulaElement,
+                "calculationStepId",
+                "claim.step.units.service-code.protected-facility-formula.v1",
+                fileName,
+                key,
+                "unitRule.statutoryFormula.calculationStepId"),
+            ExactString(
+                formulaElement,
+                "roundingRuleId",
+                HalfUpRounding,
+                fileName,
+                key,
+                "unitRule.statutoryFormula.roundingRuleId"));
+
+        var benchmarkElement = Required(element, "benchmark", fileName, key);
+        RequireProperties(
+            benchmarkElement,
+            fileName,
+            key,
+            "unitRule.benchmark",
+            "officialSection",
+            "basicRewardStaffingKey",
+            "paymentBandMatch",
+            "capacityMatch",
+            "localGovernmentAdjustment");
+        var localElement = Required(
+            benchmarkElement,
+            "localGovernmentAdjustment",
+            fileName,
+            key);
+        RequireProperties(
+            localElement,
+            fileName,
+            key,
+            "unitRule.benchmark.localGovernmentAdjustment",
+            "conditionSelector",
+            "rate",
+            "target",
+            "calculationStepId",
+            "roundingRuleId");
+        var localAdjustment = new ProtectedFacilityLocalGovernmentAdjustment(
+            ExactString(
+                localElement,
+                "conditionSelector",
+                "municipality-ownership:local-government",
+                fileName,
+                key,
+                "unitRule.benchmark.localGovernmentAdjustment.conditionSelector"),
+            ExactPositiveDecimalString(
+                localElement,
+                "rate",
+                "0.965",
+                fileName,
+                key,
+                "unitRule.benchmark.localGovernmentAdjustment.rate"),
+            ExactString(
+                localElement,
+                "target",
+                "comparison-only",
+                fileName,
+                key,
+                "unitRule.benchmark.localGovernmentAdjustment.target"),
+            ExactString(
+                localElement,
+                "calculationStepId",
+                "claim.step.units.service-code.protected-facility-local-government-benchmark.v1",
+                fileName,
+                key,
+                "unitRule.benchmark.localGovernmentAdjustment.calculationStepId"),
+            ExactString(
+                localElement,
+                "roundingRuleId",
+                HalfUpRounding,
+                fileName,
+                key,
+                "unitRule.benchmark.localGovernmentAdjustment.roundingRuleId"));
+        var benchmark = new ProtectedFacilityBenchmark(
+            ExactString(
+                benchmarkElement,
+                "officialSection",
+                "b-type-service-fee-ii",
+                fileName,
+                key,
+                "unitRule.benchmark.officialSection"),
+            ExactString(
+                benchmarkElement,
+                "basicRewardStaffingKey",
+                "b-type-service-fee-ii",
+                fileName,
+                key,
+                "unitRule.benchmark.basicRewardStaffingKey"),
+            ExactString(
+                benchmarkElement,
+                "paymentBandMatch",
+                "same-average-wage-band",
+                fileName,
+                key,
+                "unitRule.benchmark.paymentBandMatch"),
+            ExactString(
+                benchmarkElement,
+                "capacityMatch",
+                "same-capacity-band",
+                fileName,
+                key,
+                "unitRule.benchmark.capacityMatch"),
+            localAdjustment);
+
+        var selectionElement = Required(element, "selection", fileName, key);
+        RequireProperties(
+            selectionElement,
+            fileName,
+            key,
+            "unitRule.selection",
+            "kind",
+            "calculationStepId",
+            "roundingRuleId");
+        var selection = new ProtectedFacilityMinimumSelection(
+            ExactString(
+                selectionElement,
+                "kind",
+                "minimum",
+                fileName,
+                key,
+                "unitRule.selection.kind"),
+            ExactString(
+                selectionElement,
+                "calculationStepId",
+                "claim.step.units.service-code.protected-facility-minimum.v1",
+                fileName,
+                key,
+                "unitRule.selection.calculationStepId"),
+            ExactNullableString(
+                selectionElement,
+                "roundingRuleId",
+                null,
+                fileName,
+                key,
+                "unitRule.selection.roundingRuleId"));
+
+        var factorsElement = Required(element, "factors", fileName, key);
+        if (factorsElement.ValueKind != JsonValueKind.Array)
+            throw Invalid(fileName, key, "unitRule.factors", "must be an array");
+        var factors = factorsElement.EnumerateArray()
+            .Select(factor => ParseFactor(
+                factor,
+                fileName,
+                key,
+                entryConditionSelectors,
+                validateCrossReferences))
+            .ToArray();
+        ValidateFactorOrder(factors, fileName, key, validateCrossReferences);
+
+        var billingUnitText = ExactString(
+            element,
+            "billingUnit",
+            "per-day",
+            fileName,
+            key,
+            "unitRule.billingUnit");
+        return new ProtectedFacilityBenchmarkMinimumRule(
+            runtimeInputRequirement,
+            statutoryFormula,
+            benchmark,
+            selection,
+            factors,
+            ParseBillingUnit(billingUnitText, fileName, key));
+    }
+
+    private static void ValidateFactorOrder(
+        IReadOnlyCollection<ServiceCodeFormulaFactor> factors,
+        string fileName,
+        string key,
+        bool validateCrossReferences)
+    {
+        var orders = factors.Select(factor => factor.Order).Order().ToArray();
+        if (validateCrossReferences
+            && !orders.SequenceEqual(Enumerable.Range(1, orders.Length)))
+        {
+            throw Invalid(
+                fileName,
+                key,
+                "factors.order",
+                "must be unique and contiguous from one");
+        }
     }
 
     private static ServiceCodeFormulaFactor ParseFactor(
@@ -1704,6 +2053,13 @@ internal static class ClaimMasterFileValidator
             "conditions" => ClaimSourceSupport.Conditions,
             "effective-period" => ClaimSourceSupport.EffectivePeriod,
             "master-values" => ClaimSourceSupport.MasterValues,
+            "unit-rule-formula" => ClaimSourceSupport.UnitRuleFormula,
+            "unit-rule-comparison" => ClaimSourceSupport.UnitRuleComparison,
+            "unit-rule-local-government-adjustment" =>
+                ClaimSourceSupport.UnitRuleLocalGovernmentAdjustment,
+            "unit-rule-runtime-input" => ClaimSourceSupport.UnitRuleRuntimeInput,
+            "unit-rule-runtime-input-provenance" =>
+                ClaimSourceSupport.UnitRuleRuntimeInputProvenance,
             _ => throw Invalid(
                 fileName,
                 key,
@@ -1723,6 +2079,13 @@ internal static class ClaimMasterFileValidator
         ClaimSourceSupport.Conditions => "conditions",
         ClaimSourceSupport.EffectivePeriod => "effective-period",
         ClaimSourceSupport.MasterValues => "master-values",
+        ClaimSourceSupport.UnitRuleFormula => "unit-rule-formula",
+        ClaimSourceSupport.UnitRuleComparison => "unit-rule-comparison",
+        ClaimSourceSupport.UnitRuleLocalGovernmentAdjustment =>
+            "unit-rule-local-government-adjustment",
+        ClaimSourceSupport.UnitRuleRuntimeInput => "unit-rule-runtime-input",
+        ClaimSourceSupport.UnitRuleRuntimeInputProvenance =>
+            "unit-rule-runtime-input-provenance",
         _ => throw new InvalidOperationException("Source support is closed."),
     };
 
@@ -1810,10 +2173,8 @@ internal static class ClaimMasterFileValidator
             .ToDictionary(group => group.Key, group => group.ToArray(), StringComparer.Ordinal);
         var used = serviceCodes
             .SelectMany(service => service.ConditionSelectors)
-            .Concat(serviceCodes
-                .SelectMany(service => service.UnitRule is FactorChainRule chain
-                    ? chain.Factors.SelectMany(factor => factor.ConditionSelectors)
-                    : []))
+            .Concat(serviceCodes.SelectMany(service =>
+                FormulaConditionSelectors(service.UnitRule)))
             .ToHashSet(StringComparer.Ordinal);
         var unused = byKey.Keys.Except(used, StringComparer.Ordinal).FirstOrDefault();
         if (unused is not null)
@@ -1841,9 +2202,40 @@ internal static class ClaimMasterFileValidator
                 }
             }
 
+            if (service.UnitRule is ProtectedFacilityBenchmarkMinimumRule protectedFacility)
+            {
+                var selector = protectedFacility.Benchmark.LocalGovernmentAdjustment
+                    .ConditionSelector;
+                if (!byKey.TryGetValue(selector, out var rows)
+                    || !CoversRange(
+                        service.EffectiveFrom,
+                        service.EffectiveTo,
+                        rows.Select(row => (row.EffectiveFrom, row.EffectiveTo))))
+                {
+                    throw Invalid(
+                        "service-codes.json",
+                        service.Key,
+                        "unitRule.benchmark.localGovernmentAdjustment.conditionSelector",
+                        $"condition '{selector}' does not cover the service period");
+                }
+            }
+
             ValidateConditionIntersection(service, byKey);
         }
     }
+
+    private static IEnumerable<string> FormulaConditionSelectors(
+        ServiceCodeUnitRule unitRule) => unitRule switch
+        {
+            FactorChainRule chain => chain.Factors
+                .SelectMany(factor => factor.ConditionSelectors),
+            ProtectedFacilityBenchmarkMinimumRule protectedFacility =>
+                protectedFacility.Factors
+                    .SelectMany(factor => factor.ConditionSelectors)
+                    .Append(protectedFacility.Benchmark.LocalGovernmentAdjustment
+                        .ConditionSelector),
+            _ => [],
+        };
 
     private static void ValidateConditionIntersection(
         ServiceCodeMasterRow service,
@@ -2407,6 +2799,70 @@ internal static class ClaimMasterFileValidator
             throw Invalid(fileName, key, propertyName, "must be text or null");
         var value = element.GetString()!;
         ValidateRequiredText(value, fileName, key, propertyName);
+        return value;
+    }
+
+    private static string ExactString(
+        JsonElement parent,
+        string propertyName,
+        string expected,
+        string fileName,
+        string key,
+        string field)
+    {
+        var value = RequiredString(parent, propertyName, fileName, key);
+        if (!string.Equals(value, expected, StringComparison.Ordinal))
+            throw Invalid(fileName, key, field, $"must be '{expected}'");
+        return value;
+    }
+
+    private static string? ExactNullableString(
+        JsonElement parent,
+        string propertyName,
+        string? expected,
+        string fileName,
+        string key,
+        string field)
+    {
+        var value = NullableString(parent, propertyName, fileName, key);
+        if (!string.Equals(value, expected, StringComparison.Ordinal))
+        {
+            throw Invalid(
+                fileName,
+                key,
+                field,
+                expected is null ? "must be null" : $"must be '{expected}'");
+        }
+
+        return value;
+    }
+
+    private static int ExactInt(
+        JsonElement parent,
+        string propertyName,
+        int expected,
+        string fileName,
+        string key,
+        string field)
+    {
+        var value = Integer(parent, propertyName, fileName, key);
+        if (value != expected)
+            throw Invalid(fileName, key, field, $"must be {expected}");
+        return value;
+    }
+
+    private static decimal ExactPositiveDecimalString(
+        JsonElement parent,
+        string propertyName,
+        string expected,
+        string fileName,
+        string key,
+        string field)
+    {
+        var value = PositiveDecimalString(parent, propertyName, fileName, key);
+        var text = RequiredString(parent, propertyName, fileName, key);
+        if (!string.Equals(text, expected, StringComparison.Ordinal))
+            throw Invalid(fileName, key, field, $"must be '{expected}'");
         return value;
     }
 

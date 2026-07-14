@@ -16,6 +16,14 @@ public sealed class ClaimMasterSchemaPhase31Tests
         "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82";
     private const string R6FeeNoticeSha256 =
         "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54";
+    private const string R6CalculationNoteSha256 =
+        "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1";
+    private const string CurrentFeeNoticeHtmlSha256 =
+        "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768";
+    private const string ProtectedFacilityAdministrativeExpenseStandardHtmlSha256 =
+        "e6d94b5279ca33d60daa83f29e6fdb1f5c3d1ba08f076812cf2c0f64a37ba8a5";
+    private const string H31FeeNoticeConsolidatedSha256 =
+        "79054870b88b1ca97b3b31a811857ed8a614e59da0b6d14435df30bcb5bf4bc9";
 
     private static readonly string[] AllSupports =
     [
@@ -613,6 +621,191 @@ public sealed class ClaimMasterSchemaPhase31Tests
             .WithMessage("*service-factor*calculationStepId*not allowed*");
     }
 
+    [Theory]
+    [InlineData("mode", "\"other-mode\"", "unitRule.mode")]
+    [InlineData("runtimeInputRequirement.key", "\"other-input\"", "unitRule.runtimeInputRequirement.key")]
+    [InlineData("runtimeInputRequirement.valueKind", "\"calculated-yen\"", "unitRule.runtimeInputRequirement.valueKind")]
+    [InlineData("runtimeInputRequirement.valueUnit", "\"yen-per-month\"", "unitRule.runtimeInputRequirement.valueUnit")]
+    [InlineData("runtimeInputRequirement.scope", "\"facility-only\"", "unitRule.runtimeInputRequirement.scope")]
+    [InlineData("runtimeInputRequirement.asOfPolicy", "\"latest\"", "unitRule.runtimeInputRequirement.asOfPolicy")]
+    [InlineData("runtimeInputRequirement.provenancePolicyId", "\"claim.input.other.v1\"", "unitRule.runtimeInputRequirement.provenancePolicyId")]
+    [InlineData("statutoryFormula.daysDivisor", "30", "unitRule.statutoryFormula.daysDivisor")]
+    [InlineData("statutoryFormula.expenseAdjustmentDivisor", "\"0.946\"", "unitRule.statutoryFormula.expenseAdjustmentDivisor")]
+    [InlineData("statutoryFormula.unitPriceDivisorYen", "11", "unitRule.statutoryFormula.unitPriceDivisorYen")]
+    [InlineData("statutoryFormula.fixedAdditionUnits", "24", "unitRule.statutoryFormula.fixedAdditionUnits")]
+    [InlineData("statutoryFormula.upliftRate", "\"1.047\"", "unitRule.statutoryFormula.upliftRate")]
+    [InlineData("statutoryFormula.calculationStepId", "\"claim.step.other.v1\"", "unitRule.statutoryFormula.calculationStepId")]
+    [InlineData("statutoryFormula.roundingRuleId", "\"claim.rounding.units.floor.v1\"", "unitRule.statutoryFormula.roundingRuleId")]
+    [InlineData("benchmark.officialSection", "\"other-section\"", "unitRule.benchmark.officialSection")]
+    [InlineData("benchmark.basicRewardStaffingKey", "\"other-staffing\"", "unitRule.benchmark.basicRewardStaffingKey")]
+    [InlineData("benchmark.paymentBandMatch", "\"other-payment-band\"", "unitRule.benchmark.paymentBandMatch")]
+    [InlineData("benchmark.capacityMatch", "\"other-capacity\"", "unitRule.benchmark.capacityMatch")]
+    [InlineData("benchmark.localGovernmentAdjustment.conditionSelector", "\"municipality-ownership:other\"", "unitRule.benchmark.localGovernmentAdjustment.conditionSelector")]
+    [InlineData("benchmark.localGovernmentAdjustment.rate", "\"0.966\"", "unitRule.benchmark.localGovernmentAdjustment.rate")]
+    [InlineData("benchmark.localGovernmentAdjustment.target", "\"formula-wide\"", "unitRule.benchmark.localGovernmentAdjustment.target")]
+    [InlineData("benchmark.localGovernmentAdjustment.calculationStepId", "\"claim.step.other.v1\"", "unitRule.benchmark.localGovernmentAdjustment.calculationStepId")]
+    [InlineData("benchmark.localGovernmentAdjustment.roundingRuleId", "\"claim.rounding.units.floor.v1\"", "unitRule.benchmark.localGovernmentAdjustment.roundingRuleId")]
+    [InlineData("selection.kind", "\"maximum\"", "unitRule.selection.kind")]
+    [InlineData("selection.calculationStepId", "\"claim.step.other.v1\"", "unitRule.selection.calculationStepId")]
+    [InlineData("selection.roundingRuleId", "\"claim.rounding.units.half-up.v1\"", "unitRule.selection.roundingRuleId")]
+    [InlineData("billingUnit", "\"per-month\"", "unitRule.billingUnit")]
+    public void Load_rejects_invalid_protected_facility_fixed_contract(
+        string path,
+        string invalidJson,
+        string field)
+    {
+        var masters = ProtectedFacilityRepresentativeMasters();
+        MutateService(masters, "service-pass-through", values =>
+            SetJsonPath(values["unitRule"]!.AsObject(), path, invalidJson));
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage($"*service-pass-through*{field}*");
+    }
+
+    [Theory]
+    [InlineData("base-component-key")]
+    [InlineData("component-ref")]
+    public void Load_rejects_invalid_protected_facility_component_contract(string invalidCase)
+    {
+        var masters = ProtectedFacilityRepresentativeMasters();
+        MutateService(masters, "service-pass-through", values =>
+        {
+            if (invalidCase == "base-component-key")
+                values["unitRule"]!["baseComponentKey"] = "basic-1";
+            else
+                values["componentRefs"]!.AsArray().Add(new JsonObject
+                {
+                    ["masterKind"] = "basic-rewards",
+                    ["key"] = "basic-1",
+                    ["role"] = "base",
+                });
+        });
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage(invalidCase == "base-component-key"
+                ? "*service-pass-through*baseComponentKey*"
+                : "*service-pass-through*componentRefs*");
+    }
+
+    [Theory]
+    [InlineData("missing")]
+    [InlineData("period-insufficient")]
+    public void Load_rejects_invalid_protected_facility_local_condition(string invalidCase)
+    {
+        var masters = ProtectedFacilityRepresentativeMasters();
+        var root = MasterRoot(masters, "service-codes.json");
+        var condition = ConditionByKey(root, "municipality-ownership:local-government");
+        if (invalidCase == "missing")
+            root["conditionDefinitions"]!.AsArray().Remove(condition);
+        else
+            condition["effectiveFrom"] = "2024-05";
+        SaveRoot(masters, "service-codes.json", root);
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*localGovernmentAdjustment.conditionSelector*");
+    }
+
+    [Theory]
+    [InlineData("gap", 3)]
+    [InlineData("duplicate", 1)]
+    public void Load_rejects_invalid_protected_facility_factor_order(
+        string _,
+        int secondOrder)
+    {
+        var masters = ProtectedFacilityRepresentativeMasters();
+        MutateService(masters, "service-two-factor", values =>
+            values["unitRule"]!["factors"]![1]!["order"] = secondOrder);
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*service-two-factor*factors.order*unique and contiguous*");
+    }
+
+    [Fact]
+    public void Load_rejects_invalid_protected_facility_factor_condition_subset()
+    {
+        var masters = ProtectedFacilityRepresentativeMasters();
+        MutateService(masters, "service-factor", values =>
+            values["unitRule"]!["factors"]![0]!["conditionSelectors"]!.AsArray()
+                .Add("capacity-up-to-20"));
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*service-factor*factor.conditionSelectors*subset*");
+    }
+
+    [Theory]
+    [InlineData("unit-rule-formula")]
+    [InlineData("unit-rule-comparison")]
+    [InlineData("unit-rule-local-government-adjustment")]
+    [InlineData("unit-rule-runtime-input")]
+    [InlineData("unit-rule-runtime-input-provenance")]
+    [InlineData("unit-rule-step")]
+    [InlineData("unit-rule-rounding")]
+    public void Load_rejects_invalid_protected_facility_no_factor_support(string support)
+    {
+        var masters = ProtectedFacilityRepresentativeMasters();
+        RemoveSourceSupport(masters, "service-pass-through", support);
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage($"*service-pass-through*{support}*has no authoritative source*");
+    }
+
+    [Theory]
+    [InlineData("unit-rule-value")]
+    [InlineData("unit-rule-target")]
+    [InlineData("unit-rule-step")]
+    [InlineData("unit-rule-rounding")]
+    public void Load_rejects_invalid_protected_facility_factor_support(string support)
+    {
+        var masters = ProtectedFacilityRepresentativeMasters();
+        RemoveSourceSupport(masters, "service-factor", support);
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage($"*service-factor*{support}*has no authoritative source*");
+    }
+
+    [Theory]
+    [InlineData("calculationStepId", "claim.step.other.v1")]
+    [InlineData("roundingRuleId", "claim.rounding.units.floor.v1")]
+    public void Load_rejects_invalid_protected_facility_factor_step_contract(
+        string field,
+        string invalidValue)
+    {
+        var masters = ProtectedFacilityRepresentativeMasters();
+        MutateService(masters, "service-factor", values =>
+            values["unitRule"]!["factors"]![0]![field] = invalidValue);
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*service-factor*factor*invalid step or rounding rule*");
+    }
+
+    [Fact]
+    public void Load_rejects_invalid_protected_facility_cross_check_only_source()
+    {
+        var masters = ProtectedFacilityRepresentativeMasters();
+        RemoveSourceSupport(masters, "service-pass-through", "unit-rule-formula");
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*service-pass-through*unit-rule-formula*has no authoritative source*");
+    }
+
     [Fact]
     public void Load_rejects_adjustment_selector_cycles()
     {
@@ -731,20 +924,21 @@ public sealed class ClaimMasterSchemaPhase31Tests
         AssertR6ServiceCodeSource(unitRow, "workbook-order=38;row=941");
 
         var factorRow = bundle.ServiceCodes.Single(row => row.Key == "service-factor");
-        var factor = factorRow.UnitRule
-            .Should().BeOfType<FactorChainRule>().Subject.Factors.Single();
+        var protectedFacility = factorRow.UnitRule
+            .Should().BeOfType<ProtectedFacilityBenchmarkMinimumRule>().Subject;
+        var factor = protectedFacility.Factors.Single();
         factor.Rate.Should().Be(0.7m);
-        factor.ConditionSelectors.Should().BeEquivalentTo(
-            "plan-not-created",
-            "first-two-months");
+        factor.ConditionSelectors.Should().Equal("plan-not-created");
         factorRow.ConditionSelectors.Should().BeEquivalentTo(factor.ConditionSelectors);
+        factorRow.ComponentRefs.Should().BeEmpty();
+        AssertProtectedFacilityContract(protectedFacility);
         AssertR6ServiceCodeSource(factorRow, "workbook-order=38;row=908");
     }
 
     [Fact]
     public void Load_accepts_signed_proration_and_pass_through_boundary_fixtures()
     {
-        var masters = RepresentativeMasters();
+        var masters = ProtectedFacilityRepresentativeMasters();
         AddProratedBoundaryFixtures(masters);
         AddService(
             masters,
@@ -774,40 +968,6 @@ public sealed class ClaimMasterSchemaPhase31Tests
                     "unit-rule-kind",
                     "unit-rule-value",
                     "effective-period")));
-        AddService(
-            masters,
-            EntryWithSources(
-                "service-pass-through",
-                """
-                {
-                  "serviceCode": "462841",
-                  "officialLabel": "就継Ｂ基準該当",
-                  "serviceKind": "employment-continuation-support-b",
-                  "selectors": ["selector:pass-through"],
-                  "conditionSelectors": [],
-                  "unitRule": {
-                    "kind": "formula",
-                    "mode": "base-component-pass-through",
-                    "baseComponentKey": "basic-1",
-                    "calculationStepId": "claim.step.units.service-code.base-component-pass-through.v1",
-                    "roundingRuleId": null,
-                    "billingUnit": "per-day"
-                  },
-                  "componentRefs": [
-                    { "masterKind": "basic-rewards", "key": "basic-1", "role": "base" }
-                  ]
-                }
-                """,
-                "2024-04",
-                "2026-05",
-                R6ServiceCodeSourceRef(
-                    "workbook-order=38;row=907",
-                    "service-identity",
-                    "selectors",
-                    "unit-rule-kind",
-                    "unit-rule-target",
-                    "unit-rule-step",
-                    "effective-period")));
 
         var bundle = LoadBundle(masters, RepresentativeCatalogJson);
 
@@ -828,10 +988,29 @@ public sealed class ClaimMasterSchemaPhase31Tests
                 new[] { ClaimSourceSupport.UnitRuleValue }));
         AssertR6ServiceCodeSource(prorated, "workbook-order=38;row=1044");
 
-        var passThrough = bundle.ServiceCodes.Single(row => row.Key == "service-pass-through");
-        passThrough.UnitRule
-            .Should().BeOfType<BaseComponentPassThroughRule>();
-        AssertR6ServiceCodeSource(passThrough, "workbook-order=38;row=907");
+        var noFactor = bundle.ServiceCodes.Single(row => row.Key == "service-pass-through");
+        var noFactorRule = noFactor.UnitRule
+            .Should().BeOfType<ProtectedFacilityBenchmarkMinimumRule>().Subject;
+        noFactorRule.Factors.Should().BeEmpty();
+        noFactor.ComponentRefs.Should().BeEmpty();
+        AssertProtectedFacilityContract(noFactorRule);
+        AssertR6ServiceCodeSource(noFactor, "workbook-order=38;row=907");
+
+        var twoFactor = bundle.ServiceCodes.Single(row => row.Key == "service-two-factor");
+        var twoFactorRule = twoFactor.UnitRule
+            .Should().BeOfType<ProtectedFacilityBenchmarkMinimumRule>().Subject;
+        twoFactorRule.Factors.Select(factor => (factor.Order, factor.Rate))
+            .Should().Equal((1, 0.7m), (2, 0.5m));
+        twoFactorRule.Factors.SelectMany(factor =>
+                new[] { factor.CalculationStepId, factor.RoundingRuleId })
+            .Should().Equal(
+                "claim.step.units.per-service-code.percentage.v1",
+                "claim.rounding.units.half-up.v1",
+                "claim.step.units.per-service-code.percentage.v1",
+                "claim.rounding.units.half-up.v1");
+        twoFactor.ComponentRefs.Should().BeEmpty();
+        AssertProtectedFacilityContract(twoFactorRule);
+        AssertR6ServiceCodeSource(twoFactor, "workbook-order=40;row=1809");
     }
 
     [Fact]
@@ -979,6 +1158,221 @@ public sealed class ClaimMasterSchemaPhase31Tests
                     "effective-period")));
     }
 
+    private static Dictionary<string, string> ProtectedFacilityRepresentativeMasters()
+    {
+        var masters = RepresentativeMasters();
+        var root = MasterRoot(masters, "service-codes.json");
+        root["conditionDefinitions"]!.AsArray().Add(
+            R6ServiceCodeCondition(
+                "staff-shortage",
+                "staffing",
+                "equals",
+                "staff-shortage",
+                "workbook-order=40;row=1809"));
+        SaveRoot(masters, "service-codes.json", root);
+
+        AddService(
+            masters,
+            EntryWithSources(
+                "service-pass-through",
+                ProtectedFacilityServiceValues(
+                    "462841",
+                    "就継Ｂ基準該当",
+                    "selector:pass-through",
+                    "[]",
+                    "[]"),
+                "2024-04",
+                "2026-05",
+                ProtectedFacilitySourceRefs(
+                    "workbook-order=38;row=907",
+                    hasFactors: false)));
+        AddService(
+            masters,
+            EntryWithSources(
+                "service-two-factor",
+                ProtectedFacilityServiceValues(
+                    "46C843",
+                    "就継Ｂ基準該当・人欠１・未計画２",
+                    "selector:two-factor",
+                    "[\"staff-shortage\", \"plan-not-created\"]",
+                    """
+                    [
+                      {
+                        "order": 1,
+                        "rate": "0.7",
+                        "conditionSelectors": ["staff-shortage"],
+                        "calculationStepId": "claim.step.units.per-service-code.percentage.v1",
+                        "roundingRuleId": "claim.rounding.units.half-up.v1"
+                      },
+                      {
+                        "order": 2,
+                        "rate": "0.5",
+                        "conditionSelectors": ["plan-not-created"],
+                        "calculationStepId": "claim.step.units.per-service-code.percentage.v1",
+                        "roundingRuleId": "claim.rounding.units.half-up.v1"
+                      }
+                    ]
+                    """),
+                "2024-04",
+                "2026-05",
+                ProtectedFacilitySourceRefs(
+                    "workbook-order=40;row=1809",
+                    hasFactors: true)));
+        return masters;
+    }
+
+    private static string ProtectedFacilityServiceValues(
+        string serviceCode,
+        string officialLabel,
+        string selector,
+        string conditionSelectorsJson,
+        string factorsJson) => $$"""
+        {
+          "serviceCode": "{{serviceCode}}",
+          "officialLabel": "{{officialLabel}}",
+          "serviceKind": "employment-continuation-support-b",
+          "selectors": ["{{selector}}"],
+          "conditionSelectors": {{conditionSelectorsJson}},
+          "unitRule": {{ProtectedFacilityUnitRuleJson(factorsJson)}},
+          "componentRefs": []
+        }
+        """;
+
+    private static string ProtectedFacilityUnitRuleJson(string factorsJson) => $$"""
+        {
+          "kind": "formula",
+          "mode": "protected-facility-benchmark-minimum",
+          "runtimeInputRequirement": {
+            "key": "protected-facility-administrative-expense-yen",
+            "valueKind": "entered-yen",
+            "valueUnit": "yen-per-person-per-month",
+            "scope": "facility-and-service-fiscal-year",
+            "asOfPolicy": "service-fiscal-year-april-first",
+            "provenancePolicyId": "claim.input.protected-facility-administrative-expense.v1"
+          },
+          "statutoryFormula": {
+            "daysDivisor": 22,
+            "expenseAdjustmentDivisor": "0.945",
+            "unitPriceDivisorYen": 10,
+            "fixedAdditionUnits": 23,
+            "upliftRate": "1.046",
+            "calculationStepId": "claim.step.units.service-code.protected-facility-formula.v1",
+            "roundingRuleId": "claim.rounding.units.half-up.v1"
+          },
+          "benchmark": {
+            "officialSection": "b-type-service-fee-ii",
+            "basicRewardStaffingKey": "b-type-service-fee-ii",
+            "paymentBandMatch": "same-average-wage-band",
+            "capacityMatch": "same-capacity-band",
+            "localGovernmentAdjustment": {
+              "conditionSelector": "municipality-ownership:local-government",
+              "rate": "0.965",
+              "target": "comparison-only",
+              "calculationStepId": "claim.step.units.service-code.protected-facility-local-government-benchmark.v1",
+              "roundingRuleId": "claim.rounding.units.half-up.v1"
+            }
+          },
+          "selection": {
+            "kind": "minimum",
+            "calculationStepId": "claim.step.units.service-code.protected-facility-minimum.v1",
+            "roundingRuleId": null
+          },
+          "factors": {{factorsJson}},
+          "billingUnit": "per-day"
+        }
+        """;
+
+    private static JsonObject[] ProtectedFacilitySourceRefs(
+        string serviceCodeLocator,
+        bool hasFactors)
+    {
+        var serviceSupports = new List<string>
+        {
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "conditions",
+            "effective-period",
+        };
+        if (hasFactors)
+        {
+            serviceSupports.Add("unit-rule-value");
+            serviceSupports.Add("unit-rule-target");
+        }
+
+        return
+        [
+            R6ServiceCodeSourceRef(serviceCodeLocator, serviceSupports.ToArray()),
+            OfficialSourceRef(
+                "current-fee-notice-html",
+                CurrentFeeNoticeHtmlSha256,
+                "html:lines=l000002791,l000002793",
+                "unit-rule-formula",
+                "unit-rule-comparison",
+                "unit-rule-local-government-adjustment",
+                "unit-rule-runtime-input"),
+            OfficialSourceRef(
+                "protected-facility-administrative-expense-standard-html",
+                ProtectedFacilityAdministrativeExpenseStandardHtmlSha256,
+                "html:lines=l000000054,l000000060-l000000062",
+                "unit-rule-runtime-input-provenance"),
+            OfficialSourceRef(
+                "r6-calculation-note",
+                R6CalculationNoteSha256,
+                "pages=8-9",
+                "unit-rule-step",
+                "unit-rule-rounding"),
+            CrossCheckSourceRef(
+                "h31-fee-notice-consolidated",
+                H31FeeNoticeConsolidatedSha256,
+                "pdf:physical-page=46",
+                "unit-rule-formula",
+                "unit-rule-comparison"),
+            CrossCheckSourceRef(
+                "h31-fee-notice-consolidated",
+                H31FeeNoticeConsolidatedSha256,
+                "pdf:physical-page=47",
+                "unit-rule-local-government-adjustment"),
+        ];
+    }
+
+    private static void AssertProtectedFacilityContract(
+        ProtectedFacilityBenchmarkMinimumRule rule)
+    {
+        rule.RuntimeInputRequirement.Should().Be(
+            new ProtectedFacilityAdministrativeExpenseRequirement(
+                "protected-facility-administrative-expense-yen",
+                "entered-yen",
+                "yen-per-person-per-month",
+                "facility-and-service-fiscal-year",
+                "service-fiscal-year-april-first",
+                "claim.input.protected-facility-administrative-expense.v1"));
+        rule.StatutoryFormula.Should().Be(new ProtectedFacilityStatutoryFormula(
+            22,
+            0.945m,
+            10,
+            23,
+            1.046m,
+            "claim.step.units.service-code.protected-facility-formula.v1",
+            "claim.rounding.units.half-up.v1"));
+        rule.Benchmark.Should().Be(new ProtectedFacilityBenchmark(
+            "b-type-service-fee-ii",
+            "b-type-service-fee-ii",
+            "same-average-wage-band",
+            "same-capacity-band",
+            new ProtectedFacilityLocalGovernmentAdjustment(
+                "municipality-ownership:local-government",
+                0.965m,
+                "comparison-only",
+                "claim.step.units.service-code.protected-facility-local-government-benchmark.v1",
+                "claim.rounding.units.half-up.v1")));
+        rule.Selection.Should().Be(new ProtectedFacilityMinimumSelection(
+            "minimum",
+            "claim.step.units.service-code.protected-facility-minimum.v1",
+            null));
+        rule.BillingUnit.Should().Be(BillingUnit.PerDay);
+    }
+
     private static Dictionary<string, string> RepresentativeMasters()
     {
         var masters = ValidMasters();
@@ -1041,17 +1435,25 @@ public sealed class ClaimMasterSchemaPhase31Tests
         var factorEntry = EntryByKey(root, "service-factor");
         factorEntry["effectiveTo"] = "2026-05";
         factorEntry["sourceRefs"] = new JsonArray(
-            R6ServiceCodeSourceRef(
+            ProtectedFacilitySourceRefs(
                 "workbook-order=38;row=908",
-                "service-identity",
-                "selectors",
-                "unit-rule-kind",
-                "unit-rule-value",
-                "unit-rule-target",
-                "unit-rule-step",
-                "unit-rule-rounding",
-                "conditions",
-                "effective-period"));
+                hasFactors: true));
+        factorEntry["values"] = JsonNode.Parse(ProtectedFacilityServiceValues(
+            "462842",
+            "就継Ｂ基準該当・未計画１",
+            "selector:factor",
+            "[\"plan-not-created\"]",
+            """
+            [
+              {
+                "order": 1,
+                "rate": "0.7",
+                "conditionSelectors": ["plan-not-created"],
+                "calculationStepId": "claim.step.units.per-service-code.percentage.v1",
+                "roundingRuleId": "claim.rounding.units.half-up.v1"
+              }
+            ]
+            """));
 
         var capacity = ConditionByKey(root, "capacity-up-to-20");
         capacity["effectiveTo"] = "2026-05";
@@ -1064,16 +1466,22 @@ public sealed class ClaimMasterSchemaPhase31Tests
                 "workbook-order=38;row=941",
                 "conditions",
                 "effective-period"));
-        foreach (var key in new[] { "plan-not-created", "first-two-months" })
-        {
-            var condition = ConditionByKey(root, key);
-            condition["effectiveTo"] = "2026-05";
-            condition["sourceRefs"] = new JsonArray(
-                R6ServiceCodeSourceRef(
-                    "workbook-order=38;row=908",
-                    "conditions",
-                    "effective-period"));
-        }
+        var planNotCreated = ConditionByKey(root, "plan-not-created");
+        planNotCreated["effectiveTo"] = "2026-05";
+        planNotCreated["sourceRefs"] = new JsonArray(
+            R6ServiceCodeSourceRef(
+                "workbook-order=38;row=908",
+                "conditions",
+                "effective-period"));
+        root["conditionDefinitions"]!.AsArray().Remove(
+            ConditionByKey(root, "first-two-months"));
+        root["conditionDefinitions"]!.AsArray().Add(
+            R6ServiceCodeCondition(
+                "municipality-ownership:local-government",
+                "municipality-ownership",
+                "equals",
+                true,
+                "workbook-order=38;row=907"));
 
         root["conditionDefinitions"]!.AsArray().Add(
             R6ServiceCodeCondition(
@@ -1413,6 +1821,32 @@ public sealed class ClaimMasterSchemaPhase31Tests
         Action<JsonObject> mutate) =>
         mutate(EntryByKey(root, key)["values"]!.AsObject());
 
+    private static void SetJsonPath(JsonObject root, string path, string json)
+    {
+        var segments = path.Split('.');
+        var parent = root;
+        foreach (var segment in segments[..^1])
+            parent = parent[segment]!.AsObject();
+        parent[segments[^1]] = JsonNode.Parse(json);
+    }
+
+    private static void RemoveSourceSupport(
+        Dictionary<string, string> masters,
+        string serviceKey,
+        string support) =>
+        MutateServiceEntry(masters, serviceKey, entry =>
+        {
+            var sourceRefs = entry["sourceRefs"]!.AsArray();
+            var source = sourceRefs
+                .Select(node => node!.AsObject())
+                .First(sourceRef => sourceRef["supports"]!.AsArray()
+                    .Any(node => node!.GetValue<string>() == support));
+            var supports = source["supports"]!.AsArray();
+            supports.Remove(supports.Single(node => node!.GetValue<string>() == support));
+            if (supports.Count == 0)
+                sourceRefs.Remove(source);
+        });
+
     private static JsonObject ConditionByKey(JsonObject root, string key) =>
         root["conditionDefinitions"]!.AsArray()
             .Select(node => node!.AsObject())
@@ -1596,6 +2030,17 @@ public sealed class ClaimMasterSchemaPhase31Tests
             ["supports"] = Strings(supports),
         };
 
+    private static JsonObject CrossCheckSourceRef(
+        string documentId,
+        string sha256,
+        string locator,
+        params string[] supports)
+    {
+        var sourceRef = OfficialSourceRef(documentId, sha256, locator, supports);
+        sourceRef["evidenceRole"] = "cross-check";
+        return sourceRef;
+    }
+
     private static void AssertR6ServiceCodeSource(
         ServiceCodeMasterRow row,
         string locator)
@@ -1664,5 +2109,11 @@ public sealed class ClaimMasterSchemaPhase31Tests
     private static readonly string RepresentativeCatalogJson = CatalogJson(
         Source("doc-1"),
         OfficialSource("r6-service-codes-2-xlsx", R6ServiceCodesSha256),
-        OfficialSource("r6-fee-notice", R6FeeNoticeSha256));
+        OfficialSource("r6-fee-notice", R6FeeNoticeSha256),
+        OfficialSource("r6-calculation-note", R6CalculationNoteSha256),
+        OfficialSource("current-fee-notice-html", CurrentFeeNoticeHtmlSha256),
+        OfficialSource(
+            "protected-facility-administrative-expense-standard-html",
+            ProtectedFacilityAdministrativeExpenseStandardHtmlSha256),
+        OfficialSource("h31-fee-notice-consolidated", H31FeeNoticeConsolidatedSha256));
 }
