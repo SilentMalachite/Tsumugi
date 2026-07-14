@@ -276,8 +276,8 @@ public sealed class JsonClaimMasterProviderTests
         source.GetProperty("title").GetString().Should().Be(
             "障害者の日常生活及び社会生活を総合的に支援するための法律に基づく指定障害福祉サービス等及び基準該当障害福祉サービスに要する費用の額の算定に関する基準等の一部を改正する告示");
         source.GetProperty("publisher").GetString().Should().Be("厚生労働省");
-        source.GetProperty("effectiveAt").GetString().Should().Be("2019-04-01");
-        source.GetProperty("publishedAt").ValueKind.Should().Be(JsonValueKind.Null);
+        source.GetProperty("effectiveAt").GetString().Should().Be("2019-10-01");
+        source.GetProperty("publishedAt").GetString().Should().Be("2019-03-25");
         source.GetProperty("retrievedAt").GetString().Should().Be("2026-07-14");
         source.GetProperty("url").GetString().Should().Be(
             "https://www.mhlw.go.jp/content/000520560.pdf");
