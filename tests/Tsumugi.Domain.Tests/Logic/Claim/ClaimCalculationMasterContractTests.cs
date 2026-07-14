@@ -174,6 +174,148 @@ public sealed class ClaimCalculationMasterContractTests
     }
 
     [Fact]
+    public void Claim_source_support_defines_unique_formula_contract_evidence_members()
+    {
+        ClaimSourceSupport[] supports =
+        [
+            ClaimSourceSupport.UnitRuleFormula,
+            ClaimSourceSupport.UnitRuleComparison,
+            ClaimSourceSupport.UnitRuleLocalGovernmentAdjustment,
+            ClaimSourceSupport.UnitRuleRuntimeInput,
+            ClaimSourceSupport.UnitRuleRuntimeInputProvenance,
+        ];
+
+        supports.Should().OnlyHaveUniqueItems();
+        supports.Select(value => (int)value).Should().Equal(11, 12, 13, 14, 15);
+    }
+
+    [Fact]
+    public void Protected_facility_benchmark_minimum_rule_retains_the_complete_closed_contract()
+    {
+        var requirement = ProtectedFacilityRequirement();
+        var formula = ProtectedFacilityFormula();
+        var benchmark = ProtectedFacilityComparisonBenchmark();
+        var selection = ProtectedFacilitySelection();
+        IReadOnlyList<ServiceCodeFormulaFactor> factors =
+        [
+            new(
+                1,
+                0.7m,
+                ["plan-not-created"],
+                "claim.step.units.per-service-code.percentage.v1",
+                "claim.rounding.units.half-up.v1"),
+        ];
+
+        var rule = new ProtectedFacilityBenchmarkMinimumRule(
+            requirement,
+            formula,
+            benchmark,
+            selection,
+            factors,
+            BillingUnit.PerDay);
+
+        rule.RuntimeInputRequirement.Should().Be(requirement);
+        rule.StatutoryFormula.Should().Be(formula);
+        rule.Benchmark.Should().Be(benchmark);
+        rule.Selection.Should().Be(selection);
+        rule.Factors.Should().BeSameAs(factors);
+        rule.BillingUnit.Should().Be(BillingUnit.PerDay);
+    }
+
+    [Theory]
+    [InlineData("billing-unit")]
+    [InlineData("runtime-input-key")]
+    [InlineData("runtime-input-provenance")]
+    [InlineData("statutory-formula-value")]
+    [InlineData("statutory-formula-step")]
+    [InlineData("benchmark-value")]
+    [InlineData("local-adjustment-rounding")]
+    [InlineData("selection-value")]
+    public void Protected_facility_benchmark_minimum_rule_rejects_non_closed_arguments(
+        string invalidArgument)
+    {
+        var valid = ProtectedFacilityRule();
+        var invalidRequirement = valid.RuntimeInputRequirement with
+        {
+            Key = invalidArgument == "runtime-input-key"
+                ? "other-administrative-expense"
+                : valid.RuntimeInputRequirement.Key,
+            ProvenancePolicyId = invalidArgument == "runtime-input-provenance"
+                ? "claim.input.other.v1"
+                : valid.RuntimeInputRequirement.ProvenancePolicyId,
+        };
+        var invalidFormula = valid.StatutoryFormula with
+        {
+            DaysDivisor = invalidArgument == "statutory-formula-value"
+                ? 30
+                : valid.StatutoryFormula.DaysDivisor,
+            CalculationStepId = invalidArgument == "statutory-formula-step"
+                ? "claim.step.other.v1"
+                : valid.StatutoryFormula.CalculationStepId,
+        };
+        var invalidAdjustment = valid.Benchmark.LocalGovernmentAdjustment with
+        {
+            RoundingRuleId = invalidArgument == "local-adjustment-rounding"
+                ? "claim.rounding.units.floor.v1"
+                : valid.Benchmark.LocalGovernmentAdjustment.RoundingRuleId,
+        };
+        var invalidBenchmark = valid.Benchmark with
+        {
+            OfficialSection = invalidArgument == "benchmark-value"
+                ? "other-section"
+                : valid.Benchmark.OfficialSection,
+            LocalGovernmentAdjustment = invalidAdjustment,
+        };
+        var invalidSelection = valid.Selection with
+        {
+            Kind = invalidArgument == "selection-value"
+                ? "maximum"
+                : valid.Selection.Kind,
+        };
+
+        var action = () => new ProtectedFacilityBenchmarkMinimumRule(
+            invalidRequirement,
+            invalidFormula,
+            invalidBenchmark,
+            invalidSelection,
+            valid.Factors,
+            invalidArgument == "billing-unit" ? BillingUnit.PerMonth : BillingUnit.PerDay);
+
+        action.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void Protected_facility_benchmark_minimum_rule_rejects_null_factors()
+    {
+        var action = () => new ProtectedFacilityBenchmarkMinimumRule(
+            ProtectedFacilityRequirement(),
+            ProtectedFacilityFormula(),
+            ProtectedFacilityComparisonBenchmark(),
+            ProtectedFacilitySelection(),
+            null!,
+            BillingUnit.PerDay);
+
+        action.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void Protected_facility_benchmark_minimum_rule_accepts_empty_factors()
+    {
+        IReadOnlyList<ServiceCodeFormulaFactor> factors = [];
+
+        var rule = new ProtectedFacilityBenchmarkMinimumRule(
+            ProtectedFacilityRequirement(),
+            ProtectedFacilityFormula(),
+            ProtectedFacilityComparisonBenchmark(),
+            ProtectedFacilitySelection(),
+            factors,
+            BillingUnit.PerDay);
+
+        rule.Factors.Should().BeSameAs(factors);
+        rule.Factors.Should().BeEmpty();
+    }
+
+    [Fact]
     public void Condition_and_component_refs_retain_closed_values()
     {
         IReadOnlyList<ClaimSourceRef> sources = [Source()];
@@ -287,4 +429,52 @@ public sealed class ClaimCalculationMasterContractTests
             "workbook-order=38;row=7",
             ClaimSourceEvidenceRole.Authoritative,
             [ClaimSourceSupport.MasterValues, ClaimSourceSupport.EffectivePeriod]);
+
+    private static ProtectedFacilityAdministrativeExpenseRequirement
+        ProtectedFacilityRequirement() =>
+        new(
+            "protected-facility-administrative-expense-yen",
+            "entered-yen",
+            "yen-per-person-per-month",
+            "facility-and-service-fiscal-year",
+            "service-fiscal-year-april-first",
+            "claim.input.protected-facility-administrative-expense.v1");
+
+    private static ProtectedFacilityStatutoryFormula ProtectedFacilityFormula() =>
+        new(
+            22,
+            0.945m,
+            10,
+            23,
+            1.046m,
+            "claim.step.units.service-code.protected-facility-formula.v1",
+            "claim.rounding.units.half-up.v1");
+
+    private static ProtectedFacilityBenchmark ProtectedFacilityComparisonBenchmark() =>
+        new(
+            "b-type-service-fee-ii",
+            "b-type-service-fee-ii",
+            "same-average-wage-band",
+            "same-capacity-band",
+            new ProtectedFacilityLocalGovernmentAdjustment(
+                "municipality-ownership:local-government",
+                0.965m,
+                "comparison-only",
+                "claim.step.units.service-code.protected-facility-local-government-benchmark.v1",
+                "claim.rounding.units.half-up.v1"));
+
+    private static ProtectedFacilityMinimumSelection ProtectedFacilitySelection() =>
+        new(
+            "minimum",
+            "claim.step.units.service-code.protected-facility-minimum.v1",
+            null);
+
+    private static ProtectedFacilityBenchmarkMinimumRule ProtectedFacilityRule() =>
+        new(
+            ProtectedFacilityRequirement(),
+            ProtectedFacilityFormula(),
+            ProtectedFacilityComparisonBenchmark(),
+            ProtectedFacilitySelection(),
+            [],
+            BillingUnit.PerDay);
 }
