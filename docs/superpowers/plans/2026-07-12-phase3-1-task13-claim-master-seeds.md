@@ -843,7 +843,7 @@ dotnet test tests/Tsumugi.Infrastructure.Tests \
   -v normal
 ```
 
-Expected: FAIL with 13,956 schema-gap rows。testを弱めない。
+Expected: FAIL with 13,959 schema-gap rows。testを弱めない。
 
 - [ ] **Step 3: 200-row audit chunksを生成する**
 
