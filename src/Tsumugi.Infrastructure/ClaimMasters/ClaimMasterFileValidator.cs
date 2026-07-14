@@ -2049,8 +2049,11 @@ internal static class ClaimMasterFileValidator
                         service.Key,
                         "service-codes.json");
                     break;
-                case FormulaUnitRule formula:
-                    ValidateBaseComponent(service, formula, basicsByKey);
+                case BaseComponentPassThroughRule passThrough:
+                    ValidateBaseComponent(service, passThrough.BaseComponentKey, basicsByKey);
+                    break;
+                case FactorChainRule factorChain:
+                    ValidateBaseComponent(service, factorChain.BaseComponentKey, basicsByKey);
                     break;
             }
         }
@@ -2107,22 +2110,22 @@ internal static class ClaimMasterFileValidator
 
     private static void ValidateBaseComponent(
         ServiceCodeMasterRow service,
-        FormulaUnitRule rule,
+        string baseComponentKey,
         Dictionary<string, BasicRewardMasterRow[]> basicsByKey)
     {
         var matchingRefs = service.ComponentRefs.Where(component =>
                 component.MasterKind is ClaimComponentMasterKind.BasicRewards
                 && component.Role is ClaimComponentRole.Base
-                && string.Equals(component.Key, rule.BaseComponentKey, StringComparison.Ordinal))
+                && string.Equals(component.Key, baseComponentKey, StringComparison.Ordinal))
             .ToArray();
         if (matchingRefs.Length != 1
-            || !basicsByKey.ContainsKey(rule.BaseComponentKey))
+            || !basicsByKey.ContainsKey(baseComponentKey))
         {
             throw Invalid(
                 "service-codes.json",
                 service.Key,
                 "baseComponentKey",
-                $"does not resolve '{rule.BaseComponentKey}' exactly once");
+                $"does not resolve '{baseComponentKey}' exactly once");
         }
     }
 

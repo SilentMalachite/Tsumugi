@@ -316,6 +316,16 @@ public sealed class ClaimCalculationMasterContractTests
     }
 
     [Fact]
+    public void Protected_facility_benchmark_minimum_rule_billing_unit_is_not_copy_mutable()
+    {
+        var billingUnit = typeof(ProtectedFacilityBenchmarkMinimumRule)
+            .GetProperty(nameof(ServiceCodeUnitRule.BillingUnit));
+
+        billingUnit.Should().NotBeNull();
+        billingUnit!.SetMethod.Should().BeNull();
+    }
+
+    [Fact]
     public void Condition_and_component_refs_retain_closed_values()
     {
         IReadOnlyList<ClaimSourceRef> sources = [Source()];

@@ -118,7 +118,15 @@ public sealed record ProratedUnitsAmount(
     string RecipientCountSelector,
     int? MaximumRecipientsPerStaff) : UnitAdjustmentAmount;
 
-public abstract record ServiceCodeUnitRule(BillingUnit BillingUnit);
+public abstract record ServiceCodeUnitRule
+{
+    protected ServiceCodeUnitRule(BillingUnit billingUnit)
+    {
+        BillingUnit = billingUnit;
+    }
+
+    public BillingUnit BillingUnit { get; }
+}
 
 public sealed record FixedCompositeUnitRule : ServiceCodeUnitRule
 {
