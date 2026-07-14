@@ -98,7 +98,7 @@ Phase 3-1は、自由記述やnullable金額ではなく、次の三値を持つ
 | --- | --- | --- | --- | --- |
 | `claim.rounding.average-wage.daily-users.ceil-1dp.r6-corrected.v1` | 日平均利用者数の`decimal` | 小数点第1位の`decimal`人 | 小数点第2位以下があれば正方向へ切上げ | ADR 0023、`r6-qa-v2` p11を`r6-qa-corr-2` p4で訂正 |
 | `claim.rounding.average-wage.monthly-yen.half-up.v1` | 丸め前平均工賃月額の`decimal`円 | 整数円 | 円未満四捨五入 | ADR 0023、`r6-qa-corr-2` p4 |
-| `claim.rounding.units.half-up.v1` | source rowの割合計算結果又は基準該当B型の公式式・地方公共団体比較補正結果である`decimal`単位 | 整数単位 | 小数点以下四捨五入 | `r6-calculation-note` p8〜9、`r8-calculation-note` p8〜10、`current-fee-notice-html`、`h31-fee-notice-consolidated` p46〜47 |
+| `claim.rounding.units.half-up.v1` | source rowの割合計算結果又は基準該当B型の公式式・地方公共団体比較補正結果である`decimal`単位 | 整数単位 | 小数点以下四捨五入 | `r6-calculation-note` p8〜9、`r8-calculation-note` p8〜10 |
 | `claim.rounding.cost.floor-yen.v1` | 月次給付単位数と地域単価の積である`decimal`円 | 整数円 | 円未満切捨て | `r6-calculation-note` p9、`r8-calculation-note` p9〜10、`r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197〜198 |
 | `claim.rounding.burden.floor-yen.v1` | 総費用額と`10 / 100`の積である`decimal`円 | 整数円 | 円未満切捨て | `r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197〜198 |
 
