@@ -1129,16 +1129,34 @@ internal static class ClaimMasterFileValidator
         string key,
         bool validateRuntimeSelectors)
     {
-        RequireProperties(
-            element,
-            fileName,
-            key,
-            "amount",
-            "kind",
-            "poolUnitsPerStaff",
-            "staffCountSelector",
-            "recipientCountSelector",
-            "maximumRecipientsPerStaff");
+        var hasMaximumRecipientsPerStaff = element.TryGetProperty(
+            "maximumRecipientsPerStaff",
+            out _);
+        if (hasMaximumRecipientsPerStaff)
+        {
+            RequireProperties(
+                element,
+                fileName,
+                key,
+                "amount",
+                "kind",
+                "poolUnitsPerStaff",
+                "staffCountSelector",
+                "recipientCountSelector",
+                "maximumRecipientsPerStaff");
+        }
+        else
+        {
+            RequireProperties(
+                element,
+                fileName,
+                key,
+                "amount",
+                "kind",
+                "poolUnitsPerStaff",
+                "staffCountSelector",
+                "recipientCountSelector");
+        }
         var staffSelector = RequiredString(
             element,
             "staffCountSelector",
@@ -1179,7 +1197,9 @@ internal static class ClaimMasterFileValidator
             PositiveInt(element, "poolUnitsPerStaff", fileName, key),
             staffSelector,
             recipientSelector,
-            PositiveInt(element, "maximumRecipientsPerStaff", fileName, key));
+            hasMaximumRecipientsPerStaff
+                ? PositiveInt(element, "maximumRecipientsPerStaff", fileName, key)
+                : null);
     }
 
     private static ServiceCodeUnitRule ParseUnitRule(

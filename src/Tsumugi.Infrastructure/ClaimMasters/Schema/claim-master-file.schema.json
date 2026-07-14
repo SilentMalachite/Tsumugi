@@ -248,8 +248,7 @@
         "kind",
         "poolUnitsPerStaff",
         "staffCountSelector",
-        "recipientCountSelector",
-        "maximumRecipientsPerStaff"
+        "recipientCountSelector"
       ],
       "properties": {
         "kind": { "const": "prorated-units" },

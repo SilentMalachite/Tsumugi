@@ -539,7 +539,6 @@ public sealed class ClaimMasterSchemaPhase31Tests
     [InlineData("staffCountSelector", "unknown")]
     [InlineData("recipientCountSelector", "unknown")]
     [InlineData("poolUnitsPerStaff", 0)]
-    [InlineData("maximumRecipientsPerStaff", 0)]
     public void Load_rejects_each_invalid_proration_field(string field, object value)
     {
         var masters = ValidMasters();
@@ -550,6 +549,24 @@ public sealed class ClaimMasterSchemaPhase31Tests
 
         action.Should().Throw<InvalidDataException>()
             .WithMessage($"*add-prorated*{field}*");
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData("8")]
+    [InlineData(null)]
+    public void Load_rejects_invalid_present_proration_maximum(object? value)
+    {
+        var masters = ValidMasters();
+        MutateEntryByKey(masters, "additions.json", "add-prorated", entry =>
+            entry["values"]!["amount"]!["maximumRecipientsPerStaff"] =
+                JsonValue.Create(value));
+
+        var action = () => Load(masters);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*add-prorated*maximumRecipientsPerStaff*");
     }
 
     [Theory]
@@ -728,15 +745,7 @@ public sealed class ClaimMasterSchemaPhase31Tests
     public void Load_accepts_signed_proration_and_pass_through_boundary_fixtures()
     {
         var masters = RepresentativeMasters();
-        MutateEntryByKey(masters, "additions.json", "add-prorated", entry =>
-        {
-            entry["effectiveTo"] = "2026-05";
-            entry["sourceRefs"] = new JsonArray(
-                R6FeeNoticeSourceRef(
-                    "pages=129-136;medical-coordination-v",
-                    "master-values",
-                    "effective-period"));
-        });
+        AddProratedBoundaryFixtures(masters);
         AddService(
             masters,
             EntryWithSources(
@@ -764,50 +773,6 @@ public sealed class ClaimMasterSchemaPhase31Tests
                     "selectors",
                     "unit-rule-kind",
                     "unit-rule-value",
-                    "effective-period")));
-        AddService(
-            masters,
-            EntryWithSources(
-                "service-prorated",
-                """
-                {
-                  "serviceCode": "469992",
-                  "officialLabel": "就継Ｂ医療連携体制加算Ⅴ",
-                  "serviceKind": "employment-continuation-support-b",
-                  "selectors": ["selector:prorated"],
-                  "conditionSelectors": [],
-                  "unitRule": {
-                    "kind": "unit-addition",
-                    "adjustmentComponentKey": "add-prorated",
-                    "amount": {
-                      "kind": "prorated-units",
-                      "poolUnitsPerStaff": 500,
-                      "staffCountSelector": "medical-coordination-v-visiting-nurse-count",
-                      "recipientCountSelector": "medical-coordination-v-supported-recipient-count",
-                      "maximumRecipientsPerStaff": 8
-                    },
-                    "calculationStepId": "claim.step.units.service-code.prorate-by-recipient-count.v1",
-                    "roundingRuleId": "claim.rounding.units.half-up.v1",
-                    "billingUnit": "per-day"
-                  },
-                  "componentRefs": [
-                    { "masterKind": "additions", "key": "add-prorated", "role": "adjustment" }
-                  ]
-                }
-                """,
-                "2024-04",
-                "2026-05",
-                R6FeeNoticeSourceRef(
-                    "pages=129-136;medical-coordination-v",
-                    "unit-rule-value"),
-                R6ServiceCodeSourceRef(
-                    "workbook-order=38;row=1044",
-                    "service-identity",
-                    "selectors",
-                    "unit-rule-kind",
-                    "unit-rule-target",
-                    "unit-rule-step",
-                    "unit-rule-rounding",
                     "effective-period")));
         AddService(
             masters,
@@ -852,9 +817,10 @@ public sealed class ClaimMasterSchemaPhase31Tests
         AssertR6ServiceCodeSource(negative, "workbook-order=38;row=913");
 
         var prorated = bundle.ServiceCodes.Single(row => row.Key == "service-prorated");
-        prorated.UnitRule
+        var proratedAmount = prorated.UnitRule
             .Should().BeOfType<UnitAdditionRule>().Subject.Amount
-            .Should().BeOfType<ProratedUnitsAmount>();
+            .Should().BeOfType<ProratedUnitsAmount>().Subject;
+        proratedAmount.MaximumRecipientsPerStaff.Should().BeNull();
         prorated.SourceRefs.Should().Contain(source =>
             source.DocumentId == "r6-fee-notice"
             && source.Sha256 == R6FeeNoticeSha256
@@ -866,6 +832,29 @@ public sealed class ClaimMasterSchemaPhase31Tests
         passThrough.UnitRule
             .Should().BeOfType<BaseComponentPassThroughRule>();
         AssertR6ServiceCodeSource(passThrough, "workbook-order=38;row=907");
+    }
+
+    [Fact]
+    public void Load_accepts_matching_bounded_proration_amounts()
+    {
+        var masters = RepresentativeMasters();
+        AddProratedBoundaryFixtures(masters);
+        MutateEntryByKey(masters, "additions.json", "add-prorated", entry =>
+            entry["values"]!["amount"]!["maximumRecipientsPerStaff"] = 8);
+        MutateService(masters, "service-prorated", values =>
+            values["unitRule"]!["amount"]!["maximumRecipientsPerStaff"] = 8);
+
+        var bundle = LoadBundle(masters, RepresentativeCatalogJson);
+
+        var componentAmount = bundle.UnitAdjustments
+            .Single(row => row.Key == "add-prorated").Amount
+            .Should().BeOfType<ProratedUnitsAmount>().Subject;
+        componentAmount.MaximumRecipientsPerStaff.Should().Be(8);
+        var serviceAmount = bundle.ServiceCodes
+            .Single(row => row.Key == "service-prorated").UnitRule
+            .Should().BeOfType<UnitAdditionRule>().Subject.Amount
+            .Should().BeOfType<ProratedUnitsAmount>().Subject;
+        serviceAmount.MaximumRecipientsPerStaff.Should().Be(8);
     }
 
     [Fact]
@@ -932,6 +921,62 @@ public sealed class ClaimMasterSchemaPhase31Tests
             foreach (var stream in streams.Values)
                 stream.Dispose();
         }
+    }
+
+    private static void AddProratedBoundaryFixtures(Dictionary<string, string> masters)
+    {
+        MutateEntryByKey(masters, "additions.json", "add-prorated", entry =>
+        {
+            entry["effectiveTo"] = "2026-05";
+            entry["sourceRefs"] = new JsonArray(
+                R6FeeNoticeSourceRef(
+                    "pages=129-136;medical-coordination-v",
+                    "master-values",
+                    "effective-period"));
+        });
+        AddService(
+            masters,
+            EntryWithSources(
+                "service-prorated",
+                """
+                {
+                  "serviceCode": "469992",
+                  "officialLabel": "就継Ｂ医療連携体制加算Ⅴ",
+                  "serviceKind": "employment-continuation-support-b",
+                  "selectors": ["selector:prorated"],
+                  "conditionSelectors": [],
+                  "unitRule": {
+                    "kind": "unit-addition",
+                    "adjustmentComponentKey": "add-prorated",
+                    "amount": {
+                      "kind": "prorated-units",
+                      "poolUnitsPerStaff": 500,
+                      "staffCountSelector": "medical-coordination-v-visiting-nurse-count",
+                      "recipientCountSelector": "medical-coordination-v-supported-recipient-count"
+                    },
+                    "calculationStepId": "claim.step.units.service-code.prorate-by-recipient-count.v1",
+                    "roundingRuleId": "claim.rounding.units.half-up.v1",
+                    "billingUnit": "per-day"
+                  },
+                  "componentRefs": [
+                    { "masterKind": "additions", "key": "add-prorated", "role": "adjustment" }
+                  ]
+                }
+                """,
+                "2024-04",
+                "2026-05",
+                R6FeeNoticeSourceRef(
+                    "pages=129-136;medical-coordination-v",
+                    "unit-rule-value"),
+                R6ServiceCodeSourceRef(
+                    "workbook-order=38;row=1044",
+                    "service-identity",
+                    "selectors",
+                    "unit-rule-kind",
+                    "unit-rule-target",
+                    "unit-rule-step",
+                    "unit-rule-rounding",
+                    "effective-period")));
     }
 
     private static Dictionary<string, string> RepresentativeMasters()
@@ -1133,8 +1178,7 @@ public sealed class ClaimMasterSchemaPhase31Tests
                         "kind": "prorated-units",
                         "poolUnitsPerStaff": 500,
                         "staffCountSelector": "medical-coordination-v-visiting-nurse-count",
-                        "recipientCountSelector": "medical-coordination-v-supported-recipient-count",
-                        "maximumRecipientsPerStaff": 8
+                        "recipientCountSelector": "medical-coordination-v-supported-recipient-count"
                       },
                       "calculationStepId": "claim.step.units.service-code.prorate-by-recipient-count.v1",
                       "roundingRuleId": "claim.rounding.units.half-up.v1",

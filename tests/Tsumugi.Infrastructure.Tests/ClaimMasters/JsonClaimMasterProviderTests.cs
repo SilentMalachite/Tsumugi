@@ -612,6 +612,13 @@ public sealed class JsonClaimMasterProviderTests
         percentageAmount.GetProperty("properties").GetProperty("applicationKind")
             .GetProperty("enum").EnumerateArray().Select(item => item.GetString())
             .Should().Equal("add", "subtract", "replace");
+        var proratedAmount = masterRoot.GetProperty("$defs")
+            .GetProperty("proratedUnitsAmount");
+        Required(proratedAmount).Should().NotContain("maximumRecipientsPerStaff");
+        var maximumRecipientsPerStaff = proratedAmount.GetProperty("properties")
+            .GetProperty("maximumRecipientsPerStaff");
+        maximumRecipientsPerStaff.GetProperty("type").GetString().Should().Be("integer");
+        maximumRecipientsPerStaff.GetProperty("minimum").GetInt32().Should().Be(1);
         masterRoot.GetProperty("$defs").GetProperty("serviceCodeUnitRule")
             .GetProperty("oneOf").GetArrayLength().Should().Be(3);
         var definitions = masterRoot.GetProperty("$defs");
