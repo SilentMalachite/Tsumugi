@@ -18,6 +18,10 @@ public sealed class ClaimMasterSchemaPhase31Tests
         "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54";
     private const string R6CalculationNoteSha256 =
         "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1";
+    private const string R8ServiceCodesSha256 =
+        "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049";
+    private const string R8CalculationNoteSha256 =
+        "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99";
     private const string CurrentFeeNoticeHtmlSha256 =
         "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768";
     private const string ProtectedFacilityAdministrativeExpenseStandardHtmlSha256 =
@@ -729,6 +733,24 @@ public sealed class ClaimMasterSchemaPhase31Tests
     }
 
     [Fact]
+    public void Load_rejects_invalid_protected_facility_factor_array_order()
+    {
+        var masters = ProtectedFacilityRepresentativeMasters();
+        MutateService(masters, "service-two-factor", values =>
+        {
+            var factors = values["unitRule"]!["factors"]!.AsArray();
+            var first = factors[0]!.DeepClone();
+            factors[0] = factors[1]!.DeepClone();
+            factors[1] = first;
+        });
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*service-two-factor*factors.order*unique and contiguous*");
+    }
+
+    [Fact]
     public void Load_rejects_invalid_protected_facility_factor_condition_subset()
     {
         var masters = ProtectedFacilityRepresentativeMasters();
@@ -804,6 +826,83 @@ public sealed class ClaimMasterSchemaPhase31Tests
 
         action.Should().Throw<InvalidDataException>()
             .WithMessage("*service-pass-through*unit-rule-formula*has no authoritative source*");
+    }
+
+    [Theory]
+    [InlineData("service-pass-through", "unit-rule-formula", "current-fee-notice-html", "r6-calculation-note")]
+    [InlineData("service-pass-through", "unit-rule-step", "r6-calculation-note", "current-fee-notice-html")]
+    [InlineData("service-pass-through", "unit-rule-rounding", "r6-calculation-note", "current-fee-notice-html")]
+    [InlineData("service-pass-through", "unit-rule-runtime-input-provenance", "protected-facility-administrative-expense-standard-html", "current-fee-notice-html")]
+    [InlineData("service-pass-through", "service-identity", "r6-service-codes-2-xlsx", "current-fee-notice-html")]
+    [InlineData("service-factor", "unit-rule-value", "r6-service-codes-2-xlsx", "current-fee-notice-html")]
+    [InlineData("service-factor", "unit-rule-target", "r6-service-codes-2-xlsx", "current-fee-notice-html")]
+    public void Load_rejects_invalid_protected_facility_source_authority_substitution(
+        string serviceKey,
+        string support,
+        string expectedDocumentId,
+        string substitutedDocumentId)
+    {
+        var masters = ProtectedFacilityRepresentativeMasters();
+        MoveSourceSupport(
+            masters,
+            serviceKey,
+            support,
+            expectedDocumentId,
+            substitutedDocumentId);
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage($"*{serviceKey}*{support}*{expectedDocumentId}*");
+    }
+
+    [Fact]
+    public void Load_accepts_protected_facility_r8_period_source_authority()
+    {
+        var action = () => LoadBundle(
+            R8ProtectedFacilityRepresentativeMasters(),
+            RepresentativeCatalogJson);
+
+        action.Should().NotThrow();
+    }
+
+    [Theory]
+    [InlineData("r8-service-codes-2-xlsx", "r6-service-codes-2-xlsx", "service-identity")]
+    [InlineData("r8-calculation-note", "r6-calculation-note", "unit-rule-step")]
+    public void Load_rejects_invalid_protected_facility_r8_source_authority(
+        string expectedDocumentId,
+        string substitutedDocumentId,
+        string support)
+    {
+        var masters = R8ProtectedFacilityRepresentativeMasters();
+        MutateServiceEntry(masters, "service-pass-through", entry =>
+        {
+            var sourceRef = SourceRefByDocument(entry, expectedDocumentId);
+            sourceRef["documentId"] = substitutedDocumentId;
+            sourceRef["sha256"] = SourceSha256(substitutedDocumentId);
+        });
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage($"*service-pass-through*{support}*{expectedDocumentId}*");
+    }
+
+    [Fact]
+    public void Load_rejects_invalid_protected_facility_source_period_crossing_r8_boundary()
+    {
+        var masters = ProtectedFacilityRepresentativeMasters();
+        MutateServiceEntry(masters, "service-pass-through", entry =>
+            entry["effectiveTo"] = null);
+        MutateCondition(
+            masters,
+            "municipality-ownership:local-government",
+            condition => condition["effectiveTo"] = null);
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*service-pass-through*effectiveFrom/effectiveTo*R8 boundary*");
     }
 
     [Fact]
@@ -1221,6 +1320,39 @@ public sealed class ClaimMasterSchemaPhase31Tests
         return masters;
     }
 
+    private static Dictionary<string, string> R8ProtectedFacilityRepresentativeMasters()
+    {
+        var masters = ProtectedFacilityRepresentativeMasters();
+        MutateServiceEntry(masters, "service-pass-through", entry =>
+        {
+            entry["effectiveFrom"] = "2026-06";
+            entry["effectiveTo"] = null;
+            entry["sourceRefs"] = new JsonArray(
+                ProtectedFacilitySourceRefs(
+                    "workbook-order=38;row=907",
+                    hasFactors: false,
+                    isR8: true));
+        });
+
+        var root = MasterRoot(masters, "service-codes.json");
+        var localGovernment = ConditionByKey(
+            root,
+            "municipality-ownership:local-government");
+        var r8LocalGovernment = localGovernment.DeepClone().AsObject();
+        r8LocalGovernment["effectiveFrom"] = "2026-06";
+        r8LocalGovernment["effectiveTo"] = null;
+        r8LocalGovernment["sourceRefs"] = new JsonArray(
+            OfficialSourceRef(
+                "r8-service-codes-2-xlsx",
+                R8ServiceCodesSha256,
+                "workbook-order=38;row=907",
+                "conditions",
+                "effective-period"));
+        root["conditionDefinitions"]!.AsArray().Add(r8LocalGovernment);
+        SaveRoot(masters, "service-codes.json", root);
+        return masters;
+    }
+
     private static string ProtectedFacilityServiceValues(
         string serviceCode,
         string officialLabel,
@@ -1284,8 +1416,21 @@ public sealed class ClaimMasterSchemaPhase31Tests
 
     private static JsonObject[] ProtectedFacilitySourceRefs(
         string serviceCodeLocator,
-        bool hasFactors)
+        bool hasFactors,
+        bool isR8 = false)
     {
+        var serviceCodeDocumentId = isR8
+            ? "r8-service-codes-2-xlsx"
+            : "r6-service-codes-2-xlsx";
+        var serviceCodeSha256 = isR8
+            ? R8ServiceCodesSha256
+            : R6ServiceCodesSha256;
+        var calculationNoteDocumentId = isR8
+            ? "r8-calculation-note"
+            : "r6-calculation-note";
+        var calculationNoteSha256 = isR8
+            ? R8CalculationNoteSha256
+            : R6CalculationNoteSha256;
         var serviceSupports = new List<string>
         {
             "service-identity",
@@ -1302,7 +1447,11 @@ public sealed class ClaimMasterSchemaPhase31Tests
 
         return
         [
-            R6ServiceCodeSourceRef(serviceCodeLocator, serviceSupports.ToArray()),
+            OfficialSourceRef(
+                serviceCodeDocumentId,
+                serviceCodeSha256,
+                serviceCodeLocator,
+                serviceSupports.ToArray()),
             OfficialSourceRef(
                 "current-fee-notice-html",
                 CurrentFeeNoticeHtmlSha256,
@@ -1317,8 +1466,8 @@ public sealed class ClaimMasterSchemaPhase31Tests
                 "html:lines=l000000054,l000000060-l000000062",
                 "unit-rule-runtime-input-provenance"),
             OfficialSourceRef(
-                "r6-calculation-note",
-                R6CalculationNoteSha256,
+                calculationNoteDocumentId,
+                calculationNoteSha256,
                 "pages=8-9",
                 "unit-rule-step",
                 "unit-rule-rounding"),
@@ -1847,6 +1996,43 @@ public sealed class ClaimMasterSchemaPhase31Tests
                 sourceRefs.Remove(source);
         });
 
+    private static void MoveSourceSupport(
+        Dictionary<string, string> masters,
+        string serviceKey,
+        string support,
+        string expectedDocumentId,
+        string substitutedDocumentId) =>
+        MutateServiceEntry(masters, serviceKey, entry =>
+        {
+            var sourceRefs = entry["sourceRefs"]!.AsArray();
+            var expected = SourceRefByDocument(entry, expectedDocumentId);
+            var expectedSupports = expected["supports"]!.AsArray();
+            expectedSupports.Remove(expectedSupports.Single(node =>
+                node!.GetValue<string>() == support));
+            if (expectedSupports.Count == 0)
+                sourceRefs.Remove(expected);
+
+            var substituted = SourceRefByDocument(entry, substitutedDocumentId);
+            substituted["supports"]!.AsArray().Add(support);
+        });
+
+    private static JsonObject SourceRefByDocument(
+        JsonObject entry,
+        string documentId) =>
+        entry["sourceRefs"]!.AsArray()
+            .Select(node => node!.AsObject())
+            .First(sourceRef =>
+                sourceRef["documentId"]!.GetValue<string>() == documentId);
+
+    private static string SourceSha256(string documentId) => documentId switch
+    {
+        "r6-service-codes-2-xlsx" => R6ServiceCodesSha256,
+        "r6-calculation-note" => R6CalculationNoteSha256,
+        "r8-service-codes-2-xlsx" => R8ServiceCodesSha256,
+        "r8-calculation-note" => R8CalculationNoteSha256,
+        _ => throw new ArgumentOutOfRangeException(nameof(documentId), documentId, null),
+    };
+
     private static JsonObject ConditionByKey(JsonObject root, string key) =>
         root["conditionDefinitions"]!.AsArray()
             .Select(node => node!.AsObject())
@@ -2109,8 +2295,10 @@ public sealed class ClaimMasterSchemaPhase31Tests
     private static readonly string RepresentativeCatalogJson = CatalogJson(
         Source("doc-1"),
         OfficialSource("r6-service-codes-2-xlsx", R6ServiceCodesSha256),
+        OfficialSource("r8-service-codes-2-xlsx", R8ServiceCodesSha256),
         OfficialSource("r6-fee-notice", R6FeeNoticeSha256),
         OfficialSource("r6-calculation-note", R6CalculationNoteSha256),
+        OfficialSource("r8-calculation-note", R8CalculationNoteSha256),
         OfficialSource("current-fee-notice-html", CurrentFeeNoticeHtmlSha256),
         OfficialSource(
             "protected-facility-administrative-expense-standard-html",

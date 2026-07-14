@@ -27,6 +27,7 @@ internal static class ClaimMasterFileValidator
         "claim.step.units.service-code.prorate-by-recipient-count.v1";
     private const string PassThroughStep =
         "claim.step.units.service-code.base-component-pass-through.v1";
+    private static readonly ServiceMonth R8EffectiveFrom = new(2026, 6);
 
     private static readonly IReadOnlyDictionary<string, string> ExpectedFiles =
         new Dictionary<string, string>(StringComparer.Ordinal)
@@ -1015,6 +1016,14 @@ internal static class ClaimMasterFileValidator
             authority,
             entry.FileName,
             entry.Key);
+        if (unitRule is ProtectedFacilityBenchmarkMinimumRule protectedFacilityRule)
+        {
+            ValidateProtectedFacilitySourceAuthority(
+                entry,
+                protectedFacilityRule,
+                authority);
+        }
+
         return new ServiceCodeMasterRow(
             entry.Key,
             RequiredString(entry.Values, "serviceCode", entry.FileName, entry.Key),
@@ -1027,6 +1036,85 @@ internal static class ClaimMasterFileValidator
             entry.EffectiveFrom,
             entry.EffectiveTo,
             entry.SourceRefs);
+    }
+
+    private static void ValidateProtectedFacilitySourceAuthority(
+        RawEntry entry,
+        ProtectedFacilityBenchmarkMinimumRule rule,
+        SourceAuthorityValidator authority)
+    {
+        if (entry.EffectiveFrom < R8EffectiveFrom
+            && (entry.EffectiveTo is null || entry.EffectiveTo >= R8EffectiveFrom))
+        {
+            throw Invalid(
+                entry.FileName,
+                entry.Key,
+                "effectiveFrom/effectiveTo",
+                "must not cross the R8 boundary at 2026-06");
+        }
+
+        var serviceCodeDocumentId = entry.EffectiveFrom >= R8EffectiveFrom
+            ? "r8-service-codes-2-xlsx"
+            : "r6-service-codes-2-xlsx";
+        var calculationNoteDocumentId = entry.EffectiveFrom >= R8EffectiveFrom
+            ? "r8-calculation-note"
+            : "r6-calculation-note";
+
+        ValidateExpectedSupports(
+            entry,
+            authority,
+            serviceCodeDocumentId,
+            ClaimSourceSupport.ServiceIdentity,
+            ClaimSourceSupport.Selectors,
+            ClaimSourceSupport.UnitRuleKind,
+            ClaimSourceSupport.Conditions,
+            ClaimSourceSupport.EffectivePeriod);
+        if (rule.Factors.Count > 0)
+        {
+            ValidateExpectedSupports(
+                entry,
+                authority,
+                serviceCodeDocumentId,
+                ClaimSourceSupport.UnitRuleValue,
+                ClaimSourceSupport.UnitRuleTarget);
+        }
+
+        ValidateExpectedSupports(
+            entry,
+            authority,
+            calculationNoteDocumentId,
+            ClaimSourceSupport.UnitRuleStep,
+            ClaimSourceSupport.UnitRuleRounding);
+        ValidateExpectedSupports(
+            entry,
+            authority,
+            "current-fee-notice-html",
+            ClaimSourceSupport.UnitRuleFormula,
+            ClaimSourceSupport.UnitRuleComparison,
+            ClaimSourceSupport.UnitRuleLocalGovernmentAdjustment,
+            ClaimSourceSupport.UnitRuleRuntimeInput);
+        ValidateExpectedSupports(
+            entry,
+            authority,
+            "protected-facility-administrative-expense-standard-html",
+            ClaimSourceSupport.UnitRuleRuntimeInputProvenance);
+    }
+
+    private static void ValidateExpectedSupports(
+        RawEntry entry,
+        SourceAuthorityValidator authority,
+        string expectedDocumentId,
+        params ClaimSourceSupport[] supports)
+    {
+        foreach (var support in supports)
+        {
+            authority.ValidateExpectedAuthoritativeDocument(
+                entry.SourceRefs,
+                support,
+                expectedDocumentId,
+                entry.FileName,
+                entry.Key);
+        }
     }
 
     private static UnitAdjustmentAmount ParseAmount(
@@ -1708,9 +1796,8 @@ internal static class ClaimMasterFileValidator
         string key,
         bool validateCrossReferences)
     {
-        var orders = factors.Select(factor => factor.Order).Order().ToArray();
         if (validateCrossReferences
-            && !orders.SequenceEqual(Enumerable.Range(1, orders.Length)))
+            && factors.Select((factor, index) => factor.Order == index + 1).Any(valid => !valid))
         {
             throw Invalid(
                 fileName,
@@ -3188,6 +3275,35 @@ internal static class ClaimMasterFileValidator
             }
 
             _validated.Add(cacheKey);
+        }
+
+        internal void ValidateExpectedAuthoritativeDocument(
+            IReadOnlyList<ClaimSourceRef> sourceRefs,
+            ClaimSourceSupport support,
+            string expectedDocumentId,
+            string fileName,
+            string key)
+        {
+            if (!_enabled)
+                return;
+
+            Validate(sourceRefs, support, fileName, key);
+            if (sourceRefs.Any(source =>
+                    source.EvidenceRole is ClaimSourceEvidenceRole.Authoritative
+                    && string.Equals(
+                        source.DocumentId,
+                        expectedDocumentId,
+                        StringComparison.Ordinal)
+                    && source.Supports.Contains(support)))
+            {
+                return;
+            }
+
+            throw Invalid(
+                fileName,
+                key,
+                SupportToken(support),
+                $"must use authoritative document '{expectedDocumentId}'");
         }
 
         private bool Reaches(string from, string to)
