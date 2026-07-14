@@ -220,6 +220,50 @@ public sealed class ClaimCalculationMasterContractTests
         rule.Selection.Should().Be(selection);
         rule.Factors.Should().BeSameAs(factors);
         rule.BillingUnit.Should().Be(BillingUnit.PerDay);
+
+        rule.RuntimeInputRequirement.Key.Should()
+            .Be("protected-facility-administrative-expense-yen");
+        rule.RuntimeInputRequirement.ValueKind.Should().Be("entered-yen");
+        rule.RuntimeInputRequirement.ValueUnit.Should().Be("yen-per-person-per-month");
+        rule.RuntimeInputRequirement.Scope.Should().Be("facility-and-service-fiscal-year");
+        rule.RuntimeInputRequirement.AsOfPolicy.Should().Be("service-fiscal-year-april-first");
+        rule.RuntimeInputRequirement.ProvenancePolicyId.Should()
+            .Be("claim.input.protected-facility-administrative-expense.v1");
+
+        rule.StatutoryFormula.DaysDivisor.Should().Be(22);
+        rule.StatutoryFormula.ExpenseAdjustmentDivisor.Should().Be(0.945m);
+        rule.StatutoryFormula.UnitPriceDivisorYen.Should().Be(10);
+        rule.StatutoryFormula.FixedAdditionUnits.Should().Be(23);
+        rule.StatutoryFormula.UpliftRate.Should().Be(1.046m);
+        rule.StatutoryFormula.CalculationStepId.Should()
+            .Be("claim.step.units.service-code.protected-facility-formula.v1");
+        rule.StatutoryFormula.RoundingRuleId.Should()
+            .Be("claim.rounding.units.half-up.v1");
+
+        rule.Benchmark.OfficialSection.Should().Be("b-type-service-fee-ii");
+        rule.Benchmark.BasicRewardStaffingKey.Should().Be("b-type-service-fee-ii");
+        rule.Benchmark.PaymentBandMatch.Should().Be("same-average-wage-band");
+        rule.Benchmark.CapacityMatch.Should().Be("same-capacity-band");
+        rule.Benchmark.LocalGovernmentAdjustment.ConditionSelector.Should()
+            .Be("municipality-ownership:local-government");
+        rule.Benchmark.LocalGovernmentAdjustment.Rate.Should().Be(0.965m);
+        rule.Benchmark.LocalGovernmentAdjustment.Target.Should().Be("comparison-only");
+        rule.Benchmark.LocalGovernmentAdjustment.CalculationStepId.Should()
+            .Be("claim.step.units.service-code.protected-facility-local-government-benchmark.v1");
+        rule.Benchmark.LocalGovernmentAdjustment.RoundingRuleId.Should()
+            .Be("claim.rounding.units.half-up.v1");
+
+        rule.Selection.Kind.Should().Be("minimum");
+        rule.Selection.CalculationStepId.Should()
+            .Be("claim.step.units.service-code.protected-facility-minimum.v1");
+        rule.Selection.RoundingRuleId.Should().BeNull();
+
+        rule.Factors[0].Order.Should().Be(1);
+        rule.Factors[0].Rate.Should().Be(0.7m);
+        rule.Factors[0].ConditionSelectors.Should().Equal("plan-not-created");
+        rule.Factors[0].CalculationStepId.Should()
+            .Be("claim.step.units.per-service-code.percentage.v1");
+        rule.Factors[0].RoundingRuleId.Should().Be("claim.rounding.units.half-up.v1");
     }
 
     [Theory]
