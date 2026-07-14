@@ -238,7 +238,7 @@ prorated-units
   poolUnitsPerStaff: positive integer
   staffCountSelector: non-blank string
   recipientCountSelector: non-blank string
-  maximumRecipientsPerStaff: positive integer
+  maximumRecipientsPerStaff: optional positive integer
 ```
 
 canonical percentageは倍率で表し、`0.10`を10%と解釈する。`10`を10%として解釈しない。
@@ -253,7 +253,7 @@ canonical percentageは倍率で表し、`0.10`を10%と解釈する。`10`を10
 
 `prorated-units`は各対象利用者について`poolUnitsPerStaff × staff count ÷ recipient count`を計算し、指定rounding後の整数単位を加算する閉じたshapeとする。任意の分子、分母又は式文字列は許可しない。
 
-Task 12のschema／validatorは正の`poolUnitsPerStaff`と`maximumRecipientsPerStaff`、closedな2 selector、step及びroundingの静的整合だけを検証する。後続calculatorはstaff count及びrecipient countが正のruntime factであることと、`recipient count <= staff count × maximumRecipientsPerStaff`を満たすことを実行時に検証する。
+Task 12のschema／validatorは正の`poolUnitsPerStaff`、存在する場合だけ正値を要求する`maximumRecipientsPerStaff`、closedな2 selector、step及びroundingの静的整合だけを検証する。後続calculatorはstaff count及びrecipient countが正のruntime factであることを検証し、`maximumRecipientsPerStaff`が存在する場合だけ`recipient count <= staff count × maximumRecipientsPerStaff`を実行時に検証する。
 
 代表fixture:
 
@@ -547,7 +547,7 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 - fixed-composite-unitが正の最終単位と負の独立減算単位を保持し、0を拒否する。
 - nested amount unionが種類別fieldを保持する。
 - percentage-of-targetが`add`、`subtract`、`replace`を区別して保持する。
-- prorated-unitsがpool、staff count selector、recipient count selector及び上限を保持する。
+- prorated-unitsがpool及び2 selectorを保持し、recipient上限の有無を区別して保持する。
 - factorがstep及びrounding境界を保持する。
 - formula modeがbase-component-pass-throughとfactor-chainを排他的に保持する。
 - source refs、supports、condition definition及びcomponent refsを保持する。
@@ -577,7 +577,7 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 - unit-additionと参照addition componentのamount、step、rounding又はbilling unitの不一致を拒否する。
 - adjustment selector graph及びunit-addition target selector graphの自己参照・循環を種類別に拒否する。
 - reference namespace違反、target selector空集合、count selector未知値及びfactor condition subset違反を拒否する。
-- proration selector未知値、pool又はmaximumの0以下、step／rounding不整合を拒否する。runtime count値は入力しない。
+- proration selector未知値、非正のpool及びstep／rounding不整合を拒否する。maximum欠落を受理し、maximumが存在する場合は0以下、非整数又はnullを拒否する。runtime count値は入力しない。
 - factor orderの穴・重複、rate範囲外、step／rounding matrix不整合及び末尾一括丸めfieldを拒否する。
 - formula mode固有fieldの混在、pass-throughのfactor及びfactor-chainの空factorを拒否する。
 - service code retirement及びcondition retirementを受理する。
@@ -596,7 +596,7 @@ source refのdocument ID及びSHAはTask 13 manifestとcatalogの実値を使う
 
 同表の3 gap代表に加え、signed boundary fixtureとして`r6-service-codes-2-xlsx / workbook-order=38;row=913`の`finalUnits = -5`及び`per-day`を固定する。
 
-operation boundary fixtureとして`r6-service-codes-2-xlsx / workbook-order=38;row=1044`のservice code `469992`、official label `就継Ｂ医療連携体制加算Ⅴ`、`prorated-units`、`poolUnitsPerStaff = 500`、staff／recipient count selector、`maximumRecipientsPerStaff = 8`、`per-day`、proration step及びhalf-upを固定する。pool値は適用版の報酬告示、按分shapeはservice-code rowを有効正本として、それぞれ対応supportsで覆う。
+operation boundary fixtureとして`r6-service-codes-2-xlsx / workbook-order=38;row=1044`のservice code `469992`、official label `就継Ｂ医療連携体制加算Ⅴ`、`prorated-units`、`poolUnitsPerStaff = 500`、staff／recipient count selector、`maximumRecipientsPerStaff` property absent / Domain `MaximumRecipientsPerStaff = null`、`per-day`、proration step及びhalf-upを固定する。公式B型読替えが共通の医療連携体制加算Ⅰ～ⅤをB型Ⅰ～Ⅳへ、共通のⅣ及びⅤをB型Ⅳへ読み替えるため、B型Ⅴは共通8人上限の対象外となる。pool、両selector、proration step、half-up rounding及びprovenanceは維持し、pool値は適用版の報酬告示、按分shapeはservice-code rowを有効正本として、それぞれ対応supportsで覆う。
 
 formula boundary fixtureとして`r6-service-codes-2-xlsx / workbook-order=38;row=907`のservice code `462841`、official label `就継Ｂ基準該当`、`formula / base-component-pass-through`、base component ref、`per-day`、pass-through step及びrounding `null`を固定する。
 
@@ -667,7 +667,7 @@ Task 12とTask 13 seed転記を同じcommitへ混ぜない。
 - 正値及び負値の`FinalUnits`が保持され、0が拒否される。
 - component参照とformula参照の不足・role不整合・期間外が拒否される。
 - unit-additionと参照addition componentのamount、step、rounding及びbilling unitが一致し、不一致が拒否される。
-- 利用者数按分が閉じたprorated-unitsとして保持され、未知selector、非正のpool／maximum及びstep／rounding不整合が拒否される。runtime fact値の判定は後続calculator契約として分離される。
+- 利用者数按分が閉じたprorated-unitsとして保持され、maximumの有無が区別される。maximum欠落は受理され、未知selector、非正のpool、存在するmaximumの0以下・非整数・null及びstep／rounding不整合が拒否される。runtime fact値の判定と、maximumが存在する場合だけ行うrecipient-limit比較は後続calculator契約として分離される。
 - factorなしの基準service codeがbase-component-pass-throughとして保持され、factor-chainとのfield混在が拒否される。
 - percentage-of-targetの`applicationKind`が必須の`add | subtract | replace`としてDomain、JSON Schema及びruntime validatorで一致し、暗黙defaultを持たない。
 - adjustment selector graph及びunit-addition target selector graphの自己参照・循環が拒否される。
