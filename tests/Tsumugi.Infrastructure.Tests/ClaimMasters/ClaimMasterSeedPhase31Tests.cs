@@ -12,7 +12,7 @@ namespace Tsumugi.Infrastructure.Tests.ClaimMasters;
 public sealed class ClaimMasterSeedPhase31Tests
 {
     private const string ExpectedOrderedIdentityDigest =
-        "0d0e7361bf37e1f604f9dc59dcc408d2f64d513e7259596bed04499575bb3377";
+        "76f0e7e13c52061c9190948da171df108afee38bb9f525951d535d1eb0ba8f18";
 
     private const string ManifestPath =
         "docs/spec-data/phase3/claim-master-source-row-manifest.json";
@@ -111,7 +111,7 @@ public sealed class ClaimMasterSeedPhase31Tests
             .Should().Equal("schemaVersion", "documents", "rows");
         root.GetProperty("schemaVersion").GetString().Should().Be("2");
         root.GetProperty("documents").GetArrayLength().Should().Be(41);
-        root.GetProperty("rows").GetArrayLength().Should().Be(14_709);
+        root.GetProperty("rows").GetArrayLength().Should().Be(14_712);
 
         foreach (var row in root.GetProperty("rows").EnumerateArray())
         {
@@ -314,18 +314,56 @@ public sealed class ClaimMasterSeedPhase31Tests
     }
 
     [Fact]
-    public void Source_manifest_v2_preserves_the_v1_inventory_size()
+    public void Source_manifest_v2_includes_the_approved_source_inventory_correction()
     {
         using var manifest = OpenRepositoryJson(ManifestPath);
         var root = manifest.RootElement;
         root.GetProperty("documents").GetArrayLength().Should().Be(41);
-        root.GetProperty("rows").GetArrayLength().Should().Be(14_709);
+        root.GetProperty("rows").GetArrayLength().Should().Be(14_712);
         var ranges = root.GetProperty("documents").EnumerateArray()
             .SelectMany(document => document.GetProperty("extractionRanges").EnumerateArray())
             .ToArray();
-        ranges.Should().HaveCount(51);
+        ranges.Should().HaveCount(53);
         ranges.Sum(range => range.GetProperty("expectedItemCount").GetInt32())
-            .Should().Be(14_709);
+            .Should().Be(14_712);
+    }
+
+    [Fact]
+    public void Source_manifest_inventories_the_percentage_evidence_pages_before_reaudit()
+    {
+        using var manifest = OpenRepositoryJson(ManifestPath);
+        var root = manifest.RootElement;
+        var documents = root.GetProperty("documents").EnumerateArray().ToArray();
+        var rows = root.GetProperty("rows").EnumerateArray().ToArray();
+
+        AssertPdfRange(
+            documents,
+            "r6-fee-notice",
+            "r6-b-percentage-reductions",
+            141,
+            142,
+            2);
+        AssertPdfRange(
+            documents,
+            "r8-fee-notice",
+            "r8-b-emergency-rate-and-reduction-continuity",
+            56,
+            56,
+            1);
+
+        foreach (var (documentId, locator) in new[]
+                 {
+                     ("r6-fee-notice", "pdf:physical-page=141"),
+                     ("r6-fee-notice", "pdf:physical-page=142"),
+                     ("r8-fee-notice", "pdf:physical-page=56"),
+                 })
+        {
+            var row = FindRow(rows, documentId, locator);
+            row.GetProperty("disposition").GetString().Should().Be("schema-gap");
+            GetProductionTargets(row).Should().BeEmpty();
+            row.GetProperty("exclusionReason").GetString().Should()
+                .StartWith("source-inventory-correction:");
+        }
     }
 
     [Fact]
@@ -425,19 +463,19 @@ public sealed class ClaimMasterSeedPhase31Tests
     }
 
     [Fact]
-    public void Source_manifest_v2_mechanical_migration_remains_stopped_for_reaudit()
+    public void Source_manifest_v2_inventory_correction_remains_stopped_for_reaudit()
     {
         using var manifest = OpenRepositoryJson(ManifestPath);
         var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().ToArray();
 
-        rows.Should().HaveCount(14_709);
+        rows.Should().HaveCount(14_712);
         rows.Count(row => row.GetProperty("disposition").GetString() == "seed")
             .Should().Be(15);
         rows.Count(row => row.GetProperty("disposition").GetString() == "excluded")
             .Should().Be(744);
         rows.Count(row =>
                 row.GetProperty("disposition").GetString() == "schema-gap")
-            .Should().Be(13_950);
+            .Should().Be(13_953);
     }
 
     [Fact]
@@ -622,6 +660,25 @@ public sealed class ClaimMasterSeedPhase31Tests
         {
             row.GetProperty("effectiveTo").GetString().Should().Be(effectiveTo);
         }
+    }
+
+    private static void AssertPdfRange(
+        IEnumerable<JsonElement> documents,
+        string documentId,
+        string rangeId,
+        int pageFrom,
+        int pageTo,
+        int expectedItemCount)
+    {
+        var document = documents.Single(item =>
+            item.GetProperty("documentId").GetString() == documentId);
+        var range = document.GetProperty("extractionRanges").EnumerateArray().Single(item =>
+            item.GetProperty("rangeId").GetString() == rangeId);
+
+        range.GetProperty("kind").GetString().Should().Be("pdf-pages");
+        range.GetProperty("pageFrom").GetInt32().Should().Be(pageFrom);
+        range.GetProperty("pageTo").GetInt32().Should().Be(pageTo);
+        range.GetProperty("expectedItemCount").GetInt32().Should().Be(expectedItemCount);
     }
 
     private static JsonElement FindRow(
