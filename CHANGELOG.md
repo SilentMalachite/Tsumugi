@@ -8,7 +8,7 @@
 
 ### 計画
 - フェーズ 3-0（出典・契約・土台）— final-fix後のtargeted test、fresh full quality gate、最終レビュー（Critical / High / Medium 0件）を通過し、2026-07-11に受け入れ済み。詳細は [`docs/phase3-0-acceptance.md`](docs/phase3-0-acceptance.md)。
-- フェーズ 3-1（請求計算・入力基盤）— 現行計画Tasks 2〜10の入力契約スライスを実装済み。Task 11の入力UIから継続する。Phase 3-1全体は未受け入れ。
+- フェーズ 3-1（請求計算・入力基盤）— 現行計画Tasks 2〜10の入力契約スライス、Task 12のclaim-master schema v2、Task 13の基準該当B型公式計算契約・source inventoryを実装済み。Task 11の入力UIから継続し、Phase 3-1全体は未受け入れ。
 - フェーズ 4（リリース準備・運用ハードニング）残り: 暗号化方針決定・バックアップ自動化・記録UI補完・配布パッケージング・運用ガイド・bulk operations ガード。詳細は `07_ClaudeCode_Phase4実装指示_リリース準備_Tsumugi.md`。
 
 ### 追加（Added）— Phase 3-0: 国保連請求の出典・契約・土台
@@ -23,11 +23,14 @@
 - `Certificate`、`Office`、`ContractedProvider`、`DailyRecord`へ51 mapping entries / 26 implementation targetsに対応する請求入力を追加し、`ClaimInput`と請求根拠aggregateをappend-only履歴として追加。
 - EF Core configuration、migration、repository、append-only guard、入力保存ユースケースを追加。
 - embedded field mappingを51 entries / 26 targetsのtyped requirementsへ変換し、入力不足、履歴不整合、原本未確認、master版不明を個人情報非保持のissueとして返す`ClaimPreparationReadiness`を追加。
+- claim-master schema v2へclosed formula union、source authority、期間境界、条件・factor順序のfail-closed validationを追加し、既存formula modeとの互換を維持した。
+- 基準該当B型について、保護施設事務費を後入力できるruntime requirementとprovenance、公式式、比較対象、地方公共団体0.965補正、minimum選択、post-min factor順序をDomain・JSON Schema・validatorで固定した。
+- source catalogへ公式3資料とrelease bundleを追加し、source inventoryを44 documents / 61 ranges / 14,726 rows、seed 14,189 / excluded 537 / schema-gap 0、ordered identity SHA-256 `c80f4e8da0aefc9d91bd978777bdb8e59261f4982826555f8a324e2023b9bcd7`へ確定した。production seed 6ファイルは変更していない。
 
 ### 本番投入前に必須の deferred
 
 - Phase 3-1は未受け入れ。**51 missing fieldIds / 26 implementation targets**（CSV 30件＋帳票21件。正本は `docs/phase3-claim-field-mapping.md`）のモデル・migration・repository・保存ユースケース・typed requirements・readiness gateは実装済みだが、実UIと一貫snapshot readerは未実装。Phase 3-2 / 3-3も未実装。
-- 令和6/8報酬master実値、平均工賃・基本報酬・加算減算・地域単価・利用者負担の計算、production snapshot codec、validated finalization / `IValidatedClaimSnapshotReader`を実装する。
+- 対象service-code revisionsを含む令和6/8報酬masterのproduction seed、保護施設事務費の実値recordと証拠取込、master resolver、平均工賃・基本報酬・加算減算・地域単価・利用者負担のruntime計算、production snapshot codec、validated finalization / `IValidatedClaimSnapshotReader`を実装する。
 - 3帳票と国保連提出CSV（CP932 / CRLF）の生成・保存UIを実装する。現時点では請求CSV生成完了ではない。
 
 ## [0.3.1-phase4-s1] - 2026-07-05

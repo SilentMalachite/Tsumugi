@@ -86,7 +86,7 @@ src/
 - [x] **フェーズ 0** — プロジェクト基盤・DI 合成ルート・EF Core 往復・VACUUM INTO バックアップ・品質ゲート・オフライン検査・SQLite 権限ポリシー（AC0-1 〜 AC0-6 完了）
 - [x] **フェーズ 1** — マスタ + 記録（利用者 / 受給者証 / 契約 / 事業所 / 事業所体制 / 日次記録の CRUD、追記型・楽観的同時実行・期限アラート、AC1-1 〜 AC1-9 完了）
 - [x] **フェーズ 2** — 工賃計算（作業実績・WageFund / WageSettings 期間マスタ・4 方式（Piece/Hourly/Fixed/Equal）・Σ配分=原資 不変条件・WageStatement 確定スナップショット・PDF 帳票・AuditEntry）。AC2-8 の `AverageWageMetric` はPhase 2の暫定集計として互換保持し、請求用の正式定義はADR 0023で確定
-- [ ] **フェーズ 3** — 国保連請求。Phase 3-0（出典・版付きマスタ境界・CSV仕様・append-only請求土台）は受け入れ済み。Phase 3-1は入力モデル、migration、repository、保存ユースケース、typed requirements、算定前readiness gateまで実装済み（現行計画Tasks 2〜10）。入力UI、制度実値、請求計算、validated finalization、帳票・CSV生成は未完了
+- [ ] **フェーズ 3** — 国保連請求。Phase 3-0（出典・版付きマスタ境界・CSV仕様・append-only請求土台）は受け入れ済み。Phase 3-1は現行計画Tasks 2〜10の入力モデル、migration、repository、保存ユースケース、typed requirements、算定前readiness gateに加え、Task 12のclaim-master schema v2とTask 13の基準該当B型公式計算契約・source inventoryを実装済み。Task 11の入力UI、対象service-codeのproduction seed、保護施設事務費実値入力、resolver・runtime請求計算、validated finalization、帳票・CSV生成は未完了
 
 各フェーズの受け入れ基準は [`01_ClaudeCode_実装指示書_Tsumugi.md`](01_ClaudeCode_実装指示書_Tsumugi.md) §7 を参照。フェーズ 1 実装指示は [`04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md`](04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md)、フェーズ 2 実装指示は [`05_ClaudeCode_Phase2実装指示_工賃計算_Tsumugi.md`](05_ClaudeCode_Phase2実装指示_工賃計算_Tsumugi.md)、フェーズ 3 実装指示は [`06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md`](06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md)。
 
@@ -123,6 +123,7 @@ src/
 | [06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md](06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md) | フェーズ3（国保連請求）実装指示と受け入れ基準 |
 | [docs/phase3-0-acceptance.md](docs/phase3-0-acceptance.md) | フェーズ3-0 受け入れ証跡と後続進捗 |
 | [docs/phase3-claim-field-mapping.md](docs/phase3-claim-field-mapping.md) | 国保連CSV・帳票の全項目mappingとPhase 3-1入力対象 |
+| [docs/superpowers/specs/2026-07-14-phase3-1-task13-protected-facility-b-formula-and-source-inventory-design.md](docs/superpowers/specs/2026-07-14-phase3-1-task13-protected-facility-b-formula-and-source-inventory-design.md) | 基準該当B型の公式計算契約・runtime入力要件・source inventory設計 |
 | [docs/decisions/](docs/decisions/) | Architecture Decision Records（ADR） |
 | [docs/open-questions.md](docs/open-questions.md) | 仕様未確定事項の起票簿 |
 | [CHANGELOG.md](CHANGELOG.md) | リリース履歴 |

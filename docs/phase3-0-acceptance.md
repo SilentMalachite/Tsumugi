@@ -9,9 +9,9 @@
 
 Phase 3-0の実装、targeted test証跡、final-fix後の証跡HEAD `ed50ced`でのfresh full quality gateが揃い、committed rangeとstaged Task 16 docsに対する最終レビューでCritical / High / Mediumが0件となったため受け入れる。
 
-## 受け入れ後の現況 (2026-07-12 / `d812e31`)
+## 受け入れ後の現況 (2026-07-15 / `c2736f6`)
 
-本書の証跡HEAD、テスト件数、coverage、レビュー結果はPhase 3-0受け入れ時点の履歴として固定する。その後、Phase 3-1現行計画のTasks 2〜10に相当する入力モデル、migration、repository、保存ユースケース、typed requirements、`ClaimPreparationReadiness`まで実装した。Phase 3-1全体は未受け入れで、Task 11の入力UI以降、制度実値、請求計算、snapshot reader、production codec、validated finalizationが残る。Phase 3-2 / 3-3は未着手である。
+本書の証跡HEAD、テスト件数、coverage、レビュー結果はPhase 3-0受け入れ時点の履歴として固定する。その後、Phase 3-1現行計画のTasks 2〜10に相当する入力モデル、migration、repository、保存ユースケース、typed requirements、`ClaimPreparationReadiness`に加え、Task 12のclaim-master schema v2とTask 13の基準該当B型公式計算契約・source inventoryを実装した。基準該当B型は公式式、比較対象、地方公共団体0.965補正、保護施設事務費runtime入力要件及びprovenanceをclosed contractで保持し、inventoryを44 documents / 61 ranges / 14,726 rows、seed 14,189 / excluded 537 / schema-gap 0へ確定した。production seed 6ファイルは未変更で、保護施設事務費実値、master resolver、runtime請求計算の完了は主張しない。Phase 3-1全体は未受け入れで、Task 11の入力UI、他の制度実値、snapshot reader、production codec、validated finalizationが残る。Phase 3-2 / 3-3は未着手である。
 
 ## AC3-0-1〜5
 
