@@ -1,6 +1,6 @@
 # Phase 3-1 Task 12 Follow-up: Optional Proration Maximum Design
 
-**Status:** Implementation requested
+**Status:** Spec review approved; implementation requested
 **Date:** 2026-07-14
 **Scope:** Task 12 schema follow-up only — `prorated-units` optional maximum and service code 469992 fixture correction
 **Supersedes:** The mandatory `maximumRecipientsPerStaff = 8` contract for service code 469992 in `2026-07-13-phase3-1-task12-claim-master-schema-v2-design.md`
@@ -101,6 +101,7 @@ Modify:
 - `src/Tsumugi.Infrastructure/ClaimMasters/ClaimMasterFileValidator.cs`
 - `tests/Tsumugi.Domain.Tests/Logic/Claim/ClaimCalculationMasterContractTests.cs`
 - `tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimMasterSchemaPhase31Tests.cs`
+- `tests/Tsumugi.Infrastructure.Tests/ClaimMasters/JsonClaimMasterProviderTests.cs`
 
 ## 9. Acceptance criteria
 
