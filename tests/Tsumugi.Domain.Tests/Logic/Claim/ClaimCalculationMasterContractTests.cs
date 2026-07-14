@@ -84,6 +84,24 @@ public sealed class ClaimCalculationMasterContractTests
                 8));
     }
 
+    [Fact]
+    public void Prorated_units_amount_retains_bounded_and_unbounded_recipient_maximums()
+    {
+        var unbounded = new ProratedUnitsAmount(
+            500,
+            "medical-coordination-v-visiting-nurse-count",
+            "medical-coordination-v-supported-recipient-count",
+            null);
+        var bounded = new ProratedUnitsAmount(
+            500,
+            "medical-coordination-v-visiting-nurse-count",
+            "medical-coordination-v-supported-recipient-count",
+            8);
+
+        unbounded.MaximumRecipientsPerStaff.Should().BeNull();
+        bounded.MaximumRecipientsPerStaff.Should().Be(8);
+    }
+
     [Theory]
     [InlineData(PercentageApplicationKind.Add)]
     [InlineData(PercentageApplicationKind.Subtract)]

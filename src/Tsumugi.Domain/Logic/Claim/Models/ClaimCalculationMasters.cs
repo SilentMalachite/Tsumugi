@@ -111,7 +111,7 @@ public sealed record ProratedUnitsAmount(
     int PoolUnitsPerStaff,
     string StaffCountSelector,
     string RecipientCountSelector,
-    int MaximumRecipientsPerStaff) : UnitAdjustmentAmount;
+    int? MaximumRecipientsPerStaff) : UnitAdjustmentAmount;
 
 public abstract record ServiceCodeUnitRule(BillingUnit BillingUnit);
 
