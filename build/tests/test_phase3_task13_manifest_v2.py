@@ -951,6 +951,23 @@ class ProtectedFacilityFinalizerTests(unittest.TestCase):
             )
         )
 
+    def test_r6_current_fee_evidence_is_explicitly_a_continuity_inference(self) -> None:
+        final = manifest_v2.finalize_protected_facility(
+            make_protected_facility_baseline(),
+            json.loads(SOURCE_CATALOG_PATH.read_text(encoding="utf-8")),
+        )
+        evidence_row = next(
+            row
+            for row in final["rows"]
+            if row["rangeId"] == "r6-protected-facility-b-current-consolidated"
+        )
+
+        for target in evidence_row["productionTargets"]:
+            reason = target["mappingReason"]
+            self.assertIn("continuity inference", reason)
+            self.assertIn("direct evidenceとは扱わない", reason)
+            self.assertNotIn("直接裏付け", reason)
+
     def test_finalize_cli_is_deterministic_and_atomic_on_failure(self) -> None:
         baseline = make_protected_facility_baseline()
         with tempfile.TemporaryDirectory() as temporary:

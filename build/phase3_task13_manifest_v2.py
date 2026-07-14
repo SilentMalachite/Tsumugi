@@ -780,7 +780,7 @@ def finalize_protected_facility(manifest: dict, source_catalog: dict) -> dict:
                 "unit-rule-local-government-adjustment",
                 "unit-rule-runtime-input",
             ),
-            "現行統合告示HTMLが{code}の式・比較・最小値・地方公共団体補正・runtime入力をR6期間で直接裏付けるため",
+            "2026-06施行の現行統合告示HTMLを{code}の式・比較・最小値・地方公共団体補正・runtime入力のR6期間へのcontinuity inferenceに用い、R6期間のdirect evidenceとは扱わないため",
         ),
         (
             "current-fee-notice-html",
