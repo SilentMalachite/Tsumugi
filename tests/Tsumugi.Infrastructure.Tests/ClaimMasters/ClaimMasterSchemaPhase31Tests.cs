@@ -859,11 +859,27 @@ public sealed class ClaimMasterSchemaPhase31Tests
     [Fact]
     public void Load_accepts_protected_facility_r8_period_source_authority()
     {
-        var action = () => LoadBundle(
+        var bundle = LoadBundle(
             R8ProtectedFacilityRepresentativeMasters(),
             RepresentativeCatalogJson);
 
-        action.Should().NotThrow();
+        var service = bundle.ServiceCodes.Single(row => row.Key == "service-pass-through");
+        service.ServiceCode.Should().Be("462841");
+        service.OfficialLabel.Should().Be("就継Ｂ基準該当");
+        service.SourceRefs.Should().ContainSingle(source =>
+            source.DocumentId == "r8-service-codes-2-xlsx"
+            && source.Sha256 == R8ServiceCodesSha256
+            && source.Locator == "workbook-order=38;row=1987"
+            && source.EvidenceRole == ClaimSourceEvidenceRole.Authoritative);
+
+        var localGovernment = bundle.ConditionDefinitions.Single(condition =>
+            condition.Key == "municipality-ownership:local-government"
+            && condition.EffectiveFrom.ToString() == "2026-06");
+        localGovernment.SourceRefs.Should().ContainSingle(source =>
+            source.DocumentId == "r8-service-codes-2-xlsx"
+            && source.Sha256 == R8ServiceCodesSha256
+            && source.Locator == "workbook-order=38;row=1987"
+            && source.EvidenceRole == ClaimSourceEvidenceRole.Authoritative);
     }
 
     [Theory]
@@ -1329,7 +1345,7 @@ public sealed class ClaimMasterSchemaPhase31Tests
             entry["effectiveTo"] = null;
             entry["sourceRefs"] = new JsonArray(
                 ProtectedFacilitySourceRefs(
-                    "workbook-order=38;row=907",
+                    "workbook-order=38;row=1987",
                     hasFactors: false,
                     isR8: true));
         });
@@ -1345,7 +1361,7 @@ public sealed class ClaimMasterSchemaPhase31Tests
             OfficialSourceRef(
                 "r8-service-codes-2-xlsx",
                 R8ServiceCodesSha256,
-                "workbook-order=38;row=907",
+                "workbook-order=38;row=1987",
                 "conditions",
                 "effective-period"));
         root["conditionDefinitions"]!.AsArray().Add(r8LocalGovernment);
