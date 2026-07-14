@@ -12,7 +12,17 @@ namespace Tsumugi.Infrastructure.Tests.ClaimMasters;
 public sealed class ClaimMasterSeedPhase31Tests
 {
     private const string ExpectedOrderedIdentityDigest =
+        "e350d208f9862fa2a4a0328df7e3ad6bca145b5e8dfde38a63a0c4d79126d225";
+
+    private const string PreviousOrderedIdentityDigest =
         "76f0e7e13c52061c9190948da171df108afee38bb9f525951d535d1eb0ba8f18";
+
+    private static readonly string[] TreatmentImprovementEvidenceLocators =
+    [
+        "pdf:physical-page=36;section=legacy-treatment-improvement",
+        "pdf:physical-page=36;section=integrated-treatment-improvement-v",
+        "pdf:physical-page=36;section=integrated-treatment-improvement-i-iv",
+    ];
 
     private const string ManifestPath =
         "docs/spec-data/phase3/claim-master-source-row-manifest.json";
@@ -111,7 +121,7 @@ public sealed class ClaimMasterSeedPhase31Tests
             .Should().Equal("schemaVersion", "documents", "rows");
         root.GetProperty("schemaVersion").GetString().Should().Be("2");
         root.GetProperty("documents").GetArrayLength().Should().Be(41);
-        root.GetProperty("rows").GetArrayLength().Should().Be(14_712);
+        root.GetProperty("rows").GetArrayLength().Should().Be(14_715);
 
         foreach (var row in root.GetProperty("rows").EnumerateArray())
         {
@@ -319,13 +329,13 @@ public sealed class ClaimMasterSeedPhase31Tests
         using var manifest = OpenRepositoryJson(ManifestPath);
         var root = manifest.RootElement;
         root.GetProperty("documents").GetArrayLength().Should().Be(41);
-        root.GetProperty("rows").GetArrayLength().Should().Be(14_712);
+        root.GetProperty("rows").GetArrayLength().Should().Be(14_715);
         var ranges = root.GetProperty("documents").EnumerateArray()
             .SelectMany(document => document.GetProperty("extractionRanges").EnumerateArray())
             .ToArray();
         ranges.Should().HaveCount(53);
         ranges.Sum(range => range.GetProperty("expectedItemCount").GetInt32())
-            .Should().Be(14_712);
+            .Should().Be(14_715);
     }
 
     [Fact]
@@ -373,6 +383,55 @@ public sealed class ClaimMasterSeedPhase31Tests
         var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().ToArray();
 
         CalculateOrderedIdentityDigest(rows).Should().Be(ExpectedOrderedIdentityDigest);
+        CalculateOrderedIdentityDigest(rows.Where(row =>
+                !TreatmentImprovementEvidenceLocators.Contains(
+                    row.GetProperty("sourceLocator").GetString(),
+                    StringComparer.Ordinal)))
+            .Should().Be(PreviousOrderedIdentityDigest,
+                because: "the three approved logical rows must not reorder the previous inventory");
+    }
+
+    [Fact]
+    public void Source_manifest_inventories_period_specific_treatment_improvement_evidence()
+    {
+        using var manifest = OpenRepositoryJson(ManifestPath);
+        var root = manifest.RootElement;
+        var documents = root.GetProperty("documents").EnumerateArray().ToArray();
+        var rows = root.GetProperty("rows").EnumerateArray().ToArray();
+
+        AssertPdfRange(
+            documents,
+            "r6-reward-structure",
+            "r6-b-reward-structure",
+            34,
+            36,
+            6);
+
+        var broadPageIndex = Array.FindIndex(rows, row =>
+            row.GetProperty("sourceDocumentId").GetString() == "r6-reward-structure"
+            && row.GetProperty("sourceLocator").GetString() == "pdf:physical-page=36");
+        broadPageIndex.Should().BeGreaterThanOrEqualTo(0);
+        rows.Skip(broadPageIndex + 1)
+            .Take(TreatmentImprovementEvidenceLocators.Length)
+            .Select(row => row.GetProperty("sourceLocator").GetString())
+            .Should().Equal(TreatmentImprovementEvidenceLocators);
+
+        foreach (var (locator, effectiveFrom, effectiveTo) in new[]
+                 {
+                     (TreatmentImprovementEvidenceLocators[0], "2024-04", "2024-05"),
+                     (TreatmentImprovementEvidenceLocators[1], "2024-06", "2025-03"),
+                     (TreatmentImprovementEvidenceLocators[2], "2024-06", "2026-05"),
+                 })
+        {
+            var row = FindRow(rows, "r6-reward-structure", locator);
+            row.GetProperty("rangeId").GetString().Should().Be("r6-b-reward-structure");
+            row.GetProperty("effectiveFrom").GetString().Should().Be(effectiveFrom);
+            row.GetProperty("effectiveTo").GetString().Should().Be(effectiveTo);
+            row.GetProperty("disposition").GetString().Should().Be("schema-gap");
+            GetProductionTargets(row).Should().BeEmpty();
+            row.GetProperty("exclusionReason").GetString().Should()
+                .StartWith("source-inventory-correction:");
+        }
     }
 
     [Fact]
@@ -468,14 +527,14 @@ public sealed class ClaimMasterSeedPhase31Tests
         using var manifest = OpenRepositoryJson(ManifestPath);
         var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().ToArray();
 
-        rows.Should().HaveCount(14_712);
+        rows.Should().HaveCount(14_715);
         rows.Count(row => row.GetProperty("disposition").GetString() == "seed")
             .Should().Be(15);
         rows.Count(row => row.GetProperty("disposition").GetString() == "excluded")
             .Should().Be(744);
         rows.Count(row =>
                 row.GetProperty("disposition").GetString() == "schema-gap")
-            .Should().Be(13_953);
+            .Should().Be(13_956);
     }
 
     [Fact]

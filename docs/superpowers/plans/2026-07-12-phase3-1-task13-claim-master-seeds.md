@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 41件の一次資料とsource inventory補正後14,712件のsource rowをschema v2 manifestへ損失なく再監査し、Audit Gate通過後だけR6／R8制度実値を6つのclaim master seedへ投入する。
+**Goal:** 41件の一次資料とsource inventory補正後14,715件のsource rowをschema v2 manifestへ損失なく再監査し、Audit Gate通過後だけR6／R8制度実値を6つのclaim master seedへ投入する。
 
 **Architecture:** 作業を`Audit Gate`と`Conditional Seed Phase`へ分離する。Audit Gateは資料取得、SHA検証、manifest v1→v2機械変換、全row再監査、物理locator確認をseed変更なしで完了させる。`schema-gap = 0`になった後だけ、manifest target revisionを正本として独立masterと相互依存するservice code／componentを投入し、固定candidate commitをfresh reviewerが全件照合する。
 
@@ -779,7 +779,25 @@ git commit -m "fix(phase3-1/AC3-1): correct claim source inventory"
 
 ---
 
-### Task 5: 14,712 source rowsをv2 targetへ再監査する
+### Task 4.6: R6処遇改善割合3期間をlogical source rowへ追加する
+
+**Files:**
+- Modify: `docs/spec-data/phase3/claim-master-source-row-manifest.json`
+- Modify: `tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimMasterSeedPhase31Tests.cs`
+- Modify: `docs/superpowers/specs/2026-07-12-phase3-1-task13-claim-master-seed-design.md`
+- Modify: `docs/superpowers/plans/2026-07-12-phase3-1-task13-claim-master-seeds.md`
+
+R6報酬算定構造36頁の既存broad row直後へ、次の3 logical rowsを追加する。
+
+- `legacy-treatment-improvement`: 2024-04..2024-05
+- `integrated-treatment-improvement-v`: 2024-06..2025-03
+- `integrated-treatment-improvement-i-iv`: 2024-06..2026-05
+
+補正後contractは41 documents、53 ranges、14,715 rows、ordered identity SHA-256 `e350d208f9862fa2a4a0328df7e3ad6bca145b5e8dfde38a63a0c4d79126d225`とする。既存14,712 identitiesは順序を保持したsubsequenceとし、新規3 rowsは再監査前なので`schema-gap`かつ空の`productionTargets`でなければならない。
+
+---
+
+### Task 5: 14,715 source rowsをv2 targetへ再監査する
 
 **Files:**
 - Modify: `docs/spec-data/phase3/claim-master-source-row-manifest.json`
@@ -811,7 +829,7 @@ dotnet test tests/Tsumugi.Infrastructure.Tests \
   -v normal
 ```
 
-Expected: FAIL with 13,953 schema-gap rows。testを弱めない。
+Expected: FAIL with 13,956 schema-gap rows。testを弱めない。
 
 - [ ] **Step 3: 200-row audit chunksを生成する**
 
@@ -827,10 +845,10 @@ python3 build/phase3_task13_manifest_v2.py chunk \
   --chunk-size 200
 
 test "$(rg --files /tmp/tsumugi-phase31-task13/chunks | wc -l | tr -d ' ')" = 74
-test "$(jq -s 'length' /tmp/tsumugi-phase31-task13/chunks/*.jsonl)" = 14712
+test "$(jq -s 'length' /tmp/tsumugi-phase31-task13/chunks/*.jsonl)" = 14715
 ```
 
-Expected: 74 chunk files、合計14,712 rows。
+Expected: 74 chunk files、合計14,715 rows。
 
 - [ ] **Step 4: 各chunkを一次資料から再分類する**
 
@@ -880,7 +898,7 @@ python3 build/phase3_task13_manifest_v2.py apply \
   --output /tmp/tsumugi-phase31-task13/manifest-v2-audited.json
 ```
 
-Expected: 全14,712 identitiesにdecisionがちょうど1件ある場合だけexit 0。missing／extra／duplicateで停止する。
+Expected: 全14,715 identitiesにdecisionがちょうど1件ある場合だけexit 0。missing／extra／duplicateで停止する。
 
 - [ ] **Step 6: audited manifestの停止条件を集計する**
 
@@ -896,7 +914,7 @@ jq '{
 }' /tmp/tsumugi-phase31-task13/manifest-v2-audited.json
 ```
 
-Expected for continuing: `total = 14712`、`schemaGap = 0`、`total = seed + excluded`、`targets > 0`。
+Expected for continuing: `total = 14715`、`schemaGap = 0`、`total = seed + excluded`、`targets > 0`。
 
 **STOP:** `schemaGap > 0`ならaudited manifestとgap集計を保持し、seed filesを変更せず、Task 12 follow-upが必要なrowと不足contractを報告する。Task 6以降へ進まない。
 
@@ -978,7 +996,7 @@ if failures:
 PY
 ```
 
-Expected: `total = reachable = 14712`、`failures = []`。
+Expected: `total = reachable = 14715`、`failures = []`。
 
 - [ ] **Step 8: audited manifestをrepositoryへ反映する**
 
@@ -1045,7 +1063,7 @@ Run:
 jq -e '
   .schemaVersion == "2"
   and (.documents | length) == 41
-  and (.rows | length) == 14712
+  and (.rows | length) == 14715
   and ([.rows[] | select(.disposition == "schema-gap")] | length) == 0
   and all(.rows[];
     if .disposition == "seed"
@@ -1059,7 +1077,7 @@ jq -c '.rows[] | [.sourceDocumentId,.rangeId,.sourceLocator]' \
   | shasum -a 256
 ```
 
-Expected: jq exit 0、identity SHAは`76f0e7e13c52061c9190948da171df108afee38bb9f525951d535d1eb0ba8f18`。
+Expected: jq exit 0、identity SHAは`e350d208f9862fa2a4a0328df7e3ad6bca145b5e8dfde38a63a0c4d79126d225`。
 
 - [ ] **Step 3: focused testsとfull CIを実行する**
 
@@ -1632,7 +1650,7 @@ reviewerは次の順で全件確認する。
 
 1. candidate commit checkout状態とpathを確認。
 2. 41 documentsのSHAを原本へ再計算。
-3. 53 rangesと14,712 source rowsのlocatorを確認。
+3. 53 rangesと14,715 source rowsのlocatorを確認。
 4. 全rowのdisposition、production target revision、mapping role、supports、reasonを確認。
 5. 全production revisionのkey、値、code、period、source refsを原本へ照合。
 6. manifest target→production refとproduction ref→manifest targetの両方向を確認。
@@ -1654,7 +1672,7 @@ mapping/value/code/period discrepancies = 0
 Status = Approved
 ```
 
-Issues Foundなら該当manifest／seed／testを修正し、Task 13のfocused testsとfull CIを再実行して新`SEED_CANDIDATE`を作る。同じreviewerが全14,712 rowsを再レビューする。差分rowだけで承認しない。
+Issues Foundなら該当manifest／seed／testを修正し、Task 13のfocused testsとfull CIを再実行して新`SEED_CANDIDATE`を作る。同じreviewerが全14,715 rowsを再レビューする。差分rowだけで承認しない。
 
 - [ ] **Step 3: evidence用の実数を機械集計する**
 
@@ -1779,7 +1797,7 @@ manifest又はseedを変更した場合は次を全てやり直す。
 1. focused tests。
 2. `./build/ci.sh`。
 3. 新`SEED_CANDIDATE` commit。
-4. fresh reviewerによる全14,712 rows再照合。
+4. fresh reviewerによる全14,715 rows再照合。
 5. evidenceのcandidate hash／実数更新。
 
 evidence wordingだけの修正ではsource-data再レビューを要求しないが、candidate hashと実データの対応は再確認する。
@@ -1803,7 +1821,7 @@ Expected: focused PASS、`CI OK`、diff check clean、worktree clean。
 
 ```text
 Audit Gateがseed変更なしで独立commitされている。
-41 documents、53 ranges、14,712 row identitiesが保持されている。
+41 documents、53 ranges、14,715 row identitiesが保持されている。
 SHA、locator、manifest coverage、source row reviewが100%。
 schema-gap = 0。
 target revision集合とproduction revision集合が双方向一致する。
