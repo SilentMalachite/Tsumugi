@@ -206,7 +206,14 @@ unit-rule-rounding
 conditions
 effective-period
 master-values
+unit-rule-formula
+unit-rule-comparison
+unit-rule-local-government-adjustment
+unit-rule-runtime-input
+unit-rule-runtime-input-provenance
 ```
+
+追加5値は順に、基準該当B型の公式式と丸め境界、通常B型との比較及びminimum、地方公共団体補正、保護施設事務費の入力要件、施設別・地域別・定員別・通知provenanceを支持する。既存supportの意味は変更せず、`unit-rule-value`はこのmodeでもpost-min factorの倍率だけを支持する。これらはsource-side contractであり、保護施設事務費の実値seed、任意式AST、resolver又はruntime算定の実装完了を意味しない。
 
 `component`及び`supporting-evidence`は非空`mappingReason`を必須とする。`primary`は`mappingReason = null`を許可する。
 

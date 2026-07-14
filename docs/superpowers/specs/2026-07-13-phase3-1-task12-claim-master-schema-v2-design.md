@@ -118,6 +118,11 @@ unit-rule-rounding
 conditions
 effective-period
 master-values
+unit-rule-formula
+unit-rule-comparison
+unit-rule-local-government-adjustment
+unit-rule-runtime-input
+unit-rule-runtime-input-provenance
 ```
 
 ### 6.2 必須coverage
@@ -128,6 +133,7 @@ master-values
 - `unit-addition`は`unit-rule-value`及び`unit-rule-step`を有効正本で覆う。`units-per-count`、`percentage-of-target`及び`prorated-units`は`unit-rule-target`も必須とし、percentage amount及びprorated amountは`unit-rule-rounding`も必須とする。
 - `formula / base-component-pass-through`は`unit-rule-target`及び`unit-rule-step`を有効正本で覆う。`unit-rule-value`及び`unit-rule-rounding`は要求しない。
 - `formula / factor-chain`は`unit-rule-value`、`unit-rule-target`、`unit-rule-step`及び`unit-rule-rounding`を有効正本で覆う。
+- `formula / protected-facility-benchmark-minimum`は、既存の`service-identity`、`selectors`、`unit-rule-kind`、`unit-rule-step`、`unit-rule-rounding`及び`effective-period`に加え、`unit-rule-formula`、`unit-rule-comparison`、`unit-rule-local-government-adjustment`、`unit-rule-runtime-input`及び`unit-rule-runtime-input-provenance`を有効正本で覆う。`factors[]`が非空の場合だけ、各factorの`unit-rule-value`、`unit-rule-target`、`unit-rule-step`及び`unit-rule-rounding`も要求する。
 - `conditionSelectors`が非空のservice code entryは`conditions`を有効正本で覆う。
 - condition definitionは`conditions`及び`effective-period`を有効正本で覆う。
 - その他のmaster entryは`master-values`を有効正本で覆う。
@@ -266,14 +272,15 @@ billingUnit = per-day
 
 ### 8.3 formula
 
-任意ASTを許さず、基準単位へ条件付き乗率を順番に適用する閉じた構造とする。
+任意ASTを許さず、既存base componentのpass-through、同componentへのfactor-chain又は基準該当B型の公式式・比較・minimum・post-min factorを表す3つの閉じた構造とする。
 
 ```text
 kind = formula
-mode = base-component-pass-through | factor-chain
-baseComponentKey
+mode = base-component-pass-through | factor-chain | protected-facility-benchmark-minimum
 billingUnit
 ```
+
+既存`base-component-pass-through`及び`factor-chain`だけが`baseComponentKey`を持つ。`protected-facility-benchmark-minimum`では存在しないbase componentを捏造せず、`baseComponentKey`を禁止する。既存2 modeのJSON shape及び意味は変更しない。
 
 `base-component-pass-through` modeは次だけを持つ。
 
@@ -312,6 +319,45 @@ base-component-pass-through契約:
 - `baseComponentKey`が解決した`BasicRewardMasterRow.BaseUnits`をそのままservice code単位とし、割合適用又は丸めを行わない。
 - factor field、rate又は任意式を禁止する。
 
+`protected-facility-benchmark-minimum` modeは次のclosed shapeだけを持つ。
+
+```text
+runtimeInputRequirement
+  key = protected-facility-administrative-expense-yen
+  valueKind = entered-yen
+  valueUnit = yen-per-person-per-month
+  scope = facility-and-service-fiscal-year
+  asOfPolicy = service-fiscal-year-april-first
+  provenancePolicyId = claim.input.protected-facility-administrative-expense.v1
+statutoryFormula
+  daysDivisor = 22
+  expenseAdjustmentDivisor = "0.945"
+  unitPriceDivisorYen = 10
+  fixedAdditionUnits = 23
+  upliftRate = "1.046"
+  calculationStepId = claim.step.units.service-code.protected-facility-formula.v1
+  roundingRuleId = claim.rounding.units.half-up.v1
+benchmark
+  officialSection = b-type-service-fee-ii
+  basicRewardStaffingKey = b-type-service-fee-ii
+  paymentBandMatch = same-average-wage-band
+  capacityMatch = same-capacity-band
+  localGovernmentAdjustment
+    conditionSelector = municipality-ownership:local-government
+    rate = "0.965"
+    target = comparison-only
+    calculationStepId = claim.step.units.service-code.protected-facility-local-government-benchmark.v1
+    roundingRuleId = claim.rounding.units.half-up.v1
+selection
+  kind = minimum
+  calculationStepId = claim.step.units.service-code.protected-facility-minimum.v1
+  roundingRuleId = null
+factors[]
+billingUnit = per-day
+```
+
+`factors[]`は既存factor shapeを再利用し、0件以上を許可する。公式式と地方公共団体比較補正は各step直後にhalf-upし、minimum自体は丸めず`RoundingPolicy`を呼ばない。factorはminimum後へ配列順に適用し、各factor直後に既存half-upを適用する。任意式文字列、generic AST、保護施設事務費の実値、既定値又はruntime計算結果をこのshapeへ追加しない。
+
 代表fixture:
 
 ```text
@@ -339,8 +385,12 @@ claim.rounding.units.half-up.v1
 | unit-addition / prorated-units | `claim.step.units.service-code.prorate-by-recipient-count.v1` | `claim.rounding.units.half-up.v1` |
 | formula / base-component-pass-through | `claim.step.units.service-code.base-component-pass-through.v1` | `null` |
 | formula factor | `claim.step.units.per-service-code.percentage.v1` | `claim.rounding.units.half-up.v1` |
+| formula / protected-facility-benchmark-minimum / statutory formula | `claim.step.units.service-code.protected-facility-formula.v1` | `claim.rounding.units.half-up.v1` |
+| formula / protected-facility-benchmark-minimum / local-government benchmark | `claim.step.units.service-code.protected-facility-local-government-benchmark.v1` | `claim.rounding.units.half-up.v1` |
+| formula / protected-facility-benchmark-minimum / minimum selection | `claim.step.units.service-code.protected-facility-minimum.v1` | `null` |
+| formula / protected-facility-benchmark-minimum / post-min factor | `claim.step.units.per-service-code.percentage.v1` | `claim.rounding.units.half-up.v1` |
 
-`claim.step.units.service-code.fixed.v1`、`claim.step.units.service-code.prorate-by-recipient-count.v1`及び`claim.step.units.service-code.base-component-pass-through.v1`を新規closed IDとして追加する。他のIDはADR 0025の既存contractを再利用する。fixed unitは公式の整数をそのservice code単位として受け取り、丸めない。prorationはpool、staff count及びrecipient countから得たdecimal単位を既存の`claim.rounding.units.half-up.v1`で整数へ戻す。base-component-pass-throughはbase unitsを変更せず、roundingを呼ばない。factor-chainはADR 0025どおり割合適用のたびに丸め、`after-chain`又は末尾一括丸めをschema上許可しない。上記以外のID、null位置又は組合せを拒否する。
+`claim.step.units.service-code.fixed.v1`、`claim.step.units.service-code.prorate-by-recipient-count.v1`及び`claim.step.units.service-code.base-component-pass-through.v1`に加え、基準該当B型のformula、地方公共団体比較補正及びminimumの3 step IDをclosed IDとして保持する。他のIDはADR 0025の既存contractを再利用する。fixed unitは公式の整数をそのservice code単位として受け取り、丸めない。prorationはpool、staff count及びrecipient countから得たdecimal単位を既存の`claim.rounding.units.half-up.v1`で整数へ戻す。base-component-pass-throughはbase unitsを変更せず、roundingを呼ばない。factor-chain及び基準該当B型のpost-min factorsはADR 0025どおり割合適用のたびに丸め、`after-chain`又は末尾一括丸めをschema上許可しない。minimum selectionでは`roundingRuleId = null`とし、`RoundingPolicy`を呼ばない。上記以外のID、null位置又は組合せを拒否する。
 
 ## 9. Condition definitions
 
@@ -549,8 +599,10 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 - percentage-of-targetが`add`、`subtract`、`replace`を区別して保持する。
 - prorated-unitsがpool及び2 selectorを保持し、recipient上限の有無を区別して保持する。
 - factorがstep及びrounding境界を保持する。
-- formula modeがbase-component-pass-throughとfactor-chainを排他的に保持する。
+- formula modeがbase-component-pass-through、factor-chain及びprotected-facility-benchmark-minimumを排他的に保持し、既存2 modeのshapeを維持する。
+- 新modeの代表fixtureをdeserializeしてtyped subtypeへ到達し、制度定数、runtime入力要件、benchmark、minimum及びfactorなし・1 factor・2 factorsを保持する。
 - source refs、supports、condition definition及びcomponent refsを保持する。
+- 5つの新support enumを保持し、既存supportの意味を変更しない。
 - `UnitAdjustmentMasterRow`が4種類のamount、step、rounding及びbilling unitを保持する。
 - `OfficialLabel`、`BaseUnits`及び`FinalUnits`の意味が混在しない。
 
@@ -564,6 +616,9 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 - canonical decimal string以外を拒否する。
 - percentage-of-targetの`applicationKind`欠落及び未知値を拒否し、3つの既知値を受理する。
 - condition kindとoperatorの不正組合せを拒否する。
+- `protected-facility-benchmark-minimum`の完全なclosed fixtureを受理し、既存2 formula modeを引き続き受理する。
+- 新modeの固定定数、selector、target、step、rounding又はbilling unitの改変、required field欠落、unknown field及び`baseComponentKey`混入を拒否する。
+- 5つの新support enumを受理し、未知supportを拒否する。
 
 ### 15.3 Validator tests
 
@@ -579,7 +634,9 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 - reference namespace違反、target selector空集合、count selector未知値及びfactor condition subset違反を拒否する。
 - proration selector未知値、非正のpool及びstep／rounding不整合を拒否する。maximum欠落を受理し、maximumが存在する場合は0以下、非整数又はnullを拒否する。runtime count値は入力しない。
 - factor orderの穴・重複、rate範囲外、step／rounding matrix不整合及び末尾一括丸めfieldを拒否する。
-- formula mode固有fieldの混在、pass-throughのfactor及びfactor-chainの空factorを拒否する。
+- formula mode固有fieldの混在、pass-throughのfactor、factor-chainの空factor及び新modeの`baseComponentKey`を拒否する。
+- 新modeの全制度定数、step／rounding、`comparison-only`、minimumのrounding `null`、factor順序及びcondition subsetをfail-closeで検証する。
+- 新modeの5 supportが有効正本で一意に確定することを要求し、factorなしentryへ`unit-rule-value`を要求せず、factorありentryのvalue／target／step／rounding coverage欠落を拒否する。
 - service code retirement及びcondition retirementを受理する。
 
 ### 15.4 Representative gap fixtures
