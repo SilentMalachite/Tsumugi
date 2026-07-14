@@ -590,7 +590,7 @@ Task 12ではresolver又はcalculatorの公開APIを変更しない。後続Task
 | --- | --- | --- | --- |
 | `r6-service-codes-2-xlsx / workbook-order=38;row=7` | service code `462980`、official label `就継ＢⅠ１１` | `fixed-composite-unit`、`finalUnits = 837`、`per-day` | reward system I、capacity 20以下、平均工賃4万5千円以上、base component ref、identity/value/condition/period supports |
 | `r6-service-codes-2-xlsx / workbook-order=38;row=941` | service code `465240`、official label `就継Ｂ就労移行支援体制加算Ⅰ１１` | `unit-addition / units-per-count`、`unitsPerCount = 93`、`per-day`、step `claim.step.units.service-code.multiply-count.v1`、rounding `null` | `previous-year-six-month-employment-count`、同値のadjustment component ref、capacity/payment-band/outcome条件、全必須supports |
-| `r6-service-codes-2-xlsx / workbook-order=38;row=908` | service code `462842`、official label `就継Ｂ基準該当・未計画１` | `formula`、base component、factor `rate = 0.7`、`per-day`、per-service-code percentage step、factor直後half-up | plan-not-created、適用2月目までのcondition keys、factor条件はentry条件のsubset、全必須supports |
+| `r6-service-codes-2-xlsx / workbook-order=38;row=908` | service code `462842`、official label `就継Ｂ基準該当・未計画１` | `formula / protected-facility-benchmark-minimum`、plan factor `rate = 0.7`、`per-day`、per-service-code percentage step、factor直後half-up | plan-not-created、適用2月目までのcondition keys、factor条件はentry条件のsubset、全必須supports |
 
 source refのdocument ID及びSHAはTask 13 manifestとcatalogの実値を使う。公式値を巨大fixtureへ複製せず、上表の各union代表field、source ref、condition、component及びperiodだけを固定する。
 
@@ -598,7 +598,9 @@ source refのdocument ID及びSHAはTask 13 manifestとcatalogの実値を使う
 
 operation boundary fixtureとして`r6-service-codes-2-xlsx / workbook-order=38;row=1044`のservice code `469992`、official label `就継Ｂ医療連携体制加算Ⅴ`、`prorated-units`、`poolUnitsPerStaff = 500`、staff／recipient count selector、`maximumRecipientsPerStaff` property absent / Domain `MaximumRecipientsPerStaff = null`、`per-day`、proration step及びhalf-upを固定する。公式B型読替えが共通の医療連携体制加算Ⅰ～ⅤをB型Ⅰ～Ⅳへ、共通のⅣ及びⅤをB型Ⅳへ読み替えるため、B型Ⅴは共通8人上限の対象外となる。pool、両selector、proration step、half-up rounding及びprovenanceは維持し、pool値は適用版の報酬告示、按分shapeはservice-code rowを有効正本として、それぞれ対応supportsで覆う。
 
-formula boundary fixtureとして`r6-service-codes-2-xlsx / workbook-order=38;row=907`のservice code `462841`、official label `就継Ｂ基準該当`、`formula / base-component-pass-through`、base component ref、`per-day`、pass-through step及びrounding `null`を固定する。
+formula boundary fixtureとして`r6-service-codes-2-xlsx / workbook-order=38;row=907`のservice code `462841`、official label `就継Ｂ基準該当`、`formula / protected-facility-benchmark-minimum`、plan factorなし及び`per-day`を固定する。上表の`462842`も同じmodeとし、こちらだけがplan factorを持つ。
+
+両fixtureを旧`base-component-pass-through`又はbase component付き`factor-chain`として扱わない。
 
 ### 15.5 Scale test
 
@@ -668,7 +670,7 @@ Task 12とTask 13 seed転記を同じcommitへ混ぜない。
 - component参照とformula参照の不足・role不整合・期間外が拒否される。
 - unit-additionと参照addition componentのamount、step、rounding及びbilling unitが一致し、不一致が拒否される。
 - 利用者数按分が閉じたprorated-unitsとして保持され、maximumの有無が区別される。maximum欠落は受理され、未知selector、非正のpool、存在するmaximumの0以下・非整数・null及びstep／rounding不整合が拒否される。runtime fact値の判定と、maximumが存在する場合だけ行うrecipient-limit比較は後続calculator契約として分離される。
-- factorなしの基準service codeがbase-component-pass-throughとして保持され、factor-chainとのfield混在が拒否される。
+- `462841`と`462842`が`protected-facility-benchmark-minimum`として保持され、`462842`だけがplan factorを持ち、旧base component表現とのfield混在が拒否される。
 - percentage-of-targetの`applicationKind`が必須の`add | subtract | replace`としてDomain、JSON Schema及びruntime validatorで一致し、暗黙defaultを持たない。
 - adjustment selector graph及びunit-addition target selector graphの自己参照・循環が拒否される。
 - service code及びconditionの明示的retirementが受理される。

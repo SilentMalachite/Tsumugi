@@ -98,7 +98,7 @@ Phase 3-1は、自由記述やnullable金額ではなく、次の三値を持つ
 | --- | --- | --- | --- | --- |
 | `claim.rounding.average-wage.daily-users.ceil-1dp.r6-corrected.v1` | 日平均利用者数の`decimal` | 小数点第1位の`decimal`人 | 小数点第2位以下があれば正方向へ切上げ | ADR 0023、`r6-qa-v2` p11を`r6-qa-corr-2` p4で訂正 |
 | `claim.rounding.average-wage.monthly-yen.half-up.v1` | 丸め前平均工賃月額の`decimal`円 | 整数円 | 円未満四捨五入 | ADR 0023、`r6-qa-corr-2` p4 |
-| `claim.rounding.units.half-up.v1` | source rowの割合計算結果である`decimal`単位 | 整数単位 | 小数点以下四捨五入 | `r6-calculation-note` p8〜9、`r8-calculation-note` p8〜10 |
+| `claim.rounding.units.half-up.v1` | source rowの割合計算結果又は基準該当B型の公式式・地方公共団体比較補正結果である`decimal`単位 | 整数単位 | 小数点以下四捨五入 | `r6-calculation-note` p8〜9、`r8-calculation-note` p8〜10、`current-fee-notice-html`、`h31-fee-notice-consolidated` p46〜47 |
 | `claim.rounding.cost.floor-yen.v1` | 月次給付単位数と地域単価の積である`decimal`円 | 整数円 | 円未満切捨て | `r6-calculation-note` p9、`r8-calculation-note` p9〜10、`r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197〜198 |
 | `claim.rounding.burden.floor-yen.v1` | 総費用額と`10 / 100`の積である`decimal`円 | 整数円 | 円未満切捨て | `r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197〜198 |
 
@@ -111,6 +111,9 @@ Phase 3-1は、自由記述やnullable金額ではなく、次の三値を持つ
 | `claim.step.average-wage.daily-users.divide.v1` | 年間延べ利用者数、年間開所日数 -> 日平均利用者数 | `claim.rounding.average-wage.daily-users.ceil-1dp.r6-corrected.v1` | ADR 0023 |
 | `claim.step.average-wage.monthly.divide.v1` | 年間工賃、丸め済み日平均利用者数、12 -> 平均工賃月額 | `claim.rounding.average-wage.monthly-yen.half-up.v1` | ADR 0023 |
 | `claim.step.units.per-service-code.percentage.v1` | 整数基礎単位、割合、`calculationOrder` -> 端数処理済み整数service-code単位 | `claim.rounding.units.half-up.v1` | `r6-calculation-note` p8〜9、`r8-calculation-note` p8〜10 |
+| `claim.step.units.service-code.protected-facility-formula.v1` | 保護施設事務費、制度定数及び固定順序 -> 基準該当B型公式式の整数単位 | `claim.rounding.units.half-up.v1` | `current-fee-notice-html`、`h31-fee-notice-consolidated` p46 |
+| `claim.step.units.service-code.protected-facility-local-government-benchmark.v1` | 通常B型比較単位、地方公共団体補正率 -> 補正済み整数比較単位 | `claim.rounding.units.half-up.v1` | `current-fee-notice-html`、`h31-fee-notice-consolidated` p47 |
+| `claim.step.units.service-code.protected-facility-minimum.v1` | 公式式側整数単位、補正済み比較側整数単位 -> 小さい方の整数単位 | —（呼出しなし） | `current-fee-notice-html`、`r6-fee-notice` p137〜138 |
 | `claim.step.units.service-code.multiply-count.v1` | 端数処理済み整数単位、回数 -> 整数サービス単位 | —（呼出しなし） | `r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197 |
 | `claim.step.units.monthly-service-kind.sum.v1` | 同一サービス種別の整数サービス単位列 -> 月次基礎給付単位数 | —（呼出しなし） | `r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197〜198 |
 | `claim.step.units.monthly-target.sum.v1` | `targetSelector`対象の整数サービス単位列 -> 月次対象単位合計 | —（呼出しなし） | `r6-calculation-note` p8〜9、`r8-calculation-note` p8〜10 |
@@ -124,6 +127,8 @@ Phase 3-1は、自由記述やnullable金額ではなく、次の三値を持つ
 | `claim.step.burden.in-office-order.allocate.v1` | サービス種別別暫定負担額、証上限、公式順 -> 調整後負担額 | —（呼出しなし） | ADR 0022、`r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p198〜199 |
 | `claim.step.burden.upper-limit-result.allocate.v1` | 検証済み管理結果額、管理前最終負担額 -> 決定利用者負担額 | —（呼出しなし） | ADR 0022、`r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p182〜186、p199 |
 | `claim.step.benefit.cost-minus-decided-burden.v1` | 総費用額、決定利用者負担額 -> 請求額・給付費 | —（呼出しなし） | `mhlw-disability-support-act-observed-4b8f2824` 29条3項、`r8-grant-decision-administration-202606` / `r8-grant-decision-administration-202607` p197、p199 |
+
+基準該当B型では、公式式と地方公共団体比較補正の各step直後にhalf-upし、整数同士のminimum選択では`roundingRuleId = null`として`RoundingPolicy`を呼ばない。minimum後のplan未作成、人員欠如及びサービス管理責任者欠如factorは既存`claim.step.units.per-service-code.percentage.v1`を配列順に逐次使用し、各factor直後に`claim.rounding.units.half-up.v1`を適用する。これらはmaster上のclosed step／rounding契約であり、保護施設事務費の実値seed、resolver又はruntime算定の実装完了を意味しない。
 
 ### 適用順
 

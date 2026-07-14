@@ -618,8 +618,8 @@ protected-facility-administrative-expense-standard-html:
 
 h31-fee-notice-consolidated:
   publisher 厚生労働省
-  effectiveAt 2019-04-01
-  publishedAt null
+  effectiveAt 2019-10-01
+  publishedAt 2019-03-25
   applicabilityNote R6式継続性のcross-checkだけに使用し有効正本candidateへ含めない
 ```
 
