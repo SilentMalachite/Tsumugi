@@ -12,16 +12,23 @@ namespace Tsumugi.Infrastructure.Tests.ClaimMasters;
 public sealed class ClaimMasterSeedPhase31Tests
 {
     private const string ExpectedOrderedIdentityDigest =
-        "e350d208f9862fa2a4a0328df7e3ad6bca145b5e8dfde38a63a0c4d79126d225";
+        "90fb9d309e878d22f0d4bb867c4fe36c3fab83ad45938b64da2d5b3bfd34dee7";
 
     private const string PreviousOrderedIdentityDigest =
-        "76f0e7e13c52061c9190948da171df108afee38bb9f525951d535d1eb0ba8f18";
+        "e350d208f9862fa2a4a0328df7e3ad6bca145b5e8dfde38a63a0c4d79126d225";
 
     private static readonly string[] TreatmentImprovementEvidenceLocators =
     [
         "pdf:physical-page=36;section=legacy-treatment-improvement",
         "pdf:physical-page=36;section=integrated-treatment-improvement-v",
         "pdf:physical-page=36;section=integrated-treatment-improvement-i-iv",
+    ];
+
+    private static readonly string[] TreatmentImprovementCalculationLocators =
+    [
+        "pdf:physical-page=8;section=legacy-treatment-improvement",
+        "pdf:physical-page=8;section=integrated-treatment-improvement-v",
+        "pdf:physical-page=8;section=integrated-treatment-improvement-i-iv",
     ];
 
     private const string ManifestPath =
@@ -121,7 +128,7 @@ public sealed class ClaimMasterSeedPhase31Tests
             .Should().Equal("schemaVersion", "documents", "rows");
         root.GetProperty("schemaVersion").GetString().Should().Be("2");
         root.GetProperty("documents").GetArrayLength().Should().Be(41);
-        root.GetProperty("rows").GetArrayLength().Should().Be(14_715);
+        root.GetProperty("rows").GetArrayLength().Should().Be(14_718);
 
         foreach (var row in root.GetProperty("rows").EnumerateArray())
         {
@@ -329,13 +336,13 @@ public sealed class ClaimMasterSeedPhase31Tests
         using var manifest = OpenRepositoryJson(ManifestPath);
         var root = manifest.RootElement;
         root.GetProperty("documents").GetArrayLength().Should().Be(41);
-        root.GetProperty("rows").GetArrayLength().Should().Be(14_715);
+        root.GetProperty("rows").GetArrayLength().Should().Be(14_718);
         var ranges = root.GetProperty("documents").EnumerateArray()
             .SelectMany(document => document.GetProperty("extractionRanges").EnumerateArray())
             .ToArray();
         ranges.Should().HaveCount(53);
         ranges.Sum(range => range.GetProperty("expectedItemCount").GetInt32())
-            .Should().Be(14_715);
+            .Should().Be(14_718);
     }
 
     [Fact]
@@ -384,11 +391,11 @@ public sealed class ClaimMasterSeedPhase31Tests
 
         CalculateOrderedIdentityDigest(rows).Should().Be(ExpectedOrderedIdentityDigest);
         CalculateOrderedIdentityDigest(rows.Where(row =>
-                !TreatmentImprovementEvidenceLocators.Contains(
+                !TreatmentImprovementCalculationLocators.Contains(
                     row.GetProperty("sourceLocator").GetString(),
                     StringComparer.Ordinal)))
             .Should().Be(PreviousOrderedIdentityDigest,
-                because: "the three approved logical rows must not reorder the previous inventory");
+                because: "the three approved calculation rows must not reorder the previous inventory");
     }
 
     [Fact]
@@ -425,6 +432,49 @@ public sealed class ClaimMasterSeedPhase31Tests
         {
             var row = FindRow(rows, "r6-reward-structure", locator);
             row.GetProperty("rangeId").GetString().Should().Be("r6-b-reward-structure");
+            row.GetProperty("effectiveFrom").GetString().Should().Be(effectiveFrom);
+            row.GetProperty("effectiveTo").GetString().Should().Be(effectiveTo);
+            row.GetProperty("disposition").GetString().Should().Be("schema-gap");
+            GetProductionTargets(row).Should().BeEmpty();
+            row.GetProperty("exclusionReason").GetString().Should()
+                .StartWith("source-inventory-correction:");
+        }
+    }
+
+    [Fact]
+    public void Source_manifest_inventories_period_specific_treatment_improvement_calculation_evidence()
+    {
+        using var manifest = OpenRepositoryJson(ManifestPath);
+        var root = manifest.RootElement;
+        var documents = root.GetProperty("documents").EnumerateArray().ToArray();
+        var rows = root.GetProperty("rows").EnumerateArray().ToArray();
+
+        AssertPdfRange(
+            documents,
+            "r6-calculation-note",
+            "r6-unit-and-cost-rounding",
+            8,
+            9,
+            5);
+
+        var broadPageIndex = Array.FindIndex(rows, row =>
+            row.GetProperty("sourceDocumentId").GetString() == "r6-calculation-note"
+            && row.GetProperty("sourceLocator").GetString() == "pdf:physical-page=8");
+        broadPageIndex.Should().BeGreaterThanOrEqualTo(0);
+        rows.Skip(broadPageIndex + 1)
+            .Take(TreatmentImprovementCalculationLocators.Length)
+            .Select(row => row.GetProperty("sourceLocator").GetString())
+            .Should().Equal(TreatmentImprovementCalculationLocators);
+
+        foreach (var (locator, effectiveFrom, effectiveTo) in new[]
+                 {
+                     (TreatmentImprovementCalculationLocators[0], "2024-04", "2024-05"),
+                     (TreatmentImprovementCalculationLocators[1], "2024-06", "2025-03"),
+                     (TreatmentImprovementCalculationLocators[2], "2024-06", "2026-05"),
+                 })
+        {
+            var row = FindRow(rows, "r6-calculation-note", locator);
+            row.GetProperty("rangeId").GetString().Should().Be("r6-unit-and-cost-rounding");
             row.GetProperty("effectiveFrom").GetString().Should().Be(effectiveFrom);
             row.GetProperty("effectiveTo").GetString().Should().Be(effectiveTo);
             row.GetProperty("disposition").GetString().Should().Be("schema-gap");
@@ -527,14 +577,14 @@ public sealed class ClaimMasterSeedPhase31Tests
         using var manifest = OpenRepositoryJson(ManifestPath);
         var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().ToArray();
 
-        rows.Should().HaveCount(14_715);
+        rows.Should().HaveCount(14_718);
         rows.Count(row => row.GetProperty("disposition").GetString() == "seed")
             .Should().Be(15);
         rows.Count(row => row.GetProperty("disposition").GetString() == "excluded")
             .Should().Be(744);
         rows.Count(row =>
                 row.GetProperty("disposition").GetString() == "schema-gap")
-            .Should().Be(13_956);
+            .Should().Be(13_959);
     }
 
     [Fact]
