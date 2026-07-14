@@ -11,7 +11,10 @@ namespace Tsumugi.Infrastructure.Tests.ClaimMasters;
 
 public sealed class ClaimMasterSeedPhase31Tests
 {
-    private const string ExpectedOrderedIdentityDigest =
+    private const string ExpectedFinalOrderedIdentityDigest =
+        "c80f4e8da0aefc9d91bd978777bdb8e59261f4982826555f8a324e2023b9bcd7";
+
+    private const string ExpectedBaselineOrderedIdentityDigest =
         "90fb9d309e878d22f0d4bb867c4fe36c3fab83ad45938b64da2d5b3bfd34dee7";
 
     private const string PreviousOrderedIdentityDigest =
@@ -60,6 +63,28 @@ public sealed class ClaimMasterSeedPhase31Tests
         "service-identity", "selectors", "unit-rule-kind", "unit-rule-value",
         "unit-rule-target", "unit-rule-step", "unit-rule-rounding", "conditions",
         "effective-period", "master-values",
+        "unit-rule-formula", "unit-rule-comparison", "unit-rule-local-government-adjustment",
+        "unit-rule-runtime-input", "unit-rule-runtime-input-provenance",
+    ];
+
+    private static readonly string[] ProtectedFacilityServiceCodes =
+    [
+        "462841", "462842", "462843", "462844", "462845", "462846",
+        "46C841", "46C842", "46C843", "46C844", "46C845", "46C846",
+        "46D841", "46D842", "46D843", "46D844", "46D845", "46D846",
+        "46E841", "46E844", "46F841", "46F844",
+    ];
+
+    private static readonly string[] ProtectedFacilityEvidenceRangeIds =
+    [
+        "r6-protected-facility-b-comparison",
+        "r6-protected-facility-b-local-government",
+        "r6-protected-facility-b-current-consolidated",
+        "r8-protected-facility-b-current-consolidated",
+        "r6-protected-facility-administrative-expense-provenance",
+        "r8-protected-facility-administrative-expense-provenance",
+        "r6-protected-facility-b-formula-continuity",
+        "r6-protected-facility-b-local-government-continuity",
     ];
 
     private static readonly string[] ExpectedDocumentIds =
@@ -105,6 +130,9 @@ public sealed class ClaimMasterSeedPhase31Tests
         "r8-capability-correction",
         "r8-reward-structure",
         "r8-service-codes-2-pdf",
+        "current-fee-notice-html",
+        "protected-facility-administrative-expense-standard-html",
+        "h31-fee-notice-consolidated",
     ];
 
     private static readonly string[] ExpectedAuthoritativeDocumentIds =
@@ -116,6 +144,8 @@ public sealed class ClaimMasterSeedPhase31Tests
         "r6-service-codes-2-xlsx",
         "r8-capability-202606",
         "r8-service-codes-2-xlsx",
+        "current-fee-notice-html",
+        "protected-facility-administrative-expense-standard-html",
     ];
 
     [Fact]
@@ -127,8 +157,8 @@ public sealed class ClaimMasterSeedPhase31Tests
         root.EnumerateObject().Select(property => property.Name)
             .Should().Equal("schemaVersion", "documents", "rows");
         root.GetProperty("schemaVersion").GetString().Should().Be("2");
-        root.GetProperty("documents").GetArrayLength().Should().Be(41);
-        root.GetProperty("rows").GetArrayLength().Should().Be(14_718);
+        root.GetProperty("documents").GetArrayLength().Should().Be(44);
+        root.GetProperty("rows").GetArrayLength().Should().Be(14_726);
 
         foreach (var row in root.GetProperty("rows").EnumerateArray())
         {
@@ -160,6 +190,7 @@ public sealed class ClaimMasterSeedPhase31Tests
 
         var uniqueRowIds = rows.Select(row => (
             DocumentId: row.GetProperty("sourceDocumentId").GetString(),
+            RangeId: row.GetProperty("rangeId").GetString(),
             Locator: row.GetProperty("sourceLocator").GetString())).ToArray();
         uniqueRowIds.Should().OnlyHaveUniqueItems();
 
@@ -335,14 +366,14 @@ public sealed class ClaimMasterSeedPhase31Tests
     {
         using var manifest = OpenRepositoryJson(ManifestPath);
         var root = manifest.RootElement;
-        root.GetProperty("documents").GetArrayLength().Should().Be(41);
-        root.GetProperty("rows").GetArrayLength().Should().Be(14_718);
+        root.GetProperty("documents").GetArrayLength().Should().Be(44);
+        root.GetProperty("rows").GetArrayLength().Should().Be(14_726);
         var ranges = root.GetProperty("documents").EnumerateArray()
             .SelectMany(document => document.GetProperty("extractionRanges").EnumerateArray())
             .ToArray();
-        ranges.Should().HaveCount(53);
+        ranges.Should().HaveCount(61);
         ranges.Sum(range => range.GetProperty("expectedItemCount").GetInt32())
-            .Should().Be(14_718);
+            .Should().Be(14_726);
     }
 
     [Fact]
@@ -376,10 +407,9 @@ public sealed class ClaimMasterSeedPhase31Tests
                  })
         {
             var row = FindRow(rows, documentId, locator);
-            row.GetProperty("disposition").GetString().Should().Be("schema-gap");
-            GetProductionTargets(row).Should().BeEmpty();
-            row.GetProperty("exclusionReason").GetString().Should()
-                .StartWith("source-inventory-correction:");
+            row.GetProperty("disposition").GetString().Should().Be("seed");
+            GetProductionTargets(row).Should().NotBeEmpty();
+            row.GetProperty("exclusionReason").ValueKind.Should().Be(JsonValueKind.Null);
         }
     }
 
@@ -389,8 +419,11 @@ public sealed class ClaimMasterSeedPhase31Tests
         using var manifest = OpenRepositoryJson(ManifestPath);
         var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().ToArray();
 
-        CalculateOrderedIdentityDigest(rows).Should().Be(ExpectedOrderedIdentityDigest);
-        CalculateOrderedIdentityDigest(rows.Where(row =>
+        CalculateOrderedIdentityDigest(rows).Should().Be(ExpectedFinalOrderedIdentityDigest);
+        CalculateOrderedIdentityDigest(rows.Take(14_718)).Should()
+            .Be(ExpectedBaselineOrderedIdentityDigest,
+                because: "the protected-facility evidence rows must append to the baseline");
+        CalculateOrderedIdentityDigest(rows.Take(14_718).Where(row =>
                 !TreatmentImprovementCalculationLocators.Contains(
                     row.GetProperty("sourceLocator").GetString(),
                     StringComparer.Ordinal)))
@@ -434,10 +467,9 @@ public sealed class ClaimMasterSeedPhase31Tests
             row.GetProperty("rangeId").GetString().Should().Be("r6-b-reward-structure");
             row.GetProperty("effectiveFrom").GetString().Should().Be(effectiveFrom);
             row.GetProperty("effectiveTo").GetString().Should().Be(effectiveTo);
-            row.GetProperty("disposition").GetString().Should().Be("schema-gap");
-            GetProductionTargets(row).Should().BeEmpty();
-            row.GetProperty("exclusionReason").GetString().Should()
-                .StartWith("source-inventory-correction:");
+            row.GetProperty("disposition").GetString().Should().Be("seed");
+            GetProductionTargets(row).Should().NotBeEmpty();
+            row.GetProperty("exclusionReason").ValueKind.Should().Be(JsonValueKind.Null);
         }
     }
 
@@ -477,10 +509,9 @@ public sealed class ClaimMasterSeedPhase31Tests
             row.GetProperty("rangeId").GetString().Should().Be("r6-unit-and-cost-rounding");
             row.GetProperty("effectiveFrom").GetString().Should().Be(effectiveFrom);
             row.GetProperty("effectiveTo").GetString().Should().Be(effectiveTo);
-            row.GetProperty("disposition").GetString().Should().Be("schema-gap");
-            GetProductionTargets(row).Should().BeEmpty();
-            row.GetProperty("exclusionReason").GetString().Should()
-                .StartWith("source-inventory-correction:");
+            row.GetProperty("disposition").GetString().Should().Be("seed");
+            GetProductionTargets(row).Should().NotBeEmpty();
+            row.GetProperty("exclusionReason").ValueKind.Should().Be(JsonValueKind.Null);
         }
     }
 
@@ -564,6 +595,30 @@ public sealed class ClaimMasterSeedPhase31Tests
 
                         break;
                     }
+                case "html-lines":
+                    {
+                        locator.Should().MatchRegex(
+                            @"^html:lines=l\d+(?:-l\d+)?(?:,l\d+(?:-l\d+)?)*$");
+                        var lineFrom = range.GetProperty("lineFrom").GetInt32();
+                        var lineTo = range.GetProperty("lineTo").GetInt32();
+                        foreach (Match lineMatch in Regex.Matches(
+                                     locator,
+                                     @"l(\d+)(?:-l(\d+))?"))
+                        {
+                            var locatorFrom = int.Parse(
+                                lineMatch.Groups[1].Value,
+                                CultureInfo.InvariantCulture);
+                            var locatorTo = lineMatch.Groups[2].Success
+                                ? int.Parse(
+                                    lineMatch.Groups[2].Value,
+                                    CultureInfo.InvariantCulture)
+                                : locatorFrom;
+                            locatorFrom.Should().BeInRange(lineFrom, lineTo);
+                            locatorTo.Should().BeInRange(locatorFrom, lineTo);
+                        }
+
+                        break;
+                    }
                 default:
                     false.Should().BeTrue(because: $"unknown range kind must fail: {kind}");
                     break;
@@ -572,19 +627,145 @@ public sealed class ClaimMasterSeedPhase31Tests
     }
 
     [Fact]
-    public void Source_manifest_v2_inventory_correction_remains_stopped_for_reaudit()
+    public void Source_manifest_maps_the_protected_facility_rows_and_evidence_by_period()
+    {
+        using var manifest = OpenRepositoryJson(ManifestPath);
+        var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().ToArray();
+        var expectedSeedKeys = ProtectedFacilityServiceCodes
+            .Select(code => $"service-code-{code}")
+            .ToHashSet(StringComparer.Ordinal);
+
+        var primaryRows = rows.Where(IsProtectedFacilityPrimaryRow).ToArray();
+        primaryRows.Should().HaveCount(44);
+        primaryRows.Count(row => row.GetProperty("sourceDocumentId").GetString()
+                == "r6-service-codes-2-xlsx")
+            .Should().Be(22);
+        primaryRows.Count(row => row.GetProperty("sourceDocumentId").GetString()
+                == "r8-service-codes-2-xlsx")
+            .Should().Be(22);
+
+        foreach (var documentId in new[]
+                 {
+                     "r6-service-codes-2-xlsx",
+                     "r8-service-codes-2-xlsx",
+                 })
+        {
+            var documentRows = primaryRows.Where(row =>
+                    row.GetProperty("sourceDocumentId").GetString() == documentId)
+                .ToArray();
+            documentRows.SelectMany(GetProductionTargets)
+                .Where(target => target.GetProperty("mappingRole").GetString() == "primary")
+                .Select(target => target.GetProperty("seedKey").GetString()!)
+                .Should().BeEquivalentTo(expectedSeedKeys);
+
+            foreach (var row in documentRows)
+            {
+                row.GetProperty("disposition").GetString().Should().Be("seed");
+                var primaryTargets = GetProductionTargets(row).Where(target =>
+                        target.GetProperty("mappingRole").GetString() == "primary")
+                    .ToArray();
+                primaryTargets.Should().ContainSingle();
+                expectedSeedKeys.Should().Contain(
+                    primaryTargets[0].GetProperty("seedKey").GetString()!);
+                if (documentId.StartsWith("r6-", StringComparison.Ordinal))
+                {
+                    row.GetProperty("effectiveFrom").GetString().Should().Be("2024-04");
+                    row.GetProperty("effectiveTo").GetString().Should().Be("2026-05");
+                    primaryTargets[0].GetProperty("mappingReason").GetString()
+                        .Should().NotBeNullOrWhiteSpace();
+                }
+                else
+                {
+                    row.GetProperty("effectiveFrom").GetString().Should().Be("2026-06");
+                    row.GetProperty("effectiveTo").ValueKind.Should().Be(JsonValueKind.Null);
+                }
+            }
+        }
+
+        var evidenceRows = rows.Where(row =>
+                ProtectedFacilityEvidenceRangeIds.Contains(
+                    row.GetProperty("rangeId").GetString(),
+                    StringComparer.Ordinal))
+            .ToArray();
+        evidenceRows.Should().HaveCount(8);
+        evidenceRows.Select(row => row.GetProperty("rangeId").GetString())
+            .Should().Equal(ProtectedFacilityEvidenceRangeIds);
+        foreach (var row in evidenceRows)
+        {
+            row.GetProperty("disposition").GetString().Should().Be("seed");
+            var targets = GetProductionTargets(row);
+            targets.Should().HaveCount(22);
+            targets.Should().OnlyContain(target =>
+                target.GetProperty("masterKind").GetString() == "service-codes"
+                && target.GetProperty("mappingRole").GetString() == "supporting-evidence"
+                && !string.IsNullOrWhiteSpace(
+                    target.GetProperty("mappingReason").GetString()));
+            targets.Select(target => target.GetProperty("seedKey").GetString()!)
+                .Should().BeEquivalentTo(expectedSeedKeys);
+
+            if (row.GetProperty("rangeId").GetString()!.StartsWith(
+                    "r8-",
+                    StringComparison.Ordinal))
+            {
+                row.GetProperty("effectiveFrom").GetString().Should().Be("2026-06");
+                row.GetProperty("effectiveTo").ValueKind.Should().Be(JsonValueKind.Null);
+            }
+            else
+            {
+                row.GetProperty("effectiveFrom").GetString().Should().Be("2024-04");
+                row.GetProperty("effectiveTo").GetString().Should().Be("2026-05");
+            }
+        }
+
+        evidenceRows.Where(row => row.GetProperty("sourceDocumentId").GetString()
+                == "h31-fee-notice-consolidated")
+            .Should().HaveCount(2)
+            .And.OnlyContain(row =>
+                row.GetProperty("effectiveTo").GetString() == "2026-05");
+
+        foreach (var (documentId, locator, effectiveFrom) in new[]
+                 {
+                     ("r6-calculation-note", "pdf:physical-page=8", "2024-04"),
+                     ("r6-calculation-note", "pdf:physical-page=9", "2024-04"),
+                     ("r8-calculation-note", "pdf:physical-page=8", "2026-06"),
+                     ("r8-calculation-note", "pdf:physical-page=9", "2026-06"),
+                     ("r8-fee-notice", "pdf:physical-page=56", "2026-06"),
+                 })
+        {
+            var row = FindRow(rows, documentId, locator);
+            row.GetProperty("effectiveFrom").GetString().Should().Be(effectiveFrom);
+            GetProductionTargets(row).Where(target =>
+                    target.GetProperty("masterKind").GetString() == "service-codes"
+                    && expectedSeedKeys.Contains(target.GetProperty("seedKey").GetString()!))
+                .Should().HaveCount(22)
+                .And.OnlyContain(target =>
+                    target.GetProperty("mappingRole").GetString() == "supporting-evidence");
+        }
+    }
+
+    [Fact]
+    public void Source_manifest_v2_has_no_schema_gaps_before_seed_transcription()
+    {
+        using var manifest = OpenRepositoryJson(ManifestPath);
+        manifest.RootElement.GetProperty("rows").EnumerateArray()
+            .Should().NotContain(row =>
+                row.GetProperty("disposition").GetString() == "schema-gap");
+    }
+
+    [Fact]
+    public void Source_manifest_v2_inventory_is_finalized_without_schema_gaps()
     {
         using var manifest = OpenRepositoryJson(ManifestPath);
         var rows = manifest.RootElement.GetProperty("rows").EnumerateArray().ToArray();
 
-        rows.Should().HaveCount(14_718);
+        rows.Should().HaveCount(14_726);
         rows.Count(row => row.GetProperty("disposition").GetString() == "seed")
-            .Should().Be(15);
+            .Should().Be(14_189);
         rows.Count(row => row.GetProperty("disposition").GetString() == "excluded")
-            .Should().Be(744);
+            .Should().Be(537);
         rows.Count(row =>
                 row.GetProperty("disposition").GetString() == "schema-gap")
-            .Should().Be(13_959);
+            .Should().Be(0);
     }
 
     [Fact]
@@ -699,21 +880,46 @@ public sealed class ClaimMasterSeedPhase31Tests
             row.GetProperty("exclusionReason").GetString().Should().Contain("継続行");
         }
 
-        var allowedGapReasons = new[]
-        {
-            "numeric-composite-unit:",
-            "unit-addition-or-other-operation:",
-            "condition-rate-calculation-structure:",
-        };
         rows.Where(row =>
                 row.GetProperty("disposition").GetString() == "schema-gap"
                 && row.GetProperty("sourceDocumentId").GetString()!.EndsWith(
                     "service-codes-2-xlsx",
                     StringComparison.Ordinal))
-            .Should().OnlyContain(row => allowedGapReasons.Any(prefix =>
-                row.GetProperty("exclusionReason").GetString()!.StartsWith(
-                    prefix,
-                    StringComparison.Ordinal)));
+            .Should().BeEmpty();
+    }
+
+    private static bool IsProtectedFacilityPrimaryRow(JsonElement row)
+    {
+        var locator = row.GetProperty("sourceLocator").GetString();
+        var match = Regex.Match(locator ?? string.Empty, @"^workbook-order=(\d+);row=(\d+)$");
+        if (!match.Success)
+        {
+            return false;
+        }
+
+        var workbookOrder = int.Parse(
+            match.Groups[1].Value,
+            CultureInfo.InvariantCulture);
+        var sourceRow = int.Parse(
+            match.Groups[2].Value,
+            CultureInfo.InvariantCulture);
+        var documentId = row.GetProperty("sourceDocumentId").GetString();
+        var rangeId = row.GetProperty("rangeId").GetString();
+
+        return (documentId, rangeId, workbookOrder) switch
+        {
+            ("r6-service-codes-2-xlsx", "r6-b-basic", 38) => sourceRow is >= 907 and <= 912,
+            ("r6-service-codes-2-xlsx", "r6-b-support-staff-shortage", 40) =>
+                sourceRow is >= 1807 and <= 1818,
+            ("r6-service-codes-2-xlsx", "r6-b-service-manager-shortage", 41) =>
+                sourceRow is >= 607 and <= 610,
+            ("r8-service-codes-2-xlsx", "r8-b-basic", 38) => sourceRow is >= 1987 and <= 1992,
+            ("r8-service-codes-2-xlsx", "r8-b-support-staff-shortage", 40) =>
+                sourceRow is >= 3967 and <= 3978,
+            ("r8-service-codes-2-xlsx", "r8-b-service-manager-shortage", 41) =>
+                sourceRow is >= 1327 and <= 1330,
+            _ => false,
+        };
     }
 
     private static JsonElement[] GetProductionTargets(JsonElement row)
@@ -800,7 +1006,7 @@ public sealed class ClaimMasterSeedPhase31Tests
     private static void AssertRangeContract(JsonElement range)
     {
         var kind = range.GetProperty("kind").GetString();
-        kind.Should().BeOneOf("xlsx-rows", "pdf-pages", "html-page");
+        kind.Should().BeOneOf("xlsx-rows", "pdf-pages", "html-page", "html-lines");
         range.GetProperty("expectedItemCount").GetInt32().Should().BeGreaterThan(0);
 
         switch (kind)
@@ -840,6 +1046,17 @@ public sealed class ClaimMasterSeedPhase31Tests
                     "pageNo",
                     "expectedItemCount");
                 range.GetProperty("pageNo").GetInt32().Should().BeGreaterThan(0);
+                break;
+            case "html-lines":
+                range.EnumerateObject().Select(property => property.Name).Should().Equal(
+                    "rangeId",
+                    "kind",
+                    "lineFrom",
+                    "lineTo",
+                    "expectedItemCount");
+                var lineFrom = range.GetProperty("lineFrom").GetInt32();
+                lineFrom.Should().BeGreaterThan(0);
+                range.GetProperty("lineTo").GetInt32().Should().BeGreaterThanOrEqualTo(lineFrom);
                 break;
         }
     }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import importlib.util
 import json
@@ -11,6 +12,102 @@ import unittest
 
 
 MODULE_PATH = Path(__file__).parents[1] / "phase3_task13_manifest_v2.py"
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+REPOSITORY_MANIFEST_PATH = (
+    REPOSITORY_ROOT
+    / "docs/spec-data/phase3/claim-master-source-row-manifest.json"
+)
+SOURCE_CATALOG_PATH = (
+    REPOSITORY_ROOT / "src/Tsumugi.Infrastructure/ClaimMasters/Seed/sources.json"
+)
+BASELINE_IDENTITY_SHA = (
+    "90fb9d309e878d22f0d4bb867c4fe36c3fab83ad45938b64da2d5b3bfd34dee7"
+)
+FINAL_IDENTITY_SHA = (
+    "c80f4e8da0aefc9d91bd978777bdb8e59261f4982826555f8a324e2023b9bcd7"
+)
+PROTECTED_CODES = [
+    "462841", "462842", "462843", "462844", "462845", "462846",
+    "46C841", "46C842", "46C843", "46C844", "46C845", "46C846",
+    "46D841", "46D842", "46D843", "46D844", "46D845", "46D846",
+    "46E841", "46E844", "46F841", "46F844",
+]
+PROTECTED_GAP_GROUPS = [
+    (
+        "r6-service-codes-2-xlsx",
+        "r6-b-basic",
+        [f"workbook-order=38;row={row}" for row in range(907, 913)],
+    ),
+    (
+        "r6-service-codes-2-xlsx",
+        "r6-b-support-staff-shortage",
+        [f"workbook-order=40;row={row}" for row in range(1807, 1819)],
+    ),
+    (
+        "r6-service-codes-2-xlsx",
+        "r6-b-service-manager-shortage",
+        [f"workbook-order=41;row={row}" for row in range(607, 611)],
+    ),
+    (
+        "r8-service-codes-2-xlsx",
+        "r8-b-basic",
+        [f"workbook-order=38;row={row}" for row in range(1987, 1993)],
+    ),
+    (
+        "r8-service-codes-2-xlsx",
+        "r8-b-support-staff-shortage",
+        [f"workbook-order=40;row={row}" for row in range(3967, 3979)],
+    ),
+    (
+        "r8-service-codes-2-xlsx",
+        "r8-b-service-manager-shortage",
+        [f"workbook-order=41;row={row}" for row in range(1327, 1331)],
+    ),
+]
+PROTECTED_GAP_IDENTITIES = [
+    (document_id, range_id, locator)
+    for document_id, range_id, locators in PROTECTED_GAP_GROUPS
+    for locator in locators
+]
+PROTECTED_EVIDENCE_IDENTITIES = [
+    ("r6-fee-notice", "r6-protected-facility-b-comparison", "pdf:physical-page=137"),
+    (
+        "r6-fee-notice",
+        "r6-protected-facility-b-local-government",
+        "pdf:physical-page=138",
+    ),
+    (
+        "current-fee-notice-html",
+        "r6-protected-facility-b-current-consolidated",
+        "html:lines=l000002791,l000002793",
+    ),
+    (
+        "current-fee-notice-html",
+        "r8-protected-facility-b-current-consolidated",
+        "html:lines=l000002791,l000002793",
+    ),
+    (
+        "protected-facility-administrative-expense-standard-html",
+        "r6-protected-facility-administrative-expense-provenance",
+        "html:lines=l000000054,l000000060-l000000062",
+    ),
+    (
+        "protected-facility-administrative-expense-standard-html",
+        "r8-protected-facility-administrative-expense-provenance",
+        "html:lines=l000000054,l000000060-l000000062",
+    ),
+    (
+        "h31-fee-notice-consolidated",
+        "r6-protected-facility-b-formula-continuity",
+        "pdf:physical-page=46",
+    ),
+    (
+        "h31-fee-notice-consolidated",
+        "r6-protected-facility-b-local-government-continuity",
+        "pdf:physical-page=47",
+    ),
+]
+PROTECTED_RANGE_IDS = {identity[1] for identity in PROTECTED_EVIDENCE_IDENTITIES}
 if MODULE_PATH.exists():
     SPEC = importlib.util.spec_from_file_location("phase3_task13_manifest_v2", MODULE_PATH)
     assert SPEC is not None and SPEC.loader is not None
@@ -143,6 +240,53 @@ def run_cli(*arguments: str) -> subprocess.CompletedProcess[str]:
         capture_output=True,
         text=True,
     )
+
+
+def make_protected_facility_baseline() -> dict:
+    manifest = json.loads(REPOSITORY_MANIFEST_PATH.read_text(encoding="utf-8"))
+    baseline = copy.deepcopy(manifest)
+    baseline["documents"] = baseline["documents"][:41]
+    r6_fee_notice = next(
+        document
+        for document in baseline["documents"]
+        if document["documentId"] == "r6-fee-notice"
+    )
+    r6_fee_notice["extractionRanges"] = [
+        extraction_range
+        for extraction_range in r6_fee_notice["extractionRanges"]
+        if extraction_range["rangeId"] not in PROTECTED_RANGE_IDS
+    ]
+    baseline["rows"] = baseline["rows"][:14_718]
+
+    rows_by_identity = {
+        fixture_identity(row): row for row in baseline["rows"]
+    }
+    protected_seed_keys = {f"service-code-{code}" for code in PROTECTED_CODES}
+    for supporting_identity in (
+        ("r6-calculation-note", "r6-unit-and-cost-rounding", "pdf:physical-page=8"),
+        ("r6-calculation-note", "r6-unit-and-cost-rounding", "pdf:physical-page=9"),
+        ("r8-calculation-note", "r8-unit-and-cost-rounding", "pdf:physical-page=8"),
+        ("r8-calculation-note", "r8-unit-and-cost-rounding", "pdf:physical-page=9"),
+        (
+            "r8-fee-notice",
+            "r8-b-emergency-rate-and-reduction-continuity",
+            "pdf:physical-page=56",
+        ),
+    ):
+        supporting_row = rows_by_identity[supporting_identity]
+        supporting_row["productionTargets"] = [
+            target
+            for target in supporting_row["productionTargets"]
+            if target["seedKey"] not in protected_seed_keys
+        ]
+    for target_identity in PROTECTED_GAP_IDENTITIES:
+        row = rows_by_identity[target_identity]
+        row["disposition"] = "schema-gap"
+        row["productionTargets"] = []
+        row["exclusionReason"] = (
+            "protected-facility-benchmark-minimum: schema contract pending"
+        )
+    return baseline
 
 
 class ModuleAvailabilityTests(unittest.TestCase):
@@ -637,6 +781,235 @@ class ConverterBehaviorTests(unittest.TestCase):
                         [],
                         list(temporary_path.glob(f".{output_path.name}.*.tmp")),
                     )
+
+
+@unittest.skipUnless(manifest_v2 is not None, "converter module is not implemented")
+class ProtectedFacilityFinalizerTests(unittest.TestCase):
+    def test_finalizer_constants_close_the_exact_support_and_identity_contracts(self) -> None:
+        self.assertEqual(BASELINE_IDENTITY_SHA, manifest_v2.BASELINE_IDENTITY_SHA)
+        self.assertEqual(FINAL_IDENTITY_SHA, manifest_v2.FINAL_IDENTITY_SHA)
+        self.assertEqual(
+            list(zip(PROTECTED_GAP_IDENTITIES, PROTECTED_CODES * 2)),
+            [
+                ((document_id, range_id, locator), code)
+                for document_id, range_id, locator, code
+                in manifest_v2.PROTECTED_GAP_TARGETS
+            ],
+        )
+        self.assertEqual(
+            {
+                "service-identity",
+                "selectors",
+                "unit-rule-kind",
+                "unit-rule-value",
+                "unit-rule-target",
+                "unit-rule-step",
+                "unit-rule-rounding",
+                "conditions",
+                "effective-period",
+                "master-values",
+                "unit-rule-formula",
+                "unit-rule-comparison",
+                "unit-rule-local-government-adjustment",
+                "unit-rule-runtime-input",
+                "unit-rule-runtime-input-provenance",
+            },
+            manifest_v2.ALLOWED_SUPPORTS,
+        )
+
+    def test_finalize_rejects_wrong_digest_counts_and_gap_identities(self) -> None:
+        baseline = make_protected_facility_baseline()
+        catalog = json.loads(SOURCE_CATALOG_PATH.read_text(encoding="utf-8"))
+
+        wrong_digest = copy.deepcopy(baseline)
+        wrong_digest["rows"][0], wrong_digest["rows"][1] = (
+            wrong_digest["rows"][1],
+            wrong_digest["rows"][0],
+        )
+        with self.assertRaisesRegex(ValueError, "baseline identity digest mismatch"):
+            manifest_v2.finalize_protected_facility(wrong_digest, catalog)
+
+        wrong_counts = copy.deepcopy(baseline)
+        gap_row = next(
+            row
+            for row in wrong_counts["rows"]
+            if fixture_identity(row) == PROTECTED_GAP_IDENTITIES[0]
+        )
+        gap_row["disposition"] = "excluded"
+        with self.assertRaisesRegex(ValueError, "baseline disposition counts mismatch"):
+            manifest_v2.finalize_protected_facility(wrong_counts, catalog)
+
+        wrong_gaps = copy.deepcopy(baseline)
+        rows_by_identity = {
+            fixture_identity(row): row for row in wrong_gaps["rows"]
+        }
+        removed_gap = rows_by_identity[PROTECTED_GAP_IDENTITIES[0]]
+        removed_gap["disposition"] = "seed"
+        removed_gap["productionTargets"] = [make_target(seedKey="service-code-462841")]
+        removed_gap["exclusionReason"] = None
+        replacement_gap = next(
+            row
+            for row in wrong_gaps["rows"]
+            if fixture_identity(row) not in PROTECTED_GAP_IDENTITIES
+            and row["disposition"] == "seed"
+        )
+        replacement_gap["disposition"] = "schema-gap"
+        replacement_gap["productionTargets"] = []
+        replacement_gap["exclusionReason"] = "replacement gap"
+        with self.assertRaisesRegex(ValueError, "baseline schema-gap identities mismatch"):
+            manifest_v2.finalize_protected_facility(wrong_gaps, catalog)
+
+    def test_finalize_preserves_baseline_as_ordered_subsequence_and_closes_inventory(self) -> None:
+        baseline = make_protected_facility_baseline()
+        catalog = json.loads(SOURCE_CATALOG_PATH.read_text(encoding="utf-8"))
+
+        first = manifest_v2.finalize_protected_facility(baseline, catalog)
+        second = manifest_v2.finalize_protected_facility(
+            copy.deepcopy(baseline),
+            copy.deepcopy(catalog),
+        )
+
+        self.assertEqual(first, second)
+        self.assertEqual(
+            [fixture_identity(row) for row in baseline["rows"]],
+            [fixture_identity(row) for row in first["rows"][:14_718]],
+        )
+        self.assertEqual(
+            {
+                "documents": 44,
+                "ranges": 61,
+                "rows": 14_726,
+                "identitySha256": FINAL_IDENTITY_SHA,
+            },
+            manifest_v2.inventory_summary(first, "final"),
+        )
+        disposition_counts = {
+            disposition: sum(
+                row["disposition"] == disposition for row in first["rows"]
+            )
+            for disposition in ("seed", "excluded", "schema-gap")
+        }
+        self.assertEqual(
+            {"seed": 14_189, "excluded": 537, "schema-gap": 0},
+            disposition_counts,
+        )
+
+        rows_by_identity = {
+            fixture_identity(row): row for row in first["rows"]
+        }
+        for identity_value in PROTECTED_GAP_IDENTITIES:
+            row = rows_by_identity[identity_value]
+            self.assertEqual("seed", row["disposition"])
+            primary_targets = [
+                target
+                for target in row["productionTargets"]
+                if target["mappingRole"] == "primary"
+            ]
+            self.assertEqual(1, len(primary_targets))
+            if identity_value[0].startswith("r6-"):
+                self.assertTrue(primary_targets[0]["mappingReason"].strip())
+
+    def test_evidence_rows_map_only_to_the_22_same_period_planned_targets(self) -> None:
+        final = manifest_v2.finalize_protected_facility(
+            make_protected_facility_baseline(),
+            json.loads(SOURCE_CATALOG_PATH.read_text(encoding="utf-8")),
+        )
+        evidence_rows = final["rows"][-8:]
+
+        self.assertEqual(
+            PROTECTED_EVIDENCE_IDENTITIES,
+            [fixture_identity(row) for row in evidence_rows],
+        )
+        expected_seed_keys = {f"service-code-{code}" for code in PROTECTED_CODES}
+        for row in evidence_rows:
+            self.assertEqual("seed", row["disposition"])
+            self.assertEqual(22, len(row["productionTargets"]))
+            self.assertEqual(
+                expected_seed_keys,
+                {target["seedKey"] for target in row["productionTargets"]},
+            )
+            self.assertTrue(
+                all(
+                    target["mappingRole"] == "supporting-evidence"
+                    and target["mappingReason"].strip()
+                    for target in row["productionTargets"]
+                )
+            )
+            if row["rangeId"].startswith("r6-"):
+                self.assertEqual(("2024-04", "2026-05"), (
+                    row["effectiveFrom"], row["effectiveTo"]
+                ))
+            else:
+                self.assertEqual(("2026-06", None), (
+                    row["effectiveFrom"], row["effectiveTo"]
+                ))
+        self.assertTrue(
+            all(
+                row["effectiveTo"] == "2026-05"
+                for row in evidence_rows
+                if row["sourceDocumentId"] == "h31-fee-notice-consolidated"
+            )
+        )
+
+    def test_finalize_cli_is_deterministic_and_atomic_on_failure(self) -> None:
+        baseline = make_protected_facility_baseline()
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_path = Path(temporary)
+            manifest_path = temporary_path / "baseline.json"
+            manifest_path.write_text(
+                json.dumps(baseline, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            first_output = temporary_path / "first.json"
+            second_output = temporary_path / "second.json"
+            arguments = (
+                "finalize-protected-facility",
+                "--manifest",
+                str(manifest_path),
+                "--source-catalog",
+                str(SOURCE_CATALOG_PATH),
+            )
+
+            first = run_cli(*arguments, "--output", str(first_output))
+            second = run_cli(*arguments, "--output", str(second_output))
+
+            self.assertEqual(0, first.returncode, msg=first.stderr)
+            self.assertEqual(0, second.returncode, msg=second.stderr)
+            self.assertEqual(first_output.read_bytes(), second_output.read_bytes())
+
+            invalid = copy.deepcopy(baseline)
+            invalid["rows"][0], invalid["rows"][1] = (
+                invalid["rows"][1],
+                invalid["rows"][0],
+            )
+            invalid_path = temporary_path / "invalid.json"
+            invalid_path.write_text(
+                json.dumps(invalid, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            preserved_output = temporary_path / "preserved.json"
+            preserved_output.write_text("preserve-existing-output\n", encoding="utf-8")
+
+            failed = run_cli(
+                "finalize-protected-facility",
+                "--manifest",
+                str(invalid_path),
+                "--source-catalog",
+                str(SOURCE_CATALOG_PATH),
+                "--output",
+                str(preserved_output),
+            )
+
+            self.assertNotEqual(0, failed.returncode)
+            self.assertEqual("", failed.stdout)
+            self.assertEqual(
+                "preserve-existing-output\n",
+                preserved_output.read_text(encoding="utf-8"),
+            )
+            self.assertEqual(
+                [],
+                list(temporary_path.glob(f".{preserved_output.name}.*.tmp")),
+            )
 
 
 if __name__ == "__main__":
