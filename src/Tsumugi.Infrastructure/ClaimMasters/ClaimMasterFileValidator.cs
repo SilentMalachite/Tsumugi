@@ -127,7 +127,7 @@ internal static class ClaimMasterFileValidator
                 new PeriodRow(condition.Key, condition.EffectiveFrom, condition.EffectiveTo)));
 
         ValidateServiceIdentity(serviceCodes);
-        ValidateConditions(serviceCodes, conditionDefinitions);
+        ValidateConditions(serviceCodes, conditionDefinitions, authority);
         ValidateReferences(basicRewards, unitAdjustments, serviceCodes);
         ValidateAdjustmentCycles(unitAdjustments);
         ValidateServiceTargetCycles(serviceCodes);
@@ -1773,6 +1773,11 @@ internal static class ClaimMasterFileValidator
                 validateCrossReferences))
             .ToArray();
         ValidateFactorOrder(factors, fileName, key, validateCrossReferences);
+        ValidateProtectedFacilityFactorSequence(
+            factors,
+            fileName,
+            key,
+            validateCrossReferences);
 
         var billingUnitText = ExactString(
             element,
@@ -1796,14 +1801,34 @@ internal static class ClaimMasterFileValidator
         string key,
         bool validateCrossReferences)
     {
+        var orders = factors.Select(factor => factor.Order).Order().ToArray();
         if (validateCrossReferences
-            && factors.Select((factor, index) => factor.Order == index + 1).Any(valid => !valid))
+            && !orders.SequenceEqual(Enumerable.Range(1, orders.Length)))
         {
             throw Invalid(
                 fileName,
                 key,
                 "factors.order",
                 "must be unique and contiguous from one");
+        }
+    }
+
+    private static void ValidateProtectedFacilityFactorSequence(
+        IReadOnlyCollection<ServiceCodeFormulaFactor> factors,
+        string fileName,
+        string key,
+        bool validateCrossReferences)
+    {
+        if (validateCrossReferences
+            && factors
+                .Select((factor, index) => factor.Order == index + 1)
+                .Any(valid => !valid))
+        {
+            throw Invalid(
+                fileName,
+                key,
+                "unitRule.factors.order",
+                "must match its one-based array position");
         }
     }
 
@@ -2253,7 +2278,8 @@ internal static class ClaimMasterFileValidator
 
     private static void ValidateConditions(
         IReadOnlyList<ServiceCodeMasterRow> serviceCodes,
-        IReadOnlyList<ClaimConditionDefinition> definitions)
+        IReadOnlyList<ClaimConditionDefinition> definitions,
+        SourceAuthorityValidator authority)
     {
         var byKey = definitions
             .GroupBy(definition => definition.Key, StringComparer.Ordinal)
@@ -2305,9 +2331,87 @@ internal static class ClaimMasterFileValidator
                         "unitRule.benchmark.localGovernmentAdjustment.conditionSelector",
                         $"condition '{selector}' does not cover the service period");
                 }
+
+                ValidateProtectedFacilityConditionAuthority(
+                    service,
+                    protectedFacility,
+                    byKey,
+                    authority);
             }
 
             ValidateConditionIntersection(service, byKey);
+        }
+    }
+
+    private static void ValidateProtectedFacilityConditionAuthority(
+        ServiceCodeMasterRow service,
+        ProtectedFacilityBenchmarkMinimumRule rule,
+        Dictionary<string, ClaimConditionDefinition[]> definitionsByKey,
+        SourceAuthorityValidator authority)
+    {
+        var serviceIsR8 = service.EffectiveFrom >= R8EffectiveFrom;
+        var expectedDocumentId = serviceIsR8
+            ? "r8-service-codes-2-xlsx"
+            : "r6-service-codes-2-xlsx";
+        var selectors = service.ConditionSelectors
+            .Concat(rule.Factors.SelectMany(factor => factor.ConditionSelectors))
+            .Append(rule.Benchmark.LocalGovernmentAdjustment.ConditionSelector)
+            .Distinct(StringComparer.Ordinal);
+
+        foreach (var selector in selectors)
+        {
+            var covering = definitionsByKey[selector]
+                .Where(definition =>
+                    definition.EffectiveFrom <= service.EffectiveFrom
+                    && (definition.EffectiveTo is null
+                        || service.EffectiveTo is { } serviceEnd
+                        && definition.EffectiveTo.Value >= serviceEnd))
+                .ToArray();
+            if (covering.Length != 1)
+            {
+                throw Invalid(
+                    "service-codes.json",
+                    service.Key,
+                    $"conditionDefinitions.{selector}",
+                    "must contain one definition covering the protected-facility service period");
+            }
+
+            var definition = covering[0];
+            var periodField =
+                $"conditionDefinitions.{selector}.effectiveFrom/effectiveTo";
+            if (definition.EffectiveFrom < R8EffectiveFrom
+                && (definition.EffectiveTo is null
+                    || definition.EffectiveTo >= R8EffectiveFrom))
+            {
+                throw Invalid(
+                    "service-codes.json",
+                    service.Key,
+                    periodField,
+                    "must not cross the R8 boundary at 2026-06");
+            }
+
+            var definitionIsR8 = definition.EffectiveFrom >= R8EffectiveFrom;
+            if (definitionIsR8 != serviceIsR8)
+            {
+                throw Invalid(
+                    "service-codes.json",
+                    service.Key,
+                    periodField,
+                    "must be in the same R6/R8 segment as the protected-facility service");
+            }
+
+            authority.ValidateExpectedAuthoritativeDocument(
+                definition.SourceRefs,
+                ClaimSourceSupport.Conditions,
+                expectedDocumentId,
+                "service-codes.json",
+                definition.Key);
+            authority.ValidateExpectedAuthoritativeDocument(
+                definition.SourceRefs,
+                ClaimSourceSupport.EffectivePeriod,
+                expectedDocumentId,
+                "service-codes.json",
+                definition.Key);
         }
     }
 

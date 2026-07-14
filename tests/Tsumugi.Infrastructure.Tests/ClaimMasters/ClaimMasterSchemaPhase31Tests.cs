@@ -612,6 +612,24 @@ public sealed class ClaimMasterSchemaPhase31Tests
     }
 
     [Fact]
+    public void Load_accepts_existing_factor_chain_with_out_of_sequence_contiguous_orders()
+    {
+        var masters = ValidMasters();
+        MutateService(masters, "service-factor", values =>
+        {
+            var factors = values["unitRule"]!["factors"]!.AsArray();
+            var second = factors[0]!.DeepClone().AsObject();
+            second["order"] = 2;
+            second["rate"] = "0.5";
+            factors.Insert(0, second);
+        });
+
+        var action = () => Load(masters);
+
+        action.Should().NotThrow();
+    }
+
+    [Fact]
     public void Load_rejects_formula_mode_specific_field_mixing()
     {
         var masters = ValidMasters();
@@ -747,7 +765,8 @@ public sealed class ClaimMasterSchemaPhase31Tests
         var action = () => LoadBundle(masters, RepresentativeCatalogJson);
 
         action.Should().Throw<InvalidDataException>()
-            .WithMessage("*service-two-factor*factors.order*unique and contiguous*");
+            .WithMessage(
+                "*service-two-factor*unitRule.factors.order*one-based array position*");
     }
 
     [Fact]
@@ -919,6 +938,45 @@ public sealed class ClaimMasterSchemaPhase31Tests
 
         action.Should().Throw<InvalidDataException>()
             .WithMessage("*service-pass-through*effectiveFrom/effectiveTo*R8 boundary*");
+    }
+
+    [Fact]
+    public void Load_rejects_r8_protected_facility_condition_with_r6_source_authority()
+    {
+        var masters = R8ProtectedFacilityRepresentativeMasters();
+        MutateCondition(
+            masters,
+            "municipality-ownership:local-government",
+            "2026-06",
+            condition =>
+            {
+                var sourceRef = condition["sourceRefs"]![0]!.AsObject();
+                sourceRef["documentId"] = "r6-service-codes-2-xlsx";
+                sourceRef["sha256"] = R6ServiceCodesSha256;
+            });
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage(
+                "*municipality-ownership:local-government*conditions*r8-service-codes-2-xlsx*");
+    }
+
+    [Theory]
+    [InlineData("municipality-ownership:local-government")]
+    [InlineData("plan-not-created")]
+    public void Load_rejects_r6_protected_facility_condition_crossing_r8_boundary(
+        string conditionSelector)
+    {
+        var masters = ProtectedFacilityRepresentativeMasters();
+        MutateCondition(masters, conditionSelector, condition =>
+            condition["effectiveTo"] = null);
+
+        var action = () => LoadBundle(masters, RepresentativeCatalogJson);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage(
+                $"*{conditionSelector}*effectiveFrom/effectiveTo*R8 boundary*");
     }
 
     [Fact]
@@ -2061,6 +2119,22 @@ public sealed class ClaimMasterSchemaPhase31Tests
     {
         var root = MasterRoot(masters, "service-codes.json");
         mutate(ConditionByKey(root, key));
+        SaveRoot(masters, "service-codes.json", root);
+    }
+
+    private static void MutateCondition(
+        Dictionary<string, string> masters,
+        string key,
+        string effectiveFrom,
+        Action<JsonObject> mutate)
+    {
+        var root = MasterRoot(masters, "service-codes.json");
+        var condition = root["conditionDefinitions"]!.AsArray()
+            .Select(node => node!.AsObject())
+            .Single(candidate =>
+                candidate["key"]!.GetValue<string>() == key
+                && candidate["effectiveFrom"]!.GetValue<string>() == effectiveFrom);
+        mutate(condition);
         SaveRoot(masters, "service-codes.json", root);
     }
 
