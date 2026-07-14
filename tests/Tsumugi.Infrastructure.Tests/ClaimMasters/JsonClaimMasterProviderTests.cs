@@ -77,6 +77,9 @@ public sealed class JsonClaimMasterProviderTests
         "r8-service-codes-2-xlsx",
         "r8-claim-decision-pdf",
         "r8-claim-decision-xls",
+        "current-fee-notice-html",
+        "protected-facility-administrative-expense-standard-html",
+        "h31-fee-notice-consolidated",
     ];
 
     public static TheoryData<int, int, string> EmbeddedReleaseCases => new()
@@ -180,7 +183,7 @@ public sealed class JsonClaimMasterProviderTests
     }
 
     [Fact]
-    public void Embedded_catalog_matches_the_adr_source_ids_and_release_bundles()
+    public void Embedded_source_catalog_matches_the_adr_source_ids_and_shape()
     {
         using var stream = OpenEmbedded(".ClaimMasters.Seed.sources.json");
         using var document = JsonDocument.Parse(stream);
@@ -190,9 +193,25 @@ public sealed class JsonClaimMasterProviderTests
         var sourceIds = root.GetProperty("sources").EnumerateArray()
             .Select(source => source.GetProperty("documentId").GetString())
             .ToArray();
+        sourceIds.Should().HaveCount(66);
         sourceIds.Should().Equal(ExpectedSourceIds);
 
-        var releases = root.GetProperty("releases").EnumerateArray().ToArray();
+        foreach (var source in root.GetProperty("sources").EnumerateArray())
+        {
+            source.EnumerateObject().Select(property => property.Name).Should().Equal(
+                "documentId", "title", "publisher", "effectiveAt", "publishedAt", "retrievedAt",
+                "url", "sha256", "supersedes", "corrects", "supplements", "applicabilityNote",
+                "correctionNote");
+        }
+    }
+
+    [Fact]
+    public void Embedded_release_bundles_append_the_formula_sources_in_exact_order()
+    {
+        using var stream = OpenEmbedded(".ClaimMasters.Seed.sources.json");
+        using var document = JsonDocument.Parse(stream);
+        var releases = document.RootElement.GetProperty("releases").EnumerateArray().ToArray();
+
         releases.Select(release => release.GetProperty("masterVersion").GetString())
             .Should().Equal(
                 "claim-master-r6-04", "claim-master-r6-06", "claim-master-r7-01",
@@ -202,14 +221,69 @@ public sealed class JsonClaimMasterProviderTests
         ReleaseSourceIds(releases[2]).Should().Equal(ExpectedR701Sources);
         ReleaseSourceIds(releases[3]).Should().Equal(ExpectedR709Sources);
         ReleaseSourceIds(releases[4]).Should().Equal(ExpectedR806Sources);
+        ReleaseSourceIds(releases[4]).Should().NotContain("h31-fee-notice-consolidated");
+    }
 
-        foreach (var source in root.GetProperty("sources").EnumerateArray())
-        {
-            source.EnumerateObject().Select(property => property.Name).Should().Equal(
-                "documentId", "title", "publisher", "effectiveAt", "publishedAt", "retrievedAt",
-                "url", "sha256", "supersedes", "corrects", "supplements", "applicabilityNote",
-                "correctionNote");
-        }
+    [Fact]
+    public void Embedded_source_catalog_registers_the_current_fee_notice_html()
+    {
+        using var stream = OpenEmbedded(".ClaimMasters.Seed.sources.json");
+        using var document = JsonDocument.Parse(stream);
+        var source = SourceById(document.RootElement, "current-fee-notice-html");
+
+        source.GetProperty("title").GetString().Should().Be(
+            "障害者の日常生活及び社会生活を総合的に支援するための法律に基づく指定障害福祉サービス等及び基準該当障害福祉サービスに要する費用の額の算定に関する基準");
+        source.GetProperty("publisher").GetString().Should().Be("厚生労働省");
+        source.GetProperty("effectiveAt").GetString().Should().Be("2026-06-01");
+        source.GetProperty("publishedAt").ValueKind.Should().Be(JsonValueKind.Null);
+        source.GetProperty("retrievedAt").GetString().Should().Be("2026-07-14");
+        source.GetProperty("url").GetString().Should().Be(
+            "https://www.mhlw.go.jp/web/t_doc?dataId=83aa8477&dataType=0&pageNo=6");
+        source.GetProperty("sha256").GetString().Should().Be(
+            "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768");
+        AssertNullRelationsAndNonblankApplicabilityNote(source);
+    }
+
+    [Fact]
+    public void Embedded_source_catalog_registers_the_protected_facility_administrative_expense_standard_html()
+    {
+        using var stream = OpenEmbedded(".ClaimMasters.Seed.sources.json");
+        using var document = JsonDocument.Parse(stream);
+        var source = SourceById(
+            document.RootElement,
+            "protected-facility-administrative-expense-standard-html");
+
+        source.GetProperty("title").GetString().Should().Be(
+            "生活保護法による保護施設事務費及び委託事務費の支弁基準について");
+        source.GetProperty("publisher").GetString().Should().Be("厚生労働省");
+        source.GetProperty("effectiveAt").GetString().Should().Be("2023-04-01");
+        source.GetProperty("publishedAt").GetString().Should().Be("2023-03-28");
+        source.GetProperty("retrievedAt").GetString().Should().Be("2026-07-14");
+        source.GetProperty("url").GetString().Should().Be(
+            "https://www.mhlw.go.jp/web/t_doc?dataId=00tc7589&dataType=1");
+        source.GetProperty("sha256").GetString().Should().Be(
+            "e6d94b5279ca33d60daa83f29e6fdb1f5c3d1ba08f076812cf2c0f64a37ba8a5");
+        AssertNullRelationsAndNonblankApplicabilityNote(source);
+    }
+
+    [Fact]
+    public void Embedded_source_catalog_registers_the_H31_fee_notice_consolidated_pdf()
+    {
+        using var stream = OpenEmbedded(".ClaimMasters.Seed.sources.json");
+        using var document = JsonDocument.Parse(stream);
+        var source = SourceById(document.RootElement, "h31-fee-notice-consolidated");
+
+        source.GetProperty("title").GetString().Should().Be(
+            "障害者の日常生活及び社会生活を総合的に支援するための法律に基づく指定障害福祉サービス等及び基準該当障害福祉サービスに要する費用の額の算定に関する基準等の一部を改正する告示");
+        source.GetProperty("publisher").GetString().Should().Be("厚生労働省");
+        source.GetProperty("effectiveAt").GetString().Should().Be("2019-04-01");
+        source.GetProperty("publishedAt").ValueKind.Should().Be(JsonValueKind.Null);
+        source.GetProperty("retrievedAt").GetString().Should().Be("2026-07-14");
+        source.GetProperty("url").GetString().Should().Be(
+            "https://www.mhlw.go.jp/content/000520560.pdf");
+        source.GetProperty("sha256").GetString().Should().Be(
+            "79054870b88b1ca97b3b31a811857ed8a614e59da0b6d14435df30bcb5bf4bc9");
+        AssertNullRelationsAndNonblankApplicabilityNote(source);
     }
 
     [Theory]
@@ -902,6 +976,15 @@ public sealed class JsonClaimMasterProviderTests
         .Select(item => item.GetString()!)
         .ToArray();
 
+    private static void AssertNullRelationsAndNonblankApplicabilityNote(JsonElement source)
+    {
+        source.GetProperty("supersedes").ValueKind.Should().Be(JsonValueKind.Null);
+        source.GetProperty("corrects").ValueKind.Should().Be(JsonValueKind.Null);
+        source.GetProperty("supplements").ValueKind.Should().Be(JsonValueKind.Null);
+        source.GetProperty("correctionNote").ValueKind.Should().Be(JsonValueKind.Null);
+        source.GetProperty("applicabilityNote").GetString().Should().NotBeNullOrWhiteSpace();
+    }
+
     private static string[] Required(JsonElement schema) => schema.GetProperty("required")
         .EnumerateArray().Select(item => item.GetString()!).ToArray();
 
@@ -998,6 +1081,8 @@ public sealed class JsonClaimMasterProviderTests
         "r6-service-codes-2-xlsx", "r6-claim-decision-202404-pdf", "r6-claim-decision-202404-xls",
         "r6-disability-support-guide-202404", "r6-claim-handbook-202405",
         "r6-grant-decision-administration-202404",
+        "current-fee-notice-html", "protected-facility-administrative-expense-standard-html",
+        "h31-fee-notice-consolidated",
     ];
 
     private static readonly string[] ExpectedR606Sources =
@@ -1011,18 +1096,24 @@ public sealed class JsonClaimMasterProviderTests
         "r6-capability-202406", "r6-reward-structure", "r6-service-codes-2-pdf",
         "r6-service-codes-2-xlsx", "r6-claim-decision-202406-pdf", "r6-claim-decision-202406-xls",
         "r6-disability-support-guide-202404", "r6-grant-decision-administration-202404",
+        "current-fee-notice-html", "protected-facility-administrative-expense-standard-html",
+        "h31-fee-notice-consolidated",
     ];
 
     private static readonly string[] ExpectedR701Sources =
     [
-        .. ExpectedR606Sources[..^1],
+        .. ExpectedR606Sources[..^4],
         "r7-grant-decision-administration-202501",
+        "current-fee-notice-html", "protected-facility-administrative-expense-standard-html",
+        "h31-fee-notice-consolidated",
     ];
 
     private static readonly string[] ExpectedR709Sources =
     [
-        .. ExpectedR606Sources[..^1],
+        .. ExpectedR606Sources[..^4],
         "r7-grant-decision-administration-202509",
+        "current-fee-notice-html", "protected-facility-administrative-expense-standard-html",
+        "h31-fee-notice-consolidated",
     ];
 
     private static readonly string[] ExpectedR806Sources =
@@ -1033,5 +1124,6 @@ public sealed class JsonClaimMasterProviderTests
         "r8-capability-correction", "r8-reward-structure", "r8-service-codes-2-pdf",
         "r8-service-codes-2-xlsx", "r8-claim-decision-pdf", "r8-claim-decision-xls",
         "r6-disability-support-guide-202404", "r8-grant-decision-administration-202606",
+        "current-fee-notice-html", "protected-facility-administrative-expense-standard-html",
     ];
 }

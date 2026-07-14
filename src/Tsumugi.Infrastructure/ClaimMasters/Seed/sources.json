@@ -1059,6 +1059,51 @@
       ],
       "applicabilityNote": "マスタ転記の正本",
       "correctionNote": "r6-claim-decision-202406-xlsを置換。r8-claim-decision-pdfを補足（マスタ転記の正本）"
+    },
+    {
+      "documentId": "current-fee-notice-html",
+      "title": "障害者の日常生活及び社会生活を総合的に支援するための法律に基づく指定障害福祉サービス等及び基準該当障害福祉サービスに要する費用の額の算定に関する基準",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-14",
+      "url": "https://www.mhlw.go.jp/web/t_doc?dataId=83aa8477&dataType=0&pageNo=6",
+      "sha256": "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "現行統合本文を式・比較・地方公共団体補正・4月1日入力要件の正本とし、R6対応はcontinuity mappingReasonを必須とする",
+      "correctionNote": null
+    },
+    {
+      "documentId": "protected-facility-administrative-expense-standard-html",
+      "title": "生活保護法による保護施設事務費及び委託事務費の支弁基準について",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2023-04-01",
+      "publishedAt": "2023-03-28",
+      "retrievedAt": "2026-07-14",
+      "url": "https://www.mhlw.go.jp/web/t_doc?dataId=00tc7589&dataType=1",
+      "sha256": "e6d94b5279ca33d60daa83f29e6fdb1f5c3d1ba08f076812cf2c0f64a37ba8a5",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "保護施設事務費の施設別・地域別・定員別・通知provenanceに使用する",
+      "correctionNote": null
+    },
+    {
+      "documentId": "h31-fee-notice-consolidated",
+      "title": "障害者の日常生活及び社会生活を総合的に支援するための法律に基づく指定障害福祉サービス等及び基準該当障害福祉サービスに要する費用の額の算定に関する基準等の一部を改正する告示",
+      "publisher": "厚生労働省",
+      "effectiveAt": "2019-04-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-14",
+      "url": "https://www.mhlw.go.jp/content/000520560.pdf",
+      "sha256": "79054870b88b1ca97b3b31a811857ed8a614e59da0b6d14435df30bcb5bf4bc9",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": null,
+      "applicabilityNote": "R6式継続性のcross-checkだけに使用し、有効正本candidateへ含めない",
+      "correctionNote": null
     }
   ],
   "releases": [
@@ -1098,7 +1143,10 @@
         "r6-claim-decision-202404-xls",
         "r6-disability-support-guide-202404",
         "r6-claim-handbook-202405",
-        "r6-grant-decision-administration-202404"
+        "r6-grant-decision-administration-202404",
+        "current-fee-notice-html",
+        "protected-facility-administrative-expense-standard-html",
+        "h31-fee-notice-consolidated"
       ]
     },
     {
@@ -1136,7 +1184,10 @@
         "r6-claim-decision-202406-pdf",
         "r6-claim-decision-202406-xls",
         "r6-disability-support-guide-202404",
-        "r6-grant-decision-administration-202404"
+        "r6-grant-decision-administration-202404",
+        "current-fee-notice-html",
+        "protected-facility-administrative-expense-standard-html",
+        "h31-fee-notice-consolidated"
       ]
     },
     {
@@ -1174,7 +1225,10 @@
         "r6-claim-decision-202406-pdf",
         "r6-claim-decision-202406-xls",
         "r6-disability-support-guide-202404",
-        "r7-grant-decision-administration-202501"
+        "r7-grant-decision-administration-202501",
+        "current-fee-notice-html",
+        "protected-facility-administrative-expense-standard-html",
+        "h31-fee-notice-consolidated"
       ]
     },
     {
@@ -1212,7 +1266,10 @@
         "r6-claim-decision-202406-pdf",
         "r6-claim-decision-202406-xls",
         "r6-disability-support-guide-202404",
-        "r7-grant-decision-administration-202509"
+        "r7-grant-decision-administration-202509",
+        "current-fee-notice-html",
+        "protected-facility-administrative-expense-standard-html",
+        "h31-fee-notice-consolidated"
       ]
     },
     {
@@ -1237,7 +1294,9 @@
         "r8-claim-decision-pdf",
         "r8-claim-decision-xls",
         "r6-disability-support-guide-202404",
-        "r8-grant-decision-administration-202606"
+        "r8-grant-decision-administration-202606",
+        "current-fee-notice-html",
+        "protected-facility-administrative-expense-standard-html"
       ]
     }
   ]
