@@ -152,7 +152,12 @@
         "unit-rule-rounding",
         "conditions",
         "effective-period",
-        "master-values"
+        "master-values",
+        "unit-rule-formula",
+        "unit-rule-comparison",
+        "unit-rule-local-government-adjustment",
+        "unit-rule-runtime-input",
+        "unit-rule-runtime-input-provenance"
       ]
     },
     "sourceRef": {
@@ -597,10 +602,142 @@
         "billingUnit": { "$ref": "#/$defs/billingUnit" }
       }
     },
+    "protectedFacilityAdministrativeExpenseRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "valueKind",
+        "valueUnit",
+        "scope",
+        "asOfPolicy",
+        "provenancePolicyId"
+      ],
+      "properties": {
+        "key": { "const": "protected-facility-administrative-expense-yen" },
+        "valueKind": { "const": "entered-yen" },
+        "valueUnit": { "const": "yen-per-person-per-month" },
+        "scope": { "const": "facility-and-service-fiscal-year" },
+        "asOfPolicy": { "const": "service-fiscal-year-april-first" },
+        "provenancePolicyId": {
+          "const": "claim.input.protected-facility-administrative-expense.v1"
+        }
+      }
+    },
+    "protectedFacilityStatutoryFormula": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "daysDivisor",
+        "expenseAdjustmentDivisor",
+        "unitPriceDivisorYen",
+        "fixedAdditionUnits",
+        "upliftRate",
+        "calculationStepId",
+        "roundingRuleId"
+      ],
+      "properties": {
+        "daysDivisor": { "const": 22 },
+        "expenseAdjustmentDivisor": { "const": "0.945" },
+        "unitPriceDivisorYen": { "const": 10 },
+        "fixedAdditionUnits": { "const": 23 },
+        "upliftRate": { "const": "1.046" },
+        "calculationStepId": {
+          "const": "claim.step.units.service-code.protected-facility-formula.v1"
+        },
+        "roundingRuleId": { "const": "claim.rounding.units.half-up.v1" }
+      }
+    },
+    "protectedFacilityLocalGovernmentAdjustment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conditionSelector",
+        "rate",
+        "target",
+        "calculationStepId",
+        "roundingRuleId"
+      ],
+      "properties": {
+        "conditionSelector": {
+          "const": "municipality-ownership:local-government"
+        },
+        "rate": { "const": "0.965" },
+        "target": { "const": "comparison-only" },
+        "calculationStepId": {
+          "const": "claim.step.units.service-code.protected-facility-local-government-benchmark.v1"
+        },
+        "roundingRuleId": { "const": "claim.rounding.units.half-up.v1" }
+      }
+    },
+    "protectedFacilityBenchmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "officialSection",
+        "basicRewardStaffingKey",
+        "paymentBandMatch",
+        "capacityMatch",
+        "localGovernmentAdjustment"
+      ],
+      "properties": {
+        "officialSection": { "const": "b-type-service-fee-ii" },
+        "basicRewardStaffingKey": { "const": "b-type-service-fee-ii" },
+        "paymentBandMatch": { "const": "same-average-wage-band" },
+        "capacityMatch": { "const": "same-capacity-band" },
+        "localGovernmentAdjustment": {
+          "$ref": "#/$defs/protectedFacilityLocalGovernmentAdjustment"
+        }
+      }
+    },
+    "protectedFacilityMinimumSelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "calculationStepId", "roundingRuleId"],
+      "properties": {
+        "kind": { "const": "minimum" },
+        "calculationStepId": {
+          "const": "claim.step.units.service-code.protected-facility-minimum.v1"
+        },
+        "roundingRuleId": { "const": null }
+      }
+    },
+    "protectedFacilityBenchmarkMinimumRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "mode",
+        "runtimeInputRequirement",
+        "statutoryFormula",
+        "benchmark",
+        "selection",
+        "factors",
+        "billingUnit"
+      ],
+      "properties": {
+        "kind": { "const": "formula" },
+        "mode": { "const": "protected-facility-benchmark-minimum" },
+        "runtimeInputRequirement": {
+          "$ref": "#/$defs/protectedFacilityAdministrativeExpenseRequirement"
+        },
+        "statutoryFormula": {
+          "$ref": "#/$defs/protectedFacilityStatutoryFormula"
+        },
+        "benchmark": { "$ref": "#/$defs/protectedFacilityBenchmark" },
+        "selection": { "$ref": "#/$defs/protectedFacilityMinimumSelection" },
+        "factors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/formulaFactor" }
+        },
+        "billingUnit": { "const": "per-day" }
+      }
+    },
     "formulaRule": {
       "oneOf": [
         { "$ref": "#/$defs/baseComponentPassThroughRule" },
-        { "$ref": "#/$defs/factorChainRule" }
+        { "$ref": "#/$defs/factorChainRule" },
+        { "$ref": "#/$defs/protectedFacilityBenchmarkMinimumRule" }
       ]
     },
     "serviceCodeUnitRule": {

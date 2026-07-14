@@ -622,6 +622,187 @@ public sealed class JsonClaimMasterProviderTests
         masterRoot.GetProperty("$defs").GetProperty("serviceCodeUnitRule")
             .GetProperty("oneOf").GetArrayLength().Should().Be(3);
         var definitions = masterRoot.GetProperty("$defs");
+        definitions.GetProperty("sourceSupport").GetProperty("enum")
+            .EnumerateArray().Select(item => item.GetString()).Should().Equal(
+                "service-identity",
+                "selectors",
+                "unit-rule-kind",
+                "unit-rule-value",
+                "unit-rule-target",
+                "unit-rule-step",
+                "unit-rule-rounding",
+                "conditions",
+                "effective-period",
+                "master-values",
+                "unit-rule-formula",
+                "unit-rule-comparison",
+                "unit-rule-local-government-adjustment",
+                "unit-rule-runtime-input",
+                "unit-rule-runtime-input-provenance");
+        var formulaRule = definitions.GetProperty("formulaRule");
+        formulaRule.GetProperty("oneOf").GetArrayLength().Should().Be(3);
+
+        var runtimeInputRequirement = definitions
+            .GetProperty("protectedFacilityAdministrativeExpenseRequirement");
+        Required(runtimeInputRequirement).Should().Equal(
+            "key", "valueKind", "valueUnit", "scope", "asOfPolicy", "provenancePolicyId");
+        PropertyNames(runtimeInputRequirement).Should().Equal(
+            "key", "valueKind", "valueUnit", "scope", "asOfPolicy", "provenancePolicyId");
+        runtimeInputRequirement.GetProperty("additionalProperties").GetBoolean()
+            .Should().BeFalse();
+        var runtimeInputProperties = runtimeInputRequirement.GetProperty("properties");
+        runtimeInputProperties.GetProperty("key").GetProperty("const").GetString()
+            .Should().Be("protected-facility-administrative-expense-yen");
+        runtimeInputProperties.GetProperty("valueKind").GetProperty("const").GetString()
+            .Should().Be("entered-yen");
+        runtimeInputProperties.GetProperty("valueUnit").GetProperty("const").GetString()
+            .Should().Be("yen-per-person-per-month");
+        runtimeInputProperties.GetProperty("scope").GetProperty("const").GetString()
+            .Should().Be("facility-and-service-fiscal-year");
+        runtimeInputProperties.GetProperty("asOfPolicy").GetProperty("const").GetString()
+            .Should().Be("service-fiscal-year-april-first");
+        runtimeInputProperties.GetProperty("provenancePolicyId").GetProperty("const")
+            .GetString().Should()
+            .Be("claim.input.protected-facility-administrative-expense.v1");
+
+        var statutoryFormula = definitions.GetProperty("protectedFacilityStatutoryFormula");
+        Required(statutoryFormula).Should().Equal(
+            "daysDivisor",
+            "expenseAdjustmentDivisor",
+            "unitPriceDivisorYen",
+            "fixedAdditionUnits",
+            "upliftRate",
+            "calculationStepId",
+            "roundingRuleId");
+        PropertyNames(statutoryFormula).Should().Equal(
+            "daysDivisor",
+            "expenseAdjustmentDivisor",
+            "unitPriceDivisorYen",
+            "fixedAdditionUnits",
+            "upliftRate",
+            "calculationStepId",
+            "roundingRuleId");
+        statutoryFormula.GetProperty("additionalProperties").GetBoolean().Should().BeFalse();
+        var statutoryFormulaProperties = statutoryFormula.GetProperty("properties");
+        statutoryFormulaProperties.GetProperty("daysDivisor").GetProperty("const")
+            .GetInt32().Should().Be(22);
+        statutoryFormulaProperties.GetProperty("expenseAdjustmentDivisor").GetProperty("const")
+            .GetString().Should().Be("0.945");
+        statutoryFormulaProperties.GetProperty("unitPriceDivisorYen").GetProperty("const")
+            .GetInt32().Should().Be(10);
+        statutoryFormulaProperties.GetProperty("fixedAdditionUnits").GetProperty("const")
+            .GetInt32().Should().Be(23);
+        statutoryFormulaProperties.GetProperty("upliftRate").GetProperty("const")
+            .GetString().Should().Be("1.046");
+        statutoryFormulaProperties.GetProperty("calculationStepId").GetProperty("const")
+            .GetString().Should()
+            .Be("claim.step.units.service-code.protected-facility-formula.v1");
+        statutoryFormulaProperties.GetProperty("roundingRuleId").GetProperty("const")
+            .GetString().Should().Be("claim.rounding.units.half-up.v1");
+
+        var localGovernmentAdjustment = definitions
+            .GetProperty("protectedFacilityLocalGovernmentAdjustment");
+        Required(localGovernmentAdjustment).Should().Equal(
+            "conditionSelector", "rate", "target", "calculationStepId", "roundingRuleId");
+        PropertyNames(localGovernmentAdjustment).Should().Equal(
+            "conditionSelector", "rate", "target", "calculationStepId", "roundingRuleId");
+        localGovernmentAdjustment.GetProperty("additionalProperties").GetBoolean()
+            .Should().BeFalse();
+        var localGovernmentAdjustmentProperties = localGovernmentAdjustment
+            .GetProperty("properties");
+        localGovernmentAdjustmentProperties.GetProperty("conditionSelector")
+            .GetProperty("const").GetString().Should()
+            .Be("municipality-ownership:local-government");
+        localGovernmentAdjustmentProperties.GetProperty("rate").GetProperty("const")
+            .GetString().Should().Be("0.965");
+        localGovernmentAdjustmentProperties.GetProperty("target").GetProperty("const")
+            .GetString().Should().Be("comparison-only");
+        localGovernmentAdjustmentProperties.GetProperty("calculationStepId")
+            .GetProperty("const").GetString().Should()
+            .Be("claim.step.units.service-code.protected-facility-local-government-benchmark.v1");
+        localGovernmentAdjustmentProperties.GetProperty("roundingRuleId").GetProperty("const")
+            .GetString().Should().Be("claim.rounding.units.half-up.v1");
+
+        var benchmark = definitions.GetProperty("protectedFacilityBenchmark");
+        Required(benchmark).Should().Equal(
+            "officialSection",
+            "basicRewardStaffingKey",
+            "paymentBandMatch",
+            "capacityMatch",
+            "localGovernmentAdjustment");
+        PropertyNames(benchmark).Should().Equal(
+            "officialSection",
+            "basicRewardStaffingKey",
+            "paymentBandMatch",
+            "capacityMatch",
+            "localGovernmentAdjustment");
+        benchmark.GetProperty("additionalProperties").GetBoolean().Should().BeFalse();
+        var benchmarkProperties = benchmark.GetProperty("properties");
+        benchmarkProperties.GetProperty("officialSection").GetProperty("const")
+            .GetString().Should().Be("b-type-service-fee-ii");
+        benchmarkProperties.GetProperty("basicRewardStaffingKey").GetProperty("const")
+            .GetString().Should().Be("b-type-service-fee-ii");
+        benchmarkProperties.GetProperty("paymentBandMatch").GetProperty("const")
+            .GetString().Should().Be("same-average-wage-band");
+        benchmarkProperties.GetProperty("capacityMatch").GetProperty("const")
+            .GetString().Should().Be("same-capacity-band");
+        benchmarkProperties.GetProperty("localGovernmentAdjustment").GetProperty("$ref")
+            .GetString().Should().Be("#/$defs/protectedFacilityLocalGovernmentAdjustment");
+
+        var selection = definitions.GetProperty("protectedFacilityMinimumSelection");
+        Required(selection).Should().Equal("kind", "calculationStepId", "roundingRuleId");
+        PropertyNames(selection).Should().Equal("kind", "calculationStepId", "roundingRuleId");
+        selection.GetProperty("additionalProperties").GetBoolean().Should().BeFalse();
+        var selectionProperties = selection.GetProperty("properties");
+        selectionProperties.GetProperty("kind").GetProperty("const").GetString()
+            .Should().Be("minimum");
+        selectionProperties.GetProperty("calculationStepId").GetProperty("const")
+            .GetString().Should()
+            .Be("claim.step.units.service-code.protected-facility-minimum.v1");
+        selectionProperties.GetProperty("roundingRuleId").GetProperty("const").ValueKind
+            .Should().Be(JsonValueKind.Null);
+
+        var protectedRule = definitions.GetProperty("protectedFacilityBenchmarkMinimumRule");
+        Required(protectedRule).Should().Equal(
+            "kind",
+            "mode",
+            "runtimeInputRequirement",
+            "statutoryFormula",
+            "benchmark",
+            "selection",
+            "factors",
+            "billingUnit");
+        PropertyNames(protectedRule).Should().Equal(
+            "kind",
+            "mode",
+            "runtimeInputRequirement",
+            "statutoryFormula",
+            "benchmark",
+            "selection",
+            "factors",
+            "billingUnit");
+        protectedRule.GetProperty("additionalProperties").GetBoolean().Should().BeFalse();
+        var protectedRuleProperties = protectedRule.GetProperty("properties");
+        protectedRuleProperties.GetProperty("kind").GetProperty("const").GetString()
+            .Should().Be("formula");
+        protectedRuleProperties.GetProperty("mode").GetProperty("const").GetString()
+            .Should().Be("protected-facility-benchmark-minimum");
+        protectedRuleProperties.GetProperty("runtimeInputRequirement").GetProperty("$ref")
+            .GetString().Should()
+            .Be("#/$defs/protectedFacilityAdministrativeExpenseRequirement");
+        protectedRuleProperties.GetProperty("statutoryFormula").GetProperty("$ref")
+            .GetString().Should().Be("#/$defs/protectedFacilityStatutoryFormula");
+        protectedRuleProperties.GetProperty("benchmark").GetProperty("$ref")
+            .GetString().Should().Be("#/$defs/protectedFacilityBenchmark");
+        protectedRuleProperties.GetProperty("selection").GetProperty("$ref")
+            .GetString().Should().Be("#/$defs/protectedFacilityMinimumSelection");
+        var protectedRuleFactors = protectedRuleProperties.GetProperty("factors");
+        protectedRuleFactors.GetProperty("type").GetString().Should().Be("array");
+        protectedRuleFactors.GetProperty("items").GetProperty("$ref").GetString()
+            .Should().Be("#/$defs/formulaFactor");
+        protectedRuleFactors.TryGetProperty("minItems", out _).Should().BeFalse();
+        protectedRuleProperties.GetProperty("billingUnit").GetProperty("const").GetString()
+            .Should().Be("per-day");
         var conditionDefinition = definitions.GetProperty("conditionDefinition");
         var r8ConditionRule = conditionDefinition.GetProperty("allOf")
             .EnumerateArray()
@@ -723,6 +904,9 @@ public sealed class JsonClaimMasterProviderTests
 
     private static string[] Required(JsonElement schema) => schema.GetProperty("required")
         .EnumerateArray().Select(item => item.GetString()!).ToArray();
+
+    private static string[] PropertyNames(JsonElement schema) => schema.GetProperty("properties")
+        .EnumerateObject().Select(property => property.Name).ToArray();
 
     private static string[] Types(JsonElement schema) => schema.GetProperty("type").ValueKind switch
     {
