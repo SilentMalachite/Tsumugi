@@ -16,3 +16,4 @@ coverage.opencover.xml
 # OS metadata
 .DS_Store
 Thumbs.db
+graphify-out/
