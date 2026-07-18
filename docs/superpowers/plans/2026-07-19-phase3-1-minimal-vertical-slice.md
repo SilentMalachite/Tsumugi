@@ -51,19 +51,19 @@
 - Consumes: なし（git操作と文書更新のみ）
 - Produces: クリーンなワークツリー。以後の全タスクの前提
 
-- [ ] **Step 1: 旧マスター計画の未コミットdiff（Task 11分割追記）を破棄**
+- [x] **Step 1: 旧マスター計画の未コミットdiff（Task 11分割追記）を破棄**
 
 ```bash
 git checkout -- docs/superpowers/plans/2026-07-11-phase3-1-claim-calculation-and-input-foundation.md
 ```
 
-- [ ] **Step 2: `.gitignore` 末尾に追記**
+- [x] **Step 2: `.gitignore` 末尾に追記**
 
 ```
 graphify-out/
 ```
 
-- [ ] **Step 3: Phase 3-0 closeout文書とserena設定をコミット**
+- [x] **Step 3: Phase 3-0 closeout文書とserena設定をコミット**
 
 ```bash
 git add docs/superpowers/plans/2026-07-11-phase3-0-task16-acceptance-closeout.md
@@ -72,7 +72,7 @@ git add .serena/project.yml .gitignore
 git commit -m "chore: sync serena config and ignore graphify output"
 ```
 
-- [ ] **Step 4: CLAUDE.md「現在地」を更新**
+- [x] **Step 4: CLAUDE.md「現在地」を更新**
 
 「ワークフロー」節の現在地の段落を次で置き換える:
 
@@ -82,7 +82,7 @@ git commit -m "chore: sync serena config and ignore graphify output"
 
 「仕様の所在」節の旧Phase 3-1計画への参照行を新spec/計画の2行に置き換える。
 
-- [ ] **Step 5: コミットとクリーン確認**
+- [x] **Step 5: コミットとクリーン確認**
 
 ```bash
 git add CLAUDE.md
