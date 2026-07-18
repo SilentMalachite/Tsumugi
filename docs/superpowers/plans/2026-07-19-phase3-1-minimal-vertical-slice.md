@@ -104,7 +104,7 @@ Expected: `git status --short` の出力なし
 - Consumes: `src/Tsumugi.Infrastructure/ClaimMasters/Seed/sources.json` の登録済み一次資料（documentId / url / sha256）
 - Produces: Task 3のseed値とTask 6のgolden case期待値の**唯一の出典**。ADRに (a) B型基本報酬表（定員規模×平均工賃月額区分×人員配置、R6値）、(b) 対応サービスコード（R8-6月サービスコード表基準）、(c) 地域区分単価（就労継続支援B型のサービス種別単価、全地域区分）、(d) 手計算検証ケース2件以上（入力と期待値: 単位数・総費用額・給付額）
 
-- [ ] **Step 1: 一次資料の同一性検証**
+- [x] **Step 1: 一次資料の同一性検証**
 
 `sources.json` から基本報酬・サービスコード表・地域区分単価に対応する `documentId` / `url` / `sha256` を特定し、資料を取得してハッシュ照合する:
 
@@ -114,7 +114,7 @@ curl -sL "<sources.jsonのurl>" -o /tmp/source-check.bin && shasum -a 256 /tmp/s
 
 Expected: `sources.json` の `sha256` と一致。**不一致の場合は停止**し、`docs/open-questions.md` に「一次資料のバイト変化（documentId、旧/新sha256）」を1行起票してユーザーに報告する。
 
-- [ ] **Step 2: ADR 0027を作成**
+- [x] **Step 2: ADR 0027を作成**
 
 結論→背景→選択肢→決定→影響の既存ADR形式。決定セクションに次を**表で**記載する:
 
@@ -124,7 +124,7 @@ Expected: `sources.json` の `sha256` と一致。**不一致の場合は停止*
 4. 手計算検証ケース: 「定員20以下・平均工賃月額2万円以上2.5万円未満・7.5:1・22日利用・地域区分X」のような具体入力と、期待される 単位数/月・総費用額・給付額（9割）・利用者負担
 5. **確定できなかった行の一覧**（あれば）→ 同じ内容を `docs/open-questions.md` に1行ずつ起票し、スコープ外を明記
 
-- [ ] **Step 3: コミット**
+- [x] **Step 3: コミット**
 
 ```bash
 git add docs/decisions/0027-r6-basic-reward-service-code-region-price-values.md docs/open-questions.md
