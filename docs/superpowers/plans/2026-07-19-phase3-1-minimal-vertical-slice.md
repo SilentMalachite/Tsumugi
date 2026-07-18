@@ -145,7 +145,7 @@ git commit -m "docs(adr): record r6 basic reward and region price values (task 2
 - Consumes: ADR 0027の確定値。`claim-master-file.schema.json` の `$defs`（unitRuleのkind判別子文字列は**必ずschemaの `$defs` を読んで確認**する — 本計画には転記しない）
 - Produces: `JsonClaimMasterProvider.LoadEmbedded()` が返すbundleに `BasicRewards` / `ServiceCodes` / `RegionUnitPrices` の実値行。Task 4以降が消費
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 // tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimMasterSeedPhase31Tests.cs
@@ -175,12 +175,12 @@ public sealed class ClaimMasterSeedPhase31Tests
 
 注: `ResolveCalculationMasters` はTask 4で追加する。Task 3の時点では `JsonClaimMasterProvider.LoadEmbedded()` 自体の成功（validator通過）を検証する `[Fact] LoadEmbedded_succeeds_with_populated_seeds()` のみ先に書き、上のテストはTask 4で有効化してもよい。
 
-- [ ] **Step 2: テスト実行（失敗確認）**
+- [x] **Step 2: テスト実行（失敗確認）**
 
 Run: `dotnet test tests/Tsumugi.Infrastructure.Tests --filter ClaimMasterSeedPhase31 -v minimal`
 Expected: FAIL（seedが空のため件数0、または `ResolveCalculationMasters` 未定義のコンパイルエラー）
 
-- [ ] **Step 3: seed JSONへADR 0027の値を投入**
+- [x] **Step 3: seed JSONへADR 0027の値を投入**
 
 各entryの形（basic-rewardsの例。実値・locator・sha256はADR 0027から転記）:
 
@@ -216,12 +216,12 @@ Expected: FAIL（seedが空のため件数0、または `ResolveCalculationMaste
 
 `service-codes.json` は `conditionDefinitions`（reward-system / payment-band / capacity / staffing の各条件）と、基本報酬行を指す `componentRefs`（`masterKind: "basic-rewards"`, `role: "base"`）+ `unitRule`（基本報酬をper-dayで通す形。**kind文字列はschemaの `$defs/serviceCodeUnitRule` を読んで正確に**）を持つ。`region-unit-prices.json` は `regionKey` / `serviceKind` / `unitPriceYen`（10進文字列）。
 
-- [ ] **Step 4: validator通過をテストで確認**
+- [x] **Step 4: validator通過をテストで確認**
 
 Run: `dotnet test tests/Tsumugi.Infrastructure.Tests --filter "ClaimMasterSeedPhase31|JsonClaimMasterProvider" -v minimal`
 Expected: PASS（既存の `JsonClaimMasterProviderTests` の埋め込みカタログ検証も緑のまま）
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add src/Tsumugi.Infrastructure/ClaimMasters/Seed/ tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimMasterSeedPhase31Tests.cs
