@@ -14,6 +14,13 @@ namespace Tsumugi.Infrastructure.Persistence;
 /// 各追記型revision chainはDomainの各Policyで実効値へ縮約し、履歴不正はそのまま例外を伝播する
 /// （フェイルクローズ、<see cref="ClaimFinalizationStore"/> と同じtxパターン）。
 /// </summary>
+/// <remarks>
+/// 対象利用者の範囲決定は、ClaimInputの入力有無だけに依存しない（Phase 2
+/// <c>CalculateWagesUseCase</c> の前例を踏襲: ClaimInput未入力でも出席実績や契約があれば
+/// 対象者として可視化し、請求漏れを黙らせない）。<c>Contract</c> は事業所IDを持たないため、
+/// Phase 2 と同じく契約実効性のみで判定する（単一事業所運用前提。複数事業所対応は
+/// Contract整理時に再実装 — open-questions既出）。
+/// </remarks>
 public sealed class ClaimCalculationSnapshotReader(
     IDbContextFactory<TsumugiDbContext> contextFactory,
     IOfficeClaimProfilePolicyProvider profilePolicyProvider) : IClaimCalculationSnapshotReader
@@ -33,30 +40,82 @@ public sealed class ClaimCalculationSnapshotReader(
 
             var effectiveClaimInputs = await ReadEffectiveClaimInputsAsync(
                 db, officeId, serviceMonth, ct);
-            var recipientIds = effectiveClaimInputs
-                .Select(input => input.RecipientId)
+
+            // 対象利用者の範囲 = 「当月1日時点で実効な契約」「当月に実効なPresent日次記録」
+            // 「当月の実効ClaimInput」の和集合。ClaimInputだけを起点にすると、出席実績はあるのに
+            // ClaimInput未入力の利用者が請求対象から黙って消える（サイレント過小請求）ため、
+            // 3ソースいずれかの根拠があれば対象者として可視化する。
+            var recipientIdsFromContract = await ReadRecipientsWithEffectiveContractAsync(
+                db, monthStart, ct);
+            var recipientIdsFromDailyRecords = await ReadRecipientsWithPresentDailyRecordAsync(
+                db, monthStart, monthEnd, ct);
+            var recipientIds = recipientIdsFromContract
+                .Concat(recipientIdsFromDailyRecords)
+                .Concat(effectiveClaimInputs.Select(input => input.RecipientId))
                 .Distinct()
+                .OrderBy(id => id)
                 .ToArray();
 
             var billedDaysByRecipient = await ReadBilledDaysByRecipientAsync(
                 db, recipientIds, monthStart, monthEnd, ct);
-            var effectiveCertificateEvidences = await ReadEffectiveCertificateEvidencesAsync(
-                db, recipientIds, monthEnd, ct);
+            var (certificateCountByRecipient, effectiveCertificateEvidences) =
+                await ReadEffectiveCertificateEvidencesAsync(db, recipientIds, monthStart, monthEnd, ct);
             var effectiveAverageWageEvidences = await ReadEffectiveAverageWageEvidencesAsync(
                 db, officeId, serviceMonth, ct);
             var profile = await ReadEffectiveProfileAsync(db, officeId, monthEnd, ct);
 
             return new ClaimCalculationSnapshot(
+                recipientIds,
                 profile,
                 effectiveClaimInputs,
                 effectiveCertificateEvidences,
                 effectiveAverageWageEvidences,
-                billedDaysByRecipient);
+                billedDaysByRecipient,
+                certificateCountByRecipient);
         }
         finally
         {
             await transaction.RollbackAsync(ct);
         }
+    }
+
+    private static async Task<IReadOnlyList<Guid>> ReadRecipientsWithEffectiveContractAsync(
+        TsumugiDbContext db, DateOnly anchor, CancellationToken ct)
+    {
+        // Contract に OfficeId はないため事業所では絞り込めない（Phase 2 CalculateWagesUseCase と
+        // 同じ制約・同じ前提）。非アーカイブ利用者のうち、当月1日時点で実効な契約を持つ者を対象とする。
+        var nonArchivedRecipientIds = await db.Recipients.AsNoTracking()
+            .Where(recipient => recipient.ArchivedAt == null)
+            .Select(recipient => recipient.Id)
+            .ToListAsync(ct);
+        if (nonArchivedRecipientIds.Count == 0) return Array.Empty<Guid>();
+
+        var nonArchivedSet = nonArchivedRecipientIds.ToHashSet();
+        // DateRange はJSON列のためSQLレベルでフィルタできない（ContractRepositoryと同じ理由）。
+        var contracts = await db.Contracts.AsNoTracking().ToListAsync(ct);
+        return contracts
+            .Where(contract => nonArchivedSet.Contains(contract.RecipientId)
+                && contract.Period.Contains(anchor))
+            .Select(contract => contract.RecipientId)
+            .Distinct()
+            .ToArray();
+    }
+
+    private static async Task<IReadOnlyList<Guid>> ReadRecipientsWithPresentDailyRecordAsync(
+        TsumugiDbContext db, DateOnly monthStart, DateOnly monthEnd, CancellationToken ct)
+    {
+        var records = await db.DailyRecords.AsNoTracking()
+            .Where(record => record.ServiceDate >= monthStart && record.ServiceDate <= monthEnd)
+            .ToListAsync(ct);
+
+        var result = new List<Guid>();
+        foreach (var group in records.GroupBy(record => record.RecipientId))
+        {
+            var effectiveByDate = DailyRecordPolicy.EffectiveByDate(group);
+            if (effectiveByDate.Values.Any(record => record.Attendance == Attendance.Present))
+                result.Add(group.Key);
+        }
+        return result;
     }
 
     private static async Task<IReadOnlyList<ClaimInput>> ReadEffectiveClaimInputsAsync(
@@ -96,30 +155,64 @@ public sealed class ClaimCalculationSnapshotReader(
         return result;
     }
 
-    private static async Task<IReadOnlyList<CertificateClaimEvidence>>
+    /// <summary>
+    /// 受給者証rootの数（サービス月と有効期間が重なるもの）と、ちょうど1件のときだけの実効根拠を
+    /// 利用者ごとに解決する。0件・2件以上（月途中の証切替を含む）は代表1件を黙って選ばず、
+    /// 件数のみを返す。判定はTask 9のreadiness gate側の責務。
+    /// </summary>
+    private static async Task<(
+        IReadOnlyDictionary<Guid, int> CountByRecipient,
+        IReadOnlyList<CertificateClaimEvidence> Evidences)>
         ReadEffectiveCertificateEvidencesAsync(
             TsumugiDbContext db,
             IReadOnlyCollection<Guid> recipientIds,
+            DateOnly monthStart,
             DateOnly monthEnd,
             CancellationToken ct)
     {
-        var result = new List<CertificateClaimEvidence>();
+        var countByRecipient = new Dictionary<Guid, int>();
+        var evidences = new List<CertificateClaimEvidence>();
         foreach (var recipientId in recipientIds)
         {
             var certificates = await db.Certificates.AsNoTracking()
                 .Where(certificate => certificate.RecipientId == recipientId)
                 .ToListAsync(ct);
-            var effectiveCertificate = Tsumugi.Domain.Logic.Claim.CertificatePolicy.EffectiveVersion(
-                certificates, monthEnd);
-            if (effectiveCertificate is null) continue;
+
+            var overlapping = ResolveOverlappingCertificates(certificates, monthStart, monthEnd);
+            countByRecipient[recipientId] = overlapping.Count;
+            if (overlapping.Count != 1) continue;
 
             var evidenceHistory = await db.CertificateClaimEvidences.AsNoTracking()
-                .Where(evidence => evidence.CertificateId == effectiveCertificate.Id)
+                .Where(evidence => evidence.CertificateId == overlapping[0].Id)
                 .ToListAsync(ct);
             if (CertificateClaimEvidencePolicy.Effective(evidenceHistory) is { } effectiveEvidence)
-                result.Add(effectiveEvidence);
+                evidences.Add(effectiveEvidence);
         }
-        return result;
+        return (countByRecipient, evidences);
+    }
+
+    /// <summary>
+    /// サービス月内の暦日と有効期間が重なる受給者証rootを収集する。
+    /// Domainを変更せず、既存の <c>CertificatePolicy.EffectiveVersion</c>（1日粒度の実効判定＋
+    /// 履歴整合性検証）を月内の全暦日に対して走査し、返された実効版の重複排除集合として
+    /// 月次overlap判定へ委譲する（DateRange.Overlapsと等価: 月内のいずれか1日でも
+    /// Validity.Containsが真になるrootは月と重なる）。同一日に複数rootが実効となる不正データは
+    /// EffectiveVersion側で例外化され、そのままフェイルクローズで伝播する。
+    /// </summary>
+    private static List<Certificate> ResolveOverlappingCertificates(
+        IReadOnlyList<Certificate> certificates, DateOnly monthStart, DateOnly monthEnd)
+    {
+        var overlapping = new List<Certificate>();
+        for (var day = monthStart; day <= monthEnd; day = day.AddDays(1))
+        {
+            if (Tsumugi.Domain.Logic.Claim.CertificatePolicy.EffectiveVersion(certificates, day)
+                    is { } effectiveOnDay
+                && overlapping.All(certificate => certificate.Id != effectiveOnDay.Id))
+            {
+                overlapping.Add(effectiveOnDay);
+            }
+        }
+        return overlapping;
     }
 
     private static async Task<IReadOnlyList<AverageWageAnnualEvidence>>
