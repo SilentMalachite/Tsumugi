@@ -210,8 +210,8 @@ public sealed class ClaimCalculationSnapshotReaderTests : IClassFixture<SqliteFi
 
         snapshot.EffectiveCertificateCountByRecipient.Should().ContainKey(recipientId);
         snapshot.EffectiveCertificateCountByRecipient[recipientId].Should().Be(1);
-        snapshot.EffectiveCertificateEvidences.Should().ContainSingle()
-            .Which.Id.Should().Be(evidence.Id);
+        snapshot.EffectiveCertificateEvidenceByRecipient.Should().ContainKey(recipientId);
+        snapshot.EffectiveCertificateEvidenceByRecipient[recipientId].Id.Should().Be(evidence.Id);
         snapshot.EffectiveAverageWageEvidences.Should().ContainSingle()
             .Which.Id.Should().Be(annual.Id);
     }
@@ -230,7 +230,7 @@ public sealed class ClaimCalculationSnapshotReaderTests : IClassFixture<SqliteFi
         snapshot.RecipientIds.Should().BeEmpty();
         snapshot.Profile.Should().BeNull();
         snapshot.EffectiveClaimInputs.Should().BeEmpty();
-        snapshot.EffectiveCertificateEvidences.Should().BeEmpty();
+        snapshot.EffectiveCertificateEvidenceByRecipient.Should().BeEmpty();
         snapshot.EffectiveCertificateCountByRecipient.Should().BeEmpty();
         snapshot.EffectiveAverageWageEvidences.Should().BeEmpty();
         snapshot.BilledDaysByRecipient.Should().BeEmpty();
@@ -380,8 +380,7 @@ public sealed class ClaimCalculationSnapshotReaderTests : IClassFixture<SqliteFi
         snapshot.RecipientIds.Should().Contain(recipientId);
         snapshot.EffectiveCertificateCountByRecipient.Should().ContainKey(recipientId);
         snapshot.EffectiveCertificateCountByRecipient[recipientId].Should().Be(2);
-        snapshot.EffectiveCertificateEvidences.Should()
-            .NotContain(e => e.CertificateId == certificateAId || e.CertificateId == certificateBId);
+        snapshot.EffectiveCertificateEvidenceByRecipient.Should().NotContainKey(recipientId);
     }
 
     [Fact]
@@ -539,11 +538,11 @@ public sealed class ClaimCalculationSnapshotReaderTests : IClassFixture<SqliteFi
         snapshot.Profile.Kind.Should().Be(RecordKind.Correct);
         snapshot.Profile.EvidenceDocumentId.Should().Be("profile-evidence-v2");
 
-        snapshot.EffectiveCertificateEvidences.Should().ContainSingle();
-        snapshot.EffectiveCertificateEvidences[0].Revision.Should().Be(2);
-        snapshot.EffectiveCertificateEvidences[0].Kind.Should().Be(RecordKind.Correct);
-        snapshot.EffectiveCertificateEvidences[0].OriginalDocumentReference
-            .Should().Be("certificate-original-v2");
+        snapshot.EffectiveCertificateEvidenceByRecipient.Should().ContainKey(recipientId);
+        var effectiveEvidence = snapshot.EffectiveCertificateEvidenceByRecipient[recipientId];
+        effectiveEvidence.Revision.Should().Be(2);
+        effectiveEvidence.Kind.Should().Be(RecordKind.Correct);
+        effectiveEvidence.OriginalDocumentReference.Should().Be("certificate-original-v2");
 
         snapshot.EffectiveAverageWageEvidences.Should().ContainSingle();
         snapshot.EffectiveAverageWageEvidences[0].Revision.Should().Be(2);

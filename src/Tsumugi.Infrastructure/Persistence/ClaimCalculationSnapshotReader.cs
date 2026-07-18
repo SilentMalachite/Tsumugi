@@ -58,7 +58,7 @@ public sealed class ClaimCalculationSnapshotReader(
 
             var billedDaysByRecipient = await ReadBilledDaysByRecipientAsync(
                 db, recipientIds, monthStart, monthEnd, ct);
-            var (certificateCountByRecipient, effectiveCertificateEvidences) =
+            var (certificateCountByRecipient, effectiveCertificateEvidenceByRecipient) =
                 await ReadEffectiveCertificateEvidencesAsync(db, recipientIds, monthStart, monthEnd, ct);
             var effectiveAverageWageEvidences = await ReadEffectiveAverageWageEvidencesAsync(
                 db, officeId, serviceMonth, ct);
@@ -68,7 +68,7 @@ public sealed class ClaimCalculationSnapshotReader(
                 recipientIds,
                 profile,
                 effectiveClaimInputs,
-                effectiveCertificateEvidences,
+                effectiveCertificateEvidenceByRecipient,
                 effectiveAverageWageEvidences,
                 billedDaysByRecipient,
                 certificateCountByRecipient);
@@ -158,11 +158,12 @@ public sealed class ClaimCalculationSnapshotReader(
     /// <summary>
     /// 受給者証rootの数（サービス月と有効期間が重なるもの）と、ちょうど1件のときだけの実効根拠を
     /// 利用者ごとに解決する。0件・2件以上（月途中の証切替を含む）は代表1件を黙って選ばず、
-    /// 件数のみを返す。判定はTask 9のreadiness gate側の責務。
+    /// 件数のみを返す。根拠は利用者IDを鍵とする辞書で明示的に対応付ける（位置対応ではない）。
+    /// 判定はTask 9のreadiness gate側の責務。
     /// </summary>
     private static async Task<(
         IReadOnlyDictionary<Guid, int> CountByRecipient,
-        IReadOnlyList<CertificateClaimEvidence> Evidences)>
+        IReadOnlyDictionary<Guid, CertificateClaimEvidence> EvidenceByRecipient)>
         ReadEffectiveCertificateEvidencesAsync(
             TsumugiDbContext db,
             IReadOnlyCollection<Guid> recipientIds,
@@ -171,7 +172,7 @@ public sealed class ClaimCalculationSnapshotReader(
             CancellationToken ct)
     {
         var countByRecipient = new Dictionary<Guid, int>();
-        var evidences = new List<CertificateClaimEvidence>();
+        var evidenceByRecipient = new Dictionary<Guid, CertificateClaimEvidence>();
         foreach (var recipientId in recipientIds)
         {
             var certificates = await db.Certificates.AsNoTracking()
@@ -186,9 +187,9 @@ public sealed class ClaimCalculationSnapshotReader(
                 .Where(evidence => evidence.CertificateId == overlapping[0].Id)
                 .ToListAsync(ct);
             if (CertificateClaimEvidencePolicy.Effective(evidenceHistory) is { } effectiveEvidence)
-                evidences.Add(effectiveEvidence);
+                evidenceByRecipient[recipientId] = effectiveEvidence;
         }
-        return (countByRecipient, evidences);
+        return (countByRecipient, evidenceByRecipient);
     }
 
     /// <summary>

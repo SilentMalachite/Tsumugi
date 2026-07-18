@@ -133,7 +133,7 @@ internal static class ClaimPreparationTestKit
     internal static ClaimCalculationSnapshot Snapshot(
         OfficeClaimProfile? profile = null,
         IReadOnlyList<ClaimInput>? inputs = null,
-        IReadOnlyList<CertificateClaimEvidence>? evidences = null,
+        IReadOnlyDictionary<Guid, CertificateClaimEvidence>? evidenceByRecipient = null,
         IReadOnlyList<AverageWageAnnualEvidence>? averageWageEvidences = null,
         IReadOnlyList<Guid>? recipientIds = null,
         IReadOnlyDictionary<Guid, int>? billedDays = null,
@@ -143,7 +143,7 @@ internal static class ClaimPreparationTestKit
             recipientIds ?? [RecipientId],
             includeProfile ? profile ?? Profile() : null,
             inputs ?? [Input()],
-            evidences ?? [Evidence()],
+            evidenceByRecipient ?? new Dictionary<Guid, CertificateClaimEvidence> { [RecipientId] = Evidence() },
             averageWageEvidences ?? [AverageWageEvidence()],
             billedDays ?? new Dictionary<Guid, int> { [RecipientId] = 2 },
             certificateCounts ?? new Dictionary<Guid, int> { [RecipientId] = 1 });

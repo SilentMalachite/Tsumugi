@@ -36,7 +36,7 @@ public static class ClaimPreparationContextBuilder
                 ClaimInputDestination.Office));
         }
 
-        var evidenceByRecipient = ClaimSnapshotEvidenceAssociation.Build(snapshot);
+        var evidenceByRecipient = snapshot.EffectiveCertificateEvidenceByRecipient;
         var recipients = snapshot.RecipientIds
             .Select(recipientId => BuildRecipient(snapshot, recipientId, evidenceByRecipient, issues))
             .ToArray();
@@ -175,31 +175,4 @@ public static class ClaimPreparationContextBuilder
         => value is { } month
             ? ClaimPreparationValue.Code(month.ToString())
             : ClaimPreparationValue.NotApplicable();
-}
-
-/// <summary>
-/// snapshotのcertificate根拠を利用者へ対応付ける。<c>CertificateClaimEvidence</c>は
-/// 利用者IDを持たないため、readerの構築順序（<c>RecipientIds</c>昇順に、証がちょうど1件の
-/// 利用者の実効根拠だけを追加する）に基づく位置対応で復元する。件数が一致しない場合は
-/// どの利用者の根拠かを確定できないため、対応付けを全面的に放棄してフェイルクローズする
-/// （黙って誤対応させない）。
-/// </summary>
-internal static class ClaimSnapshotEvidenceAssociation
-{
-    internal static IReadOnlyDictionary<Guid, CertificateClaimEvidence> Build(
-        ClaimCalculationSnapshot snapshot)
-    {
-        var singleCertificateRecipients = snapshot.RecipientIds
-            .Where(recipientId =>
-                snapshot.EffectiveCertificateCountByRecipient.GetValueOrDefault(recipientId) == 1)
-            .ToArray();
-        if (snapshot.EffectiveCertificateEvidences.Count != singleCertificateRecipients.Length)
-        {
-            return new Dictionary<Guid, CertificateClaimEvidence>();
-        }
-
-        return singleCertificateRecipients
-            .Zip(snapshot.EffectiveCertificateEvidences)
-            .ToDictionary(pair => pair.First, pair => pair.Second);
-    }
 }

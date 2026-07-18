@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Tsumugi.Application.Claim;
+using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Logic.Claim.Models;
 using Xunit;
 using Kit = Tsumugi.Application.Tests.UseCases.Claim.ClaimPreparationTestKit;
@@ -78,7 +79,7 @@ public sealed class ClaimPreparationContextBuilderTests
     public void Build_surfaces_certificate_counts_without_choosing_a_representative()
     {
         var snapshot = Kit.Snapshot(
-            evidences: [],
+            evidenceByRecipient: new Dictionary<Guid, CertificateClaimEvidence>(),
             certificateCounts: new Dictionary<Guid, int> { [Kit.RecipientId] = 2 });
 
         var result = ClaimPreparationContextBuilder.Build(
@@ -90,13 +91,18 @@ public sealed class ClaimPreparationContextBuilderTests
     }
 
     [Fact]
-    public void Build_fails_closed_when_evidence_association_is_ambiguous()
+    public void Build_resolves_certificate_evidence_independently_per_recipient()
     {
-        // 2人がcount==1なのにevidenceが1件 → どの利用者の根拠か判定できないため全員Missing扱い。
+        // Task 9b: evidenceは利用者IDを鍵とする明示的な辞書対応のため、片方だけ根拠が
+        // 登録されていてももう片方へ波及しない（旧: 件数不一致で全員Missingにするposition
+        // fail-closedは、明示キーにより不要になった）。
         var snapshot = Kit.Snapshot(
             recipientIds: [Kit.RecipientId, Kit.SecondRecipientId],
             inputs: [Kit.Input(), Kit.Input(Kit.SecondRecipientId)],
-            evidences: [Kit.Evidence()],
+            evidenceByRecipient: new Dictionary<Guid, CertificateClaimEvidence>
+            {
+                [Kit.RecipientId] = Kit.Evidence(),
+            },
             billedDays: new Dictionary<Guid, int>
             {
                 [Kit.RecipientId] = 2,
@@ -111,15 +117,22 @@ public sealed class ClaimPreparationContextBuilderTests
         var result = ClaimPreparationContextBuilder.Build(
             snapshot, Kit.Office(), masterVersionAvailable: true);
 
-        result.Context.Recipients.Should().OnlyContain(recipient =>
-            recipient.CertificateClaimEvidence == ClaimPreparationEvidenceState.Missing);
+        result.Context.Recipients.Should().Contain(recipient =>
+            recipient.RecipientId == Kit.RecipientId
+            && recipient.CertificateClaimEvidence == ClaimPreparationEvidenceState.Valid);
+        result.Context.Recipients.Should().Contain(recipient =>
+            recipient.RecipientId == Kit.SecondRecipientId
+            && recipient.CertificateClaimEvidence == ClaimPreparationEvidenceState.Missing);
     }
 
     [Fact]
     public void Build_marks_unconfirmed_original_evidence()
     {
         var snapshot = Kit.Snapshot(
-            evidences: [Kit.Evidence(originalDocumentReference: null)]);
+            evidenceByRecipient: new Dictionary<Guid, CertificateClaimEvidence>
+            {
+                [Kit.RecipientId] = Kit.Evidence(originalDocumentReference: null),
+            });
 
         var result = ClaimPreparationContextBuilder.Build(
             snapshot, Kit.Office(), masterVersionAvailable: true);
@@ -131,7 +144,10 @@ public sealed class ClaimPreparationContextBuilderTests
     [Fact]
     public void Build_marks_unentered_monthly_cost_cap_as_missing_evidence()
     {
-        var snapshot = Kit.Snapshot(evidences: [Kit.Evidence(capYen: null)]);
+        var snapshot = Kit.Snapshot(evidenceByRecipient: new Dictionary<Guid, CertificateClaimEvidence>
+        {
+            [Kit.RecipientId] = Kit.Evidence(capYen: null),
+        });
 
         var result = ClaimPreparationContextBuilder.Build(
             snapshot, Kit.Office(), masterVersionAvailable: true);
@@ -148,7 +164,10 @@ public sealed class ClaimPreparationContextBuilderTests
             UpperLimitManagementApplicability = UpperLimitManagementApplicability.Applicable,
             UpperLimitManagementOfficeNumber = "1310000002",
         };
-        var snapshot = Kit.Snapshot(evidences: [evidence]);
+        var snapshot = Kit.Snapshot(evidenceByRecipient: new Dictionary<Guid, CertificateClaimEvidence>
+        {
+            [Kit.RecipientId] = evidence,
+        });
 
         var result = ClaimPreparationContextBuilder.Build(
             snapshot, Kit.Office(), masterVersionAvailable: true);

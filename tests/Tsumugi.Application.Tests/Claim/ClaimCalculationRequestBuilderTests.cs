@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Tsumugi.Application.Claim;
+using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Logic.Claim.Models;
 using Xunit;
 using Kit = Tsumugi.Application.Tests.UseCases.Claim.ClaimPreparationTestKit;
@@ -41,7 +42,11 @@ public sealed class ClaimCalculationRequestBuilderTests
         var snapshot = Kit.Snapshot(
             recipientIds: [Kit.RecipientId, Kit.SecondRecipientId],
             inputs: [Kit.Input(), Kit.Input(Kit.SecondRecipientId)],
-            evidences: [Kit.Evidence(), Kit.Evidence()],
+            evidenceByRecipient: new Dictionary<Guid, CertificateClaimEvidence>
+            {
+                [Kit.RecipientId] = Kit.Evidence(),
+                [Kit.SecondRecipientId] = Kit.Evidence(),
+            },
             billedDays: new Dictionary<Guid, int>
             {
                 [Kit.RecipientId] = 2,
@@ -121,7 +126,12 @@ public sealed class ClaimCalculationRequestBuilderTests
     public void Build_requires_confirmed_entered_cap_before_constructing_sources()
     {
         var result = ClaimCalculationRequestBuilder.Build(
-            Kit.Snapshot(evidences: [Kit.Evidence(capYen: null)]), Kit.Month, Kit.Tokens());
+            Kit.Snapshot(evidenceByRecipient: new Dictionary<Guid, CertificateClaimEvidence>
+            {
+                [Kit.RecipientId] = Kit.Evidence(capYen: null),
+            }),
+            Kit.Month,
+            Kit.Tokens());
 
         result.Request.Should().BeNull();
         result.Issues.Should().Contain(issue =>
@@ -134,7 +144,10 @@ public sealed class ClaimCalculationRequestBuilderTests
     public void Build_requires_original_confirmation_before_constructing_sources()
     {
         var result = ClaimCalculationRequestBuilder.Build(
-            Kit.Snapshot(evidences: [Kit.Evidence(originalDocumentReference: null)]),
+            Kit.Snapshot(evidenceByRecipient: new Dictionary<Guid, CertificateClaimEvidence>
+            {
+                [Kit.RecipientId] = Kit.Evidence(originalDocumentReference: null),
+            }),
             Kit.Month,
             Kit.Tokens());
 

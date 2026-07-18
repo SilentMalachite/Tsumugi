@@ -158,7 +158,7 @@ public static class ClaimCalculationRequestBuilder
     private static List<RecipientClaimSource> BuildSources(
         ClaimCalculationSnapshot snapshot, List<ClaimPreparationIssue> issues)
     {
-        var evidenceByRecipient = ClaimSnapshotEvidenceAssociation.Build(snapshot);
+        var evidenceByRecipient = snapshot.EffectiveCertificateEvidenceByRecipient;
         var sources = new List<RecipientClaimSource>();
         foreach (var recipientId in snapshot.RecipientIds)
         {

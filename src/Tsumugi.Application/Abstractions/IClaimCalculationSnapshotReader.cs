@@ -21,8 +21,10 @@ namespace Tsumugi.Application.Abstractions;
 /// <para>
 /// <see cref="EffectiveCertificateCountByRecipient"/> は、サービス月の暦日と有効期間が重なる
 /// （<c>Overlaps</c>）受給者証rootの数を <see cref="RecipientIds"/> の全員分保持する。
-/// <see cref="EffectiveCertificateEvidences"/> にはその数がちょうど1件の利用者の根拠のみを含める。
-/// 0件（証なし）・2件以上（月途中の証切替）はこの層では代表1件を黙って選ばず、
+/// <see cref="EffectiveCertificateEvidenceByRecipient"/> は利用者IDを鍵とする明示的な対応付けで、
+/// エントリが存在するのは「その利用者の<see cref="EffectiveCertificateCountByRecipient"/>が
+/// ちょうど1件、かつその受給者証に実効根拠が存在する」場合に限る（位置対応ではない）。
+/// 0件（証なし）・2件以上（月途中の証切替）・根拠未登録はこの層ではエントリを作らず、
 /// 件数を通じて可視化するに留める。判定（missing / 複数該当でfail-closed）は
 /// 請求readiness gate側の責務とする。
 /// </para>
@@ -31,7 +33,7 @@ public sealed record ClaimCalculationSnapshot(
     IReadOnlyList<Guid> RecipientIds,
     OfficeClaimProfile? Profile,
     IReadOnlyList<ClaimInput> EffectiveClaimInputs,
-    IReadOnlyList<CertificateClaimEvidence> EffectiveCertificateEvidences,
+    IReadOnlyDictionary<Guid, CertificateClaimEvidence> EffectiveCertificateEvidenceByRecipient,
     IReadOnlyList<AverageWageAnnualEvidence> EffectiveAverageWageEvidences,
     IReadOnlyDictionary<Guid, int> BilledDaysByRecipient,
     IReadOnlyDictionary<Guid, int> EffectiveCertificateCountByRecipient);
