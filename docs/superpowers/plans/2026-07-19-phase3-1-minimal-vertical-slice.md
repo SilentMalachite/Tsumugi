@@ -561,12 +561,12 @@ git commit -m "feat(phase3-1): resolve basic reward service code from masters (t
   - `ClaimCalculationException(ClaimCalculationErrorCode)`、`ClaimCalculationErrorCode { RegionUnitPriceUnavailable=1, InvalidInput=2, RoundingRuleUnavailable=3 }`
   - `ClaimRoundingRules.Apply(string roundingRuleId, decimal value)` → `int`（ADR 0025のID→規則。IDが未知なら `RoundingRuleUnavailable`）
 
-- [ ] **Step 1: ADR 0025を読み、端数規則IDと規則（単位数・金額それぞれ）を確認する**
+- [x] **Step 1: ADR 0025を読み、端数規則IDと規則（単位数・金額それぞれ）を確認する**
 
 Run: `cat docs/decisions/0025-claim-rounding-rules.md`
 確認事項: 単位数の丸めID（例 `claim.rounding.units.half-up.v1`）と金額（円）の丸め規則。**ADR 0025に無い規則が必要になったら停止してopen-questionsへ**。
 
-- [ ] **Step 2: 失敗するテストを書く**
+- [x] **Step 2: 失敗するテストを書く**
 
 ```csharp
 // tests/Tsumugi.Domain.Tests/Logic/Claim/ClaimCalculatorTests.cs
@@ -616,12 +616,12 @@ public void Rejects_invalid_billed_days(int days)
 public void Matches_adr_0027_worked_examples(...)
 ```
 
-- [ ] **Step 3: テスト実行（失敗確認）**
+- [x] **Step 3: テスト実行（失敗確認）**
 
 Run: `dotnet test tests/Tsumugi.Domain.Tests --filter ClaimCalculator -v minimal`
 Expected: FAIL（型未定義）
 
-- [ ] **Step 4: 実装**
+- [x] **Step 4: 実装**
 
 ```csharp
 // src/Tsumugi.Domain/Logic/Claim/ClaimRoundingRules.cs
@@ -718,12 +718,12 @@ public static class ClaimCalculator
 
 注: 丸めIDの適用箇所（単位数→金額の変換、給付額計算）はStep 1で確認したADR 0025の規則に**必ず**合わせる。上のコードの `UnitsHalfUpV1` 使用は仮置きではなくADR 0025確認後に正しいIDへ差し替えてからコミットする。
 
-- [ ] **Step 5: テスト実行（成功確認）**
+- [x] **Step 5: テスト実行（成功確認）**
 
 Run: `dotnet test tests/Tsumugi.Domain.Tests --filter ClaimCalculator -v minimal`
 Expected: PASS（golden case含む）
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add src/Tsumugi.Domain/Logic/Claim/ClaimCalculator.cs src/Tsumugi.Domain/Logic/Claim/ClaimRoundingRules.cs tests/Tsumugi.Domain.Tests/Logic/Claim/ClaimCalculatorTests.cs tests/Tsumugi.Domain.Tests/Logic/Claim/ClaimCalculatorGoldenCaseTests.cs
