@@ -334,7 +334,7 @@ git commit -m "feat(phase3-1): expose calculation master bundle by service month
   - `ServiceCodeResolver.ResolveBasicReward(ClaimCalculationMasterBundle masters, ServiceMonth month, ClaimBillingConditionContext context)` → `ResolvedBasicReward(string ServiceCode, string OfficialLabel, int UnitsPerDay, BillingUnit BillingUnit)`
   - 失敗は `ServiceCodeResolutionException(ServiceCodeResolutionErrorCode)`、`ServiceCodeResolutionErrorCode { MasterUnavailable=1, AmbiguousMatch=2, ConditionUnresolved=3, ComponentMissing=4, UnsupportedUnitRule=5 }`
 
-- [ ] **Step 1: 失敗するテストを書く（合成マスタで網羅）**
+- [x] **Step 1: 失敗するテストを書く（合成マスタで網羅）**
 
 ```csharp
 // tests/Tsumugi.Domain.Tests/Logic/Claim/ServiceCodeResolverTests.cs
@@ -404,12 +404,12 @@ public sealed class ServiceCodeResolverTests
 }
 ```
 
-- [ ] **Step 2: テスト実行（失敗確認）**
+- [x] **Step 2: テスト実行（失敗確認）**
 
 Run: `dotnet test tests/Tsumugi.Domain.Tests --filter ServiceCodeResolver -v minimal`
 Expected: FAIL（コンパイルエラー: 型未定義）
 
-- [ ] **Step 3: 実装**
+- [x] **Step 3: 実装**
 
 ```csharp
 // src/Tsumugi.Domain/Logic/Claim/Models/ClaimBillingConditionContext.cs
@@ -530,12 +530,12 @@ public static class ServiceCodeResolver
 
 注: `month` 引数はTask 4で有効月フィルタ済みのbundleを受ける前提の検証用に残す（行の有効期間再チェックが必要ならここで行う）。
 
-- [ ] **Step 4: テスト実行（成功確認）**
+- [x] **Step 4: テスト実行（成功確認）**
 
 Run: `dotnet test tests/Tsumugi.Domain.Tests --filter ServiceCodeResolver -v minimal`
 Expected: PASS
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add src/Tsumugi.Domain/Logic/Claim/ServiceCodeResolver.cs src/Tsumugi.Domain/Logic/Claim/Models/ClaimBillingConditionContext.cs tests/Tsumugi.Domain.Tests/Logic/Claim/ServiceCodeResolverTests.cs
