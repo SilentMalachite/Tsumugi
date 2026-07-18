@@ -4,13 +4,15 @@ namespace Tsumugi.Application.Claim;
 
 public sealed class ClaimPreparationReadiness
 {
-    private const string EffectiveCertificateField = "Certificate.Effective";
-    private const string MasterVersionField = "ClaimMaster.Version";
-    private const string AverageWageEvidenceField = "AverageWageAnnualEvidence.Effective";
-    private const string OfficeClaimProfileField = "OfficeClaimProfile.Effective";
-    private const string CertificateEvidenceField = "CertificateClaimEvidence.Effective";
-    private const string OriginalEvidenceField = "CertificateClaimEvidence.Original";
-    private const string UpperLimitStatementField = "UpperLimitManagementStatement.Effective";
+    // Task 9のbuilder群（ClaimPreparationContextBuilder / ClaimCalculationRequestBuilder）が
+    // 同一のfield codeでissueを重複なく合流できるよう、正準field codeをinternal共有する。
+    internal const string EffectiveCertificateField = "Certificate.Effective";
+    internal const string MasterVersionField = "ClaimMaster.Version";
+    internal const string AverageWageEvidenceField = "AverageWageAnnualEvidence.Effective";
+    internal const string OfficeClaimProfileField = "OfficeClaimProfile.Effective";
+    internal const string CertificateEvidenceField = "CertificateClaimEvidence.Effective";
+    internal const string OriginalEvidenceField = "CertificateClaimEvidence.Original";
+    internal const string UpperLimitStatementField = "UpperLimitManagementStatement.Effective";
 
     private readonly IClaimInputRequirementProvider _requirementProvider;
 

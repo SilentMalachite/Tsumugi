@@ -52,6 +52,7 @@ public static class DependencyInjection
             ProductionClaimSnapshotValidationCodecRegistry>();
         services.AddSingleton<IClaimFinalizationStore, ClaimFinalizationStore>();
         services.AddSingleton<IClaimCalculationSnapshotReader, ClaimCalculationSnapshotReader>();
+        services.AddSingleton<IClaimBillingTokenProvider, OfficeClaimBillingTokenProvider>();
         return services;
     }
 }
