@@ -913,11 +913,11 @@ git commit -m "feat(phase3-1): production snapshot validation codec v1 (task 8)"
   - `QueryClaimUseCase.ExecuteAsync(QueryClaimRequest, ct)` → `IClaimBatchRepository.ListHistoryAggregatesAsync` をDTO化
 - PreviewHash = 確定時と同じ `ClaimFinalizationOperationV1.Canonicalize(draft).Sha256` をプレビュー用draft（FinalizationOperationId空Guid固定・CreatedBy `"preview"` 固定）で計算した値。**プレビューと確定で同一入力→同一hashになることをテストで固定**
 
-- [ ] **Step 1: 失敗するテストを書く（フェイクで境界を固定）**
+- [x] **Step 1: 失敗するテストを書く（フェイクで境界を固定）**
 
 主要ケース: (a) readiness不成立→Issues返却・算定スキップ、(b) 成立→ClaimCalculator結果がDTO化、(c) 同一入力でPreviewHashが安定、(d) Close時hash不一致→例外、(e) Close成功→store.CommitAsyncへ渡るdraftのKind/Totals/Details件数、(f) Cancelはhead無しで `ClaimFinalizationException(InvalidHistory)`、(g) Queryが履歴を返す。
 
-- [ ] **Step 2: 失敗確認 → 実装 → 成功確認**
+- [x] **Step 2: 失敗確認 → 実装 → 成功確認**
 
 Run: `dotnet test tests/Tsumugi.Application.Tests --filter "CalculateClaim|CloseClaim|CancelClaim|QueryClaim" -v minimal`（FAIL→実装→PASS）
 
@@ -948,7 +948,7 @@ public sealed class CalculateClaimUseCase(
 
 `ClaimPreparationContextBuilder` / `ClaimCalculationRequestBuilder` は `src/Tsumugi.Application/Claim/` に置く純粋staticクラス（テストは合成snapshotで直接検証）。profile側の `PaymentBand`/`CapacityKey`/`StaffingKey` トークンは `OfficeClaimProfile` と `Office` 既存項目から写像し、写像できない場合は `ClaimPreparationIssue` として返す（推測しない）。
 
-- [ ] **Step 3: DI登録（`CompositionRoot.cs`）→ 全体テスト → コミット**
+- [x] **Step 3: DI登録（`CompositionRoot.cs`）→ 全体テスト → コミット**
 
 ```csharp
 services.AddScoped<ClaimPreparationReadiness>();
@@ -964,6 +964,31 @@ Run: `dotnet test -v minimal` → 全緑
 git add src/Tsumugi.Application/ src/Tsumugi.App/CompositionRoot.cs tests/Tsumugi.Application.Tests/
 git commit -m "feat(phase3-1): calculate, close, cancel, query claim use cases (task 9)"
 ```
+
+---
+
+### Task 9b: OfficeClaimProfile請求トークン拡張と明示的evidence対応付け（Task 9実装中の発見への追補）
+
+> Task 9で判明した3点を閉じる: (1) 定員・人員配置・地域区分の実データ保存先が存在せず本番プレビューが恒久NotReady、(2) snapshotのevidence⇄利用者対応が位置依存で生産者契約に順序不変条件が未記載、(3) 実績0日の契約中利用者が月全体のreadinessをブロックする過剰厳格性。
+
+**Files:**
+- Modify: `src/Tsumugi.Domain/Entities/OfficeClaimProfile.cs`（`int? CapacityHeadcount` / `string? StaffingKey` / `string? RegionKey` を追加）と `OfficeClaimProfilePolicy`（検証）
+- Migration: `dotnet ef migrations add Phase31OfficeClaimBillingTokens`
+- Modify: `SetOfficeClaimProfileUseCase` / request DTO / `ClaimInputViewModel` のプロファイル節（入力欄3つ。StaffingKey/RegionKey の選択肢はマスタbundle（staffing条件トークン・region-unit-prices行）から列挙し、ハードコードしない）
+- Modify: `OfficeClaimBillingTokenProvider`（有効プロファイルから実値を返す本番配線。未入力はnullのまま=readiness issue）
+- Modify: `ClaimCalculationSnapshot` — `EffectiveCertificateEvidences` リストを `IReadOnlyDictionary<Guid, CertificateClaimEvidence> EffectiveCertificateEvidenceByRecipient` に置換（位置依存を排除）。reader・builder・関連テスト追随
+- Modify: readiness規則 — `billedDays == 0` かつ有効ClaimInputなしの利用者は請求明細を生成しないため、証・入力系の必須判定から除外（一覧には残す）。テストで固定
+- Test: 各変更に対応する既存テストファイルへ追加
+
+**Interfaces:**
+- Consumes: Task 9の `IClaimBillingTokenProvider` / builders / readiness、Task 7のreader
+- Produces: 本番構成で「プロファイル入力済みならプレビューがReadyになる」状態。Task 10のUIが前提とする
+
+- [ ] **Step 1: Domain拡張＋policy＋migrationをTDDで実装**
+- [ ] **Step 2: snapshotのevidence辞書化とbuilder追随（位置依存排除）**
+- [ ] **Step 3: readinessの0日非ブロック化**
+- [ ] **Step 4: UseCase/VM入力欄＋token provider本番配線**
+- [ ] **Step 5: 全体テスト・ci.sh緑 → コミット（論理単位で分割可）**
 
 ---
 
