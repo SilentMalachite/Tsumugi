@@ -35,7 +35,8 @@ public sealed class OfficeClaimProfileConfiguration : IEntityTypeConfiguration<O
             "AND \"LaterRegistrationMonthKey\" IS NULL AND \"ReformComparisonEvidenceDocumentId\" IS NULL " +
             "AND \"FiledTransitionPeriod\" IS NULL AND \"FiledTransitionEvidenceDocumentId\" IS NULL " +
             "AND \"EvidenceDocumentId\" IS NULL AND \"ConfirmedAt\" IS NULL AND \"ConfirmedBy\" IS NULL " +
-            "AND \"ConfirmationReason\" IS NULL)",
+            "AND \"ConfirmationReason\" IS NULL AND \"CapacityHeadcount\" IS NULL " +
+            "AND \"StaffingKey\" IS NULL AND \"RegionKey\" IS NULL)",
             table =>
             {
                 table.HasCheckConstraint(

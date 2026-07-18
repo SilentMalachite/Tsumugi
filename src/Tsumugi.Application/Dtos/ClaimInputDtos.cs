@@ -70,6 +70,9 @@ public sealed record SetOfficeClaimProfileRequest(
     public DateTimeOffset? ConfirmedAt { get; init; }
     public string? ConfirmedBy { get; init; }
     public string? ConfirmationReason { get; init; }
+    public int? CapacityHeadcount { get; init; }
+    public string? StaffingKey { get; init; }
+    public string? RegionKey { get; init; }
 }
 
 public sealed record SetCertificateClaimEvidenceRequest(

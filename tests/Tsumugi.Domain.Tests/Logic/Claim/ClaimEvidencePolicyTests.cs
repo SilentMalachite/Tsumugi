@@ -166,6 +166,50 @@ public sealed class ClaimEvidencePolicyTests
             .Should().Throw<InvalidOperationException>();
     }
 
+    [Fact]
+    public void Office_profile_validates_billing_token_fields_when_present()
+    {
+        // Task 9b: 定員(実頭数)・人員配置区分token・地域区分tokenはOfficeClaimProfileの
+        // 構造化フィールド（ADR 0021）。存在するときだけ形式を検証し、語彙自体（マスタ側の
+        // 閉集合）はここでは検証しない（フェイルクローズは算定/readiness側の責務）。
+        var policy = ProfilePolicy();
+        var root = NewProfile();
+
+        FluentActions.Invoking(() => policy.ValidateHistory([root with { CapacityHeadcount = 0 }]))
+            .Should().Throw<InvalidOperationException>();
+        FluentActions.Invoking(() => policy.ValidateHistory([root with { CapacityHeadcount = -1 }]))
+            .Should().Throw<InvalidOperationException>();
+        FluentActions.Invoking(() => policy.ValidateHistory([root with { StaffingKey = "  " }]))
+            .Should().Throw<InvalidOperationException>();
+        FluentActions.Invoking(() => policy.ValidateHistory([root with { RegionKey = "" }]))
+            .Should().Throw<InvalidOperationException>();
+        FluentActions.Invoking(() => policy.ValidateHistory([
+                root with { CapacityHeadcount = 20, StaffingKey = "staff-a", RegionKey = "region-a" }]))
+            .Should().NotThrow();
+    }
+
+    [Fact]
+    public void Office_cancel_rejects_billing_token_payload()
+    {
+        var policy = ProfilePolicy();
+        var root = NewProfile() with
+        {
+            CapacityHeadcount = 20,
+            StaffingKey = "staff-a",
+            RegionKey = "region-a",
+        };
+
+        FluentActions.Invoking(() => policy.ValidateHistory([
+                root, Cancel(root) with { CapacityHeadcount = root.CapacityHeadcount }]))
+            .Should().Throw<InvalidOperationException>();
+        FluentActions.Invoking(() => policy.ValidateHistory([
+                root, Cancel(root) with { StaffingKey = root.StaffingKey }]))
+            .Should().Throw<InvalidOperationException>();
+        FluentActions.Invoking(() => policy.ValidateHistory([
+                root, Cancel(root) with { RegionKey = root.RegionKey }]))
+            .Should().Throw<InvalidOperationException>();
+    }
+
     public static TheoryData<string, IReadOnlyCollection<OfficeClaimProfile>>
         InvalidProfileHistories()
     {

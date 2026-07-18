@@ -30,4 +30,25 @@ public sealed record OfficeClaimProfile : Entity
     public DateTimeOffset? ConfirmedAt { get; init; }
     public string? ConfirmedBy { get; init; }
     public string? ConfirmationReason { get; init; }
+
+    /// <summary>
+    /// 利用定員（実頭数）。ADR 0021が定める基本報酬選択の構造化入力（定員条件）。
+    /// 未入力はnull（請求算定は未解決としてフェイルクローズ、値が入れば1以上を要求する）。
+    /// </summary>
+    public int? CapacityHeadcount { get; init; }
+
+    /// <summary>
+    /// 人員配置区分token。ADR 0021が定める基本報酬選択の構造化入力。値はマスタの
+    /// staffing条件語彙（<c>ClaimConditionKind.Staffing</c>）に対応する文字列で、
+    /// 語彙の閉集合検証はここでは行わない（不整合はcalculation/readiness側でフェイルクローズ）。
+    /// </summary>
+    public string? StaffingKey { get; init; }
+
+    /// <summary>
+    /// 地域区分token。ADR 0021が定める基本報酬選択の構造化入力。値はregion-unit-price
+    /// masterの<c>RegionKey</c>語彙に対応する文字列。未入力時は
+    /// <c>OfficeClaimBillingTokenProvider</c>が<c>Office.RegionGrade</c>由来の名義的既定へ
+    /// フォールバックする（既存事業所の後方互換）。
+    /// </summary>
+    public string? RegionKey { get; init; }
 }

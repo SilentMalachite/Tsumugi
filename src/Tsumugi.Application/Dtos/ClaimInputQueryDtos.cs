@@ -100,7 +100,10 @@ public sealed record OfficeClaimProfileQueryRevisionDto(
     string? ConfirmedBy,
     string? ConfirmationReason,
     DateTimeOffset CreatedAt,
-    string CreatedBy);
+    string CreatedBy,
+    int? CapacityHeadcount,
+    string? StaffingKey,
+    string? RegionKey);
 
 public sealed record CertificateClaimEvidenceQueryRevisionDto(
     Guid Id,

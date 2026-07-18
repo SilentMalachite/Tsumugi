@@ -262,7 +262,10 @@ public sealed class QueryClaimInputWorkspaceUseCase(
             item.ConfirmedBy,
             item.ConfirmationReason,
             item.CreatedAt,
-            item.CreatedBy);
+            item.CreatedBy,
+            item.CapacityHeadcount,
+            item.StaffingKey,
+            item.RegionKey);
 
     private static CertificateClaimEvidenceQueryRevisionDto Map(
         CertificateClaimEvidence item) =>

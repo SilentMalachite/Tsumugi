@@ -130,6 +130,22 @@ public sealed class OfficeClaimProfilePolicy
         {
             throw Invalid("数値optionにFiledTransition根拠を設定できません。");
         }
+
+        ValidateBillingTokenFields(item);
+    }
+
+    /// <summary>
+    /// 定員(実頭数)・人員配置区分token・地域区分tokenは存在するときだけ形式を検証する
+    /// （Task 9b）。語彙自体（マスタ側の閉集合）はここでは検証しない。
+    /// </summary>
+    private static void ValidateBillingTokenFields(OfficeClaimProfile item)
+    {
+        if (item.CapacityHeadcount is { } capacityHeadcount && capacityHeadcount < 1)
+            throw Invalid("利用定員(実頭数)は1以上である必要があります。");
+        if (item.StaffingKey is not null && string.IsNullOrWhiteSpace(item.StaffingKey))
+            throw Invalid("人員配置区分tokenが空白です。");
+        if (item.RegionKey is not null && string.IsNullOrWhiteSpace(item.RegionKey))
+            throw Invalid("地域区分tokenが空白です。");
     }
 
     private void ValidateReformPeriod(OfficeClaimProfile item)
@@ -229,7 +245,9 @@ public sealed class OfficeClaimProfilePolicy
             || item.LaterRegistrationMonth is not null || item.ReformComparisonEvidenceDocumentId is not null
             || item.FiledTransitionPeriod is not null || item.FiledTransitionEvidenceDocumentId is not null
             || item.EvidenceDocumentId is not null || item.ConfirmedAt is not null
-            || item.ConfirmedBy is not null || item.ConfirmationReason is not null)
+            || item.ConfirmedBy is not null || item.ConfirmationReason is not null
+            || item.CapacityHeadcount is not null || item.StaffingKey is not null
+            || item.RegionKey is not null)
             throw Invalid("取消には事業所請求profileの業務値を保持できません。");
     }
 
