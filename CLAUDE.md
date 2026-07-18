@@ -95,7 +95,7 @@ dotnet list package --vulnerable --include-transitive  # 脆弱性確認
 - **本書(Claude Code)が実装、Codexがレビュー**。Codex指摘は重大度付きで返り、Claude Code向け修正指示に**トリアージして取り込む**。
 - 不明点・公式仕様の未確定事項は推測で実装せず `docs/open-questions.md` に起票し、設計相談へ回す。
 - フェーズは 0→1→2→3 の順（基盤→記録→工賃→国保連請求）。前フェーズの受け入れ基準を満たすまで次に着手しない。
-- **現在地**: フェーズ0・1・2とPhase 3-0は完了。Phase 3-1は現行計画Tasks 2〜10（請求入力モデル、migration、repository、保存ユースケース、typed requirements、readiness gate）に加え、Task 12のclaim-master schema v2とTask 13の基準該当B型公式計算契約・source inventoryを実装済みで、Task 11の入力UIから継続する。対象service-codeのproduction seed、保護施設事務費実値入力、resolver・runtime請求計算、snapshot reader、production codec、validated finalizationは未実装で、Phase 3-1全体は未受け入れ。Phase 2の`AverageWageMetric`は互換保持し、請求用正式定義はADR 0023、実装はPhase 3-1 Task 15で扱う。
+- **現在地**: フェーズ0・1・2とPhase 3-0は完了。Phase 3-1は再設計済み（spec: `docs/superpowers/specs/2026-07-19-phase3-1-minimal-vertical-slice-redesign-design.md`、計画: `docs/superpowers/plans/2026-07-19-phase3-1-minimal-vertical-slice.md`）。進捗は計画のチェックボックスのみが正。旧Task 1-28計画とtask12/13スピンオフ文書群の未完了部分は失効（specの§9）。保護施設・基準該当B型は凍結スコープ外。
 
 ---
 
@@ -108,7 +108,8 @@ dotnet list package --vulnerable --include-transitive  # 脆弱性確認
 - `docs/phase2-acceptance.md` — フェーズ2 受け入れ基準セルフチェック
 - `06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md` — フェーズ3（国保連請求）の実装指示と受け入れ基準
 - `docs/phase3-0-acceptance.md` — Phase 3-0受け入れ証跡と後続進捗
-- `docs/superpowers/plans/2026-07-11-phase3-1-claim-calculation-and-input-foundation.md` — Phase 3-1現行実装計画
+- `docs/superpowers/specs/2026-07-19-phase3-1-minimal-vertical-slice-redesign-design.md` — Phase 3-1再設計spec（正本）
+- `docs/superpowers/plans/2026-07-19-phase3-1-minimal-vertical-slice.md` — Phase 3-1実装計画（進捗はチェックボックスが正）
 - `docs/superpowers/specs/2026-07-13-phase3-1-task12-claim-master-schema-v2-design.md` — claim-master schema v2のclosed contract設計
 - `docs/superpowers/specs/2026-07-14-phase3-1-task13-protected-facility-b-formula-and-source-inventory-design.md` — 基準該当B型の公式計算契約・runtime入力要件・source inventory設計
 - `docs/decisions/` — ADR / `docs/open-questions.md` — 未確定事項
