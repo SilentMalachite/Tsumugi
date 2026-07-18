@@ -746,12 +746,12 @@ git commit -m "feat(phase3-1): calculate basic reward claim with golden cases (t
   - `ClaimCalculationSnapshot`（値のみのrecord）: `OfficeClaimProfile? Profile`、`IReadOnlyList<ClaimInput> EffectiveClaimInputs`、`IReadOnlyList<CertificateClaimEvidence> EffectiveCertificateEvidences`、`IReadOnlyList<AverageWageAnnualEvidence> EffectiveAverageWageEvidences`、`IReadOnlyDictionary<Guid, int> BilledDaysByRecipient`（recipientId→提供実績日数）
   - 全readを**1本のdeferred read transaction**で行い、終了時 `RollbackAsync`
 
-- [ ] **Step 1: Phase 1の `DailyRecord` エンティティと効力判定Policyを読む**
+- [x] **Step 1: Phase 1の `DailyRecord` エンティティと効力判定Policyを読む**
 
 Run: `grep -n "record DailyRecord" -r src/Tsumugi.Domain/Entities/ && grep -rn "class DailyRecordPolicy" src/Tsumugi.Domain/Logic/`
 確認事項: 出席・サービス提供実績を表すフィールド名、訂正履歴の効力判定メソッド名。**「提供実績日数」の判定基準（どの出席区分を数えるか）が既存仕様で一意でなければ停止してopen-questionsへ**（推測で数えない）。
 
-- [ ] **Step 2: 失敗するテストを書く**
+- [x] **Step 2: 失敗するテストを書く**
 
 ```csharp
 // tests/Tsumugi.Infrastructure.Tests/Persistence/ClaimCalculationSnapshotReaderTests.cs
@@ -775,12 +775,12 @@ public sealed class ClaimCalculationSnapshotReaderTests : IClassFixture<SqliteFi
 }
 ```
 
-- [ ] **Step 3: テスト実行（失敗確認）**
+- [x] **Step 3: テスト実行（失敗確認）**
 
 Run: `dotnet test tests/Tsumugi.Infrastructure.Tests --filter ClaimCalculationSnapshotReader -v minimal`
 Expected: FAIL（型未定義）
 
-- [ ] **Step 4: 実装**
+- [x] **Step 4: 実装**
 
 ```csharp
 // src/Tsumugi.Application/Abstractions/IClaimCalculationSnapshotReader.cs
@@ -831,7 +831,7 @@ DI登録（`src/Tsumugi.Infrastructure/DependencyInjection.cs` に追加）:
 services.AddSingleton<IClaimCalculationSnapshotReader, ClaimCalculationSnapshotReader>();
 ```
 
-- [ ] **Step 5: テスト実行（成功確認）→ コミット**
+- [x] **Step 5: テスト実行（成功確認）→ コミット**
 
 Run: `dotnet test tests/Tsumugi.Infrastructure.Tests --filter ClaimCalculationSnapshotReader -v minimal`
 Expected: PASS
