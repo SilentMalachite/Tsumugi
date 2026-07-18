@@ -253,6 +253,10 @@ public sealed class ClaimCalculationSnapshotReader(
     /// 「サービス事業者記入欄」から本事業所（<c>ProviderNumber == officeNumber</c>）かつ
     /// サービス月と契約期間が重なる行を解決する。0件・2件以上（契約行の重複）は代表を選ばず、
     /// エントリを作らない（fail-closed。判定は請求readiness gate側の責務）。
+    /// 注意: <see cref="ContractedProvider"/> は登録時点の <see cref="Certificate.Id"/> に紐づくため、
+    /// 受給者証を訂正すると新headのIdとは一致しなくなり、本readerでは解決されない
+    /// （readinessが <see cref="ContractedProvider.CertificateEntryNumber"/> 不足として算定不能にする=フェイルクローズ）。
+    /// 挙動と再登録手順は open-questions #36 および CertificateViewModel の staleness 表示を参照。
     /// </summary>
     private static async Task<IReadOnlyDictionary<Guid, ContractedProvider>>
         ReadEffectiveContractedProvidersByRecipientAsync(
