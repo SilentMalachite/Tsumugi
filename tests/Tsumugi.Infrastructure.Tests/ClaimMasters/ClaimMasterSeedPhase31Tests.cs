@@ -5,12 +5,50 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using FluentAssertions;
+using Tsumugi.Infrastructure.ClaimMasters;
 using Tsumugi.Infrastructure.Tests;
 
 namespace Tsumugi.Infrastructure.Tests.ClaimMasters;
 
 public sealed class ClaimMasterSeedPhase31Tests
 {
+    // Task 3 (seed実値投入): verify JsonClaimMasterProvider.LoadEmbedded() validates
+    // successfully once basic-rewards.json / service-codes.json / region-unit-prices.json
+    // carry ADR 0027's R6 values. ResolveCalculationMasters-based row-count assertions are
+    // deferred to Task 4 per the phase3-1 task-3 brief.
+    [Fact]
+    public void LoadEmbedded_succeeds_with_populated_seeds()
+    {
+        var action = () => JsonClaimMasterProvider.LoadEmbedded();
+
+        action.Should().NotThrow();
+    }
+
+    // ADR 0027 fixes 135 basic-reward rows (service fee I-III: 3 staffing x 5 capacity x
+    // 8 wage bands = 120, plus participation-evaluation IV-VI: 15), a matching 135
+    // service-code rows (one per basic-reward row), and 8 region unit prices. This asserts
+    // the seed JSON itself (not the not-yet-wired ResolveCalculationMasters) carries those
+    // counts, so it is RED before Task 3 populates the seeds and GREEN after.
+    [Fact]
+    public void LoadEmbedded_embeds_the_adr0027_r6_seed_row_counts()
+    {
+        CountEmbeddedEntries(".ClaimMasters.Seed.basic-rewards.json").Should().Be(135);
+        CountEmbeddedEntries(".ClaimMasters.Seed.service-codes.json").Should().Be(135);
+        CountEmbeddedEntries(".ClaimMasters.Seed.region-unit-prices.json").Should().Be(8);
+    }
+
+    private static int CountEmbeddedEntries(string suffix)
+    {
+        var assembly = typeof(JsonClaimMasterProvider).Assembly;
+        var names = assembly.GetManifestResourceNames()
+            .Where(name => name.EndsWith(suffix, StringComparison.Ordinal))
+            .ToArray();
+        names.Should().ContainSingle();
+        using var stream = assembly.GetManifestResourceStream(names[0])!;
+        using var document = JsonDocument.Parse(stream);
+        return document.RootElement.GetProperty("entries").GetArrayLength();
+    }
+
     private const string ExpectedFinalOrderedIdentityDigest =
         "c80f4e8da0aefc9d91bd978777bdb8e59261f4982826555f8a324e2023b9bcd7";
 

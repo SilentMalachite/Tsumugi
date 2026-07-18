@@ -39,6 +39,25 @@ internal static class ExternalSpecificationLiteralGuard
     private const string ApplicationDirectory = "src/Tsumugi.Application/";
     private const string InfrastructureCsvDirectory = "src/Tsumugi.Infrastructure.Csv/";
 
+    /// <summary>
+    /// Narrow, reasoned exceptions for numeric coincidences between an Application/Domain
+    /// literal that is fixed for reasons unrelated to claim reward values and a claim-master
+    /// seed value that happens to share the same magnitude. Default is empty; add an entry
+    /// only when both sides are independently load-bearing and documented, and scope it to
+    /// the exact (path, line, literal) so any drift re-triggers the guard instead of silently
+    /// widening the exemption.
+    /// ClaimAuditEntryFactory.cs's summary-length guard (line 40, literal 512) mirrors
+    /// AuditEntryConfiguration's HasMaxLength(512) DB column exactly; ADR 0026 forbids
+    /// changing either side. ADR 0027 separately fixed a B-type basic-reward baseUnits of
+    /// 512 (cap-81-plus / band-35000-45000 / staff-10-1, service code 462769). Both values
+    /// are correct and independently fixed; the match is coincidental.
+    /// </summary>
+    private static readonly (string RelativePath, int LineNumber, string Literal)[]
+        KnownCoincidentalLiteralMatches =
+        [
+            ("src/Tsumugi.Application/Audit/ClaimAuditEntryFactory.cs", 40, "512"),
+        ];
+
     public static IReadOnlyList<Violation> ScanProduction()
     {
         var solutionRoot = TsumugiAssemblyLocator.FindSolutionRoot();
@@ -517,7 +536,10 @@ internal static class ExternalSpecificationLiteralGuard
                         sourceFile.RelativePath,
                         sourceLiteral,
                         "claim-master-literal",
-                        matches,
+                        matches.Where(match => !IsKnownCoincidentalMatch(
+                            sourceFile.RelativePath,
+                            sourceLiteral.LineNumber,
+                            match.DisplayValue)),
                         violations);
                 }
 
@@ -533,6 +555,14 @@ internal static class ExternalSpecificationLiteralGuard
             }
         }
     }
+
+    private static bool IsKnownCoincidentalMatch(
+        string relativePath,
+        int lineNumber,
+        string literal) =>
+        Array.IndexOf(
+            KnownCoincidentalLiteralMatches,
+            (relativePath, lineNumber, literal)) >= 0;
 
     private static void AddLiteralViolations(
         string relativePath,

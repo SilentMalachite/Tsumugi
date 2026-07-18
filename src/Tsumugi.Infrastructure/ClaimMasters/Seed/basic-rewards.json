@@ -1,5 +1,3246 @@
 {
   "schemaVersion": "2",
   "masterKind": "basic-rewards",
-  "entries": []
+  "entries": [
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-45000-plus.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.129 第14の1 就継ＢⅠ１１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462980",
+        "baseUnits": 837
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-35000-45000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.129 第14の1 就継ＢⅠ１２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462986",
+        "baseUnits": 805
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-30000-35000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.129 第14の1 就継ＢⅠ１３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462992",
+        "baseUnits": 758
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-25000-30000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.129 第14の1 就継ＢⅠ１４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462998",
+        "baseUnits": 738
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-20000-25000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.129 第14の1 就継ＢⅠ１５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "463004",
+        "baseUnits": 726
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-15000-20000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.129 第14の1 就継ＢⅠ１６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "463010",
+        "baseUnits": 703
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-10000-15000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.129 第14の1 就継ＢⅠ１７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "463016",
+        "baseUnits": 673
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-under-10000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.129 第14の1 就継ＢⅠ１８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "463022",
+        "baseUnits": 590
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-45000-plus.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.129 第14の1 就継ＢⅠ２１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "463028",
+        "baseUnits": 746
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-35000-45000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.129 第14の1 就継ＢⅠ２２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "463034",
+        "baseUnits": 717
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-30000-35000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ２３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "463040",
+        "baseUnits": 676
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-25000-30000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ２４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "463046",
+        "baseUnits": 660
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-20000-25000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ２５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "463052",
+        "baseUnits": 637
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-15000-20000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ２６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "463058",
+        "baseUnits": 624
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-10000-15000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ２７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "463064",
+        "baseUnits": 600
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-under-10000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ２８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "463070",
+        "baseUnits": 526
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-45000-plus.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ３１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "463076",
+        "baseUnits": 700
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-35000-45000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ３２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "463082",
+        "baseUnits": 674
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-30000-35000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ３３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "463088",
+        "baseUnits": 636
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-25000-30000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ３４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "463094",
+        "baseUnits": 620
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-20000-25000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ３５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "463100",
+        "baseUnits": 600
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-15000-20000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ３６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "463106",
+        "baseUnits": 586
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-10000-15000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ３７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "463112",
+        "baseUnits": 563
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-under-10000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ３８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "463118",
+        "baseUnits": 494
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-45000-plus.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ４１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "463124",
+        "baseUnits": 688
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-35000-45000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.130 第14の1 就継ＢⅠ４２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "463130",
+        "baseUnits": 662
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-30000-35000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅠ４３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "463136",
+        "baseUnits": 625
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-25000-30000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅠ４４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "463142",
+        "baseUnits": 609
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-20000-25000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅠ４５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "463148",
+        "baseUnits": 589
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-15000-20000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅠ４６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "463154",
+        "baseUnits": 575
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-10000-15000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅠ４７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "463160",
+        "baseUnits": 553
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-under-10000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅠ４８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "463166",
+        "baseUnits": 485
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-45000-plus.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅠ５１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "463172",
+        "baseUnits": 666
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-35000-45000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅠ５２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "463178",
+        "baseUnits": 640
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-30000-35000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅠ５３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "463184",
+        "baseUnits": 605
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-25000-30000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅠ５４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "463190",
+        "baseUnits": 590
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-20000-25000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅠ５５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "463196",
+        "baseUnits": 570
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-15000-20000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅠ５６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "463202",
+        "baseUnits": 557
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-10000-15000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅠ５７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "463208",
+        "baseUnits": 535
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-under-10000.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅠ５８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "463214",
+        "baseUnits": 468
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-45000-plus.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅡ１１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462001",
+        "baseUnits": 748
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-35000-45000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.131 第14の1 就継ＢⅡ１２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462013",
+        "baseUnits": 716
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-30000-35000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ１３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462025",
+        "baseUnits": 669
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-25000-30000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ１４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462037",
+        "baseUnits": 649
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-20000-25000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ１５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462049",
+        "baseUnits": 637
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-15000-20000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ１６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462061",
+        "baseUnits": 614
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-10000-15000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ１７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462073",
+        "baseUnits": 584
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-under-10000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ１８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462853",
+        "baseUnits": 537
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-45000-plus.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ２１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462085",
+        "baseUnits": 666
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-35000-45000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ２２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462097",
+        "baseUnits": 637
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-30000-35000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ２３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462109",
+        "baseUnits": 596
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-25000-30000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ２４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462121",
+        "baseUnits": 580
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-20000-25000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ２５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462133",
+        "baseUnits": 557
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-15000-20000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ２６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462145",
+        "baseUnits": 544
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-10000-15000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ２７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462157",
+        "baseUnits": 520
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-under-10000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ２８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462859",
+        "baseUnits": 478
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-45000-plus.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ３１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462169",
+        "baseUnits": 625
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-35000-45000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ３２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462181",
+        "baseUnits": 599
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-30000-35000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.132 第14の1 就継ＢⅡ３３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462193",
+        "baseUnits": 561
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-25000-30000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ３４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462205",
+        "baseUnits": 545
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-20000-25000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ３５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462217",
+        "baseUnits": 525
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-15000-20000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ３６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462229",
+        "baseUnits": 511
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-10000-15000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ３７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462241",
+        "baseUnits": 488
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-under-10000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ３８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462865",
+        "baseUnits": 449
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-45000-plus.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ４１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462253",
+        "baseUnits": 614
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-35000-45000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ４２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462265",
+        "baseUnits": 588
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-30000-35000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ４３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462277",
+        "baseUnits": 551
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-25000-30000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ４４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462289",
+        "baseUnits": 535
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-20000-25000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ４５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462301",
+        "baseUnits": 515
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-15000-20000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ４６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462313",
+        "baseUnits": 501
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-10000-15000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ４７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462325",
+        "baseUnits": 479
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-under-10000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ４８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462871",
+        "baseUnits": 440
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-45000-plus.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ５１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462337",
+        "baseUnits": 594
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-35000-45000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ５２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462349",
+        "baseUnits": 568
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-30000-35000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.133 第14の1 就継ＢⅡ５３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462361",
+        "baseUnits": 533
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-25000-30000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅡ５４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462373",
+        "baseUnits": 518
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-20000-25000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅡ５５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462385",
+        "baseUnits": 498
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-15000-20000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅡ５６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462397",
+        "baseUnits": 485
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-10000-15000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅡ５７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462409",
+        "baseUnits": 463
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-under-10000.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅡ５８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462877",
+        "baseUnits": 425
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-45000-plus.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅢ１１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462421",
+        "baseUnits": 682
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-35000-45000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅢ１２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462433",
+        "baseUnits": 653
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-30000-35000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅢ１３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462445",
+        "baseUnits": 611
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-25000-30000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅢ１４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462457",
+        "baseUnits": 594
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-20000-25000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅢ１５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462469",
+        "baseUnits": 572
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-15000-20000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅢ１６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462481",
+        "baseUnits": 557
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-10000-15000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅢ１７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462493",
+        "baseUnits": 532
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-under-10000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅢ１８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462883",
+        "baseUnits": 490
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-45000-plus.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅢ２１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462505",
+        "baseUnits": 609
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-35000-45000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅢ２２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462517",
+        "baseUnits": 584
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-30000-35000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.134 第14の1 就継ＢⅢ２３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462529",
+        "baseUnits": 547
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-25000-30000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ２４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462541",
+        "baseUnits": 532
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-20000-25000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ２５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462553",
+        "baseUnits": 511
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-15000-20000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ２６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462565",
+        "baseUnits": 497
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-10000-15000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ２７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462577",
+        "baseUnits": 475
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-under-10000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ２８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462889",
+        "baseUnits": 438
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-45000-plus.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ３１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462589",
+        "baseUnits": 564
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-35000-45000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ３２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462601",
+        "baseUnits": 541
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-30000-35000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ３３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462613",
+        "baseUnits": 508
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-25000-30000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ３４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462625",
+        "baseUnits": 493
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-20000-25000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ３５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462637",
+        "baseUnits": 474
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-15000-20000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ３６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462649",
+        "baseUnits": 461
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-10000-15000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ３７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462661",
+        "baseUnits": 441
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-under-10000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ３８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462895",
+        "baseUnits": 405
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-45000-plus.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ４１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462673",
+        "baseUnits": 554
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-35000-45000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ４２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462685",
+        "baseUnits": 530
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-30000-35000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ４３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462697",
+        "baseUnits": 498
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-25000-30000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.135 第14の1 就継ＢⅢ４４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462709",
+        "baseUnits": 483
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-20000-25000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅢ４５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462721",
+        "baseUnits": 465
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-15000-20000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅢ４６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462733",
+        "baseUnits": 452
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-10000-15000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅢ４７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462745",
+        "baseUnits": 432
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-under-10000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅢ４８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462901",
+        "baseUnits": 397
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-45000-plus.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅢ５１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-45000-plus",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462757",
+        "baseUnits": 535
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-35000-45000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅢ５２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-35000-45000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462769",
+        "baseUnits": 512
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-30000-35000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅢ５３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-30000-35000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462781",
+        "baseUnits": 480
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-25000-30000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅢ５４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-25000-30000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462793",
+        "baseUnits": 467
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-20000-25000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅢ５５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-20000-25000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462805",
+        "baseUnits": 449
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-15000-20000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅢ５６",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-15000-20000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462817",
+        "baseUnits": 437
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-10000-15000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅢ５７",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-10000-15000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462829",
+        "baseUnits": 417
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-under-10000.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅢ５８",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-under-10000",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462907",
+        "baseUnits": 384
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-participation.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅣ１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "463220",
+        "baseUnits": 584
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-participation.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅣ２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "463232",
+        "baseUnits": 519
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-participation.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅣ３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "463244",
+        "baseUnits": 488
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-participation.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅣ４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "463256",
+        "baseUnits": 479
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-participation.staff-6-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅣ５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-6-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "463268",
+        "baseUnits": 462
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-participation.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅤ１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462913",
+        "baseUnits": 530
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-participation.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.136 第14の1 就継ＢⅤ２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462919",
+        "baseUnits": 471
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-participation.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.137 第14の1 就継ＢⅤ３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462925",
+        "baseUnits": 443
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-participation.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.137 第14の1 就継ＢⅤ４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462931",
+        "baseUnits": 434
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-participation.staff-7.5-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.137 第14の1 就継ＢⅤ５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-7.5-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462937",
+        "baseUnits": 419
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-20-or-less.band-participation.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.137 第14の1 就継ＢⅥ１",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-20-or-less",
+        "serviceCode": "462943",
+        "baseUnits": 484
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-21-40.band-participation.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.137 第14の1 就継ＢⅥ２",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-21-40",
+        "serviceCode": "462949",
+        "baseUnits": 430
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-41-60.band-participation.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.137 第14の1 就継ＢⅥ３",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-41-60",
+        "serviceCode": "462955",
+        "baseUnits": 398
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-61-80.band-participation.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.137 第14の1 就継ＢⅥ４",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-61-80",
+        "serviceCode": "462961",
+        "baseUnits": 390
+      }
+    },
+    {
+      "key": "b-basic.r6.cap-81-plus.band-participation.staff-10-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.137 第14の1 就継ＢⅥ５",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "paymentBand": "band-participation",
+        "staffingKey": "staff-10-1",
+        "capacityKey": "cap-81-plus",
+        "serviceCode": "462967",
+        "baseUnits": 376
+      }
+    }
+  ]
 }

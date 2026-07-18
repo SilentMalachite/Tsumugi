@@ -472,6 +472,51 @@ public sealed class ClaimSpecificationBoundaryTests
     }
 
     [Fact]
+    public void Scan_suppresses_only_the_exact_known_coincidental_literal_match()
+    {
+        // Mirrors the real ClaimAuditEntryFactory.cs:40 exemption: ADR 0026 fixes the
+        // audit summary-length guard at 512 to match AuditEntryConfiguration's
+        // HasMaxLength(512) DB column, and ADR 0027 separately fixes a basic-reward
+        // baseUnits of 512. The allowlist must suppress only that exact
+        // (path, line, literal) triple, not the whole file or every 512 literal.
+        using var fixture = new SpecificationFixture();
+        fixture.WriteMasterNumber("512");
+
+        var exemptFileLines = Enumerable.Range(1, 34)
+            .Select(_ => "        // padding")
+            .Append("        if (summary.Length > 512) throw new InvalidOperationException();")
+            .Append("        if (summary.Length > 512) throw new InvalidOperationException();");
+        fixture.Write(
+            "src/Tsumugi.Application/Audit/ClaimAuditEntryFactory.cs",
+            "namespace Tsumugi.Application.Audit;\n" +
+            "internal static class ClaimAuditEntryFactory\n{\n" +
+            "    private static void Check(string summary)\n    {\n" +
+            string.Join('\n', exemptFileLines) +
+            "\n    }\n}\n");
+        fixture.Write(
+            "src/Tsumugi.Application/Audit/OtherFile.cs",
+            "namespace Tsumugi.Application.Audit; internal static class OtherFile { " +
+            "internal static int Threshold => 512; }");
+
+        var violations = fixture.Scan()
+            .Where(v => v.Rule == "claim-master-literal")
+            .ToArray();
+
+        // Line 40 (the exact known exemption) is suppressed; line 41 in the very same
+        // file (same literal, different line) and the unrelated OtherFile.cs are not.
+        violations.Should().NotContain(v =>
+            v.RelativePath == "src/Tsumugi.Application/Audit/ClaimAuditEntryFactory.cs"
+            && v.LineNumber == 40);
+        violations.Should().Contain(v =>
+            v.RelativePath == "src/Tsumugi.Application/Audit/ClaimAuditEntryFactory.cs"
+            && v.LineNumber == 41
+            && v.Literal == "512");
+        violations.Should().Contain(v =>
+            v.RelativePath == "src/Tsumugi.Application/Audit/OtherFile.cs"
+            && v.Literal == "512");
+    }
+
+    [Fact]
     public void Scan_fails_closed_for_invalid_json_and_names_the_file()
     {
         using var fixture = new SpecificationFixture();
