@@ -125,6 +125,31 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider, IOfficeClaim
     public ClaimMasterRelease ResolveVersion(ServiceMonth serviceMonth)
         => ClaimMasterCatalogPolicy.Resolve(_releases, _sources, serviceMonth);
 
+    public ClaimCalculationMasterBundle ResolveCalculationMasters(ServiceMonth serviceMonth)
+    {
+        try
+        {
+            _ = ResolveVersion(serviceMonth); // 版が無ければClaimMasterPolicyUnavailableException
+            return new ClaimCalculationMasterBundle(
+                FilterByMonth(_calculationMasters.BasicRewards, serviceMonth, r => r.EffectiveFrom, r => r.EffectiveTo),
+                FilterByMonth(_calculationMasters.UnitAdjustments, serviceMonth, r => r.EffectiveFrom, r => r.EffectiveTo),
+                FilterByMonth(_calculationMasters.RegionUnitPrices, serviceMonth, r => r.EffectiveFrom, r => r.EffectiveTo),
+                FilterByMonth(_calculationMasters.BurdenCaps, serviceMonth, r => r.EffectiveFrom, r => r.EffectiveTo),
+                FilterByMonth(_calculationMasters.TransitionRules, serviceMonth, r => r.EffectiveFrom, r => r.EffectiveTo),
+                FilterByMonth(_calculationMasters.ServiceCodes, serviceMonth, r => r.EffectiveFrom, r => r.EffectiveTo),
+                FilterByMonth(_calculationMasters.ConditionDefinitions, serviceMonth, r => r.EffectiveFrom, r => r.EffectiveTo));
+        }
+        catch (ClaimMasterPolicyUnavailableException)
+        {
+            throw;
+        }
+        catch (Exception exception) when (exception is InvalidOperationException)
+        {
+            throw new ClaimMasterPolicyUnavailableException(
+                ClaimMasterPolicyUnavailableCode.InvalidMaster);
+        }
+    }
+
     public OfficeClaimProfilePolicy Resolve(ClaimMasterVersion masterVersion)
     {
         try
@@ -452,6 +477,11 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider, IOfficeClaim
         if (value is not null)
             ValidateRequiredText(value, propertyName);
     }
+
+    private static IReadOnlyList<T> FilterByMonth<T>(
+        IReadOnlyList<T> rows, ServiceMonth month,
+        Func<T, ServiceMonth> from, Func<T, ServiceMonth?> to)
+        => [.. rows.Where(r => from(r) <= month && (to(r) is not { } end || month <= end))];
 
     private sealed record SourceCatalogFile(
         string SchemaVersion,

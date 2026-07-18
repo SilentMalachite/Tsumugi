@@ -6,4 +6,5 @@ namespace Tsumugi.Application.Abstractions;
 public interface IClaimMasterProvider
 {
     ClaimMasterRelease ResolveVersion(ServiceMonth serviceMonth);
+    ClaimCalculationMasterBundle ResolveCalculationMasters(ServiceMonth serviceMonth);
 }
