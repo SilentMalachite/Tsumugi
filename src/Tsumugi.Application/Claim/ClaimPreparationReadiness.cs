@@ -30,6 +30,9 @@ public sealed class ClaimPreparationReadiness
         AddGlobalIssues(context, issues);
         foreach (var recipient in context.Recipients)
         {
+            // 実績0日かつ有効ClaimInputなしの利用者は請求明細を生成しないため、
+            // 証・入力系の必須判定から除外する（一覧には残す。Task 9b）。
+            if (recipient.ExcludedFromReadinessBlocking) continue;
             AddRecipientIssues(recipient, issues);
         }
 
@@ -48,6 +51,7 @@ public sealed class ClaimPreparationReadiness
 
             foreach (var recipient in context.Recipients)
             {
+                if (recipient.ExcludedFromReadinessBlocking) continue;
                 AddMissingRequirementIssue(
                     requirement,
                     recipient.RecipientId,

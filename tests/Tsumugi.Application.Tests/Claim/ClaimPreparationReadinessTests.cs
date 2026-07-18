@@ -318,6 +318,41 @@ public sealed class ClaimPreparationReadinessTests
             "Target.Code", "Target.All", "Target.Any");
     }
 
+    [Fact]
+    public void Evaluate_excludes_zero_activity_recipient_from_certificate_and_requirement_issues()
+    {
+        // Task 9b: 実績0日かつ有効ClaimInputなしの利用者はreadinessのブロック評価から除外する
+        // （一覧には残るがissueは出さない）。context builder側でこの利用者に印を付ける。
+        var recipientId = Guid.NewGuid();
+        var sut = Sut(Requirement(
+            "Office.PostalCode",
+            new ClaimRequirementCondition.Always(),
+            ClaimInputDestination.ClaimInput));
+        var recipient = Recipient(
+            recipientId,
+            effectiveCertificateCount: 0,
+            certificateEvidence: ClaimPreparationEvidenceState.Missing,
+            upperLimitEvidence: ClaimPreparationEvidenceState.Missing,
+            excludedFromReadinessBlocking: true);
+
+        var result = sut.Evaluate(Context(recipients: [recipient]));
+
+        result.IsReady.Should().BeTrue();
+        result.Issues.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Evaluate_still_blocks_zero_certificate_recipient_when_not_excluded()
+    {
+        var recipientId = Guid.NewGuid();
+        var recipient = Recipient(recipientId, effectiveCertificateCount: 0);
+
+        var result = Sut().Evaluate(Context(recipients: [recipient]));
+
+        result.IsReady.Should().BeFalse();
+        result.Issues.Should().ContainSingle(issue => issue.RecipientId == recipientId);
+    }
+
     private static ClaimPreparationReadiness Sut(params ClaimInputRequirement[] requirements) =>
         new(new FakeRequirementProvider(requirements));
 
@@ -350,14 +385,16 @@ public sealed class ClaimPreparationReadinessTests
         ClaimPreparationEvidenceState certificateEvidence =
             ClaimPreparationEvidenceState.Valid,
         ClaimPreparationEvidenceState upperLimitEvidence =
-            ClaimPreparationEvidenceState.NotApplicable) =>
+            ClaimPreparationEvidenceState.NotApplicable,
+        bool excludedFromReadinessBlocking = false) =>
         new(
             recipientId,
             values ?? new Dictionary<string, ClaimPreparationValue>(),
             rowScopes ?? new HashSet<string>(StringComparer.Ordinal),
             effectiveCertificateCount,
             certificateEvidence,
-            upperLimitEvidence);
+            upperLimitEvidence,
+            excludedFromReadinessBlocking);
 
     private sealed class FakeRequirementProvider(params ClaimInputRequirement[] requirements)
         : IClaimInputRequirementProvider

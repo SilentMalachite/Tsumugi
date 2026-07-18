@@ -93,7 +93,8 @@ public sealed record ClaimPreparationRecipientContext
         IReadOnlySet<string> rowScopes,
         int effectiveCertificateCount,
         ClaimPreparationEvidenceState certificateClaimEvidence,
-        ClaimPreparationEvidenceState upperLimitManagementStatement)
+        ClaimPreparationEvidenceState upperLimitManagementStatement,
+        bool excludedFromReadinessBlocking = false)
     {
         if (recipientId == Guid.Empty)
         {
@@ -110,6 +111,7 @@ public sealed record ClaimPreparationRecipientContext
         EffectiveCertificateCount = effectiveCertificateCount;
         CertificateClaimEvidence = certificateClaimEvidence;
         UpperLimitManagementStatement = upperLimitManagementStatement;
+        ExcludedFromReadinessBlocking = excludedFromReadinessBlocking;
     }
 
     public Guid RecipientId { get; }
@@ -118,6 +120,14 @@ public sealed record ClaimPreparationRecipientContext
     public int EffectiveCertificateCount { get; }
     public ClaimPreparationEvidenceState CertificateClaimEvidence { get; }
     public ClaimPreparationEvidenceState UpperLimitManagementStatement { get; }
+
+    /// <summary>
+    /// <c>true</c>のとき、この利用者は実績0日かつ有効ClaimInputなしのため当月の請求明細を
+    /// 生成しない（<c>ClaimCalculationRequestBuilder.BuildSources</c>と同じ判定）。
+    /// readinessのブロック評価（証・入力系issueと必須requirement）から除外するが、
+    /// context自体には残る（一覧表示のため可視）。Task 9b。
+    /// </summary>
+    public bool ExcludedFromReadinessBlocking { get; }
 
     private static ReadOnlyDictionary<string, ClaimPreparationValue> CopyValues(
         IReadOnlyDictionary<string, ClaimPreparationValue> values) =>

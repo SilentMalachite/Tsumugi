@@ -84,7 +84,13 @@ public static class ClaimPreparationContextBuilder
         var inputs = snapshot.EffectiveClaimInputs
             .Where(input => input.RecipientId == recipientId)
             .ToArray();
-        if (inputs.Length != 1)
+        var billedDays = snapshot.BilledDaysByRecipient.GetValueOrDefault(recipientId);
+        // 実績0日かつ有効ClaimInputなしの利用者は当月請求明細を生成しないため
+        // （ClaimCalculationRequestBuilder.BuildSourcesと同じ判定）、readinessの
+        // ブロック評価から除外する（一覧には残す。Task 9b）。履歴不整合（2件以上）は
+        // 実績日数に関わらず可視化を続ける。
+        var excludedFromReadinessBlocking = billedDays == 0 && inputs.Length == 0;
+        if (inputs.Length != 1 && !excludedFromReadinessBlocking)
         {
             issues.Add(new ClaimPreparationIssue(
                 inputs.Length == 0
@@ -106,7 +112,8 @@ public static class ClaimPreparationContextBuilder
             rowScopes: new HashSet<string>(StringComparer.Ordinal),
             certificateCount,
             CertificateEvidenceState(certificateCount, evidence),
-            StatementState(evidence));
+            StatementState(evidence),
+            excludedFromReadinessBlocking);
     }
 
     private static Dictionary<string, ClaimPreparationValue> BuildRecipientValues(

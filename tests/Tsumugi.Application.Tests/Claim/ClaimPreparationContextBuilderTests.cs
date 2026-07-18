@@ -58,6 +58,45 @@ public sealed class ClaimPreparationContextBuilderTests
     }
 
     [Fact]
+    public void Build_excludes_zero_activity_recipient_from_blocking_but_keeps_it_visible()
+    {
+        // Task 9b: 実績0日かつ有効ClaimInputなしの利用者は一覧に残るがissueは出さない
+        // （over-strict readinessの是正）。
+        var snapshot = Kit.Snapshot(
+            inputs: [],
+            evidenceByRecipient: new Dictionary<Guid, CertificateClaimEvidence>(),
+            certificateCounts: new Dictionary<Guid, int> { [Kit.RecipientId] = 0 },
+            billedDays: new Dictionary<Guid, int> { [Kit.RecipientId] = 0 });
+
+        var result = ClaimPreparationContextBuilder.Build(
+            snapshot, Kit.Office(), masterVersionAvailable: true);
+
+        result.Issues.Should().BeEmpty();
+        var recipient = result.Context.Recipients.Should().ContainSingle().Subject;
+        recipient.ExcludedFromReadinessBlocking.Should().BeTrue();
+        recipient.EffectiveCertificateCount.Should().Be(0);
+    }
+
+    [Fact]
+    public void Build_does_not_exclude_zero_activity_recipient_with_corrupt_claim_input_history()
+    {
+        // 有効ClaimInputが0件ではなく複数件（履歴不整合）の場合は、実績0日でも除外しない。
+        var input = Kit.Input();
+        var duplicateRootInput = Kit.Input() with { Id = Guid.NewGuid(), RootId = Guid.NewGuid() };
+        var snapshot = Kit.Snapshot(
+            inputs: [input, duplicateRootInput],
+            billedDays: new Dictionary<Guid, int> { [Kit.RecipientId] = 0 });
+
+        var result = ClaimPreparationContextBuilder.Build(
+            snapshot, Kit.Office(), masterVersionAvailable: true);
+
+        result.Issues.Should().ContainSingle(issue =>
+            issue.Code == ClaimPreparationIssueCode.InvalidEffectiveHistory
+            && issue.RecipientId == Kit.RecipientId);
+        result.Context.Recipients[0].ExcludedFromReadinessBlocking.Should().BeFalse();
+    }
+
+    [Fact]
     public void Build_reports_missing_office_and_missing_master_version()
     {
         var snapshot = Kit.Snapshot(includeProfile: false);

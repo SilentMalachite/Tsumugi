@@ -3,6 +3,7 @@ using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Application.UseCases.Claim;
+using Tsumugi.Domain.Entities;
 using Xunit;
 using Kit = Tsumugi.Application.Tests.UseCases.Claim.ClaimPreparationTestKit;
 
@@ -81,6 +82,69 @@ public sealed class CalculateClaimUseCaseTests
             .ExecuteAsync(new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
 
         changed.PreviewHash.Should().NotBe(baseline.PreviewHash);
+    }
+
+    [Fact]
+    public async Task Execute_does_not_block_on_zero_activity_recipient_with_nothing_else()
+    {
+        // Task 9b: 契約により対象者集合には残るが、実績0日・ClaimInput未入力・証未登録の
+        // 利用者は、readinessのブロック評価から除外されるため月全体は依然としてready。
+        var snapshot = Kit.Snapshot(
+            recipientIds: [Kit.RecipientId, Kit.SecondRecipientId],
+            inputs: [Kit.Input()],
+            evidenceByRecipient: new Dictionary<Guid, CertificateClaimEvidence>
+            {
+                [Kit.RecipientId] = Kit.Evidence(),
+            },
+            billedDays: new Dictionary<Guid, int>
+            {
+                [Kit.RecipientId] = 2,
+                [Kit.SecondRecipientId] = 0,
+            },
+            certificateCounts: new Dictionary<Guid, int>
+            {
+                [Kit.RecipientId] = 1,
+                [Kit.SecondRecipientId] = 0,
+            });
+        var useCase = CreateUseCase(snapshot);
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeTrue();
+        dto.Issues.Should().BeEmpty();
+        dto.Details.Should().ContainSingle(detail => detail.RecipientId == Kit.RecipientId);
+    }
+
+    [Fact]
+    public async Task Execute_still_blocks_when_the_same_recipient_has_billed_days_and_missing_evidence()
+    {
+        // 同じ利用者でも実績日数が1日以上ある月は除外対象外に戻り、証や入力の欠落が
+        // そのままブロック要因として可視化される。
+        var snapshot = Kit.Snapshot(
+            recipientIds: [Kit.RecipientId, Kit.SecondRecipientId],
+            inputs: [Kit.Input()],
+            evidenceByRecipient: new Dictionary<Guid, CertificateClaimEvidence>
+            {
+                [Kit.RecipientId] = Kit.Evidence(),
+            },
+            billedDays: new Dictionary<Guid, int>
+            {
+                [Kit.RecipientId] = 2,
+                [Kit.SecondRecipientId] = 1,
+            },
+            certificateCounts: new Dictionary<Guid, int>
+            {
+                [Kit.RecipientId] = 1,
+                [Kit.SecondRecipientId] = 0,
+            });
+        var useCase = CreateUseCase(snapshot);
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeFalse();
+        dto.Issues.Should().Contain(issue => issue.RecipientId == Kit.SecondRecipientId);
     }
 
     [Fact]
