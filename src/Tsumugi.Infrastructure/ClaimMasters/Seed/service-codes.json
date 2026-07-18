@@ -207,8 +207,8 @@
       "effectiveFrom": "2024-04",
       "effectiveTo": null,
       "kind": "capacity",
-      "operator": "equals",
-      "value": 1,
+      "operator": "less-than-or-equal",
+      "value": 20,
       "sourceRefs": [
         {
           "documentId": "r6-fee-notice",
@@ -223,12 +223,12 @@
       ]
     },
     {
-      "key": "cap-21-40",
+      "key": "cap-21-40-gte",
       "effectiveFrom": "2024-04",
       "effectiveTo": null,
       "kind": "capacity",
-      "operator": "equals",
-      "value": 2,
+      "operator": "greater-than-or-equal",
+      "value": 21,
       "sourceRefs": [
         {
           "documentId": "r6-fee-notice",
@@ -243,12 +243,32 @@
       ]
     },
     {
-      "key": "cap-41-60",
+      "key": "cap-21-40-lte",
       "effectiveFrom": "2024-04",
       "effectiveTo": null,
       "kind": "capacity",
-      "operator": "equals",
-      "value": 3,
+      "operator": "less-than-or-equal",
+      "value": 40,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.129 第14の1 (2)定員21人以上40人以下",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "cap-41-60-gte",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "kind": "capacity",
+      "operator": "greater-than-or-equal",
+      "value": 41,
       "sourceRefs": [
         {
           "documentId": "r6-fee-notice",
@@ -263,12 +283,52 @@
       ]
     },
     {
-      "key": "cap-61-80",
+      "key": "cap-41-60-lte",
       "effectiveFrom": "2024-04",
       "effectiveTo": null,
       "kind": "capacity",
-      "operator": "equals",
-      "value": 4,
+      "operator": "less-than-or-equal",
+      "value": 60,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.129 第14の1 (3)定員41人以上60人以下",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "cap-61-80-gte",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "kind": "capacity",
+      "operator": "greater-than-or-equal",
+      "value": 61,
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "r6-fee-notice.pdf p.129 第14の1 (4)定員61人以上80人以下",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "cap-61-80-lte",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "kind": "capacity",
+      "operator": "less-than-or-equal",
+      "value": 80,
       "sourceRefs": [
         {
           "documentId": "r6-fee-notice",
@@ -287,8 +347,8 @@
       "effectiveFrom": "2024-04",
       "effectiveTo": null,
       "kind": "capacity",
-      "operator": "equals",
-      "value": 5,
+      "operator": "greater-than-or-equal",
+      "value": 81,
       "sourceRefs": [
         {
           "documentId": "r6-fee-notice",
@@ -803,7 +863,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-45000-plus",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -854,7 +915,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-35000-45000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -905,7 +967,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-30000-35000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -956,7 +1019,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-25000-30000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1007,7 +1071,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-20000-25000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1058,7 +1123,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-15000-20000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1109,7 +1175,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-10000-15000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1160,7 +1227,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-under-10000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1211,7 +1279,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-45000-plus",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1262,7 +1331,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-35000-45000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1313,7 +1383,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-30000-35000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1364,7 +1435,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-25000-30000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1415,7 +1487,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-20000-25000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1466,7 +1539,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-15000-20000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1517,7 +1591,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-10000-15000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1568,7 +1643,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-under-10000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1619,7 +1695,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-45000-plus",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1670,7 +1747,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-35000-45000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1721,7 +1799,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-30000-35000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1772,7 +1851,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-25000-30000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1823,7 +1903,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-20000-25000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1874,7 +1955,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-15000-20000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1925,7 +2007,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-10000-15000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -1976,7 +2059,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-under-10000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -2843,7 +2927,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-45000-plus",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -2894,7 +2979,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-35000-45000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -2945,7 +3031,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-30000-35000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -2996,7 +3083,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-25000-30000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3047,7 +3135,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-20000-25000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3098,7 +3187,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-15000-20000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3149,7 +3239,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-10000-15000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3200,7 +3291,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-under-10000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3251,7 +3343,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-45000-plus",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3302,7 +3395,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-35000-45000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3353,7 +3447,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-30000-35000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3404,7 +3499,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-25000-30000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3455,7 +3551,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-20000-25000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3506,7 +3603,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-15000-20000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3557,7 +3655,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-10000-15000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3608,7 +3707,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-under-10000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3659,7 +3759,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-45000-plus",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3710,7 +3811,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-35000-45000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3761,7 +3863,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-30000-35000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3812,7 +3915,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-25000-30000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3863,7 +3967,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-20000-25000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3914,7 +4019,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-15000-20000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -3965,7 +4071,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-10000-15000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -4016,7 +4123,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-under-10000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -4883,7 +4991,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-45000-plus",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -4934,7 +5043,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-35000-45000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -4985,7 +5095,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-30000-35000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5036,7 +5147,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-25000-30000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5087,7 +5199,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-20000-25000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5138,7 +5251,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-15000-20000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5189,7 +5303,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-10000-15000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5240,7 +5355,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-under-10000",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5291,7 +5407,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-45000-plus",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5342,7 +5459,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-35000-45000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5393,7 +5511,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-30000-35000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5444,7 +5563,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-25000-30000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5495,7 +5615,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-20000-25000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5546,7 +5667,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-15000-20000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5597,7 +5719,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-10000-15000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5648,7 +5771,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-under-10000",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5699,7 +5823,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-45000-plus",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5750,7 +5875,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-35000-45000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5801,7 +5927,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-30000-35000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5852,7 +5979,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-25000-30000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5903,7 +6031,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-20000-25000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -5954,7 +6083,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-15000-20000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -6005,7 +6135,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-10000-15000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -6056,7 +6187,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-under-10000",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -6566,7 +6698,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-participation",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -6617,7 +6750,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-participation",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -6668,7 +6802,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-participation",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-6-1"
         ],
         "unitRule": {
@@ -6821,7 +6956,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-participation",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -6872,7 +7008,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-participation",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -6923,7 +7060,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-participation",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-7.5-1"
         ],
         "unitRule": {
@@ -7076,7 +7214,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-participation",
-          "cap-21-40",
+          "cap-21-40-gte",
+          "cap-21-40-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -7127,7 +7266,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-participation",
-          "cap-41-60",
+          "cap-41-60-gte",
+          "cap-41-60-lte",
           "staff-10-1"
         ],
         "unitRule": {
@@ -7178,7 +7318,8 @@
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
           "band-participation",
-          "cap-61-80",
+          "cap-61-80-gte",
+          "cap-61-80-lte",
           "staff-10-1"
         ],
         "unitRule": {
