@@ -13,6 +13,8 @@ namespace Tsumugi.Infrastructure.Tests.ClaimMasters;
 /// 定員(実頭数)・人員配置区分tokenはprofile必須（未実装のため常にnullを返していたTask 9の
 /// 状態を閉じる）。地域区分tokenはprofileの明示tokenを優先し、未入力時はOffice.RegionGrade
 /// 由来の名義的既定へフォールバックする（既存事業所を後方互換で救う設計判断）。
+/// 両ソースが揃って不一致のときはフェイルクローズする
+/// （controller decision 2026-07-19, Task 9b fix round）。
 /// </summary>
 public sealed class OfficeClaimBillingTokenProviderTests
 {
@@ -46,15 +48,34 @@ public sealed class OfficeClaimBillingTokenProviderTests
     }
 
     [Fact]
-    public void Resolve_prefers_the_profiles_explicit_region_key_over_region_grade()
+    public void Resolve_accepts_the_profiles_explicit_region_key_when_it_agrees_with_region_grade()
     {
+        // profileの明示tokenとOffice.RegionGrade由来の既定が一致するケース（(b)）。
+        // 不一致でない限りprofile側が採用される（両ソースが同値なのでどちらを採用しても
+        // 結果は同じだが、profile-override-with-fallbackの設計は維持する）。
+        var provider = new OfficeClaimBillingTokenProvider();
+        var office = TestOffice(RegionGrade.Grade2);
+        var profile = Profile(capacityHeadcount: 20, staffingKey: "staff-a", regionKey: "region-grade-2");
+
+        var tokens = provider.Resolve(office, profile, Month);
+
+        tokens.RegionKey.Should().Be("region-grade-2");
+        tokens.RegionKeyConflict.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Resolve_fails_closed_when_profile_region_key_disagrees_with_region_grade()
+    {
+        // (c) 両ソースが揃って不一致：どちらかを無言で採用せず、tokenをnullにして
+        // 呼び出し側に専用issueへ変換させる（controller decision 2026-07-19, Task 9b fix round）。
         var provider = new OfficeClaimBillingTokenProvider();
         var office = TestOffice(RegionGrade.Grade2);
         var profile = Profile(capacityHeadcount: 20, staffingKey: "staff-a", regionKey: "region-a");
 
         var tokens = provider.Resolve(office, profile, Month);
 
-        tokens.RegionKey.Should().Be("region-a");
+        tokens.RegionKey.Should().BeNull();
+        tokens.RegionKeyConflict.Should().BeTrue();
     }
 
     [Fact]
@@ -70,6 +91,7 @@ public sealed class OfficeClaimBillingTokenProviderTests
         var tokens = provider.Resolve(office, profile, Month);
 
         tokens.RegionKey.Should().Be("region-grade-3");
+        tokens.RegionKeyConflict.Should().BeFalse();
     }
 
     [Fact]
@@ -81,6 +103,7 @@ public sealed class OfficeClaimBillingTokenProviderTests
         var tokens = provider.Resolve(office, profile: null, Month);
 
         tokens.RegionKey.Should().Be("region-grade-1");
+        tokens.RegionKeyConflict.Should().BeFalse();
     }
 
     [Fact]

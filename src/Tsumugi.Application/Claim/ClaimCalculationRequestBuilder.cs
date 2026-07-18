@@ -41,6 +41,8 @@ public static class ClaimCalculationRequestBuilder
     internal const string CapacityHeadcountField = nameof(OfficeClaimProfile) + ".CapacityHeadcount";
     internal const string StaffingClassField = nameof(OfficeClaimProfile) + ".StaffingClass";
     internal const string RegionGradeField = nameof(Office) + "." + nameof(Office.RegionGrade);
+    internal const string RegionKeyConflictField =
+        nameof(OfficeClaimProfile) + "." + nameof(OfficeClaimProfile.RegionKey);
     internal const string ServiceCategoryField = nameof(Office) + "." + nameof(Office.ServiceCategory);
 
     public static ClaimCalculationRequestBuildResult Build(
@@ -143,11 +145,27 @@ public static class ClaimCalculationRequestBuilder
             !string.IsNullOrWhiteSpace(tokens?.RewardSystem),
             ServiceCategoryField,
             ClaimInputDestination.Office);
-        Require(
-            !string.IsNullOrWhiteSpace(tokens?.RegionKey)
-                && !string.IsNullOrWhiteSpace(tokens?.RegionUnitPriceServiceKind),
-            RegionGradeField,
-            ClaimInputDestination.Office);
+
+        if (tokens?.RegionKeyConflict == true)
+        {
+            // 両ソース（OfficeClaimProfile.RegionKey / Office.RegionGrade）が揃って不一致：
+            // フェイルクローズ専用issue。汎用の「地域区分未解決」issueとは区別し、
+            // どちらの値が誤りかを事業所側で確認させる（controller decision 2026-07-19）。
+            issues.Add(new ClaimPreparationIssue(
+                ClaimPreparationIssueCode.RegionKeySourceConflict,
+                RecipientId: null,
+                RegionKeyConflictField,
+                ClaimInputDestination.ClaimInput));
+        }
+        else
+        {
+            Require(
+                !string.IsNullOrWhiteSpace(tokens?.RegionKey)
+                    && !string.IsNullOrWhiteSpace(tokens?.RegionUnitPriceServiceKind),
+                RegionGradeField,
+                ClaimInputDestination.Office);
+        }
+
         Require(tokens?.CapacityHeadcount is > 0, CapacityHeadcountField, ClaimInputDestination.ClaimInput);
         Require(
             !string.IsNullOrWhiteSpace(tokens?.StaffingKey),

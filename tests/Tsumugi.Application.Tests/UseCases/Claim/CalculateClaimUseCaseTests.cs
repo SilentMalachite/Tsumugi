@@ -148,6 +148,24 @@ public sealed class CalculateClaimUseCaseTests
     }
 
     [Fact]
+    public async Task Execute_is_not_ready_when_region_key_sources_conflict()
+    {
+        // controller decision 2026-07-19 (Task 9b fix round): 地域区分の二重ソース不一致は
+        // プレビュー全体をNotReadyにする（Finding 1: OfficeClaimBillingTokenProvider fail-closed）。
+        var useCase = CreateUseCase(
+            Kit.Snapshot(),
+            tokens: Kit.Tokens(regionKey: null, regionKeyConflict: true));
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeFalse();
+        dto.Issues.Should().Contain(issue =>
+            issue.Code == ClaimPreparationIssueCode.RegionKeySourceConflict
+            && issue.FieldCode == "OfficeClaimProfile.RegionKey");
+    }
+
+    [Fact]
     public async Task Execute_reports_master_version_unavailable_month()
     {
         var useCase = CreateUseCase(

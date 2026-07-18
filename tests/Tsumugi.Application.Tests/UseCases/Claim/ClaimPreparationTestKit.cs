@@ -153,8 +153,9 @@ internal static class ClaimPreparationTestKit
         string? regionKey = "region-a",
         string? serviceKind = "b-type",
         int? capacityHeadcount = 20,
-        string? staffingKey = "staff-a")
-        => new(rewardSystem, regionKey, serviceKind, capacityHeadcount, staffingKey);
+        string? staffingKey = "staff-a",
+        bool regionKeyConflict = false)
+        => new(rewardSystem, regionKey, serviceKind, capacityHeadcount, staffingKey, regionKeyConflict);
 
     internal static ClaimMasterRelease Release()
         => new(new ClaimMasterVersion("master-v1"), new ServiceMonth(2024, 4), null, ["doc-1"]);

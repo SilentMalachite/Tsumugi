@@ -14,6 +14,12 @@ public enum ClaimPreparationIssueCode
     MissingRequiredEvidence = 7,
     EvidenceSourceMismatch = 8,
     UnresolvedEvidence = 9,
+
+    /// <summary>
+    /// 地域区分tokenの二重ソース（<c>OfficeClaimProfile.RegionKey</c>と<c>Office.RegionGrade</c>由来の
+    /// 名義的既定）が両方存在しかつ不一致（controller decision 2026-07-19, Task 9b fix round）。
+    /// </summary>
+    RegionKeySourceConflict = 10,
 }
 
 public enum ClaimPreparationValueKind

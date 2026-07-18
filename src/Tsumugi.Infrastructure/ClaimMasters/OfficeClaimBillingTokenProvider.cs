@@ -26,6 +26,11 @@ namespace Tsumugi.Infrastructure.ClaimMasters;
 /// <see cref="Office.RegionGrade"/>由来の名義的既定へフォールバックする。Office.RegionGradeは
 /// 必須項目で大半の既存事業所が既に設定済みのため、profile拡張だけでは請求プレビューの
 /// readinessを後退させない（Task 9b実装時の判断）。
+/// <b>profile.RegionKeyが上書き・Office.RegionGradeがフォールバック。両方が値を持ちかつ
+/// 不一致のときはフェイルクローズする（controller decision 2026-07-19, Task 9b fix round）。</b>
+/// 両ソースが揃って不一致の場合は片方を無言で採用せず<see cref="ClaimBillingConditionTokens.RegionKey"/>を
+/// <c>null</c>・<see cref="ClaimBillingConditionTokens.RegionKeyConflict"/>を<c>true</c>で返し、
+/// 呼び出し側（<c>ClaimCalculationRequestBuilder</c>）が地域区分不一致専用のreadiness issueへ変換する。
 /// </remarks>
 public sealed class OfficeClaimBillingTokenProvider : IClaimBillingTokenProvider
 {
@@ -35,33 +40,49 @@ public sealed class OfficeClaimBillingTokenProvider : IClaimBillingTokenProvider
         ArgumentNullException.ThrowIfNull(office);
         _ = serviceMonth.ToInt(); // 語彙はR6-04以降共通（ADR 0027）。版分岐が必要になった時点で使用する。
 
+        var (regionKey, regionKeyConflict) = ResolveRegionKey(office, profile);
         return new ClaimBillingConditionTokens(
             RewardSystem: office.ServiceCategory switch
             {
                 ServiceCategory.TypeB => "employment-continuation-support-b",
                 _ => null,
             },
-            RegionKey: ResolveRegionKey(office, profile),
+            RegionKey: regionKey,
             RegionUnitPriceServiceKind: "employment-continuation-support",
             CapacityHeadcount: profile?.CapacityHeadcount,
-            StaffingKey: profile?.StaffingKey);
+            StaffingKey: profile?.StaffingKey,
+            RegionKeyConflict: regionKeyConflict);
     }
 
-    private static string? ResolveRegionKey(Office office, OfficeClaimProfile? profile)
+    private static (string? RegionKey, bool Conflict) ResolveRegionKey(
+        Office office, OfficeClaimProfile? profile)
     {
-        if (!string.IsNullOrWhiteSpace(profile?.RegionKey)) return profile.RegionKey;
+        var profileRegionKey = string.IsNullOrWhiteSpace(profile?.RegionKey) ? null : profile.RegionKey;
+        var regionGradeToken = RegionKeyFromGrade(office.RegionGrade);
 
-        return office.RegionGrade switch
+        if (profileRegionKey is not null
+            && regionGradeToken is not null
+            && !string.Equals(profileRegionKey, regionGradeToken, StringComparison.Ordinal))
         {
-            RegionGrade.Grade1 => "region-grade-1",
-            RegionGrade.Grade2 => "region-grade-2",
-            RegionGrade.Grade3 => "region-grade-3",
-            RegionGrade.Grade4 => "region-grade-4",
-            RegionGrade.Grade5 => "region-grade-5",
-            RegionGrade.Grade6 => "region-grade-6",
-            RegionGrade.Grade7 => "region-grade-7",
-            RegionGrade.Other => "region-other",
-            _ => null,
-        };
+            // 両ソースが揃って不一致：どちらを採用するか本クラスが推測してはならない
+            // （controller decision 2026-07-19）。tokenはnullで返し、呼び出し側に
+            // 専用issueとして可視化させる。
+            return (null, true);
+        }
+
+        return (profileRegionKey ?? regionGradeToken, false);
     }
+
+    private static string? RegionKeyFromGrade(RegionGrade regionGrade) => regionGrade switch
+    {
+        RegionGrade.Grade1 => "region-grade-1",
+        RegionGrade.Grade2 => "region-grade-2",
+        RegionGrade.Grade3 => "region-grade-3",
+        RegionGrade.Grade4 => "region-grade-4",
+        RegionGrade.Grade5 => "region-grade-5",
+        RegionGrade.Grade6 => "region-grade-6",
+        RegionGrade.Grade7 => "region-grade-7",
+        RegionGrade.Other => "region-other",
+        _ => null,
+    };
 }

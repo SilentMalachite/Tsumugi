@@ -28,9 +28,17 @@ public interface IClaimBillingTokenProvider
 /// ADR 0021が<c>OfficeClaimProfile</c>の構造化入力と定める項目で、<c>OfficeClaimProfile</c>から
 /// そのまま供給する（Task 9bでprofile拡張）。
 /// </summary>
+/// <param name="RegionKeyConflict">
+/// <c>true</c>のとき、<c>OfficeClaimProfile.RegionKey</c>（明示入力）と<c>Office.RegionGrade</c>由来の
+/// 名義的既定が両方存在しかつ不一致であることを表す。このときは<see cref="RegionKey"/>を
+/// <c>null</c>で返し（どちらの値も採用しない・推測しない）、呼び出し側
+/// （<c>ClaimCalculationRequestBuilder</c>）が地域区分不一致専用のreadiness issueへ変換して
+/// フェイルクローズする（controller decision 2026-07-19, Task 9b fix round）。
+/// </param>
 public sealed record ClaimBillingConditionTokens(
     string? RewardSystem,
     string? RegionKey,
     string? RegionUnitPriceServiceKind,
     int? CapacityHeadcount,
-    string? StaffingKey);
+    string? StaffingKey,
+    bool RegionKeyConflict = false);

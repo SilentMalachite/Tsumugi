@@ -94,6 +94,34 @@ public sealed class ClaimCalculationRequestBuilderTests
     }
 
     [Fact]
+    public void Build_reports_a_dedicated_conflict_issue_when_region_key_sources_disagree()
+    {
+        // controller decision 2026-07-19 (Task 9b fix round): 両ソース不一致はフェイルクローズ専用issue。
+        // 汎用の「地域区分未解決」(Office.RegionGrade)issueとは重複させない。
+        var tokens = Kit.Tokens(regionKey: null, regionKeyConflict: true);
+
+        var result = ClaimCalculationRequestBuilder.Build(Kit.Snapshot(), Kit.Month, tokens);
+
+        result.Request.Should().BeNull();
+        result.Issues.Should().ContainSingle(issue =>
+            issue.Code == ClaimPreparationIssueCode.RegionKeySourceConflict
+            && issue.RecipientId == null
+            && issue.FieldCode == "OfficeClaimProfile.RegionKey"
+            && issue.Destination == ClaimInputDestination.ClaimInput);
+        result.Issues.Should().NotContain(issue => issue.FieldCode == "Office.RegionGrade");
+    }
+
+    [Fact]
+    public void Build_does_not_report_a_conflict_issue_when_region_key_sources_agree_or_profile_overrides_cleanly()
+    {
+        var result = ClaimCalculationRequestBuilder.Build(
+            Kit.Snapshot(), Kit.Month, Kit.Tokens(regionKey: "region-a", regionKeyConflict: false));
+
+        result.Issues.Should().NotContain(issue => issue.Code == ClaimPreparationIssueCode.RegionKeySourceConflict);
+        result.Request.Should().NotBeNull();
+    }
+
+    [Fact]
     public void Build_rejects_non_numeric_band_option_without_guessing()
     {
         // ADR 0023: FiledTransition（公式option 8）はservice code resolverへ渡さない。
