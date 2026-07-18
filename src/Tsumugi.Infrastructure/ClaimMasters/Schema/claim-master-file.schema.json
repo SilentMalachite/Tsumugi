@@ -828,7 +828,6 @@
                   "reward-system",
                   "payment-band",
                   "staffing",
-                  "average-wage-band",
                   "plan-status",
                   "r8-reform-status",
                   "facility-classification"
@@ -843,6 +842,19 @@
               "values": {
                 "items": { "$ref": "#/$defs/nonBlank" }
               }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "average-wage-band" }
+            }
+          },
+          "then": {
+            "properties": {
+              "operator": { "const": "equals" },
+              "value": { "type": "integer", "minimum": 1 }
             }
           }
         },

@@ -26,9 +26,9 @@
       "key": "band-45000-plus",
       "effectiveFrom": "2024-04",
       "effectiveTo": null,
-      "kind": "payment-band",
+      "kind": "average-wage-band",
       "operator": "equals",
-      "value": "band-45000-plus",
+      "value": 1,
       "sourceRefs": [
         {
           "documentId": "r6-fee-notice",
@@ -46,9 +46,9 @@
       "key": "band-35000-45000",
       "effectiveFrom": "2024-04",
       "effectiveTo": null,
-      "kind": "payment-band",
+      "kind": "average-wage-band",
       "operator": "equals",
-      "value": "band-35000-45000",
+      "value": 2,
       "sourceRefs": [
         {
           "documentId": "r6-fee-notice",
@@ -66,9 +66,9 @@
       "key": "band-30000-35000",
       "effectiveFrom": "2024-04",
       "effectiveTo": null,
-      "kind": "payment-band",
+      "kind": "average-wage-band",
       "operator": "equals",
-      "value": "band-30000-35000",
+      "value": 3,
       "sourceRefs": [
         {
           "documentId": "r6-fee-notice",
@@ -86,9 +86,9 @@
       "key": "band-25000-30000",
       "effectiveFrom": "2024-04",
       "effectiveTo": null,
-      "kind": "payment-band",
+      "kind": "average-wage-band",
       "operator": "equals",
-      "value": "band-25000-30000",
+      "value": 4,
       "sourceRefs": [
         {
           "documentId": "r6-fee-notice",
@@ -106,9 +106,9 @@
       "key": "band-20000-25000",
       "effectiveFrom": "2024-04",
       "effectiveTo": null,
-      "kind": "payment-band",
+      "kind": "average-wage-band",
       "operator": "equals",
-      "value": "band-20000-25000",
+      "value": 5,
       "sourceRefs": [
         {
           "documentId": "r6-fee-notice",
@@ -126,9 +126,9 @@
       "key": "band-15000-20000",
       "effectiveFrom": "2024-04",
       "effectiveTo": null,
-      "kind": "payment-band",
+      "kind": "average-wage-band",
       "operator": "equals",
-      "value": "band-15000-20000",
+      "value": 6,
       "sourceRefs": [
         {
           "documentId": "r6-fee-notice",
@@ -146,9 +146,9 @@
       "key": "band-10000-15000",
       "effectiveFrom": "2024-04",
       "effectiveTo": null,
-      "kind": "payment-band",
+      "kind": "average-wage-band",
       "operator": "equals",
-      "value": "band-10000-15000",
+      "value": 7,
       "sourceRefs": [
         {
           "documentId": "r6-fee-notice",
@@ -166,9 +166,9 @@
       "key": "band-under-10000",
       "effectiveFrom": "2024-04",
       "effectiveTo": null,
-      "kind": "payment-band",
+      "kind": "average-wage-band",
       "operator": "equals",
-      "value": "band-under-10000",
+      "value": 9,
       "sourceRefs": [
         {
           "documentId": "r6-fee-notice",

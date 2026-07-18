@@ -1718,7 +1718,7 @@ public sealed class ClaimMasterSchemaPhase31Tests
                 "average-wage-45000-or-more",
                 "average-wage-band",
                 "equals",
-                "45000-or-more",
+                1,
                 "workbook-order=38;row=7"));
         root["conditionDefinitions"]!.AsArray().Add(
             R6ServiceCodeCondition(

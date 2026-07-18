@@ -573,7 +573,6 @@ internal static class ClaimMasterFileValidator
             ClaimConditionKind.RewardSystem or
             ClaimConditionKind.PaymentBand or
             ClaimConditionKind.Staffing or
-            ClaimConditionKind.AverageWageBand or
             ClaimConditionKind.PlanStatus or
             ClaimConditionKind.R8ReformStatus or
             ClaimConditionKind.FacilityClassification;
@@ -581,6 +580,27 @@ internal static class ClaimMasterFileValidator
             ClaimConditionKind.Capacity or
             ClaimConditionKind.ShortageDuration or
             ClaimConditionKind.EmploymentOutcomeCount;
+
+        // ADR 0023: 平均工賃月額区分は体制届の公式選択番号（正の整数officialOptionCode）で判定する。
+        // Domainの ServiceCodeResolver は AverageWageBand を
+        // AverageWageBandOption.OfficialOptionCode（整数）と比較するため、tokenでの登録は
+        // 実行時に必ずConditionUnresolvedとなる。equals＋正整数だけを受理しフェイルクローズする。
+        if (kind is ClaimConditionKind.AverageWageBand)
+        {
+            if (@operator is not ClaimConditionOperator.Equals)
+            {
+                throw Invalid(
+                    fileName,
+                    key,
+                    "operator",
+                    $"is not allowed for condition kind '{kind}'");
+            }
+
+            var optionCode = NonNegativeInt(element, "value", fileName, key);
+            if (optionCode == 0)
+                throw Invalid(fileName, key, "value", "must be a positive official option code");
+            return new ClaimConditionIntegerOperand(optionCode);
+        }
 
         if (isToken && @operator is ClaimConditionOperator.Equals)
         {
