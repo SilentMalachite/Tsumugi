@@ -64,6 +64,33 @@ public sealed class ServiceCodeResolverTests
             .Should().Throw<ServiceCodeResolutionException>()
             .Which.Code.Should().Be(ServiceCodeResolutionErrorCode.ComponentMissing);
 
+    [Fact]
+    public void Throws_condition_unresolved_when_duplicate_condition_definition_exists()
+        => FluentActions.Invoking(() => ServiceCodeResolver.ResolveBasicReward(
+                SyntheticMastersWithDuplicateConditionDefinition(), Month, DefaultContext()))
+            .Should().Throw<ServiceCodeResolutionException>()
+            .Which.Code.Should().Be(ServiceCodeResolutionErrorCode.ConditionUnresolved);
+
+    [Fact]
+    public void Throws_ambiguous_match_when_duplicate_basic_reward_key_exists()
+        => FluentActions.Invoking(() => ServiceCodeResolver.ResolveBasicReward(
+                SyntheticMastersWithDuplicateBasicRewardKey(), Month, DefaultContext()))
+            .Should().Throw<ServiceCodeResolutionException>()
+            .Which.Code.Should().Be(ServiceCodeResolutionErrorCode.AmbiguousMatch);
+
+    [Fact]
+    public void Throws_unsupported_unit_rule_when_service_code_uses_fixed_composite_rule()
+        => FluentActions.Invoking(() => ServiceCodeResolver.ResolveBasicReward(
+                SyntheticMastersWithFixedCompositeUnitRule(), Month, DefaultContext()))
+            .Should().Throw<ServiceCodeResolutionException>()
+            .Which.Code.Should().Be(ServiceCodeResolutionErrorCode.UnsupportedUnitRule);
+
+    [Fact]
+    public void Resolves_when_token_condition_uses_in_operator_with_matching_token()
+        => FluentActions.Invoking(() => ServiceCodeResolver.ResolveBasicReward(
+                SyntheticMastersWithInOperatorCondition(), Month, DefaultContext()))
+            .Should().NotThrow();
+
     private static ClaimBillingConditionContext DefaultContext() => new(
         RewardSystem: "b-type",
         PaymentBand: "band-a",
@@ -176,4 +203,82 @@ public sealed class ServiceCodeResolverTests
         TransitionRules: [],
         ServiceCodes: [ServiceCode("sc-a", "610000", DefaultConditionSelectors, "base-missing")],
         ConditionDefinitions: DefaultConditions());
+
+    private static ClaimCalculationMasterBundle SyntheticMastersWithDuplicateConditionDefinition() => new(
+        BasicRewards: [BasicReward()],
+        UnitAdjustments: [],
+        RegionUnitPrices: [],
+        BurdenCaps: [],
+        TransitionRules: [],
+        ServiceCodes: [ServiceCode("sc-a", "610000", DefaultConditionSelectors, "base-a")],
+        ConditionDefinitions:
+        [
+            .. DefaultConditions(),
+            ConditionDefinition(
+                "cond-system-b", ClaimConditionKind.RewardSystem, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand("b-type")),
+        ]);
+
+    private static ClaimCalculationMasterBundle SyntheticMastersWithDuplicateBasicRewardKey() => new(
+        BasicRewards:
+        [
+            BasicReward(key: "base-a", serviceCode: "610000"),
+            BasicReward(key: "base-a", serviceCode: "620000"),
+        ],
+        UnitAdjustments: [],
+        RegionUnitPrices: [],
+        BurdenCaps: [],
+        TransitionRules: [],
+        ServiceCodes: [ServiceCode("sc-a", "610000", DefaultConditionSelectors, "base-a")],
+        ConditionDefinitions: DefaultConditions());
+
+    private static ClaimCalculationMasterBundle SyntheticMastersWithFixedCompositeUnitRule() => new(
+        BasicRewards: [BasicReward()],
+        UnitAdjustments: [],
+        RegionUnitPrices: [],
+        BurdenCaps: [],
+        TransitionRules: [],
+        ServiceCodes:
+        [
+            new ServiceCodeMasterRow(
+                "sc-a",
+                "610000",
+                "B型基本(合成)",
+                "b-type",
+                [],
+                DefaultConditionSelectors,
+                new FixedCompositeUnitRule(500, BillingUnit.PerDay),
+                [new ClaimComponentRef(ClaimComponentMasterKind.BasicRewards, "base-a", ClaimComponentRole.Base)],
+                new ServiceMonth(2024, 4),
+                null,
+                [SourceRef()]),
+        ],
+        ConditionDefinitions: DefaultConditions());
+
+    private static ClaimCalculationMasterBundle SyntheticMastersWithInOperatorCondition() => new(
+        BasicRewards: [BasicReward()],
+        UnitAdjustments: [],
+        RegionUnitPrices: [],
+        BurdenCaps: [],
+        TransitionRules: [],
+        ServiceCodes:
+        [
+            ServiceCode("sc-a", "610000",
+                ["cond-system-in", "cond-band-a", "cond-cap-a", "cond-staff-a"], "base-a"),
+        ],
+        ConditionDefinitions:
+        [
+            ConditionDefinition(
+                "cond-system-in", ClaimConditionKind.RewardSystem, ClaimConditionOperator.In,
+                new ClaimConditionTokenSetOperand(["b-type", "c-type"])),
+            ConditionDefinition(
+                "cond-band-a", ClaimConditionKind.PaymentBand, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand("band-a")),
+            ConditionDefinition(
+                "cond-cap-a", ClaimConditionKind.Capacity, ClaimConditionOperator.LessThanOrEqual,
+                new ClaimConditionIntegerOperand(20)),
+            ConditionDefinition(
+                "cond-staff-a", ClaimConditionKind.Staffing, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand("staff-a")),
+        ]);
 }

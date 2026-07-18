@@ -50,8 +50,17 @@ public static class ServiceCodeResolver
         if (row.UnitRule is not BaseComponentPassThroughRule passThrough)
             throw new ServiceCodeResolutionException(ServiceCodeResolutionErrorCode.UnsupportedUnitRule);
 
-        var baseRow = masters.BasicRewards.SingleOrDefault(b => b.Key == passThrough.BaseComponentKey)
-            ?? throw new ServiceCodeResolutionException(ServiceCodeResolutionErrorCode.ComponentMissing);
+        var baseMatches = masters.BasicRewards
+            .Where(b => b.Key == passThrough.BaseComponentKey)
+            .Take(2)
+            .ToArray();
+
+        var baseRow = baseMatches.Length switch
+        {
+            0 => throw new ServiceCodeResolutionException(ServiceCodeResolutionErrorCode.ComponentMissing),
+            1 => baseMatches[0],
+            _ => throw new ServiceCodeResolutionException(ServiceCodeResolutionErrorCode.AmbiguousMatch),
+        };
 
         return new ResolvedBasicReward(row.ServiceCode, row.OfficialLabel, baseRow.BaseUnits, row.UnitRule.BillingUnit);
     }
@@ -60,8 +69,18 @@ public static class ServiceCodeResolver
         ServiceCodeMasterRow row, ClaimCalculationMasterBundle masters, ClaimBillingConditionContext context)
         => row.ConditionSelectors.All(selector =>
         {
-            var definition = masters.ConditionDefinitions.SingleOrDefault(d => d.Key == selector)
-                ?? throw new ServiceCodeResolutionException(ServiceCodeResolutionErrorCode.ConditionUnresolved);
+            var matches = masters.ConditionDefinitions
+                .Where(d => d.Key == selector)
+                .Take(2)
+                .ToArray();
+
+            var definition = matches.Length switch
+            {
+                0 => throw new ServiceCodeResolutionException(ServiceCodeResolutionErrorCode.ConditionUnresolved),
+                1 => matches[0],
+                _ => throw new ServiceCodeResolutionException(ServiceCodeResolutionErrorCode.ConditionUnresolved),
+            };
+
             return Evaluate(definition, context);
         });
 
