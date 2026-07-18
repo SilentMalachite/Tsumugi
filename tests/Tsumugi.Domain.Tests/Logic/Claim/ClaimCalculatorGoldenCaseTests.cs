@@ -10,13 +10,18 @@ namespace Tsumugi.Domain.Tests.Logic.Claim;
 /// マスタ行はADR 0027 §2.1〜2.3・§3の該当行の値をこのテストファイル内に再掲する
 /// （DomainテストはInfrastructureのseedへ依存できないため）。3ケースとも法31条特例は不適用、
 /// 受給者証上限・制度上限は1割相当額以上、上限額管理の対象外、加算・減算なし（基本報酬のみ）という
-/// ADR 0027 §4の前提に合わせ、<see cref="RecipientClaimSource.CertificateMonthlyCapYen"/>はnull
-/// （証上限の指定なし＝1割相当額をそのまま利用者負担とする）で表す。
+/// ADR 0027 §4の前提に合わせ、<see cref="RecipientClaimSource.CertificateMonthlyCapYen"/>には
+/// <see cref="UnboundedSyntheticCapYen"/>（テスト専用の合成上限。1割相当額を制限しない＝そのまま
+/// 利用者負担とする）を渡す。3ケースの期待値（burden/benefit）はこの変更の前後で完全に同一である。
 /// </summary>
 public sealed class ClaimCalculatorGoldenCaseTests
 {
     private static readonly ServiceMonth Month = new(2025, 4);
     private static readonly Guid RecipientA = Guid.Parse("22222222-2222-2222-2222-222222222222");
+
+    // テスト専用の合成上限（制度上の値ではない）。CertificateMonthlyCapYenは必須intのため、
+    // golden caseの前提（証上限は1割相当額以上）を「十分大きい合成上限」で表す。
+    private const int UnboundedSyntheticCapYen = 9_999_999;
 
     public static TheoryData<string, ClaimBillingConditionContext, string, int, int, int, int, int> GoldenCases()
     {
@@ -99,7 +104,7 @@ public sealed class ClaimCalculatorGoldenCaseTests
     {
         var result = ClaimCalculator.Calculate(Masters(), new ClaimCalculationRequest(
             Month, context, regionKey, "b-type",
-            [new RecipientClaimSource(RecipientA, billedDays, BenefitRatePercent: 90, CertificateMonthlyCapYen: null)]));
+            [new RecipientClaimSource(RecipientA, billedDays, BenefitRatePercent: 90, CertificateMonthlyCapYen: UnboundedSyntheticCapYen)]));
 
         var detail = result.Details.Should().ContainSingle().Subject;
         detail.TotalUnits.Should().Be(expectedUnits, because: caseId);

@@ -17,12 +17,18 @@ public sealed class ClaimCalculationException(ClaimCalculationErrorCode code)
 }
 
 /// <summary>
-/// 利用者1名分の当月請求入力。<see cref="CertificateMonthlyCapYen"/>がnullの場合は受給者証個別上限の
-/// 指定なし（1割相当額をそのまま利用者負担とする）を表す。法31条特例・制度上限・上限額管理結果・
-/// 同一事業所内調整はADR 0025が定める後続ステップであり、本スライスでは未実装（別タスクで追加する）。
+/// 利用者1名分の当月請求入力。<see cref="CertificateMonthlyCapYen"/>は受給者証記載の負担上限月額を
+/// 表す整数（円）で、nullを許容しない。ADR 0025のfail-closedテーブルは「確認不能な証上限」を
+/// 「上限なし」へ読み替えることを禁じており、算定不能として扱わなければならない。したがって
+/// <c>CertificateClaimEvidence.MonthlyCostCap</c>（<c>EnteredYen</c>のtri-state）を本APIへ渡す
+/// 呼び出し側（Task 9のbuilder）は、未確認（unconfirmed）の証拠をreadiness gateで弾いたうえで
+/// 確定値のみをここへ渡す責務を負う。tri-stateの「未確認」判定はこの境界（呼び出し側）に閉じ込め、
+/// 本関数はnullを受理しない・fail-openしない純粋関数として総額を必ず返す。
+/// 法31条特例・制度上限・上限額管理結果・同一事業所内調整はADR 0025が定める後続ステップであり、
+/// 本スライスでは未実装（別タスクで追加する）。
 /// </summary>
 public sealed record RecipientClaimSource(
-    Guid RecipientId, int BilledDays, int BenefitRatePercent, int? CertificateMonthlyCapYen);
+    Guid RecipientId, int BilledDays, int BenefitRatePercent, int CertificateMonthlyCapYen);
 
 public sealed record ClaimCalculationRequest(
     ServiceMonth Month,
@@ -102,9 +108,7 @@ public static class ClaimCalculator
         var statutoryBurdenYen = ClaimRoundingRules.Apply(
             ClaimRoundingRules.BurdenFloorYenV1, totalCostYen * (decimal)burdenSharePercent / 100m);
 
-        var burdenYen = source.CertificateMonthlyCapYen is { } cap
-            ? Math.Min(statutoryBurdenYen, cap)
-            : statutoryBurdenYen;
+        var burdenYen = Math.Min(statutoryBurdenYen, source.CertificateMonthlyCapYen);
 
         // ADR 0025: 給付費＝総費用額－決定利用者負担額。総費用額×90%を別計算しない。
         var benefitYen = totalCostYen - burdenYen;

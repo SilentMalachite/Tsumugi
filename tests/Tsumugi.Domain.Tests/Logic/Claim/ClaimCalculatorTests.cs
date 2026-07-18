@@ -9,6 +9,12 @@ public sealed class ClaimCalculatorTests
 {
     private static readonly ServiceMonth Month = new(2025, 4);
     private static readonly Guid RecipientA = Guid.Parse("11111111-1111-1111-1111-111111111111");
+    private static readonly Guid RecipientB = Guid.Parse("33333333-3333-3333-3333-333333333333");
+
+    // テスト専用の合成上限（制度上の値ではない）。証上限が負担を制限しないことを表すため、
+    // 起こりうる負担額より十分大きい値を用いる。CertificateMonthlyCapYenは必須intであり、
+    // 「証上限の指定なし」をnullで表すことは許されない（ADR 0025のfail-closed方針）。
+    private const int UnboundedSyntheticCapYen = 9_999_999;
 
     // 合成マスタは定員を頭数(int)で表す閾値条件（capacity, less-than-or-equal, 20）で表現する。
     // ServiceCodeResolverTestsと同じヘルパ形式（baseUnits=700, unitPriceYen=10.00m）を使う。
@@ -48,12 +54,14 @@ public sealed class ClaimCalculatorTests
     }
 
     [Fact]
-    public void Applies_statutory_burden_when_certificate_cap_is_not_specified()
+    public void Applies_statutory_burden_when_certificate_cap_is_not_binding()
     {
-        // cap未指定（null）は「証上限の指定なし」を表し、1割相当額をそのまま利用者負担とする。
+        // capが十分大きく1割相当額を制限しない場合、1割相当額をそのまま利用者負担とする。
+        // UnboundedSyntheticCapYenはテスト専用の合成上限であり、証上限「指定なし」をnullで表すことはしない
+        // （ADR 0025のfail-closed方針。CertificateMonthlyCapYenは必須int、確認済みの証拠から入る）。
         var result = ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
             Month, DefaultContext(), "region-a", "b-type",
-            [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: null)]));
+            [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: UnboundedSyntheticCapYen)]));
 
         var detail = result.Details.Should().ContainSingle().Subject;
         detail.TotalCostYen.Should().Be(140000);
@@ -62,10 +70,28 @@ public sealed class ClaimCalculatorTests
     }
 
     [Fact]
+    public void Aggregates_totals_as_sum_of_details_across_multiple_recipients()
+    {
+        // 2名（BilledDaysが異なる）を投入し、Total*は必ずDetails.Sum(...)と一致するというΣ不変条件を検証する。
+        var result = ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
+            Month, DefaultContext(), "region-a", "b-type",
+            [
+                new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: UnboundedSyntheticCapYen),
+                new RecipientClaimSource(RecipientB, BilledDays: 15, BenefitRatePercent: 90, CertificateMonthlyCapYen: 3000),
+            ]));
+
+        result.Details.Should().HaveCount(2);
+        result.TotalUnits.Should().Be(result.Details.Sum(d => d.TotalUnits));
+        result.TotalCostYen.Should().Be(result.Details.Sum(d => d.TotalCostYen));
+        result.TotalBenefitYen.Should().Be(result.Details.Sum(d => d.BenefitYen));
+        result.TotalBurdenYen.Should().Be(result.Details.Sum(d => d.BurdenYen));
+    }
+
+    [Fact]
     public void Throws_when_region_unit_price_is_missing()
         => FluentActions.Invoking(() => ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
                 Month, DefaultContext(), "region-unknown", "b-type",
-                [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: null)])))
+                [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: UnboundedSyntheticCapYen)])))
             .Should().Throw<ClaimCalculationException>()
             .Which.Code.Should().Be(ClaimCalculationErrorCode.RegionUnitPriceUnavailable);
 
@@ -76,7 +102,7 @@ public sealed class ClaimCalculatorTests
     public void Rejects_invalid_billed_days(int days)
         => FluentActions.Invoking(() => ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
                 Month, DefaultContext(), "region-a", "b-type",
-                [new RecipientClaimSource(RecipientA, BilledDays: days, BenefitRatePercent: 90, CertificateMonthlyCapYen: null)])))
+                [new RecipientClaimSource(RecipientA, BilledDays: days, BenefitRatePercent: 90, CertificateMonthlyCapYen: UnboundedSyntheticCapYen)])))
             .Should().Throw<ClaimCalculationException>()
             .Which.Code.Should().Be(ClaimCalculationErrorCode.InvalidInput);
 
@@ -86,9 +112,40 @@ public sealed class ClaimCalculatorTests
     public void Rejects_invalid_benefit_rate_percent(int benefitRatePercent)
         => FluentActions.Invoking(() => ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
                 Month, DefaultContext(), "region-a", "b-type",
-                [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: benefitRatePercent, CertificateMonthlyCapYen: null)])))
+                [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: benefitRatePercent, CertificateMonthlyCapYen: UnboundedSyntheticCapYen)])))
             .Should().Throw<ClaimCalculationException>()
             .Which.Code.Should().Be(ClaimCalculationErrorCode.InvalidInput);
+
+    [Fact]
+    public void Accepts_benefit_rate_percent_zero_as_full_statutory_burden_before_cap()
+    {
+        // BenefitRatePercent=0（給付率0%）→ 負担割合100/100 → capが十分大きければ1割相当額算定前の
+        // 統計的負担＝総費用額そのものが利用者負担となる。benefit = cost − burdenの関係も同時に検証する。
+        var result = ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
+            Month, DefaultContext(), "region-a", "b-type",
+            [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 0, CertificateMonthlyCapYen: UnboundedSyntheticCapYen)]));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        detail.TotalCostYen.Should().Be(140000);
+        detail.BurdenYen.Should().Be(140000);
+        detail.BenefitYen.Should().Be(0);
+        detail.BenefitYen.Should().Be(detail.TotalCostYen - detail.BurdenYen);
+    }
+
+    [Fact]
+    public void Accepts_benefit_rate_percent_hundred_as_zero_burden()
+    {
+        // BenefitRatePercent=100（給付率100%）→ 負担割合0/100 → 利用者負担は0円。
+        var result = ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
+            Month, DefaultContext(), "region-a", "b-type",
+            [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 100, CertificateMonthlyCapYen: UnboundedSyntheticCapYen)]));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        detail.TotalCostYen.Should().Be(140000);
+        detail.BurdenYen.Should().Be(0);
+        detail.BenefitYen.Should().Be(140000);
+        detail.BenefitYen.Should().Be(detail.TotalCostYen - detail.BurdenYen);
+    }
 
     [Fact]
     public void Rejects_negative_certificate_monthly_cap()
@@ -109,6 +166,15 @@ public sealed class ClaimCalculatorTests
     {
         ClaimRoundingRules.Apply(ClaimRoundingRules.CostFloorYenV1, 152892.74m).Should().Be(152892);
         ClaimRoundingRules.Apply(ClaimRoundingRules.BurdenFloorYenV1, 15289.2m).Should().Be(15289);
+    }
+
+    [Fact]
+    public void Rounding_rules_units_half_up_rounds_away_from_zero_at_the_half()
+    {
+        // UnitsHalfUpV1はMidpointRounding.AwayFromZero（四捨五入）であり、既定のbanker's roundingに
+        // 依存しない。X.5の丸め方向を直接検証する（10.5→11、-10.5→-11）。
+        ClaimRoundingRules.Apply(ClaimRoundingRules.UnitsHalfUpV1, 10.5m).Should().Be(11);
+        ClaimRoundingRules.Apply(ClaimRoundingRules.UnitsHalfUpV1, -10.5m).Should().Be(-11);
     }
 
     private static ClaimBillingConditionContext DefaultContext() => new(
