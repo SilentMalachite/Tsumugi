@@ -1007,11 +1007,11 @@ git commit -m "feat(phase3-1): calculate, close, cancel, query claim use cases (
 - Consumes: requirement catalog の targetPath/条件定義（`ClaimInputRequirementProvider.Create` を読む）、Task 7/9b の snapshot契約
 - Produces: 本番DI構成そのままで、全入力が揃えば `IsReady == true`。Task 10 のUIが前提とする
 
-- [ ] **Step 1: 14 pathsの条件・row scope仕様を調査し、写像表（path→snapshot源）を報告に記録**
-- [ ] **Step 2: reader拡張（同一tx内で不足エンティティ取得）をTDDで実装**
-- [ ] **Step 3: builder写像をTDDで実装（未確定・入力不足はissueのまま=フェイルクローズ維持）**
-- [ ] **Step 4: pinnedテストを本番Ready到達テストへ置換（negative: 1入力欠落→該当issue）**
-- [ ] **Step 5: 全体テスト・ci.sh緑 → コミット**
+- [x] **Step 1: 14 pathsの条件・row scope仕様を調査し、写像表（path→snapshot源）を報告に記録**
+- [x] **Step 2: reader拡張（同一tx内で不足エンティティ取得）をTDDで実装**
+- [x] **Step 3: builder写像をTDDで実装（未確定・入力不足はissueのまま=フェイルクローズ維持）**
+- [x] **Step 4: pinnedテストを本番Ready到達テストへ置換（negative: 1入力欠落→該当issue）**
+- [x] **Step 5: 全体テスト・ci.sh緑 → コミット**
 
 ---
 
