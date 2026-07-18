@@ -13,14 +13,20 @@ namespace Tsumugi.Application.Abstractions;
 /// </summary>
 public interface IClaimBillingTokenProvider
 {
-    ClaimBillingConditionTokens Resolve(Office office, ServiceMonth serviceMonth);
+    /// <summary>
+    /// <paramref name="profile"/>はスナップショットの実効<c>OfficeClaimProfile</c>
+    /// （<see cref="ClaimCalculationSnapshot.Profile"/>）を渡す。定員(実頭数)・人員配置区分token
+    /// はprofile必須（未入力はnull）。地域区分tokenの解決は実装依存
+    /// （<c>OfficeClaimBillingTokenProvider</c>参照。Task 9b）。
+    /// </summary>
+    ClaimBillingConditionTokens Resolve(Office office, OfficeClaimProfile? profile, ServiceMonth serviceMonth);
 }
 
 /// <summary>
 /// 解決済みの算定条件トークン束。<c>null</c>メンバは「解決不能（readiness issueへ）」を意味する。
 /// <see cref="CapacityHeadcount"/>（利用定員の実頭数）と<see cref="StaffingKey"/>（人員配置区分token）は
-/// ADR 0021が<c>OfficeClaimProfile</c>の構造化入力と定める項目に対応するが、現行エンティティには
-/// 未実装のため、production実装は常に<c>null</c>を返す（将来taskでprofile拡張後に解決される）。
+/// ADR 0021が<c>OfficeClaimProfile</c>の構造化入力と定める項目で、<c>OfficeClaimProfile</c>から
+/// そのまま供給する（Task 9bでprofile拡張）。
 /// </summary>
 public sealed record ClaimBillingConditionTokens(
     string? RewardSystem,

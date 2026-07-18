@@ -44,7 +44,7 @@ internal sealed class ClaimPreviewPipeline(
             // 版が未定義の月はreadiness issue（MasterVersionUnavailable）として可視化する。
         }
 
-        var tokens = office is null ? null : tokenProvider.Resolve(office, serviceMonth);
+        var tokens = office is null ? null : tokenProvider.Resolve(office, snapshot.Profile, serviceMonth);
         var contextResult = ClaimPreparationContextBuilder.Build(
             snapshot, office, masterVersionAvailable: release is not null);
         var readinessResult = readiness.Evaluate(contextResult.Context);

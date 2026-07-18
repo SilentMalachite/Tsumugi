@@ -84,6 +84,7 @@ public static class CompositionRoot
         services.AddScoped<SetCertificateClaimEvidenceUseCase>();
         services.AddScoped<SetUpperLimitManagementStatementUseCase>();
         services.AddScoped<QueryClaimInputWorkspaceUseCase>();
+        services.AddScoped<QueryClaimBillingTokenOptionsUseCase>();
 
         // Phase 3-1: 算定プレビュー→確定→取下げ→履歴（Task 9）。
         // readinessの要件はInfrastructure.Csv埋め込みcatalog（typed requirements）から供給する。

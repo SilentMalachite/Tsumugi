@@ -314,6 +314,36 @@ public sealed class ClaimInputViewModelTests
         fixture.OfficeProfile.Items[^2].MasterVersion.Should().BeNull();
         fixture.OfficeProfile.Items[^1].ExpectedHeadId
             .Should().Be(fixture.OfficeProfile.Items[^2].Id);
+        fixture.OfficeProfile.Items[^1].CapacityHeadcount.Should().Be(20);
+        fixture.OfficeProfile.Items[^1].StaffingKey.Should().Be("staff-test");
+        fixture.OfficeProfile.Items[^1].RegionKey.Should().Be("region-test");
+    }
+
+    [Fact]
+    public async Task Office_profile_round_trips_billing_tokens_through_reload()
+    {
+        var fixture = CreateFixture(withActiveClaimInput: false);
+        await fixture.Sut.LoadAsync();
+        ConfigureOfficeProfile(fixture.Sut);
+
+        await fixture.Sut.SaveOfficeProfileAsync();
+
+        fixture.Sut.CapacityHeadcount.Should().Be(20);
+        fixture.Sut.StaffingKey.Should().Be("staff-test");
+        fixture.Sut.RegionKey.Should().Be("region-test");
+    }
+
+    [Fact]
+    public async Task Load_populates_billing_token_options_from_master_without_hardcoding()
+    {
+        // Task 9b: StaffingKey/RegionKeyの選択肢はマスタ由来（FakeClaimMasterProviderが
+        // 供給するstaff-test/region-test）であり、VM/View側に語彙をハードコードしない。
+        var fixture = CreateFixture(withActiveClaimInput: false);
+
+        await fixture.Sut.LoadAsync();
+
+        fixture.Sut.StaffingKeyOptions.Should().Equal("staff-test");
+        fixture.Sut.RegionKeyOptions.Should().Equal("region-test");
     }
 
     [Fact]
@@ -387,6 +417,9 @@ public sealed class ClaimInputViewModelTests
         sut.OfficeProfileConfirmedAt = DateTimeOffset.UnixEpoch;
         sut.OfficeProfileConfirmedBy = "reviewer";
         sut.OfficeProfileConfirmationReason = "checked";
+        sut.CapacityHeadcount = 20;
+        sut.StaffingKey = "staff-test";
+        sut.RegionKey = "region-test";
     }
 
     private static void ConfigureCertificateEvidence(ClaimInputViewModel sut)
@@ -498,7 +531,8 @@ public sealed class ClaimInputViewModelTests
             new SetAverageWageAnnualEvidenceUseCase(averageWage, uow, clock),
             new SetOfficeClaimProfileUseCase(officeProfile, uow, clock, policyProvider),
             new SetCertificateClaimEvidenceUseCase(certificateEvidence, uow, clock),
-            new SetUpperLimitManagementStatementUseCase(statement, uow, clock))
+            new SetUpperLimitManagementStatementUseCase(statement, uow, clock),
+            new QueryClaimBillingTokenOptionsUseCase(new FakeClaimMasterProvider()))
         {
             OfficeId = officeId,
             RecipientId = recipientId,
@@ -539,6 +573,38 @@ public sealed class ClaimInputViewModelTests
         public OfficeClaimProfilePolicy Resolve(ClaimMasterVersion masterVersion) =>
             throw new ClaimMasterPolicyUnavailableException(
                 ClaimMasterPolicyUnavailableCode.Unavailable);
+    }
+
+    private sealed class FakeClaimMasterProvider : IClaimMasterProvider
+    {
+        public ClaimMasterRelease ResolveVersion(ServiceMonth serviceMonth) =>
+            throw new NotSupportedException();
+
+        public ClaimCalculationMasterBundle ResolveCalculationMasters(ServiceMonth serviceMonth) => new(
+            BasicRewards: [],
+            UnitAdjustments: [],
+            RegionUnitPrices:
+            [
+                new RegionUnitPriceMasterRow(
+                    "price-test", "region-test", "b-type", 10.00m, Month, null, [SourceRef()]),
+            ],
+            BurdenCaps: [],
+            TransitionRules: [],
+            ServiceCodes: [],
+            ConditionDefinitions:
+            [
+                new ClaimConditionDefinition(
+                    "cond-staff-test", Month, null, ClaimConditionKind.Staffing,
+                    ClaimConditionOperator.Equals,
+                    new ClaimConditionTokenOperand("staff-test"), [SourceRef()]),
+            ]);
+
+        private static ClaimSourceRef SourceRef() => new(
+            "doc-1",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            "loc",
+            ClaimSourceEvidenceRole.Authoritative,
+            [ClaimSourceSupport.Conditions]);
     }
 
     private sealed class FakeClaimInputRepository : IClaimInputRepository

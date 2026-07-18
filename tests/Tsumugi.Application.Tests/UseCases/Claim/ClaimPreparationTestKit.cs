@@ -326,7 +326,8 @@ internal static class ClaimPreparationTestKit
 
     internal sealed class FakeTokenProvider(ClaimBillingConditionTokens tokens) : IClaimBillingTokenProvider
     {
-        public ClaimBillingConditionTokens Resolve(Office office, ServiceMonth serviceMonth) => tokens;
+        public ClaimBillingConditionTokens Resolve(
+            Office office, OfficeClaimProfile? profile, ServiceMonth serviceMonth) => tokens;
     }
 
     internal sealed class FakeFinalizationStore : IClaimFinalizationStore

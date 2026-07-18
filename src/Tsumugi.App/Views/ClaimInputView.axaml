@@ -94,6 +94,12 @@
               <TextBox Text="{Binding MasterVersion, Mode=TwoWay, Converter={x:Static conv:ClaimMasterVersionConverter.Instance}}" Watermark="請求master版" />
               <ComboBox ItemsSource="{Binding ReformStatusOptions}" SelectedItem="{Binding ReformStatus}" />
               <TextBox Text="{Binding AverageWageBandOption, Mode=TwoWay, Converter={x:Static conv:AverageWageBandOptionConverter.Instance}}" Watermark="平均工賃option (Kind:Code)" />
+              <TextBlock Text="利用定員（実頭数）" />
+              <NumericUpDown Value="{Binding CapacityHeadcount}" />
+              <TextBlock Text="人員配置区分" />
+              <ComboBox ItemsSource="{Binding StaffingKeyOptions}" SelectedItem="{Binding StaffingKey}" />
+              <TextBlock Text="地域区分" />
+              <ComboBox ItemsSource="{Binding RegionKeyOptions}" SelectedItem="{Binding RegionKey}" />
               <TextBox Text="{Binding DesignationDate, Mode=TwoWay, Converter={x:Static conv:DateOnlyConverter.Instance}}" Watermark="指定日 (yyyy-MM-dd)" />
               <TextBox Text="{Binding SupportStartDate, Mode=TwoWay, Converter={x:Static conv:DateOnlyConverter.Instance}}" Watermark="支援開始日 (yyyy-MM-dd)" />
               <TextBox Text="{Binding EarlierRegisteredBandOption, Mode=TwoWay, Converter={x:Static conv:VersionedAverageWageBandOptionConverter.Instance}}" Watermark="前登録option (Version|Kind:Code)" />

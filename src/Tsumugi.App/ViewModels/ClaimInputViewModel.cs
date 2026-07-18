@@ -30,7 +30,8 @@ public sealed partial class ClaimInputViewModel(
     SetAverageWageAnnualEvidenceUseCase setAverageWage,
     SetOfficeClaimProfileUseCase setOfficeProfile,
     SetCertificateClaimEvidenceUseCase setCertificateEvidence,
-    SetUpperLimitManagementStatementUseCase setStatement) : ViewModelBase
+    SetUpperLimitManagementStatementUseCase setStatement,
+    QueryClaimBillingTokenOptionsUseCase queryBillingTokenOptions) : ViewModelBase
 {
     private const string ReloadMessage = "請求入力履歴を再読込してください。";
     private const string InvalidMessage = "請求入力の内容を確認してください。";
@@ -45,6 +46,8 @@ public sealed partial class ClaimInputViewModel(
     private readonly SetOfficeClaimProfileUseCase _setOfficeProfile = setOfficeProfile;
     private readonly SetCertificateClaimEvidenceUseCase _setCertificateEvidence = setCertificateEvidence;
     private readonly SetUpperLimitManagementStatementUseCase _setStatement = setStatement;
+    private readonly QueryClaimBillingTokenOptionsUseCase _queryBillingTokenOptions =
+        queryBillingTokenOptions;
 
     private WorkspaceContext? _loadedContext;
     private ClaimInputQueryRevisionDto? _loadedClaimInput;
@@ -110,6 +113,9 @@ public sealed partial class ClaimInputViewModel(
     [ObservableProperty] private DateTimeOffset? _officeProfileConfirmedAt;
     [ObservableProperty] private string? _officeProfileConfirmedBy;
     [ObservableProperty] private string? _officeProfileConfirmationReason;
+    [ObservableProperty] private int? _capacityHeadcount;
+    [ObservableProperty] private string? _staffingKey;
+    [ObservableProperty] private string? _regionKey;
 
     [ObservableProperty]
     private ClaimInputRevisionChainDto<CertificateClaimEvidenceQueryRevisionDto>?
@@ -185,6 +191,8 @@ public sealed partial class ClaimInputViewModel(
         StatementRevisions
     { get; } = [];
     public ObservableCollection<UpperLimitManagementStatementLineViewModel> StatementLines { get; } = [];
+    public ObservableCollection<string> StaffingKeyOptions { get; } = [];
+    public ObservableCollection<string> RegionKeyOptions { get; } = [];
 
     public IReadOnlyList<ClaimInputAggregate> AggregateOptions { get; } =
         Enum.GetValues<ClaimInputAggregate>();
@@ -258,6 +266,7 @@ public sealed partial class ClaimInputViewModel(
                     context.ServiceMonth, context.SourceFiscalYear), ct);
             if (!MatchesContext(context)) return;
             ApplyWorkspace(workspace);
+            RefreshBillingTokenOptions(context.ServiceMonth);
             _loadedContext = context;
             WorkspaceLoaded = true;
             ErrorMessage = null;
@@ -396,6 +405,9 @@ public sealed partial class ClaimInputViewModel(
                 ConfirmedAt = OfficeProfileConfirmedAt,
                 ConfirmedBy = OfficeProfileConfirmedBy,
                 ConfirmationReason = OfficeProfileConfirmationReason,
+                CapacityHeadcount = CapacityHeadcount,
+                StaffingKey = StaffingKey,
+                RegionKey = RegionKey,
             }, Environment.UserName, default));
     }
 
@@ -616,6 +628,15 @@ public sealed partial class ClaimInputViewModel(
         Replace(Certificates, certificates);
     }
 
+    private void RefreshBillingTokenOptions(ServiceMonth serviceMonth)
+    {
+        // StaffingKey/RegionKeyの選択肢はマスタ（staffing条件token・region-unit-price行）から
+        // 列挙する。ハードコードしない（Task 9b）。
+        var options = _queryBillingTokenOptions.Execute(serviceMonth);
+        Replace(StaffingKeyOptions, options.StaffingKeyOptions);
+        Replace(RegionKeyOptions, options.RegionKeyOptions);
+    }
+
     private void ApplyWorkspace(ClaimInputWorkspaceDto workspace)
     {
         var claim = workspace.ClaimInputChain;
@@ -694,6 +715,9 @@ public sealed partial class ClaimInputViewModel(
         OfficeProfileConfirmedAt = value?.ConfirmedAt;
         OfficeProfileConfirmedBy = value?.ConfirmedBy;
         OfficeProfileConfirmationReason = value?.ConfirmationReason;
+        CapacityHeadcount = value?.CapacityHeadcount;
+        StaffingKey = value?.StaffingKey;
+        RegionKey = value?.RegionKey;
         _officeProfileReentry = false;
     }
 
@@ -909,6 +933,9 @@ public sealed partial class ClaimInputViewModel(
         OfficeProfileConfirmedAt = null;
         OfficeProfileConfirmedBy = null;
         OfficeProfileConfirmationReason = null;
+        CapacityHeadcount = null;
+        StaffingKey = null;
+        RegionKey = null;
     }
 
     private void ClearCertificateEvidenceValues()
