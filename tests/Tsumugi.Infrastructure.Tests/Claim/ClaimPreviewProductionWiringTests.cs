@@ -23,22 +23,34 @@ namespace Tsumugi.Infrastructure.Tests.Claim;
 /// snapshot readerだけはfake（SQLite実装は<c>ClaimCalculationSnapshotReaderTests</c>で別途検証済み）。
 /// </summary>
 /// <remarks>
-/// <see cref="ClaimInputRequirementProvider.LoadEmbedded"/>（CompositionRootが実際に使うtyped
-/// requirement catalog）を字義通りそのまま<see cref="ClaimPreparationReadiness"/>へ渡すと、
-/// このスライスでは<b>常に</b>NotReadyになる。catalogには<c>Certificate.MunicipalityNumber</c>
-/// (always) / <c>Certificate.SubsidyMunicipalityNumber</c> / <c>Certificate.UpperLimitManagementProviderNumber</c>
-/// (自己参照modelPresent) / <c>ContractedProvider.CertificateEntryNumber</c> (always) /
-/// <c>DailyRecord.*</c> 8項目 / <c>IntensiveSupportEpisode.StartDate</c> の計13 target pathが含まれるが、
-/// これらはCertificate・ContractedProvider・DailyRecord・IntensiveSupportEpisodeモデルのUI入力配線
-/// （Phase 3-1計画Task 11、CLAUDE.md「現在地」に記載の通り本スライスでは未着手）に対応する値であり、
-/// <see cref="ClaimPreparationContextBuilder"/>がこれらのモデルを一切写像しないため、
-/// どんなsnapshotを与えても常にUnresolved/Missingとなり読み取り専用のfail-closedになる
-/// （<see cref="Real_embedded_requirement_provider_currently_blocks_readiness_via_known_task11_gaps_only"/>で
-/// この事実そのものを固定して検証する）。
-/// これはTask 9b（region token二重ソース・トークン本番配線）のスコープではなく、Task 11の既知の
-/// 未実装ギャップである。したがって「Ready担当パス」の2テストは、他の全Task 9テストと同じ規約
-/// （<c>EmptyRequirementProvider</c>）でtyped requirementそのものをスコープ外に置き、
-/// マスタ・トークン・算定という「Task 9bが実際に配線した本番の継ぎ目」だけを実データで検証する。
+/// <para>
+/// Task 9b時点では、<see cref="ClaimInputRequirementProvider.LoadEmbedded"/>（CompositionRootが実際に
+/// 使うtyped requirement catalog）を字義通りそのまま<see cref="ClaimPreparationReadiness"/>へ渡すと
+/// 常にNotReadyだった。catalogに含まれる<c>Certificate.MunicipalityNumber</c>(always) /
+/// <c>Certificate.SubsidyMunicipalityNumber</c> / <c>Certificate.UpperLimitManagementProviderNumber</c>
+/// (自己参照modelPresent) / <c>ContractedProvider.CertificateEntryNumber</c>(always) /
+/// <c>DailyRecord.*</c> 9項目 / <c>IntensiveSupportEpisode.StartDate</c> の計14 target pathを、
+/// <see cref="ClaimPreparationContextBuilder"/>が一切写像していなかったためである
+/// （Task 11の既知ギャップ、Phase 3-1計画Task 9b修正ラウンドで発見）。
+/// </para>
+/// <para>
+/// Task 9cでこの14 pathすべてを<c>ClaimCalculationSnapshot</c>の追加フィールド
+/// （<c>EffectiveCertificateByRecipient</c> / <c>EffectiveContractedProviderByRecipient</c> /
+/// <c>DailyRecordAggregateByRecipient</c> / <c>IntensiveSupportEpisodeStartDateByRecipient</c>）から
+/// 写像するようになった。自己参照条件（modelPresent/modelNonZero/modelTrue/modelIn）を持つ12 pathは
+/// 未入力ならNotApplicableとして扱われ問題にならない（元々任意項目）。常時必須（always）の
+/// <c>Certificate.MunicipalityNumber</c>と<c>ContractedProvider.CertificateEntryNumber</c>の2 pathだけが
+/// 実データを要求する。
+/// <see cref="Real_embedded_requirement_provider_reaches_ready_preview_when_snapshot_is_fully_entered"/>
+/// でReady到達を、
+/// <see cref="Real_embedded_requirement_provider_reports_missing_certificate_municipality_number"/>
+/// で該当欠落時の単一issueを検証する。
+/// </para>
+/// <para>
+/// 「Ready担当パス」の最初の2テストは、他の全Task 9テストと同じ規約（<c>EmptyRequirementProvider</c>）で
+/// typed requirementそのものをスコープ外に置き、マスタ・トークン・算定という
+/// 「Task 9bが実際に配線した本番の継ぎ目」だけを実データで検証する。
+/// </para>
 /// </remarks>
 public sealed class ClaimPreviewProductionWiringTests
 {
@@ -107,51 +119,44 @@ public sealed class ClaimPreviewProductionWiringTests
     }
 
     [Fact]
-    public async Task Real_embedded_requirement_provider_currently_blocks_readiness_via_known_task11_gaps_only()
+    public async Task Real_embedded_requirement_provider_reaches_ready_preview_when_snapshot_is_fully_entered()
     {
-        // CompositionRootが実際に使う埋め込みcatalogをそのまま使うテスト。Finding 2の
-        // レビュー期待（IsReady==true）を字義通りには満たせないことをここで固定する
-        // （本ファイル冒頭remarks参照）。Task 9bが配線した地域区分・定員・人員配置区分・
-        // 平均工賃band・改定状況・証拠の各issueは1件も出ず、Task 11未着手分の13件だけが
-        // 残ることを検証し、Task 9bの本番配線に新規の想定外issueが無いことを担保する。
-        var useCase = CreateUseCase(BuildSnapshot(staffingKey: "staff-6-1"), ClaimInputRequirementProvider.LoadEmbedded());
+        // Task 9c: CompositionRootが実際に使う埋め込みcatalogをそのまま使い、Certificate.* /
+        // ContractedProvider.* / DailyRecord.* / IntensiveSupportEpisode.StartDateの14 target path
+        // すべてに実データを与えた「フル入力済みの事業所・月」がReadyへ到達することを検証する
+        // （本ファイル冒頭remarks参照。以前はこの14 pathが未写像で常にNotReadyだった）。
+        var useCase = CreateUseCase(
+            BuildSnapshot(staffingKey: "staff-6-1"), ClaimInputRequirementProvider.LoadEmbedded());
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeTrue();
+        dto.Issues.Should().BeEmpty();
+        dto.Details.Should().ContainSingle().Which.RecipientId.Should().Be(RecipientId);
+    }
+
+    [Fact]
+    public async Task Real_embedded_requirement_provider_reports_missing_certificate_municipality_number()
+    {
+        // Task 9c: Certificate.MunicipalityNumberはcatalog上always必須（自己参照条件を持つ他の
+        // 13 pathと違い、未入力でもNotApplicableへ逃げられない）。この1項目だけを欠落させると、
+        // 他は全てフル入力のままでもその1件だけがissueとして残ることを検証する。
+        var useCase = CreateUseCase(
+            BuildSnapshot(staffingKey: "staff-6-1", certificateMunicipalityNumber: null),
+            ClaimInputRequirementProvider.LoadEmbedded());
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
 
         dto.IsReady.Should().BeFalse();
         dto.Details.Should().BeEmpty();
-        dto.Issues.Select(issue => issue.FieldCode).Should().BeEquivalentTo(
-        [
-            "Certificate.MunicipalityNumber",
-            "Certificate.SubsidyMunicipalityNumber",
-            "Certificate.UpperLimitManagementProviderNumber",
-            "ContractedProvider.CertificateEntryNumber",
-            "DailyRecord.EmergencyAdmissionApplied",
-            "DailyRecord.IntensiveSupportApplied",
-            "DailyRecord.MedicalCoordinationType",
-            "DailyRecord.OffsiteSupportApplied",
-            "DailyRecord.RegionalCollaborationApplied",
-            "DailyRecord.ServiceEndTime",
-            "DailyRecord.ServiceStartTime",
-            "DailyRecord.SpecialVisitSupportMinutes",
-            "DailyRecord.TrialUseSupportType",
-            "IntensiveSupportEpisode.StartDate",
-        ]);
-        dto.Issues.Should().NotContain(issue =>
-            issue.FieldCode == "OfficeClaimProfile.RegionKey"
-            || issue.FieldCode == "OfficeClaimProfile.CapacityHeadcount"
-            || issue.FieldCode == "OfficeClaimProfile.StaffingClass"
-            || issue.FieldCode == "OfficeClaimProfile.AverageWageBandOption"
-            || issue.FieldCode == "OfficeClaimProfile.ReformStatus"
-            || issue.FieldCode == "Office.RegionGrade"
-            || issue.FieldCode == "Office.ServiceCategory"
-            || issue.FieldCode == ClaimPreparationReadiness_CertificateEvidenceField);
+        dto.Issues.Should().ContainSingle(issue =>
+            issue.Code == ClaimPreparationIssueCode.MissingRequiredField
+            && issue.RecipientId == RecipientId
+            && issue.FieldCode == "Certificate.MunicipalityNumber"
+            && issue.Destination == ClaimInputDestination.Certificate);
     }
-
-    // ClaimPreparationReadinessの証拠系field codeはinternalのため、契約として同じ文字列をここに固定する。
-    private const string ClaimPreparationReadiness_CertificateEvidenceField =
-        "CertificateClaimEvidence.Effective";
 
     private static CalculateClaimUseCase CreateUseCase(
         ClaimCalculationSnapshot snapshot, IClaimInputRequirementProvider requirementProvider)
@@ -176,7 +181,9 @@ public sealed class ClaimPreviewProductionWiringTests
         phoneNumber: "03-0000-0000",
         representativeTitleAndName: "施設長 テスト");
 
-    private static ClaimCalculationSnapshot BuildSnapshot(string? staffingKey)
+    private static ClaimCalculationSnapshot BuildSnapshot(
+        string? staffingKey,
+        string? certificateMunicipalityNumber = "131000")
     {
         var profileId = Guid.NewGuid();
         var profile = new OfficeClaimProfile
@@ -216,11 +223,8 @@ public sealed class ClaimPreviewProductionWiringTests
             RootId = inputId,
             Revision = 1,
             Kind = RecordKind.New,
-            // Certificate.SubsidyMunicipalityNumber / Certificate.UpperLimitManagementProviderNumber
-            // (Certificateモデルのフィールド。本スライスでは未配線) が常にUnresolvedになるぶん、
-            // any(modelPresent(Certificate.*) | modelPresent(ClaimInput.*))の代替条件をClaimInput側の
-            // 明示入力で満たす（本ファイル冒頭remarks参照）。値そのものは「上限額管理なし・
-            // 自治体助成なし」を表す0/Result1で、Task 9bの検証対象ではない。
+            // 値そのものは「上限額管理なし・自治体助成なし」を表す0/Result1で、Task 9b/9cの
+            // 検証対象ではない（ClaimInput.UpperLimitManagementResult等はTask 9で既に写像済み）。
             UpperLimitManagementResult = Tsumugi.Domain.Logic.Claim.Models.UpperLimitManagementResult.Result1,
             UpperLimitManagedAmountYen = 0,
             MunicipalSubsidyAmountYen = 0,
@@ -268,6 +272,50 @@ public sealed class ClaimPreviewProductionWiringTests
             ConcurrencyToken = Guid.NewGuid(),
         };
 
+        // Task 9c: Certificate.* / ContractedProvider.CertificateEntryNumber / DailyRecord.* /
+        // IntensiveSupportEpisode.StartDateの14 target pathへ、「フル入力済みの事業所・月」を模した
+        // 実データを与える。certificateMunicipalityNumberだけを外から差し替え可能にし、
+        // always必須path単独の欠落テストに使う。
+        var certificateId = Guid.NewGuid();
+        var certificate = Certificate.Create(
+            certificateId,
+            RecipientId,
+            "certificate-no-1",
+            new DateRange(new DateOnly(2024, 4, 1), null),
+            supplyDays: 23,
+            monthlyCostCap: 37_200,
+            municipality: "テスト市",
+            "tester",
+            Now,
+            Guid.NewGuid(),
+            municipalityNumber: certificateMunicipalityNumber,
+            subsidyMunicipalityNumber: "132000",
+            upperLimitManagementProviderNumber: "1310000099");
+
+        var contractedProvider = ContractedProvider.Create(
+            Guid.NewGuid(),
+            certificateId,
+            providerNumber: "1310000001", // BuildOffice()のOfficeNumberと一致（本事業所行）
+            providerName: "テスト事業所",
+            serviceCategory: "就労継続支援B型",
+            contractedSupplyDays: 23,
+            contractDate: new DateOnly(2024, 4, 1),
+            "tester",
+            Now,
+            Guid.NewGuid(),
+            certificateEntryNumber: 5);
+
+        var dailyRecordAggregate = new ClaimDailyRecordAggregate(
+            ServiceStartTime: new TimeOnly(9, 0),
+            ServiceEndTime: new TimeOnly(15, 0),
+            SpecialVisitSupportMinutesTotal: 30,
+            OffsiteSupportApplied: true,
+            MedicalCoordinationType: MedicalCoordinationType.TypeI,
+            TrialUseSupportType: TrialUseSupportType.TypeI,
+            RegionalCollaborationApplied: true,
+            IntensiveSupportApplied: true,
+            EmergencyAdmissionApplied: true);
+
         return new ClaimCalculationSnapshot(
             [RecipientId],
             profile,
@@ -275,7 +323,11 @@ public sealed class ClaimPreviewProductionWiringTests
             new Dictionary<Guid, CertificateClaimEvidence> { [RecipientId] = evidence },
             [averageWageEvidence],
             new Dictionary<Guid, int> { [RecipientId] = BilledDays },
-            new Dictionary<Guid, int> { [RecipientId] = 1 });
+            new Dictionary<Guid, int> { [RecipientId] = 1 },
+            new Dictionary<Guid, Certificate> { [RecipientId] = certificate },
+            new Dictionary<Guid, ContractedProvider> { [RecipientId] = contractedProvider },
+            new Dictionary<Guid, ClaimDailyRecordAggregate> { [RecipientId] = dailyRecordAggregate },
+            new Dictionary<Guid, DateOnly> { [RecipientId] = new DateOnly(2025, 1, 6) });
     }
 
     /// <summary>
