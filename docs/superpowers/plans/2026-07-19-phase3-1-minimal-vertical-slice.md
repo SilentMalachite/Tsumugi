@@ -859,7 +859,7 @@ git commit -m "feat(phase3-1): read claim calculation snapshot in one transactio
   - `ProductionClaimSnapshotValidationCodecRegistry : IClaimSnapshotValidationCodecRegistry`（`HasWriteSupport => true`、v1のみ登録）
   - 書き込み用ヘルパ: `ClaimSnapshotValidationCodecV1.CreateEnvelope(ReadOnlySpan<byte> canonicalUtf8)` → `ValidatedClaimSnapshotEnvelope`（Task 9のClose UseCaseが使用）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 [Fact] public void ReadValidated_roundtrips_canonical_json() { /* CreateEnvelope→GetCanonicalUtf8Bytes→ReadValidated→Sha256一致 */ }
@@ -867,7 +867,7 @@ git commit -m "feat(phase3-1): read claim calculation snapshot in one transactio
 [Fact] public void Registry_exposes_v1_with_write_support() { /* HasWriteSupport==true, Find("claim-snapshot-v1","claim-snapshot-codec-v1")!=null, 未知IDはnull */ }
 ```
 
-- [ ] **Step 2: 失敗確認 → 実装 → 成功確認**
+- [x] **Step 2: 失敗確認 → 実装 → 成功確認**
 
 Run: `dotnet test tests/Tsumugi.Application.Tests --filter ClaimSnapshotValidationCodecV1 -v minimal`（FAIL→実装→PASS）
 
@@ -879,7 +879,7 @@ services.AddSingleton<IClaimSnapshotValidationCodecRegistry, ProductionClaimSnap
 
 `UnavailableClaimSnapshotValidationCodecRegistry` を参照する既存テスト（`ClaimFinalizationStoreTests` 等）はproduction registryへ移行し、「codec無しでは確定できない」検証は未知schemaVersionを使う形に書き換える。
 
-- [ ] **Step 3: 全体テストで回帰確認 → コミット**
+- [x] **Step 3: 全体テストで回帰確認 → コミット**
 
 Run: `dotnet test -v minimal`
 Expected: 全緑
