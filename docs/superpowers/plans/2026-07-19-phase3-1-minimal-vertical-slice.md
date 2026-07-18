@@ -241,7 +241,7 @@ git commit -m "feat(phase3-1): seed r6 basic rewards, service codes, region pric
 - Consumes: Task 3のseed実値。`ClaimCalculationMasterBundle`（Domain既存）
 - Produces: `ClaimCalculationMasterBundle ResolveCalculationMasters(ServiceMonth serviceMonth)` — 指定月に有効な行だけへフィルタしたbundle。Task 6/7/9が消費
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 // tests/Tsumugi.Infrastructure.Tests/ClaimMasters/JsonClaimMasterProviderCalculationMastersTests.cs
@@ -273,12 +273,12 @@ public sealed class JsonClaimMasterProviderCalculationMastersTests
 }
 ```
 
-- [ ] **Step 2: テスト実行（失敗確認）**
+- [x] **Step 2: テスト実行（失敗確認）**
 
 Run: `dotnet test tests/Tsumugi.Infrastructure.Tests --filter JsonClaimMasterProviderCalculationMasters -v minimal`
 Expected: FAIL（コンパイルエラー: `ResolveCalculationMasters` 未定義）
 
-- [ ] **Step 3: interfaceと実装を追加**
+- [x] **Step 3: interfaceと実装を追加**
 
 ```csharp
 // IClaimMasterProvider.cs へ追加
@@ -306,12 +306,12 @@ private static IReadOnlyList<T> FilterByMonth<T>(
     => [.. rows.Where(r => from(r) <= month && (to(r) is not { } end || month <= end))];
 ```
 
-- [ ] **Step 4: テスト実行（成功確認）**
+- [x] **Step 4: テスト実行（成功確認）**
 
 Run: `dotnet test tests/Tsumugi.Infrastructure.Tests --filter JsonClaimMasterProviderCalculationMasters -v minimal`
 Expected: PASS。続けて `dotnet build`（警告ゼロ）
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add src/Tsumugi.Application/Abstractions/IClaimMasterProvider.cs src/Tsumugi.Infrastructure/ClaimMasters/JsonClaimMasterProvider.cs tests/Tsumugi.Infrastructure.Tests/ClaimMasters/JsonClaimMasterProviderCalculationMastersTests.cs
