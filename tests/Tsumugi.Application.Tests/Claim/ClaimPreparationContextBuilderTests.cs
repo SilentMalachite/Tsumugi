@@ -1,7 +1,10 @@
 using FluentAssertions;
+using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
 using Tsumugi.Domain.Entities;
+using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic.Claim.Models;
+using Tsumugi.Domain.ValueObjects;
 using Xunit;
 using Kit = Tsumugi.Application.Tests.UseCases.Claim.ClaimPreparationTestKit;
 
@@ -213,5 +216,86 @@ public sealed class ClaimPreparationContextBuilderTests
 
         result.Context.Recipients[0].UpperLimitManagementStatement
             .Should().Be(ClaimPreparationEvidenceState.Missing);
+    }
+
+    [Fact]
+    public void Build_maps_certificate_contracted_provider_daily_record_and_intensive_support_values_when_present()
+    {
+        // Task 9c: 14 target path（Certificate.* / ContractedProvider.CertificateEntryNumber /
+        // DailyRecord.* / IntensiveSupportEpisode.StartDate）が実データからそのまま写像されることを検証する。
+        var certificate = Kit.Certificate(
+            municipalityNumber: "131000",
+            subsidyMunicipalityNumber: "132000",
+            upperLimitManagementProviderNumber: "1310000099");
+        var contractedProvider = Kit.ContractedProvider(certificateEntryNumber: 7);
+        var dailyRecordAggregate = new ClaimDailyRecordAggregate(
+            ServiceStartTime: new TimeOnly(9, 0),
+            ServiceEndTime: new TimeOnly(15, 0),
+            SpecialVisitSupportMinutesTotal: 30,
+            OffsiteSupportApplied: true,
+            MedicalCoordinationType: MedicalCoordinationType.TypeI,
+            TrialUseSupportType: TrialUseSupportType.TypeI,
+            RegionalCollaborationApplied: true,
+            IntensiveSupportApplied: true,
+            EmergencyAdmissionApplied: true);
+        var intensiveSupportStartDate = new DateOnly(2025, 1, 6);
+
+        var snapshot = Kit.Snapshot(
+            certificateByRecipient: new Dictionary<Guid, Certificate> { [Kit.RecipientId] = certificate },
+            contractedProviderByRecipient:
+                new Dictionary<Guid, ContractedProvider> { [Kit.RecipientId] = contractedProvider },
+            dailyRecordAggregateByRecipient:
+                new Dictionary<Guid, ClaimDailyRecordAggregate> { [Kit.RecipientId] = dailyRecordAggregate },
+            intensiveSupportEpisodeStartDateByRecipient:
+                new Dictionary<Guid, DateOnly> { [Kit.RecipientId] = intensiveSupportStartDate });
+
+        var result = ClaimPreparationContextBuilder.Build(
+            snapshot, Kit.Office(), masterVersionAvailable: true);
+
+        var values = result.Context.Recipients.Should().ContainSingle().Subject.Values;
+        values["Certificate.MunicipalityNumber"].StringValue.Should().Be("131000");
+        values["Certificate.SubsidyMunicipalityNumber"].StringValue.Should().Be("132000");
+        values["Certificate.UpperLimitManagementProviderNumber"].StringValue.Should().Be("1310000099");
+        values["ContractedProvider.CertificateEntryNumber"].NumberValue.Should().Be(7);
+        values["DailyRecord.ServiceStartTime"].StringValue.Should().Be("09:00");
+        values["DailyRecord.ServiceEndTime"].StringValue.Should().Be("15:00");
+        values["DailyRecord.SpecialVisitSupportMinutes"].NumberValue.Should().Be(30);
+        values["DailyRecord.OffsiteSupportApplied"].BooleanValue.Should().BeTrue();
+        values["DailyRecord.MedicalCoordinationType"].StringValue.Should().Be("TypeI");
+        values["DailyRecord.TrialUseSupportType"].StringValue.Should().Be("TypeI");
+        values["DailyRecord.RegionalCollaborationApplied"].BooleanValue.Should().BeTrue();
+        values["DailyRecord.IntensiveSupportApplied"].BooleanValue.Should().BeTrue();
+        values["DailyRecord.EmergencyAdmissionApplied"].BooleanValue.Should().BeTrue();
+        values["IntensiveSupportEpisode.StartDate"].DateValue.Should().Be(intensiveSupportStartDate);
+    }
+
+    [Fact]
+    public void Build_marks_certificate_and_daily_record_values_not_applicable_when_snapshot_carries_no_such_data()
+    {
+        // Task 9c: snapshotがCertificate/ContractedProvider/DailyRecord/IntensiveSupportEpisodeの
+        // 追加データを一切運ばない場合（既存テストの既定snapshot）でも、Values辞書は必ずキーを持ち
+        // （Unresolvedにしない）、真偽値/数値/区分系は既定値、文字列/日付系はNotApplicableになる。
+        var snapshot = Kit.Snapshot();
+
+        var result = ClaimPreparationContextBuilder.Build(
+            snapshot, Kit.Office(), masterVersionAvailable: true);
+
+        var values = result.Context.Recipients.Should().ContainSingle().Subject.Values;
+        values["Certificate.MunicipalityNumber"].Kind.Should().Be(ClaimPreparationValueKind.NotApplicable);
+        values["Certificate.SubsidyMunicipalityNumber"].Kind.Should().Be(ClaimPreparationValueKind.NotApplicable);
+        values["Certificate.UpperLimitManagementProviderNumber"].Kind
+            .Should().Be(ClaimPreparationValueKind.NotApplicable);
+        values["ContractedProvider.CertificateEntryNumber"].Kind
+            .Should().Be(ClaimPreparationValueKind.NotApplicable);
+        values["DailyRecord.ServiceStartTime"].Kind.Should().Be(ClaimPreparationValueKind.NotApplicable);
+        values["DailyRecord.ServiceEndTime"].Kind.Should().Be(ClaimPreparationValueKind.NotApplicable);
+        values["DailyRecord.SpecialVisitSupportMinutes"].NumberValue.Should().Be(0);
+        values["DailyRecord.OffsiteSupportApplied"].BooleanValue.Should().BeFalse();
+        values["DailyRecord.MedicalCoordinationType"].StringValue.Should().Be("Unspecified");
+        values["DailyRecord.TrialUseSupportType"].StringValue.Should().Be("Unspecified");
+        values["DailyRecord.RegionalCollaborationApplied"].BooleanValue.Should().BeFalse();
+        values["DailyRecord.IntensiveSupportApplied"].BooleanValue.Should().BeFalse();
+        values["DailyRecord.EmergencyAdmissionApplied"].BooleanValue.Should().BeFalse();
+        values["IntensiveSupportEpisode.StartDate"].Kind.Should().Be(ClaimPreparationValueKind.NotApplicable);
     }
 }

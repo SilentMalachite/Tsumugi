@@ -111,6 +111,39 @@ internal static class ClaimPreparationTestKit
         };
     }
 
+    internal static Certificate Certificate(
+        string? municipalityNumber = null,
+        string? subsidyMunicipalityNumber = null,
+        string? upperLimitManagementProviderNumber = null)
+        => Domain.Entities.Certificate.Create(
+            Guid.NewGuid(),
+            RecipientId,
+            "certificate-no-1",
+            new DateRange(new DateOnly(2024, 4, 1), null),
+            supplyDays: 23,
+            monthlyCostCap: 37_200,
+            municipality: "テスト市",
+            "tester",
+            Now,
+            Guid.NewGuid(),
+            municipalityNumber: municipalityNumber,
+            subsidyMunicipalityNumber: subsidyMunicipalityNumber,
+            upperLimitManagementProviderNumber: upperLimitManagementProviderNumber);
+
+    internal static ContractedProvider ContractedProvider(int? certificateEntryNumber = null)
+        => Domain.Entities.ContractedProvider.Create(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            providerNumber: "1310000001",
+            providerName: "テスト事業所",
+            serviceCategory: "就労継続支援B型",
+            contractedSupplyDays: 23,
+            contractDate: new DateOnly(2024, 4, 1),
+            "tester",
+            Now,
+            Guid.NewGuid(),
+            certificateEntryNumber: certificateEntryNumber);
+
     internal static AverageWageAnnualEvidence AverageWageEvidence()
     {
         var id = Guid.NewGuid();
@@ -138,7 +171,11 @@ internal static class ClaimPreparationTestKit
         IReadOnlyList<Guid>? recipientIds = null,
         IReadOnlyDictionary<Guid, int>? billedDays = null,
         IReadOnlyDictionary<Guid, int>? certificateCounts = null,
-        bool includeProfile = true)
+        bool includeProfile = true,
+        IReadOnlyDictionary<Guid, Certificate>? certificateByRecipient = null,
+        IReadOnlyDictionary<Guid, ContractedProvider>? contractedProviderByRecipient = null,
+        IReadOnlyDictionary<Guid, ClaimDailyRecordAggregate>? dailyRecordAggregateByRecipient = null,
+        IReadOnlyDictionary<Guid, DateOnly>? intensiveSupportEpisodeStartDateByRecipient = null)
         => new(
             recipientIds ?? [RecipientId],
             includeProfile ? profile ?? Profile() : null,
@@ -146,7 +183,11 @@ internal static class ClaimPreparationTestKit
             evidenceByRecipient ?? new Dictionary<Guid, CertificateClaimEvidence> { [RecipientId] = Evidence() },
             averageWageEvidences ?? [AverageWageEvidence()],
             billedDays ?? new Dictionary<Guid, int> { [RecipientId] = 2 },
-            certificateCounts ?? new Dictionary<Guid, int> { [RecipientId] = 1 });
+            certificateCounts ?? new Dictionary<Guid, int> { [RecipientId] = 1 },
+            certificateByRecipient,
+            contractedProviderByRecipient,
+            dailyRecordAggregateByRecipient,
+            intensiveSupportEpisodeStartDateByRecipient);
 
     internal static ClaimBillingConditionTokens Tokens(
         string? rewardSystem = "b-type",
