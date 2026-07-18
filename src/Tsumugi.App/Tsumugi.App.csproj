@@ -29,6 +29,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Tsumugi.Application\Tsumugi.Application.csproj" />
     <ProjectReference Include="..\Tsumugi.Infrastructure\Tsumugi.Infrastructure.csproj" />
+    <ProjectReference Include="..\Tsumugi.Infrastructure.Csv\Tsumugi.Infrastructure.Csv.csproj" />
     <ProjectReference Include="..\Tsumugi.Infrastructure.Reporting\Tsumugi.Infrastructure.Reporting.csproj" />
   </ItemGroup>
 

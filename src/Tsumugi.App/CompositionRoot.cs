@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Tsumugi.App.Navigation;
 using Tsumugi.App.ViewModels;
 using Tsumugi.Application.Abstractions;
+using Tsumugi.Application.Claim;
 using Tsumugi.Application.UseCases;
 using Tsumugi.Application.UseCases.Certificate;
 using Tsumugi.Application.UseCases.Claim;
@@ -15,6 +16,7 @@ using Tsumugi.Application.UseCases.Wage;
 using Tsumugi.Application.UseCases.WorkRecord;
 using Tsumugi.Domain.Logic.Wage;
 using Tsumugi.Infrastructure;
+using Tsumugi.Infrastructure.Csv.Mapping;
 using Tsumugi.Infrastructure.Reporting;
 
 namespace Tsumugi.App;
@@ -82,6 +84,16 @@ public static class CompositionRoot
         services.AddScoped<SetCertificateClaimEvidenceUseCase>();
         services.AddScoped<SetUpperLimitManagementStatementUseCase>();
         services.AddScoped<QueryClaimInputWorkspaceUseCase>();
+
+        // Phase 3-1: 算定プレビュー→確定→取下げ→履歴（Task 9）。
+        // readinessの要件はInfrastructure.Csv埋め込みcatalog（typed requirements）から供給する。
+        services.AddSingleton<IClaimInputRequirementProvider>(
+            _ => ClaimInputRequirementProvider.LoadEmbedded());
+        services.AddScoped<ClaimPreparationReadiness>();
+        services.AddScoped<CalculateClaimUseCase>();
+        services.AddScoped<CloseClaimUseCase>();
+        services.AddScoped<CancelClaimUseCase>();
+        services.AddScoped<QueryClaimUseCase>();
 
         // Phase 2: 工賃計算戦略（4 方式並存; D3 CalculateWagesUseCase が IReadOnlyList<IWageMethodStrategy> を要求）
         services.AddSingleton<IReadOnlyList<IWageMethodStrategy>>(_ => new IWageMethodStrategy[]
