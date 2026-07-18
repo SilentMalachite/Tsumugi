@@ -49,7 +49,7 @@ public static class DependencyInjection
         services.AddSingleton<IClaimFinalizationOperationRegistry, ClaimFinalizationOperationRegistry>();
         services.AddSingleton<IClaimAuditEntryFactory, ClaimAuditEntryFactory>();
         services.AddSingleton<IClaimSnapshotValidationCodecRegistry,
-            UnavailableClaimSnapshotValidationCodecRegistry>();
+            ProductionClaimSnapshotValidationCodecRegistry>();
         services.AddSingleton<IClaimFinalizationStore, ClaimFinalizationStore>();
         services.AddSingleton<IClaimCalculationSnapshotReader, ClaimCalculationSnapshotReader>();
         return services;
