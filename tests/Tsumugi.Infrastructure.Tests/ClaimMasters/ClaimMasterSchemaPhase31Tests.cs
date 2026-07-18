@@ -258,6 +258,60 @@ public sealed class ClaimMasterSchemaPhase31Tests
     }
 
     [Fact]
+    public void Load_rejects_average_wage_band_token_operand()
+    {
+        // ADR 0023: average-wage-bandは体制届の公式選択番号（整数officialOptionCode）で判定する。
+        // token登録はDomain resolverの整数評価と噛み合わず実行時に必ず解決不能になるため、
+        // 読み込み時点で拒否する。
+        var masters = ValidMasters();
+        MutateCondition(masters, "capacity-up-to-20", condition =>
+        {
+            condition["kind"] = "average-wage-band";
+            condition["operator"] = "equals";
+            condition["value"] = "45000-or-more";
+        });
+
+        var action = () => Load(masters);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*capacity-up-to-20*value*");
+    }
+
+    [Fact]
+    public void Load_rejects_average_wage_band_non_equals_operator()
+    {
+        var masters = ValidMasters();
+        MutateCondition(masters, "capacity-up-to-20", condition =>
+        {
+            condition["kind"] = "average-wage-band";
+            condition["operator"] = "greater-than-or-equal";
+            condition["value"] = 1;
+        });
+
+        var action = () => Load(masters);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*capacity-up-to-20*operator*");
+    }
+
+    [Fact]
+    public void Load_rejects_average_wage_band_zero_option_code()
+    {
+        var masters = ValidMasters();
+        MutateCondition(masters, "capacity-up-to-20", condition =>
+        {
+            condition["kind"] = "average-wage-band";
+            condition["operator"] = "equals";
+            condition["value"] = 0;
+        });
+
+        var action = () => Load(masters);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*capacity-up-to-20*value*");
+    }
+
+    [Fact]
     public void Load_rejects_missing_required_source_support()
     {
         var masters = ValidMasters();
