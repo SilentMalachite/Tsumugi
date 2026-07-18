@@ -984,11 +984,34 @@ git commit -m "feat(phase3-1): calculate, close, cancel, query claim use cases (
 - Consumes: Task 9の `IClaimBillingTokenProvider` / builders / readiness、Task 7のreader
 - Produces: 本番構成で「プロファイル入力済みならプレビューがReadyになる」状態。Task 10のUIが前提とする
 
-- [ ] **Step 1: Domain拡張＋policy＋migrationをTDDで実装**
-- [ ] **Step 2: snapshotのevidence辞書化とbuilder追随（位置依存排除）**
-- [ ] **Step 3: readinessの0日非ブロック化**
-- [ ] **Step 4: UseCase/VM入力欄＋token provider本番配線**
-- [ ] **Step 5: 全体テスト・ci.sh緑 → コミット（論理単位で分割可）**
+- [x] **Step 1: Domain拡張＋policy＋migrationをTDDで実装**
+- [x] **Step 2: snapshotのevidence辞書化とbuilder追随（位置依存排除）**
+- [x] **Step 3: readinessの0日非ブロック化**
+- [x] **Step 4: UseCase/VM入力欄＋token provider本番配線**
+- [x] **Step 5: 全体テスト・ci.sh緑 → コミット（論理単位で分割可）**
+
+---
+
+### Task 9c: readiness requirement catalog の全写像（本番Ready到達の最終ブロッカー）
+
+> Task 9b修正ラウンドで確定した事実: 本番の `ClaimInputRequirementProvider.LoadEmbedded()` には、context builder が未写像の **14 target paths**（Certificate.* / ContractedProvider.* / DailyRecord.* / IntensiveSupportEpisode.StartDate）があり、本番構成のプレビューは恒久NotReady（`ClaimPreviewProductionWiringTests` にpinnedテストあり）。本タスクでこの14 pathsをsnapshot実データから写像し、本番でReadyに到達可能にする。
+
+**Files:**
+- Modify: `src/Tsumugi.Application/Abstractions/IClaimCalculationSnapshotReader.cs`（snapshotへ必要エンティティ値を追加: 有効Certificate、ContractedProvider、有効DailyRecord由来値、IntensiveSupportEpisode）
+- Modify: `src/Tsumugi.Infrastructure/Persistence/ClaimCalculationSnapshotReader.cs`（同read tx内で取得）
+- Modify: `src/Tsumugi.Application/Claim/ClaimPreparationContextBuilder.cs`（14 pathsを `ClaimPreparationValue` / row scope へ写像）
+- Modify: `tests/Tsumugi.Infrastructure.Tests/Claim/ClaimPreviewProductionWiringTests.cs`（pinnedテストを「実requirement catalogでReady到達」テストへ書き換え）
+- Test: builder/reader の各追加に対応する既存テストファイルへ追加
+
+**Interfaces:**
+- Consumes: requirement catalog の targetPath/条件定義（`ClaimInputRequirementProvider.Create` を読む）、Task 7/9b の snapshot契約
+- Produces: 本番DI構成そのままで、全入力が揃えば `IsReady == true`。Task 10 のUIが前提とする
+
+- [ ] **Step 1: 14 pathsの条件・row scope仕様を調査し、写像表（path→snapshot源）を報告に記録**
+- [ ] **Step 2: reader拡張（同一tx内で不足エンティティ取得）をTDDで実装**
+- [ ] **Step 3: builder写像をTDDで実装（未確定・入力不足はissueのまま=フェイルクローズ維持）**
+- [ ] **Step 4: pinnedテストを本番Ready到達テストへ置換（negative: 1入力欠落→該当issue）**
+- [ ] **Step 5: 全体テスト・ci.sh緑 → コミット**
 
 ---
 
