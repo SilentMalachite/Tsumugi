@@ -694,6 +694,240 @@ public sealed class ClaimCalculationSnapshotReaderTests : IClassFixture<SqliteFi
         snapshot.EffectiveCertificateCountByRecipient[recipientB].Should().Be(0);
     }
 
+    [Fact]
+    public async Task Reads_certificate_contracted_provider_daily_record_aggregate_and_intensive_support_start_date()
+    {
+        // Task 9c: Certificate.* / ContractedProvider.CertificateEntryNumber / DailyRecordAggregate /
+        // IntensiveSupportEpisode.StartDateの4系統を、同一tx内・実DomainPolicyの縮約経由で検証する。
+        var officeId = Guid.NewGuid();
+        var recipientId = Guid.NewGuid();
+        var certificateId = Guid.NewGuid();
+        var month = new ServiceMonth(2027, 2);
+        var factory = new TestDbContextFactory(_fixture.DbPath);
+        var t0 = DateTimeOffset.UnixEpoch;
+
+        var office = Rows.Office(officeId);
+        var certificate = Rows.Certificate(
+                certificateId, recipientId, new DateRange(new DateOnly(2027, 1, 1), null))
+            with
+        {
+            MunicipalityNumber = "131000",
+            SubsidyMunicipalityNumber = "132000",
+            UpperLimitManagementProviderNumber = "1310000099",
+        };
+        var contractedProvider = ContractedProvider.Create(
+            Guid.NewGuid(),
+            certificateId,
+            providerNumber: office.OfficeNumber,
+            providerName: office.Name,
+            serviceCategory: "就労継続支援B型",
+            contractedSupplyDays: 23,
+            contractDate: new DateOnly(2027, 1, 1),
+            "tester",
+            t0,
+            Guid.NewGuid(),
+            certificateEntryNumber: 7);
+
+        // Present2日（訂正無視の実効値のみ集計対象）+ Absent1日（除外されることを検証）。
+        var dailyRecords = new[]
+        {
+            DailyRecord.NewRecord(
+                Guid.NewGuid(), recipientId, new DateOnly(2027, 2, 1),
+                Attendance.Present, TransportKind.None, false, null, "tester", t0,
+                serviceStartTime: null,
+                serviceEndTime: null,
+                specialVisitSupportMinutes: 10,
+                offsiteSupportApplied: false,
+                medicalCoordinationType: MedicalCoordinationType.Unspecified,
+                trialUseSupportType: TrialUseSupportType.Unspecified,
+                regionalCollaborationApplied: false,
+                intensiveSupportApplied: false,
+                emergencyAdmissionApplied: false),
+            DailyRecord.NewRecord(
+                Guid.NewGuid(), recipientId, new DateOnly(2027, 2, 2),
+                Attendance.Present, TransportKind.None, false, null, "tester", t0,
+                serviceStartTime: new TimeOnly(9, 0),
+                serviceEndTime: new TimeOnly(15, 0),
+                specialVisitSupportMinutes: 20,
+                offsiteSupportApplied: true,
+                medicalCoordinationType: MedicalCoordinationType.TypeII,
+                trialUseSupportType: TrialUseSupportType.TypeII,
+                regionalCollaborationApplied: true,
+                intensiveSupportApplied: false,
+                emergencyAdmissionApplied: true),
+            DailyRecord.NewRecord(
+                Guid.NewGuid(), recipientId, new DateOnly(2027, 2, 3),
+                Attendance.Absent, TransportKind.None, false, null, "tester", t0,
+                intensiveSupportApplied: true),
+        };
+
+        var episodeId = Guid.NewGuid();
+        var episode = new IntensiveSupportEpisode
+        {
+            Id = episodeId,
+            OfficeId = officeId,
+            RecipientId = recipientId,
+            RootId = episodeId,
+            Revision = 1,
+            Kind = RecordKind.New,
+            ExpectedHeadId = null,
+            StartDate = new DateOnly(2027, 1, 15),
+            CreatedAt = t0,
+            CreatedBy = "tester",
+            ConcurrencyToken = Guid.NewGuid(),
+        };
+
+        await using (var seed = factory.CreateDbContext())
+        {
+            seed.AddRange(office, Rows.Recipient(recipientId), certificate);
+            seed.Add(contractedProvider);
+            seed.AddRange(dailyRecords);
+            seed.Add(episode);
+            await seed.SaveChangesAsync();
+        }
+
+        var reader = new ClaimCalculationSnapshotReader(
+            factory, new FakeOfficeClaimProfilePolicyProvider(MasterVersion));
+
+        var snapshot = await reader.ReadAsync(officeId, month, default);
+
+        snapshot.EffectiveCertificateByRecipient.Should().ContainKey(recipientId);
+        var effectiveCertificate = snapshot.EffectiveCertificateByRecipient![recipientId];
+        effectiveCertificate.MunicipalityNumber.Should().Be("131000");
+        effectiveCertificate.SubsidyMunicipalityNumber.Should().Be("132000");
+        effectiveCertificate.UpperLimitManagementProviderNumber.Should().Be("1310000099");
+
+        snapshot.EffectiveContractedProviderByRecipient.Should().ContainKey(recipientId);
+        snapshot.EffectiveContractedProviderByRecipient![recipientId].CertificateEntryNumber.Should().Be(7);
+
+        snapshot.DailyRecordAggregateByRecipient.Should().ContainKey(recipientId);
+        var aggregate = snapshot.DailyRecordAggregateByRecipient![recipientId];
+        aggregate.ServiceStartTime.Should().Be(new TimeOnly(9, 0)); // 2/1はnull -> 2/2の値が代表
+        aggregate.ServiceEndTime.Should().Be(new TimeOnly(15, 0));
+        aggregate.SpecialVisitSupportMinutesTotal.Should().Be(30); // 10 + 20（Absent日は対象外）
+        aggregate.OffsiteSupportApplied.Should().BeTrue();
+        aggregate.MedicalCoordinationType.Should().Be(MedicalCoordinationType.TypeII); // 2/1はUnspecified
+        aggregate.TrialUseSupportType.Should().Be(TrialUseSupportType.TypeII);
+        aggregate.RegionalCollaborationApplied.Should().BeTrue();
+        aggregate.IntensiveSupportApplied.Should().BeFalse(); // trueなのはAbsent日のみ -> 除外
+        aggregate.EmergencyAdmissionApplied.Should().BeTrue();
+
+        snapshot.IntensiveSupportEpisodeStartDateByRecipient.Should().ContainKey(recipientId);
+        snapshot.IntensiveSupportEpisodeStartDateByRecipient![recipientId].Should().Be(new DateOnly(2027, 1, 15));
+    }
+
+    [Fact]
+    public async Task Contracted_provider_belonging_to_a_different_provider_number_is_not_resolved()
+    {
+        // Task 9c fail-closed: ProviderNumberが本事業所のOfficeNumberと一致しない行は
+        // 「他事業所の記入欄」として無視し、代表を選ばない。
+        var officeId = Guid.NewGuid();
+        var recipientId = Guid.NewGuid();
+        var certificateId = Guid.NewGuid();
+        var month = new ServiceMonth(2027, 3);
+        var factory = new TestDbContextFactory(_fixture.DbPath);
+        var t0 = DateTimeOffset.UnixEpoch;
+
+        var office = Rows.Office(officeId);
+        var certificate = Rows.Certificate(
+            certificateId, recipientId, new DateRange(new DateOnly(2027, 1, 1), null));
+        var otherOfficeContractedProvider = ContractedProvider.Create(
+            Guid.NewGuid(),
+            certificateId,
+            providerNumber: "9999999999",
+            providerName: "他事業所",
+            serviceCategory: "就労継続支援B型",
+            contractedSupplyDays: 23,
+            contractDate: new DateOnly(2027, 1, 1),
+            "tester",
+            t0,
+            Guid.NewGuid(),
+            certificateEntryNumber: 3);
+        var dailyRecords = new[]
+        {
+            DailyRecord.NewRecord(
+                Guid.NewGuid(), recipientId, new DateOnly(2027, 3, 1),
+                Attendance.Present, TransportKind.None, false, null, "tester", t0),
+        };
+
+        await using (var seed = factory.CreateDbContext())
+        {
+            seed.AddRange(office, Rows.Recipient(recipientId), certificate);
+            seed.Add(otherOfficeContractedProvider);
+            seed.AddRange(dailyRecords);
+            await seed.SaveChangesAsync();
+        }
+
+        var reader = new ClaimCalculationSnapshotReader(
+            factory, new FakeOfficeClaimProfilePolicyProvider(MasterVersion));
+
+        var snapshot = await reader.ReadAsync(officeId, month, default);
+
+        snapshot.EffectiveCertificateByRecipient.Should().ContainKey(recipientId);
+        snapshot.EffectiveContractedProviderByRecipient.Should().NotContainKey(recipientId);
+    }
+
+    [Fact]
+    public async Task Cancelled_intensive_support_episode_is_not_resolved()
+    {
+        var officeId = Guid.NewGuid();
+        var recipientId = Guid.NewGuid();
+        var month = new ServiceMonth(2027, 4);
+        var factory = new TestDbContextFactory(_fixture.DbPath);
+        var t0 = DateTimeOffset.UnixEpoch;
+
+        var newEpisodeId = Guid.NewGuid();
+        var newEpisode = new IntensiveSupportEpisode
+        {
+            Id = newEpisodeId,
+            OfficeId = officeId,
+            RecipientId = recipientId,
+            RootId = newEpisodeId,
+            Revision = 1,
+            Kind = RecordKind.New,
+            ExpectedHeadId = null,
+            StartDate = new DateOnly(2027, 1, 15),
+            CreatedAt = t0,
+            CreatedBy = "tester",
+            ConcurrencyToken = Guid.NewGuid(),
+        };
+        var cancelledEpisode = new IntensiveSupportEpisode
+        {
+            Id = Guid.NewGuid(),
+            OfficeId = officeId,
+            RecipientId = recipientId,
+            RootId = newEpisodeId,
+            Revision = 2,
+            Kind = RecordKind.Cancel,
+            ExpectedHeadId = newEpisodeId,
+            StartDate = null,
+            CreatedAt = t0.AddMinutes(1),
+            CreatedBy = "tester",
+            ConcurrencyToken = Guid.NewGuid(),
+        };
+        var dailyRecords = new[]
+        {
+            DailyRecord.NewRecord(
+                Guid.NewGuid(), recipientId, new DateOnly(2027, 4, 1),
+                Attendance.Present, TransportKind.None, false, null, "tester", t0),
+        };
+
+        await using (var seed = factory.CreateDbContext())
+        {
+            seed.AddRange(Rows.Office(officeId), Rows.Recipient(recipientId));
+            seed.AddRange(newEpisode, cancelledEpisode);
+            seed.AddRange(dailyRecords);
+            await seed.SaveChangesAsync();
+        }
+
+        var reader = new ClaimCalculationSnapshotReader(
+            factory, new FakeOfficeClaimProfilePolicyProvider(MasterVersion));
+
+        var snapshot = await reader.ReadAsync(officeId, month, default);
+
+        snapshot.IntensiveSupportEpisodeStartDateByRecipient.Should().NotContainKey(recipientId);
+    }
+
     private static class Rows
     {
         public static Office Office(Guid id) => Tsumugi.Domain.Entities.Office.Create(

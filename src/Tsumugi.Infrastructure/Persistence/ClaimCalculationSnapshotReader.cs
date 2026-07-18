@@ -38,6 +38,12 @@ public sealed class ClaimCalculationSnapshotReader(
             var monthStart = new DateOnly(serviceMonth.Year, serviceMonth.Month, 1);
             var monthEnd = monthStart.AddMonths(1).AddDays(-1);
 
+            // Task 9c: ContractedProviderの「本事業所行」判定にOfficeNumberが要るため、
+            // 同一tx内で事業所も読む（既存のIOfficeRepository経由の読み取りとは別読取で、
+            // 用途もこの一致判定に限定する）。
+            var office = await db.Offices.AsNoTracking()
+                .FirstOrDefaultAsync(candidate => candidate.Id == officeId, ct);
+
             var effectiveClaimInputs = await ReadEffectiveClaimInputsAsync(
                 db, officeId, serviceMonth, ct);
 
@@ -56,13 +62,18 @@ public sealed class ClaimCalculationSnapshotReader(
                 .OrderBy(id => id)
                 .ToArray();
 
-            var billedDaysByRecipient = await ReadBilledDaysByRecipientAsync(
-                db, recipientIds, monthStart, monthEnd, ct);
-            var (certificateCountByRecipient, effectiveCertificateEvidenceByRecipient) =
+            var (billedDaysByRecipient, dailyRecordAggregateByRecipient) =
+                await ReadDailyRecordDataByRecipientAsync(db, recipientIds, monthStart, monthEnd, ct);
+            var (certificateCountByRecipient, effectiveCertificateEvidenceByRecipient,
+                    effectiveCertificateByRecipient) =
                 await ReadEffectiveCertificateEvidencesAsync(db, recipientIds, monthStart, monthEnd, ct);
+            var effectiveContractedProviderByRecipient = await ReadEffectiveContractedProvidersByRecipientAsync(
+                db, effectiveCertificateByRecipient, office?.OfficeNumber, monthStart, monthEnd, ct);
             var effectiveAverageWageEvidences = await ReadEffectiveAverageWageEvidencesAsync(
                 db, officeId, serviceMonth, ct);
             var profile = await ReadEffectiveProfileAsync(db, officeId, monthEnd, ct);
+            var intensiveSupportEpisodeStartDateByRecipient =
+                await ReadIntensiveSupportEpisodeStartDatesByRecipientAsync(db, officeId, recipientIds, ct);
 
             return new ClaimCalculationSnapshot(
                 recipientIds,
@@ -71,7 +82,11 @@ public sealed class ClaimCalculationSnapshotReader(
                 effectiveCertificateEvidenceByRecipient,
                 effectiveAverageWageEvidences,
                 billedDaysByRecipient,
-                certificateCountByRecipient);
+                certificateCountByRecipient,
+                effectiveCertificateByRecipient,
+                effectiveContractedProviderByRecipient,
+                dailyRecordAggregateByRecipient,
+                intensiveSupportEpisodeStartDateByRecipient);
         }
         finally
         {
@@ -133,14 +148,22 @@ public sealed class ClaimCalculationSnapshotReader(
             .ToArray();
     }
 
-    private static async Task<IReadOnlyDictionary<Guid, int>> ReadBilledDaysByRecipientAsync(
-        TsumugiDbContext db,
-        IReadOnlyCollection<Guid> recipientIds,
-        DateOnly monthStart,
-        DateOnly monthEnd,
-        CancellationToken ct)
+    /// <summary>
+    /// 出席日数と<see cref="ClaimDailyRecordAggregate"/>を同じ実効化走査から導出する
+    /// （DailyRecordの月次クエリと訂正・取消縮約を1回で共用し、二重取得しない）。
+    /// </summary>
+    private static async Task<(
+        IReadOnlyDictionary<Guid, int> BilledDaysByRecipient,
+        IReadOnlyDictionary<Guid, ClaimDailyRecordAggregate> AggregateByRecipient)>
+        ReadDailyRecordDataByRecipientAsync(
+            TsumugiDbContext db,
+            IReadOnlyCollection<Guid> recipientIds,
+            DateOnly monthStart,
+            DateOnly monthEnd,
+            CancellationToken ct)
     {
-        var result = new Dictionary<Guid, int>();
+        var billedDaysByRecipient = new Dictionary<Guid, int>();
+        var aggregateByRecipient = new Dictionary<Guid, ClaimDailyRecordAggregate>();
         foreach (var recipientId in recipientIds)
         {
             var dailyRecords = await db.DailyRecords.AsNoTracking()
@@ -149,10 +172,37 @@ public sealed class ClaimCalculationSnapshotReader(
                     && record.ServiceDate <= monthEnd)
                 .ToListAsync(ct);
             var effectiveByDate = DailyRecordPolicy.EffectiveByDate(dailyRecords);
-            result[recipientId] = effectiveByDate.Values
-                .Count(record => record.Attendance == Attendance.Present);
+            var presentDays = effectiveByDate.Values
+                .Where(record => record.Attendance == Attendance.Present)
+                .OrderBy(record => record.ServiceDate)
+                .ToArray();
+
+            billedDaysByRecipient[recipientId] = presentDays.Length;
+            aggregateByRecipient[recipientId] = presentDays.Length == 0
+                ? ClaimDailyRecordAggregate.Empty
+                : new ClaimDailyRecordAggregate(
+                    ServiceStartTime: presentDays
+                        .Select(record => record.ServiceStartTime)
+                        .FirstOrDefault(value => value is not null),
+                    ServiceEndTime: presentDays
+                        .Select(record => record.ServiceEndTime)
+                        .FirstOrDefault(value => value is not null),
+                    SpecialVisitSupportMinutesTotal: presentDays
+                        .Sum(record => record.SpecialVisitSupportMinutes ?? 0),
+                    OffsiteSupportApplied: presentDays.Any(record => record.OffsiteSupportApplied == true),
+                    MedicalCoordinationType: presentDays
+                        .Select(record => record.MedicalCoordinationType)
+                        .FirstOrDefault(value => value != MedicalCoordinationType.Unspecified),
+                    TrialUseSupportType: presentDays
+                        .Select(record => record.TrialUseSupportType)
+                        .FirstOrDefault(value => value != TrialUseSupportType.Unspecified),
+                    RegionalCollaborationApplied: presentDays
+                        .Any(record => record.RegionalCollaborationApplied == true),
+                    IntensiveSupportApplied: presentDays.Any(record => record.IntensiveSupportApplied == true),
+                    EmergencyAdmissionApplied: presentDays
+                        .Any(record => record.EmergencyAdmissionApplied == true));
         }
-        return result;
+        return (billedDaysByRecipient, aggregateByRecipient);
     }
 
     /// <summary>
@@ -163,7 +213,8 @@ public sealed class ClaimCalculationSnapshotReader(
     /// </summary>
     private static async Task<(
         IReadOnlyDictionary<Guid, int> CountByRecipient,
-        IReadOnlyDictionary<Guid, CertificateClaimEvidence> EvidenceByRecipient)>
+        IReadOnlyDictionary<Guid, CertificateClaimEvidence> EvidenceByRecipient,
+        IReadOnlyDictionary<Guid, Certificate> CertificateByRecipient)>
         ReadEffectiveCertificateEvidencesAsync(
             TsumugiDbContext db,
             IReadOnlyCollection<Guid> recipientIds,
@@ -173,6 +224,9 @@ public sealed class ClaimCalculationSnapshotReader(
     {
         var countByRecipient = new Dictionary<Guid, int>();
         var evidenceByRecipient = new Dictionary<Guid, CertificateClaimEvidence>();
+        // Task 9c: Certificate.MunicipalityNumber等の写像用に、実効受給者証がちょうど1件のときだけ
+        // その実体も利用者IDを鍵として保持する（evidenceByRecipientと同じ規約）。
+        var certificateByRecipient = new Dictionary<Guid, Certificate>();
         foreach (var recipientId in recipientIds)
         {
             var certificates = await db.Certificates.AsNoTracking()
@@ -183,13 +237,77 @@ public sealed class ClaimCalculationSnapshotReader(
             countByRecipient[recipientId] = overlapping.Count;
             if (overlapping.Count != 1) continue;
 
+            certificateByRecipient[recipientId] = overlapping[0];
+
             var evidenceHistory = await db.CertificateClaimEvidences.AsNoTracking()
                 .Where(evidence => evidence.CertificateId == overlapping[0].Id)
                 .ToListAsync(ct);
             if (CertificateClaimEvidencePolicy.Effective(evidenceHistory) is { } effectiveEvidence)
                 evidenceByRecipient[recipientId] = effectiveEvidence;
         }
-        return (countByRecipient, evidenceByRecipient);
+        return (countByRecipient, evidenceByRecipient, certificateByRecipient);
+    }
+
+    /// <summary>
+    /// Task 9c: <see cref="ContractedProvider.CertificateEntryNumber"/>写像用に、実効受給者証の
+    /// 「サービス事業者記入欄」から本事業所（<c>ProviderNumber == officeNumber</c>）かつ
+    /// サービス月と契約期間が重なる行を解決する。0件・2件以上（契約行の重複）は代表を選ばず、
+    /// エントリを作らない（fail-closed。判定は請求readiness gate側の責務）。
+    /// </summary>
+    private static async Task<IReadOnlyDictionary<Guid, ContractedProvider>>
+        ReadEffectiveContractedProvidersByRecipientAsync(
+            TsumugiDbContext db,
+            IReadOnlyDictionary<Guid, Certificate> certificateByRecipient,
+            string? officeNumber,
+            DateOnly monthStart,
+            DateOnly monthEnd,
+            CancellationToken ct)
+    {
+        var result = new Dictionary<Guid, ContractedProvider>();
+        if (string.IsNullOrWhiteSpace(officeNumber)) return result;
+
+        foreach (var (recipientId, certificate) in certificateByRecipient)
+        {
+            var candidates = await db.ContractedProviders.AsNoTracking()
+                .Where(provider => provider.CertificateId == certificate.Id
+                    && provider.ProviderNumber == officeNumber)
+                .ToListAsync(ct);
+
+            var overlapping = candidates
+                .Where(provider => provider.ContractDate <= monthEnd
+                    && (provider.TerminationDate == null || provider.TerminationDate >= monthStart))
+                .ToArray();
+            if (overlapping.Length == 1)
+                result[recipientId] = overlapping[0];
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Task 9c: <see cref="IntensiveSupportEpisode"/>の追記型revision chainを
+    /// <see cref="IntensiveSupportEpisodePolicy.Effective"/>で縮約し、取消でない実効エピソードが
+    /// 存在する利用者だけを鍵に開始日を保持する（サービス月による絞込みは行わない。集中的支援開始日は
+    /// 特定月のスナップショットではなく継続的な状態のため）。
+    /// </summary>
+    private static async Task<IReadOnlyDictionary<Guid, DateOnly>>
+        ReadIntensiveSupportEpisodeStartDatesByRecipientAsync(
+            TsumugiDbContext db,
+            Guid officeId,
+            IReadOnlyCollection<Guid> recipientIds,
+            CancellationToken ct)
+    {
+        var result = new Dictionary<Guid, DateOnly>();
+        foreach (var recipientId in recipientIds)
+        {
+            var history = await db.IntensiveSupportEpisodes.AsNoTracking()
+                .Where(episode => episode.OfficeId == officeId && episode.RecipientId == recipientId)
+                .ToListAsync(ct);
+            if (history.Count == 0) continue;
+
+            if (IntensiveSupportEpisodePolicy.Effective(history) is { StartDate: { } startDate })
+                result[recipientId] = startDate;
+        }
+        return result;
     }
 
     /// <summary>
