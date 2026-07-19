@@ -1,5 +1,180 @@
 {
   "schemaVersion": "2",
   "masterKind": "transition-rules",
-  "entries": []
+  "entries": [
+    {
+      "key": "transition-rule-claim-master-r6-04",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": "2024-05",
+      "sourceRefs": [
+        {
+          "documentId": "r6-capability-202404",
+          "sha256": "fa24cd44e81cf1f1118b4a4c8a0b28bce31ee5227f13b9f8baa260ea6f223531",
+          "locator": "workbook-order=1;row=273",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "masterVersion": "claim-master-r6-04",
+        "allowedAverageWageBandOptions": [
+          { "kind": "numeric", "officialOptionCode": 1 },
+          { "kind": "numeric", "officialOptionCode": 2 },
+          { "kind": "numeric", "officialOptionCode": 3 },
+          { "kind": "numeric", "officialOptionCode": 4 },
+          { "kind": "numeric", "officialOptionCode": 5 },
+          { "kind": "numeric", "officialOptionCode": 6 },
+          { "kind": "numeric", "officialOptionCode": 7 },
+          { "kind": "filed-transition", "officialOptionCode": 8 },
+          { "kind": "numeric", "officialOptionCode": 9 },
+          { "kind": "production-activity-support", "officialOptionCode": 10 }
+        ],
+        "allowedOptionsByR8ReformStatus": {
+          "not-applicable-before-r8": [
+            { "kind": "numeric", "officialOptionCode": 1 },
+            { "kind": "numeric", "officialOptionCode": 2 },
+            { "kind": "numeric", "officialOptionCode": 3 },
+            { "kind": "numeric", "officialOptionCode": 4 },
+            { "kind": "numeric", "officialOptionCode": 5 },
+            { "kind": "numeric", "officialOptionCode": 6 },
+            { "kind": "numeric", "officialOptionCode": 7 },
+            { "kind": "filed-transition", "officialOptionCode": 8 },
+            { "kind": "numeric", "officialOptionCode": 9 },
+            { "kind": "production-activity-support", "officialOptionCode": 10 }
+          ]
+        },
+        "r8EffectiveDate": "2026-06-01",
+        "filedTransitionEndRule": "add-years-exclusive",
+        "filedTransitionDurationYears": 1
+      }
+    },
+    {
+      "key": "transition-rule-claim-master-r6-06",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2026-05",
+      "sourceRefs": [
+        {
+          "documentId": "r6-capability-202406",
+          "sha256": "d1edf9715b8c41660d6e4278ebd886861d0758c75109e4efc594f5d70f197c50",
+          "locator": "workbook-order=1;row=240",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "masterVersion": "claim-master-r6-06",
+        "allowedAverageWageBandOptions": [
+          { "kind": "numeric", "officialOptionCode": 1 },
+          { "kind": "numeric", "officialOptionCode": 2 },
+          { "kind": "numeric", "officialOptionCode": 3 },
+          { "kind": "numeric", "officialOptionCode": 4 },
+          { "kind": "numeric", "officialOptionCode": 5 },
+          { "kind": "numeric", "officialOptionCode": 6 },
+          { "kind": "numeric", "officialOptionCode": 7 },
+          { "kind": "filed-transition", "officialOptionCode": 8 },
+          { "kind": "numeric", "officialOptionCode": 9 },
+          { "kind": "production-activity-support", "officialOptionCode": 10 }
+        ],
+        "allowedOptionsByR8ReformStatus": {
+          "not-applicable-before-r8": [
+            { "kind": "numeric", "officialOptionCode": 1 },
+            { "kind": "numeric", "officialOptionCode": 2 },
+            { "kind": "numeric", "officialOptionCode": 3 },
+            { "kind": "numeric", "officialOptionCode": 4 },
+            { "kind": "numeric", "officialOptionCode": 5 },
+            { "kind": "numeric", "officialOptionCode": 6 },
+            { "kind": "numeric", "officialOptionCode": 7 },
+            { "kind": "filed-transition", "officialOptionCode": 8 },
+            { "kind": "numeric", "officialOptionCode": 9 },
+            { "kind": "production-activity-support", "officialOptionCode": 10 }
+          ]
+        },
+        "r8EffectiveDate": "2026-06-01",
+        "filedTransitionEndRule": "add-years-exclusive",
+        "filedTransitionDurationYears": 1
+      }
+    },
+    {
+      "key": "transition-rule-claim-master-r8-06",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-capability-202606",
+          "sha256": "84ff0b3b34c2ef857a1bcec221b8c276c177678b403ca6e171b2a08a6d8a150b",
+          "locator": "workbook-order=1;row=242",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "masterVersion": "claim-master-r8-06",
+        "allowedAverageWageBandOptions": [
+          { "kind": "numeric", "officialOptionCode": 1 },
+          { "kind": "numeric", "officialOptionCode": 2 },
+          { "kind": "numeric", "officialOptionCode": 3 },
+          { "kind": "numeric", "officialOptionCode": 4 },
+          { "kind": "numeric", "officialOptionCode": 5 },
+          { "kind": "numeric", "officialOptionCode": 6 },
+          { "kind": "numeric", "officialOptionCode": 7 },
+          { "kind": "filed-transition", "officialOptionCode": 8 },
+          { "kind": "numeric", "officialOptionCode": 9 },
+          { "kind": "production-activity-support", "officialOptionCode": 10 },
+          { "kind": "numeric", "officialOptionCode": 11 },
+          { "kind": "numeric", "officialOptionCode": 12 },
+          { "kind": "numeric", "officialOptionCode": 13 },
+          { "kind": "numeric", "officialOptionCode": 14 },
+          { "kind": "numeric", "officialOptionCode": 15 },
+          { "kind": "numeric", "officialOptionCode": 16 },
+          { "kind": "numeric", "officialOptionCode": 17 },
+          { "kind": "numeric", "officialOptionCode": 18 },
+          { "kind": "numeric", "officialOptionCode": 19 },
+          { "kind": "numeric", "officialOptionCode": 20 },
+          { "kind": "numeric", "officialOptionCode": 21 },
+          { "kind": "numeric", "officialOptionCode": 22 }
+        ],
+        "allowedOptionsByR8ReformStatus": {
+          "reform-target": [
+            { "kind": "filed-transition", "officialOptionCode": 8 },
+            { "kind": "numeric", "officialOptionCode": 11 },
+            { "kind": "numeric", "officialOptionCode": 12 },
+            { "kind": "numeric", "officialOptionCode": 13 },
+            { "kind": "numeric", "officialOptionCode": 14 },
+            { "kind": "numeric", "officialOptionCode": 15 },
+            { "kind": "numeric", "officialOptionCode": 16 },
+            { "kind": "numeric", "officialOptionCode": 17 },
+            { "kind": "numeric", "officialOptionCode": 18 },
+            { "kind": "numeric", "officialOptionCode": 19 },
+            { "kind": "numeric", "officialOptionCode": 20 },
+            { "kind": "numeric", "officialOptionCode": 21 },
+            { "kind": "numeric", "officialOptionCode": 22 }
+          ],
+          "reform-exempt": [
+            { "kind": "numeric", "officialOptionCode": 1 },
+            { "kind": "numeric", "officialOptionCode": 2 },
+            { "kind": "numeric", "officialOptionCode": 3 },
+            { "kind": "numeric", "officialOptionCode": 4 },
+            { "kind": "numeric", "officialOptionCode": 5 },
+            { "kind": "numeric", "officialOptionCode": 6 }
+          ],
+          "unchanged-below-15000": [
+            { "kind": "numeric", "officialOptionCode": 7 },
+            { "kind": "numeric", "officialOptionCode": 9 }
+          ]
+        },
+        "r8EffectiveDate": "2026-06-01",
+        "filedTransitionEndRule": "add-years-exclusive",
+        "filedTransitionDurationYears": 1
+      }
+    }
+  ]
 }

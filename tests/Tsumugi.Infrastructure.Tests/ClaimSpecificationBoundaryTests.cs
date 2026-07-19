@@ -96,6 +96,44 @@ public sealed class ClaimSpecificationBoundaryTests
             v => v.Rule == "claim-master-literal" && v.Literal == number);
     }
 
+    [Fact]
+    public void Scan_ignores_official_option_codes_as_selector_identifiers()
+    {
+        // Task 13 (ADR 0023): officialOptionCodeは体制届の公式選択番号（閉じたselector識別子）で
+        // あり、単位数・率・閾値のような報酬値ではない。カタログへ載せると「12=月数」等の
+        // 暦・型序数の偶然一致がguardを恒久的に汚染するため、この正確なプロパティ名だけを
+        // カタログ抽出から除外する（値としての数値は下のテストが引き続き検出することを証明）。
+        using var fixture = new SpecificationFixture();
+        fixture.WriteTransitionOptionCode(officialOptionCode: "42", durationYears: "1");
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/OptionCodeUse.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal static class OptionCodeUse { " +
+            "internal static int Value => 42; }");
+
+        fixture.Scan().Should().NotContain(
+            v => v.Rule == "claim-master-literal" && v.Literal == "42");
+    }
+
+    [Fact]
+    public void Scan_still_detects_other_transition_rule_numbers_beside_option_codes()
+    {
+        // 補償テスト: officialOptionCode以外の数値（例: 経過措置年数）が同じtransition-rule
+        // 形状の値に現れた場合、guardは引き続き検出する（除外がプロパティ名1点に閉じている証明）。
+        using var fixture = new SpecificationFixture();
+        fixture.WriteTransitionOptionCode(officialOptionCode: "42", durationYears: "77");
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/DurationUse.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal static class DurationUse { " +
+            "internal static int Value => 77; }");
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-literal" && v.Literal == "77");
+
+        violation.RelativePath.Should().Be("src/Tsumugi.Domain/Logic/Claim/DurationUse.cs");
+        violation.CatalogPath.Should().EndWith("#/entries/0/values/filedTransitionDurationYears");
+    }
+
     [Theory]
     [InlineData("10")]
     [InlineData("-10")]
@@ -686,6 +724,28 @@ public sealed class ClaimSpecificationBoundaryTests
                 "      \"effectiveFrom\": \"2026-06\",\n" +
                 "      \"sourceRefs\": [{ \"documentId\": \"known-source\" }],\n" +
                 "      \"values\": { \"units\": " + number + " }\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}\n");
+        }
+
+        public void WriteTransitionOptionCode(string officialOptionCode, string durationYears)
+        {
+            Write(
+                MasterPath,
+                "{\n" +
+                "  \"schemaVersion\": \"2\",\n" +
+                "  \"masterKind\": \"fixture\",\n" +
+                "  \"entries\": [\n" +
+                "    {\n" +
+                "      \"effectiveFrom\": \"2026-06\",\n" +
+                "      \"sourceRefs\": [{ \"documentId\": \"known-source\" }],\n" +
+                "      \"values\": {\n" +
+                "        \"allowedAverageWageBandOptions\": [\n" +
+                "          { \"kind\": \"numeric\", \"officialOptionCode\": " + officialOptionCode + " }\n" +
+                "        ],\n" +
+                "        \"filedTransitionDurationYears\": " + durationYears + "\n" +
+                "      }\n" +
                 "    }\n" +
                 "  ]\n" +
                 "}\n");

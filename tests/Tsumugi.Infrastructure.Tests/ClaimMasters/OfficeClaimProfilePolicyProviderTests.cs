@@ -13,8 +13,10 @@ public sealed class OfficeClaimProfilePolicyProviderTests
 {
     private static readonly ClaimMasterVersion MasterVersion = new("claim-master-test");
 
+    // Task 13でtransition-rules.jsonへ正準3版（r6-04/r6-06/r8-06）をseed済み。
+    // seed外のmaster版は引き続きsanitized codeでフェイルクローズする。
     [Fact]
-    public void Embedded_empty_transition_seed_fails_closed_with_a_sanitized_code()
+    public void Embedded_seed_fails_closed_for_an_unknown_master_version()
     {
         var provider = JsonClaimMasterProvider.LoadEmbedded();
 

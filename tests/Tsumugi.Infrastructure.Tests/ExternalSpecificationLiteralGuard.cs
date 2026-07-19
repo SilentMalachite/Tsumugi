@@ -447,6 +447,20 @@ internal static class ExternalSpecificationLiteralGuard
             literal,
             CatalogPath(relativePath, pointer)));
 
+    /// <summary>
+    /// Task 13 (ADR 0023): <c>officialOptionCode</c> is the 体制届「平均工賃月額区分」の公式選択番号
+    /// (1〜22) — a versioned selector identifier in the closed <c>averageWageBandOption</c> shape of
+    /// the claim-master schema, not a reward value (units/rates/thresholds). Production C# consumes
+    /// these codes only as structured <c>AverageWageBandOption</c> input parsed from masters/profile
+    /// storage and never needs to spell them; treating them as catalog literals floods the guard
+    /// with calendar/type-ordinal coincidences (e.g. the number 12 as "months per year" in
+    /// ServiceMonth/FiscalYearPolicy). The exemption is scoped to this exact property name inside
+    /// master seed values; every other number in the same file (durations, dates as numbers, any
+    /// future field) is still cataloged, which
+    /// <c>Scan_still_detects_other_transition_rule_numbers_beside_option_codes</c> proves.
+    /// </summary>
+    private const string OfficialOptionCodePropertyName = "officialOptionCode";
+
     private static void CollectMasterValues(
         JsonElement element,
         string pointer,
@@ -458,6 +472,15 @@ internal static class ExternalSpecificationLiteralGuard
             case JsonValueKind.Object:
                 foreach (var property in element.EnumerateObject())
                 {
+                    if (string.Equals(
+                            property.Name,
+                            OfficialOptionCodePropertyName,
+                            StringComparison.Ordinal)
+                        && property.Value.ValueKind == JsonValueKind.Number)
+                    {
+                        continue;
+                    }
+
                     CollectMasterValues(
                         property.Value,
                         pointer + "/" + EscapeJsonPointer(property.Name),
