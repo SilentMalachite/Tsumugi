@@ -95,7 +95,7 @@ dotnet list package --vulnerable --include-transitive  # 脆弱性確認
 - **本書(Claude Code)が実装、Codexがレビュー**。Codex指摘は重大度付きで返り、Claude Code向け修正指示に**トリアージして取り込む**。
 - 不明点・公式仕様の未確定事項は推測で実装せず `docs/open-questions.md` に起票し、設計相談へ回す。
 - フェーズは 0→1→2→3 の順（基盤→記録→工賃→国保連請求）。前フェーズの受け入れ基準を満たすまで次に着手しない。
-- **現在地**: フェーズ0・1・2とPhase 3-0は完了。Phase 3-1は再設計済み（spec: `docs/superpowers/specs/2026-07-19-phase3-1-minimal-vertical-slice-redesign-design.md`、計画: `docs/superpowers/plans/2026-07-19-phase3-1-minimal-vertical-slice.md`）。進捗は計画のチェックボックスのみが正。旧Task 1-28計画とtask12/13スピンオフ文書群の未完了部分は失効（specの§9）。保護施設・基準該当B型は凍結スコープ外。
+- **現在地**: フェーズ0・1・2とPhase 3-0は完了。Phase 3-1（最小垂直スライス、spec: `docs/superpowers/specs/2026-07-19-phase3-1-minimal-vertical-slice-redesign-design.md`、計画: `docs/superpowers/plans/2026-07-19-phase3-1-minimal-vertical-slice.md`）は実装完了・受け入れ証跡記録済み（`docs/phase3-1-acceptance.md`。ブランチ `feature/phase3-1-vertical-slice`、最終レビューとmainマージ待ち）。基本報酬135行(R6、R8-06継続確認済み)＋主要加算16行(ADR 0028)＋地域単価8＋負担上限4＋遷移規則3をseed済み。保護施設・基準該当B型、R8改定対象12区分の新単価、R8-06処遇改善率等は引き続き凍結・スコープ外で`docs/open-questions.md`へ起票済み。次はPhase 3-2帳票。
 
 ---
 
