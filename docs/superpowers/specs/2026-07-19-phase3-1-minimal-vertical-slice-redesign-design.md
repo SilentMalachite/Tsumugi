@@ -1,6 +1,6 @@
 # Phase 3-1 再設計: 最小垂直スライスによる請求算定パイプライン
 
-- **Status: Approved（設計承認済み・実装計画は別途 writing-plans で作成）**
+- **Status: Implemented（2026-07-19 実装完了・受け入れ証跡 `docs/phase3-1-acceptance.md`・最終ブランチレビュー通過・mainへマージ済み。設計本文は承認時のまま保存）**
 - 作成日: 2026-07-19
 - 本specはPhase 3-1の**再設計正本**である。置換対象は「§9 置換対象一覧」を参照。
 - グローバル制約は `docs/superpowers/specs/2026-06-29-phase3-claim-data-design.md`（Phase 3全体設計）と `06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md`（正本仕様）を引き続き継承する。本specはそれらの範囲内で「進め方と当面のスコープ」を再定義するものであり、正本仕様の受け入れ基準（AC3-1〜）を変更しない。

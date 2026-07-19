@@ -94,3 +94,12 @@
 `docs/superpowers/specs/2026-07-13-phase3-1-task12-claim-master-schema-v2-design.md`（closed contract、Task 12完了記録として引き続き有効）は、`average-wage-band`条件のoperandを「token string / token string array」（同spec416-420行目付近）と定義している。しかしTask 9（commit `581f4a8` "encode payment bands as official option code conditions"）で、ADR 0023「平均工賃月額区分は体制届の公式選択番号（正の整数`officialOptionCode`）で判定する」という決定に基づき、`ServiceCodeResolver`が`AverageWageBandOption.OfficialOptionCode`（整数）と比較する実装へ変更された。これに伴い`ClaimMasterFileValidator`（`src/Tsumugi.Infrastructure/ClaimMasters/ClaimMasterFileValidator.cs` 585〜604行目）は`average-wage-band`条件を**整数equals（正の値のみ）限定**で受理し、token登録・非equals演算子・ゼロ値を読み込み時点で拒否するよう変更されている。pinned negative testsは`tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimMasterSchemaPhase31Tests.cs`の`Load_rejects_average_wage_band_token_operand`・`Load_rejects_average_wage_band_non_equals_operator`・`Load_rejects_average_wage_band_zero_option_code`（commit `73c1dcc`）。
 
 Task 12設計文書は本spec §9の「引き続き有効（完了記録）」区分に属し、ガバナンス（specの文書増殖禁止ルール§4.3・凍結領域の契約リファイン禁止）により編集しない。本節がこの実装済みの乖離を記録する唯一の場所である。
+
+## 7. 追記: マージ後の状態（2026-07-19 / `b9a695f`）
+
+本書の記録（§1〜6）は受け入れ判定時点（ブランチ `feature/phase3-1-vertical-slice` 上）の履歴として固定する。その後の経緯:
+
+- **最終ブランチ全体レビュー**（merge-base `892d6e0`..64コミット）を実施。判定は READY AFTER LISTED FIXES で、唯一の必須修正（`ClaimCalculator` の型doc-commentがTask 12実装済みの制度上限・上限額管理結果を「未実装」と記載）はcommit `6037d36` で修正済み。金額パイプラインはレビュアーがADR 0022/0023/0025/0027/0028に対し全段独立再導出して一致、§2の`Logic.Claim`分岐カバレッジ88.28%も独立再現された。
+- 記録済みMinor findingsのトリアージ結果: ACCEPT-AS-IS 11件 / FOLLOW-UP 12件（Phase 3-2以降で対応。一覧は開発レジャーに記録）。
+- 修正後HEADで `./build/ci.sh` を再実行し `==> CI OK`（1,960件成功・0失敗）を確認の上、**mainへfast-forwardマージ**（`b9a695f`）、ブランチ削除済み。計画のTask 14チェックボックスも同コミットでチェック済み（§1判定5の「未チェック」記載はマージ前時点の記録）。
+- 残る受け入れ項目は§1判定1の**GUI手動貫通確認**（`dotnet run --project src/Tsumugi.App` → 請求確定タブでプレビュー→確定→取下げ）のみ。実施後に判定1を✔へ更新する。

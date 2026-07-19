@@ -1,5 +1,7 @@
 # Phase 3-1 最小垂直スライス 実装計画
 
+> **Status: 完了（2026-07-19）** — Task 1〜14全チェック済み。受け入れ証跡は `docs/phase3-1-acceptance.md`、最終ブランチレビュー通過後にmainへマージ済み。本計画は履歴として保存し、以後編集しない。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 典型的な就労継続支援B型事業所の1ヶ月分の請求を、入力 → 算定プレビュー → 確定までUIから通し、golden caseテストで公式計算例と一致させる。
