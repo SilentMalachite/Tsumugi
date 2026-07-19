@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Tsumugi.Application.Abstractions;
+using Tsumugi.Application.Claim;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic.Claim;
@@ -548,6 +549,132 @@ public sealed class ClaimCalculationSnapshotReaderTests : IClassFixture<SqliteFi
         snapshot.EffectiveAverageWageEvidences[0].Revision.Should().Be(2);
         snapshot.EffectiveAverageWageEvidences[0].Kind.Should().Be(RecordKind.Correct);
         snapshot.EffectiveAverageWageEvidences[0].AnnualWagePaidYen.Should().Be(1_500_000);
+    }
+
+    [Fact]
+    public async Task Lapsed_profile_with_no_successor_yields_no_profile_and_readiness_issue()
+    {
+        // Task 13 fix round 1: EffectiveFrom<=monthEndだけで選ぶと、当月開始より前に失効した
+        // 登録（後継revisionなし）をそのまま「実効」扱いしてしまう（ADR 0023違反：失効中の
+        // 体制届で請求してしまう）。当月と重ならないprofileはProfileなしとし、既存のnull-profile
+        // readiness issue（ClaimCalculationRequestBuilder.ResolveNumericBandOption）へ
+        // フェイルクローズさせる。
+        var officeId = Guid.NewGuid();
+        var month = new ServiceMonth(2026, 7);
+        var factory = new TestDbContextFactory(_fixture.DbPath);
+
+        var profileRootId = Guid.NewGuid();
+        var lapsedProfile = new OfficeClaimProfile
+        {
+            Id = profileRootId,
+            OfficeId = officeId,
+            EffectiveFrom = new DateOnly(2026, 1, 1),
+            // 当月開始(2026-07-01)より前に失効し、後継revisionもない。
+            EffectiveTo = new DateOnly(2026, 5, 31),
+            RootId = profileRootId,
+            Revision = 1,
+            Kind = RecordKind.New,
+            ExpectedHeadId = null,
+            MasterVersion = MasterVersion,
+            ReformStatus = R8ReformStatus.ReformTarget,
+            AverageWageBandOption = new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 1),
+            DesignationDate = null,
+            SupportStartDate = null,
+            EarlierRegisteredBandOption = null,
+            EarlierRegistrationMonth = null,
+            LaterRegisteredBandOption = null,
+            LaterRegistrationMonth = null,
+            ReformComparisonEvidenceDocumentId = null,
+            FiledTransitionPeriod = null,
+            FiledTransitionEvidenceDocumentId = null,
+            EvidenceDocumentId = "profile-evidence-lapsed",
+            ConfirmedAt = DateTimeOffset.UnixEpoch,
+            ConfirmedBy = "tester",
+            ConfirmationReason = "checked",
+            CreatedAt = DateTimeOffset.UnixEpoch,
+            CreatedBy = "tester",
+            ConcurrencyToken = Guid.NewGuid(),
+        };
+
+        await using (var seed = factory.CreateDbContext())
+        {
+            seed.Add(Rows.Office(officeId));
+            seed.Add(lapsedProfile);
+            await seed.SaveChangesAsync();
+        }
+
+        var reader = new ClaimCalculationSnapshotReader(
+            factory, new FakeOfficeClaimProfilePolicyProvider(MasterVersion));
+
+        var snapshot = await reader.ReadAsync(officeId, month, default);
+
+        snapshot.Profile.Should().BeNull();
+
+        var buildResult = ClaimCalculationRequestBuilder.Build(snapshot, month, tokens: null);
+
+        buildResult.Request.Should().BeNull();
+        buildResult.Issues.Should().Contain(issue =>
+            issue.Code == ClaimPreparationIssueCode.MissingRequiredEvidence
+            && issue.RecipientId == null
+            && issue.FieldCode == ClaimPreparationReadiness.OfficeClaimProfileField
+            && issue.Destination == ClaimInputDestination.ClaimInput);
+    }
+
+    [Fact]
+    public async Task Profile_whose_effective_to_equals_the_months_last_day_is_still_selected()
+    {
+        // 境界: EffectiveTo==monthEndは「当月と重なる」側であり、失効扱いにしない
+        // （EffectiveTo>=monthStartの境界チェックが厳しすぎて有効なprofileまで除外しないことの検証）。
+        var officeId = Guid.NewGuid();
+        var month = new ServiceMonth(2026, 7);
+        var factory = new TestDbContextFactory(_fixture.DbPath);
+
+        var profileRootId = Guid.NewGuid();
+        var profile = new OfficeClaimProfile
+        {
+            Id = profileRootId,
+            OfficeId = officeId,
+            EffectiveFrom = new DateOnly(2026, 1, 1),
+            EffectiveTo = new DateOnly(2026, 7, 31), // 当月末＝境界。
+            RootId = profileRootId,
+            Revision = 1,
+            Kind = RecordKind.New,
+            ExpectedHeadId = null,
+            MasterVersion = MasterVersion,
+            ReformStatus = R8ReformStatus.ReformTarget,
+            AverageWageBandOption = new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 1),
+            DesignationDate = null,
+            SupportStartDate = null,
+            EarlierRegisteredBandOption = null,
+            EarlierRegistrationMonth = null,
+            LaterRegisteredBandOption = null,
+            LaterRegistrationMonth = null,
+            ReformComparisonEvidenceDocumentId = null,
+            FiledTransitionPeriod = null,
+            FiledTransitionEvidenceDocumentId = null,
+            EvidenceDocumentId = "profile-evidence-boundary",
+            ConfirmedAt = DateTimeOffset.UnixEpoch,
+            ConfirmedBy = "tester",
+            ConfirmationReason = "checked",
+            CreatedAt = DateTimeOffset.UnixEpoch,
+            CreatedBy = "tester",
+            ConcurrencyToken = Guid.NewGuid(),
+        };
+
+        await using (var seed = factory.CreateDbContext())
+        {
+            seed.Add(Rows.Office(officeId));
+            seed.Add(profile);
+            await seed.SaveChangesAsync();
+        }
+
+        var reader = new ClaimCalculationSnapshotReader(
+            factory, new FakeOfficeClaimProfilePolicyProvider(MasterVersion));
+
+        var snapshot = await reader.ReadAsync(officeId, month, default);
+
+        snapshot.Profile.Should().NotBeNull();
+        snapshot.Profile!.Id.Should().Be(profile.Id);
     }
 
     [Fact]

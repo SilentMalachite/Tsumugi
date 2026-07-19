@@ -71,7 +71,7 @@ public sealed class ClaimCalculationSnapshotReader(
                 db, effectiveCertificateByRecipient, office?.OfficeNumber, monthStart, monthEnd, ct);
             var effectiveAverageWageEvidences = await ReadEffectiveAverageWageEvidencesAsync(
                 db, officeId, serviceMonth, ct);
-            var profile = await ReadEffectiveProfileAsync(db, officeId, monthEnd, ct);
+            var profile = await ReadEffectiveProfileAsync(db, officeId, monthStart, monthEnd, ct);
             var intensiveSupportEpisodeStartDateByRecipient =
                 await ReadIntensiveSupportEpisodeStartDatesByRecipientAsync(db, officeId, recipientIds, ct);
 
@@ -379,7 +379,7 @@ public sealed class ClaimCalculationSnapshotReader(
     }
 
     private async Task<OfficeClaimProfile?> ReadEffectiveProfileAsync(
-        TsumugiDbContext db, Guid officeId, DateOnly monthEnd, CancellationToken ct)
+        TsumugiDbContext db, Guid officeId, DateOnly monthStart, DateOnly monthEnd, CancellationToken ct)
     {
         var history = await db.OfficeClaimProfiles.AsNoTracking()
             .Where(profile => profile.OfficeId == officeId)
@@ -395,7 +395,12 @@ public sealed class ClaimCalculationSnapshotReader(
             if (latestNonCancel?.MasterVersion is not { } masterVersion) continue;
 
             var policy = profilePolicyProvider.Resolve(masterVersion);
-            if (policy.Effective(items) is { } effective && effective.EffectiveFrom <= monthEnd)
+            // ADR 0023: monthEnd以前に開始しているだけでは足りない。EffectiveToが当月開始より前で
+            // 後継revisionもない（＝当月時点で失効済みの登録）場合はこの月にプロファイルなしとし、
+            // 既存のnull-profile readiness issueへフェイルクローズさせる（失効登録からの請求を防ぐ）。
+            if (policy.Effective(items) is { } effective
+                && effective.EffectiveFrom <= monthEnd
+                && (effective.EffectiveTo is null || effective.EffectiveTo >= monthStart))
                 candidates.Add(effective);
         }
 
