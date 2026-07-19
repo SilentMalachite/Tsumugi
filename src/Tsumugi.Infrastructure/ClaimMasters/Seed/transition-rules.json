@@ -114,6 +114,15 @@
             "master-values",
             "effective-period"
           ]
+        },
+        {
+          "documentId": "r8-capability-correction",
+          "sha256": "06414c8aad4c014f44fd211dac141d152f30135fb622cdd32874e1c6bccbd980",
+          "locator": "r8-capability-correction 物理9頁（r8-capability-202606の修正確認）",
+          "evidenceRole": "correction",
+          "supports": [
+            "master-values"
+          ]
         }
       ],
       "values": {

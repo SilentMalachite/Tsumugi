@@ -459,25 +459,41 @@ internal static class ExternalSpecificationLiteralGuard
     /// these codes only as structured <c>AverageWageBandOption</c> input parsed from masters/profile
     /// storage and never needs to spell them; treating them as catalog literals floods the guard
     /// with calendar/type-ordinal coincidences (e.g. the number 12 as "months per year" in
-    /// ServiceMonth/FiscalYearPolicy). The exemption is scoped to this exact property name inside
-    /// master seed values; every other number in the same file (durations, dates as numbers, any
-    /// future field) is still cataloged, which
-    /// <c>Scan_still_detects_other_transition_rule_numbers_beside_option_codes</c> proves.
+    /// ServiceMonth/FiscalYearPolicy).
     /// </summary>
+    /// <remarks>
+    /// Task 13 fix round 1: the exemption previously matched this property name anywhere in any
+    /// master file, which would also hide an unrelated field that happens to reuse the same name
+    /// elsewhere. It is now scoped to values nested under an <c>allowedAverageWageBandOptions</c> or
+    /// <c>allowedOptionsByR8ReformStatus</c> ancestor — the only two closed shapes ADR 0023 defines
+    /// for versioned band-option selector lists — tracked as the traversal descends. The same
+    /// property name found anywhere else still enters the catalog like any other master value, which
+    /// <c>Scan_official_option_code_outside_an_allowed_ancestor_is_cataloged</c> proves. Every other
+    /// number in the same file (durations, dates as numbers, any future field) is still cataloged
+    /// regardless of ancestor, which
+    /// <c>Scan_still_detects_other_transition_rule_numbers_beside_option_codes</c> proves.
+    /// </remarks>
     private const string OfficialOptionCodePropertyName = "officialOptionCode";
+
+    /// <summary>The two closed ADR 0023 shapes that carry versioned band-option selector lists.</summary>
+    private const string AllowedAverageWageBandOptionsPropertyName = "allowedAverageWageBandOptions";
+
+    private const string AllowedOptionsByR8ReformStatusPropertyName = "allowedOptionsByR8ReformStatus";
 
     private static void CollectMasterValues(
         JsonElement element,
         string pointer,
         string relativePath,
-        ICollection<CatalogLiteral> catalogLiterals)
+        ICollection<CatalogLiteral> catalogLiterals,
+        bool insideAllowedBandOptionAncestor = false)
     {
         switch (element.ValueKind)
         {
             case JsonValueKind.Object:
                 foreach (var property in element.EnumerateObject())
                 {
-                    if (string.Equals(
+                    if (insideAllowedBandOptionAncestor
+                        && string.Equals(
                             property.Name,
                             OfficialOptionCodePropertyName,
                             StringComparison.Ordinal)
@@ -486,11 +502,16 @@ internal static class ExternalSpecificationLiteralGuard
                         continue;
                     }
 
+                    var childInsideAllowedBandOptionAncestor =
+                        insideAllowedBandOptionAncestor
+                        || IsAllowedBandOptionAncestorPropertyName(property.Name);
+
                     CollectMasterValues(
                         property.Value,
                         pointer + "/" + EscapeJsonPointer(property.Name),
                         relativePath,
-                        catalogLiterals);
+                        catalogLiterals,
+                        childInsideAllowedBandOptionAncestor);
                 }
                 break;
             case JsonValueKind.Array:
@@ -501,7 +522,8 @@ internal static class ExternalSpecificationLiteralGuard
                         item,
                         pointer + "/" + index.ToString(CultureInfo.InvariantCulture),
                         relativePath,
-                        catalogLiterals);
+                        catalogLiterals,
+                        insideAllowedBandOptionAncestor);
                     index++;
                 }
                 break;
@@ -891,6 +913,10 @@ internal static class ExternalSpecificationLiteralGuard
         }
         return count;
     }
+
+    private static bool IsAllowedBandOptionAncestorPropertyName(string propertyName) =>
+        propertyName is AllowedAverageWageBandOptionsPropertyName
+            or AllowedOptionsByR8ReformStatusPropertyName;
 
     private static bool IsExcludedPath(string path) =>
         ContainsDirectory(path, "obj") ||

@@ -342,3 +342,7 @@ Phase 3-1では `src/Tsumugi.Domain/Logic/Claim/AverageWageCalculator.cs` に別
 - 新規指定の通常初期期間は`FiledTransition`を保持して数値`PaymentBand` 8へ解決する。6月平均は自動算出せず、指定権者確認済みの届出値と数値optionだけを使う。
 - `FiledTransition`終了後も`R8ReformStatus`を保持し、数値optionへ移行する。将来の公式資料が終了条件を定めたとき、既存期間を上書きせず新しい期間行と出典を追加する。
 - `AverageWageBandOption`をservice-codeへ直接渡さず、数値`PaymentBand`から基本報酬範囲内の実在行だけを選ぶため、存在しない区分9 codeを生成しない。
+
+## 追記（2026-07-19）
+
+`transition-rules.json`のclaim-master-r8-06で`allowedOptionsByR8ReformStatus.reform-target`が届出option 8（`FiledTransition`）を含むのは、R8-BANDの体制表にoption 8を`reform-target`とする行があるからではない。令和6年4月以降に新規指定された事業所は本文「既存事業所のR8改定判定」節の規則により見直し対象となる（`R8ReformStatus.ReformTarget`）ため、その事業所が公式初期期間中に持つ`AverageWageBandOption.FiledTransition`も同じreform-target許可集合に属するという導出であり、区分表との不整合ではない。

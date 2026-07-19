@@ -134,6 +134,30 @@ public sealed class ClaimSpecificationBoundaryTests
         violation.CatalogPath.Should().EndWith("#/entries/0/values/filedTransitionDurationYears");
     }
 
+    [Fact]
+    public void Scan_official_option_code_outside_an_allowed_ancestor_is_cataloged()
+    {
+        // Task 13 fix round 1: the officialOptionCode exemption is scoped to values nested under
+        // an allowedAverageWageBandOptions / allowedOptionsByR8ReformStatus ancestor (the only two
+        // closed ADR 0023 shapes for versioned band-option selector lists). The same property name
+        // anywhere else — e.g. a sibling top-level values field, not under either ancestor — is an
+        // ordinary master value and must still enter the catalog and be treated like any other
+        // number, proving the exemption no longer matches the property name anywhere in any file.
+        using var fixture = new SpecificationFixture();
+        fixture.WriteOfficialOptionCodeOutsideAllowedAncestor("42");
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/OptionCodeOutsideAncestorUse.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal static class OptionCodeOutsideAncestorUse { " +
+            "internal static int Value => 42; }");
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-literal" && v.Literal == "42");
+
+        violation.RelativePath.Should().Be("src/Tsumugi.Domain/Logic/Claim/OptionCodeOutsideAncestorUse.cs");
+        violation.CatalogPath.Should().EndWith("#/entries/0/values/officialOptionCode");
+    }
+
     [Theory]
     [InlineData("10")]
     [InlineData("-10")]
@@ -745,6 +769,25 @@ public sealed class ClaimSpecificationBoundaryTests
                 "          { \"kind\": \"numeric\", \"officialOptionCode\": " + officialOptionCode + " }\n" +
                 "        ],\n" +
                 "        \"filedTransitionDurationYears\": " + durationYears + "\n" +
+                "      }\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}\n");
+        }
+
+        public void WriteOfficialOptionCodeOutsideAllowedAncestor(string officialOptionCode)
+        {
+            Write(
+                MasterPath,
+                "{\n" +
+                "  \"schemaVersion\": \"2\",\n" +
+                "  \"masterKind\": \"fixture\",\n" +
+                "  \"entries\": [\n" +
+                "    {\n" +
+                "      \"effectiveFrom\": \"2026-06\",\n" +
+                "      \"sourceRefs\": [{ \"documentId\": \"known-source\" }],\n" +
+                "      \"values\": {\n" +
+                "        \"officialOptionCode\": " + officialOptionCode + "\n" +
                 "      }\n" +
                 "    }\n" +
                 "  ]\n" +
