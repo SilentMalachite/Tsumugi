@@ -230,11 +230,18 @@ public static class ClaimCalculator
             ClaimRoundingRules.BurdenFloorYenV1, totalCostYen * (decimal)burdenSharePercent / 100m);
 
         // ADR 0022手順5・6・9: 暫定負担額＝min(1割相当額, 区分上限, 証上限)。上限額管理対象者は、
-        // 正式な管理結果票の「管理結果後利用者負担額」（呼び出し側が検証済みの当該事業所行から
-        // 渡す）を追加のmin候補とする。対象外（UpperLimitResult=null）はここで終える。
-        var burdenYen = Math.Min(Math.Min(statutoryBurdenYen, categoryCapYen), source.CertificateMonthlyCapYen);
+        // 正式な管理結果票の「管理結果後利用者負担額」（当該事業所行から渡す）を採用する前に、
+        // 本算定器が管理結果額を上限管理前額（暫定負担額）と照合してADR 0022 step 8の検証を遂行する。
+        // 管理結果額＞暫定額の場合は入力不整合として拒否し、推測で補正しない。対象外（UpperLimitResult=null）は
+        // capBoundYenを最終負担とする。
+        var capBoundYen = Math.Min(Math.Min(statutoryBurdenYen, categoryCapYen), source.CertificateMonthlyCapYen);
+        var burdenYen = capBoundYen;
         if (source.UpperLimitManagedAmountYen is { } managedAmountYen)
-            burdenYen = Math.Min(burdenYen, managedAmountYen);
+        {
+            if (managedAmountYen > capBoundYen)
+                throw new ClaimCalculationException(ClaimCalculationErrorCode.InvalidInput);
+            burdenYen = managedAmountYen;
+        }
 
         // ADR 0025: 給付費＝総費用額－決定利用者負担額。総費用額×90%を別計算しない。
         var benefitYen = totalCostYen - burdenYen;

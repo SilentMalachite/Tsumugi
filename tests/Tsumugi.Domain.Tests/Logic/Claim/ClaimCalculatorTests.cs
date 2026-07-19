@@ -182,6 +182,61 @@ public sealed class ClaimCalculatorTests
         ClaimRoundingRules.Apply(ClaimRoundingRules.UnitsHalfUpV1, -10.5m).Should().Be(-11);
     }
 
+    [Fact]
+    public void Rejects_managed_amount_exceeding_burden_cap_bound()
+    {
+        // ADR 0022手順8の検証: 管理結果後額＞暫定額は不整合として拒否する。
+        // 700*20*10=140,000。1割相当額=14,000。capBound=min(14,000, 99_999_999, 5,000)=5,000。
+        // managedAmount=6,000 > capBound → InvalidInput。
+        FluentActions.Invoking(() => ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
+                Month, DefaultContext(), "region-a", "b-type",
+                [new RecipientClaimSource(
+                    RecipientA, BilledDays: 20, BenefitRatePercent: 90,
+                    CertificateMonthlyCapYen: 5000, BurdenCategory: SyntheticBurdenCategory,
+                    UpperLimitResult: UpperLimitManagementResult.Result2,
+                    UpperLimitManagedAmountYen: 6000)])))
+            .Should().Throw<ClaimCalculationException>()
+            .Which.Code.Should().Be(ClaimCalculationErrorCode.InvalidInput);
+    }
+
+    [Fact]
+    public void Accepts_managed_amount_below_burden_cap_bound()
+    {
+        // managedAmount < capBound のとき、管理結果後額をそのまま採用する。
+        // capBound=min(14,000, 99_999_999, 20,000)=14,000。managedAmount=7,000 < capBound → 受理。
+        var result = ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
+            Month, DefaultContext(), "region-a", "b-type",
+            [new RecipientClaimSource(
+                RecipientA, BilledDays: 20, BenefitRatePercent: 90,
+                CertificateMonthlyCapYen: 20000, BurdenCategory: SyntheticBurdenCategory,
+                UpperLimitResult: UpperLimitManagementResult.Result2,
+                UpperLimitManagedAmountYen: 7000)]));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        detail.TotalCostYen.Should().Be(140000);
+        detail.BurdenYen.Should().Be(7000);
+        detail.BenefitYen.Should().Be(140000 - 7000);
+    }
+
+    [Fact]
+    public void Accepts_managed_amount_equal_to_burden_cap_bound()
+    {
+        // managedAmount == capBound のとき、管理結果後額をそのまま採用する。
+        // capBound=min(14,000, 99_999_999, 14,000)=14,000。managedAmount=14,000 → 受理、burden=14,000。
+        var result = ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
+            Month, DefaultContext(), "region-a", "b-type",
+            [new RecipientClaimSource(
+                RecipientA, BilledDays: 20, BenefitRatePercent: 90,
+                CertificateMonthlyCapYen: 14000, BurdenCategory: SyntheticBurdenCategory,
+                UpperLimitResult: UpperLimitManagementResult.Result2,
+                UpperLimitManagedAmountYen: 14000)]));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        detail.TotalCostYen.Should().Be(140000);
+        detail.BurdenYen.Should().Be(14000);
+        detail.BenefitYen.Should().Be(140000 - 14000);
+    }
+
     private static ClaimBillingConditionContext DefaultContext() => new(
         RewardSystem: "b-type",
         PaymentBand: "band-a",
