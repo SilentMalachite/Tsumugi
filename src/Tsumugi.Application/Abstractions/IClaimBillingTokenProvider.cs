@@ -1,4 +1,5 @@
 using Tsumugi.Domain.Entities;
+using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic.Claim.Models;
 using Tsumugi.Domain.ValueObjects;
 
@@ -42,6 +43,13 @@ public interface IClaimBillingTokenProvider
 /// 供給できるため本トークン束に載せて運ぶ。<c>null</c>は「語彙未供給」で、countSelectorを使う
 /// 加算行に遭遇した時点で算定はフェイルクローズする（<c>ClaimCalculator</c>）。
 /// </param>
+/// <param name="BurdenCategoryTokens">
+/// <see cref="PaymentBurdenCategory"/>→<see cref="BurdenCapMasterRow.BurdenCategory"/>正準keyの対応
+/// （ADR 0022・Task 12）。事業所に依存しない静的語彙だが、正準文字列はseedと同居するInfrastructure
+/// 実装だけが供給できるため本トークン束に載せて運ぶ。<c>null</c>または対応するkeyがない区分
+/// （<c>Unspecified</c>含む）は、呼び出し側（<c>ClaimCalculationRequestBuilder</c>）が
+/// readiness issueへ変換してフェイルクローズする（推測しない）。
+/// </param>
 public sealed record ClaimBillingConditionTokens(
     string? RewardSystem,
     string? RegionKey,
@@ -49,4 +57,5 @@ public sealed record ClaimBillingConditionTokens(
     int? CapacityHeadcount,
     string? StaffingKey,
     bool RegionKeyConflict = false,
-    IReadOnlyDictionary<string, ClaimCountMetric>? CountSelectorBindings = null);
+    IReadOnlyDictionary<string, ClaimCountMetric>? CountSelectorBindings = null,
+    IReadOnlyDictionary<PaymentBurdenCategory, string>? BurdenCategoryTokens = null);

@@ -2,6 +2,7 @@ using FluentAssertions;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
 using Tsumugi.Domain.Entities;
+using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic.Claim.Models;
 using Xunit;
 using Kit = Tsumugi.Application.Tests.UseCases.Claim.ClaimPreparationTestKit;
@@ -35,6 +36,10 @@ public sealed class ClaimCalculationRequestBuilderTests
         source.BilledDays.Should().Be(2);
         source.BenefitRatePercent.Should().Be(90);
         source.CertificateMonthlyCapYen.Should().Be(9300);
+        // Task 12（ADR 0022）: 既定証（PaymentBurden=General2）→区分key"general-2"。
+        source.BurdenCategory.Should().Be("general-2");
+        source.UpperLimitResult.Should().BeNull();
+        source.UpperLimitManagedAmountYen.Should().BeNull();
     }
 
     [Fact]
@@ -85,10 +90,12 @@ public sealed class ClaimCalculationRequestBuilderTests
     }
 
     [Fact]
-    public void Build_fails_closed_when_meal_days_exist_without_the_certificate_entity()
+    public void Build_fails_closed_when_the_certificate_entity_is_missing()
     {
-        // 提供実績があるのに対象判定材料（受給者証実体）がsnapshotにない場合は推測せずissue化する。
+        // Task 12（ADR 0022）: 負担区分の解決にCertificateが必須（食事提供実績の有無を問わない）。
+        // 証実体がsnapshotにない場合は推測せずissue化する。
         var snapshot = Kit.Snapshot(
+            certificateByRecipient: new Dictionary<Guid, Certificate>(),
             additionDailyCountsByRecipient: new Dictionary<Guid, ClaimAdditionDailyCounts>
             {
                 [Kit.RecipientId] = new(AbsenceSupportDays: 0, MealProvidedDays: 1, TransportOneWayCount: 0),
@@ -100,7 +107,26 @@ public sealed class ClaimCalculationRequestBuilderTests
         result.Issues.Should().Contain(issue =>
             issue.Code == ClaimPreparationIssueCode.MissingRequiredEvidence
             && issue.RecipientId == Kit.RecipientId
-            && issue.FieldCode == "Certificate.MealProvisionApplicable");
+            && issue.FieldCode == "Certificate.PaymentBurden");
+    }
+
+    [Fact]
+    public void Build_fails_closed_when_the_certificate_burden_category_is_unspecified()
+    {
+        // Task 12（ADR 0022）: Unspecifiedは制度額0の区分ではなく非入力状態のため算定不能。
+        var snapshot = Kit.Snapshot(
+            certificateByRecipient: new Dictionary<Guid, Certificate>
+            {
+                [Kit.RecipientId] = Kit.Certificate(paymentBurden: PaymentBurdenCategory.Unspecified),
+            });
+
+        var result = ClaimCalculationRequestBuilder.Build(snapshot, Kit.Month, Kit.Tokens());
+
+        result.Request.Should().BeNull();
+        result.Issues.Should().Contain(issue =>
+            issue.Code == ClaimPreparationIssueCode.MissingRequiredField
+            && issue.RecipientId == Kit.RecipientId
+            && issue.FieldCode == "Certificate.PaymentBurden");
     }
 
     [Fact]

@@ -25,6 +25,11 @@ public sealed class ClaimCalculatorAdditionTests
     private static readonly Guid RecipientA = Guid.Parse("33333333-3333-3333-3333-333333333333");
     private const int SyntheticCapYen = 9_999_999;
 
+    // テスト専用の合成負担区分・区分上限（制度上の値ではない）。ADR 0022の不変条件
+    // （証上限≦区分上限）を壊さないよう、SyntheticCapYen以上の区分上限を用意する。
+    private const string SyntheticBurdenCategory = "cat-x";
+    private const int SyntheticBurdenCategoryCapYen = 99_999_999;
+
     private const string CapabilityWpsI = "cap.staffing-addition.a";
     private const string CapabilityWpsII = "cap.staffing-addition.b";
 
@@ -52,7 +57,7 @@ public sealed class ClaimCalculatorAdditionTests
         Context(capabilityKeys),
         "region-x",
         "b-type",
-        [new RecipientClaimSource(RecipientA, billedDays, 90, SyntheticCapYen)],
+        [new RecipientClaimSource(RecipientA, billedDays, 90, SyntheticCapYen, SyntheticBurdenCategory)],
         bindings ?? Bindings());
 
     [Fact]
@@ -227,7 +232,7 @@ public sealed class ClaimCalculatorAdditionTests
             Context([CapabilityWpsI]) with { CapacityHeadcount = capacityHeadcount },
             "region-x",
             "b-type",
-            [new RecipientClaimSource(RecipientA, 20, 90, SyntheticCapYen)],
+            [new RecipientClaimSource(RecipientA, 20, 90, SyntheticCapYen, SyntheticBurdenCategory)],
             Bindings());
 
         var result = ClaimCalculator.Calculate(masters, request);
@@ -261,7 +266,7 @@ public sealed class ClaimCalculatorAdditionTests
             Context([]),
             "region-x",
             "b-type",
-            [new RecipientClaimSource(RecipientA, 20, 90, SyntheticCapYen, InitialPeriodServiceDays: 10)],
+            [new RecipientClaimSource(RecipientA, 20, 90, SyntheticCapYen, SyntheticBurdenCategory, InitialPeriodServiceDays: 10)],
             new Dictionary<string, ClaimCountMetric>(StringComparer.Ordinal)
             {
                 ["count-initial"] = ClaimCountMetric.InitialPeriodServiceDays,
@@ -283,7 +288,7 @@ public sealed class ClaimCalculatorAdditionTests
             Context([]),
             "region-x",
             "b-type",
-            [new RecipientClaimSource(RecipientA, 20, 90, SyntheticCapYen, InitialPeriodServiceDays: 21)],
+            [new RecipientClaimSource(RecipientA, 20, 90, SyntheticCapYen, SyntheticBurdenCategory, InitialPeriodServiceDays: 21)],
             Bindings());
 
         var act = () => ClaimCalculator.Calculate(Masters(), request);
@@ -319,7 +324,8 @@ public sealed class ClaimCalculatorAdditionTests
             "b-type",
             [
                 new RecipientClaimSource(
-                    RecipientA, 20, 90, SyntheticCapYen, AbsenceSupportCount: absenceSupportCount),
+                    RecipientA, 20, 90, SyntheticCapYen, SyntheticBurdenCategory,
+                    AbsenceSupportCount: absenceSupportCount),
             ],
             new Dictionary<string, ClaimCountMetric>(StringComparer.Ordinal)
             {
@@ -358,7 +364,7 @@ public sealed class ClaimCalculatorAdditionTests
             "b-type",
             [
                 new RecipientClaimSource(
-                    RecipientA, 20, 90, SyntheticCapYen,
+                    RecipientA, 20, 90, SyntheticCapYen, SyntheticBurdenCategory,
                     TransportOneWayCount: 5,
                     TransportSamePremisesOneWayCount: 36),
             ],
@@ -523,7 +529,7 @@ public sealed class ClaimCalculatorAdditionTests
             Context([]),
             "region-x",
             "b-type",
-            [new RecipientClaimSource(RecipientA, 20, 90, SyntheticCapYen, AbsenceSupportCount: -1)],
+            [new RecipientClaimSource(RecipientA, 20, 90, SyntheticCapYen, SyntheticBurdenCategory, AbsenceSupportCount: -1)],
             Bindings());
 
         var act = () => ClaimCalculator.Calculate(Masters(), request);
@@ -579,7 +585,12 @@ public sealed class ClaimCalculatorAdditionTests
                     "price-x", "region-x", "b-type", 10.00m,
                     new ServiceMonth(2024, 4), null, [SourceRef()]),
             ],
-            BurdenCaps: [],
+            BurdenCaps:
+            [
+                new BurdenCapMasterRow(
+                    "burden-cap-x", SyntheticBurdenCategory, SyntheticBurdenCategoryCapYen,
+                    new ServiceMonth(2024, 4), null, [SourceRef()]),
+            ],
             TransitionRules: [],
             ServiceCodes:
             [

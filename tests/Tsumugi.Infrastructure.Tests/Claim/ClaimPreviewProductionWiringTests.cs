@@ -324,7 +324,10 @@ public sealed class ClaimPreviewProductionWiringTests
             Guid.NewGuid(),
             municipalityNumber: certificateMunicipalityNumber,
             subsidyMunicipalityNumber: "132000",
-            upperLimitManagementProviderNumber: "1310000099");
+            upperLimitManagementProviderNumber: "1310000099",
+            // Task 12（ADR 0022）: 負担区分の唯一の権威ソース。evidence.MonthlyCostCap(9300)と
+            // 整合する一般1（区分上限9,300円）を用いる。
+            paymentBurden: PaymentBurdenCategory.General1);
 
         var contractedProvider = ContractedProvider.Create(
             Guid.NewGuid(),

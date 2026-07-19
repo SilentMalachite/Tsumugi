@@ -20,6 +20,12 @@ public enum ClaimPreparationIssueCode
     /// 名義的既定）が両方存在しかつ不一致（controller decision 2026-07-19, Task 9b fix round）。
     /// </summary>
     RegionKeySourceConflict = 10,
+
+    /// <summary>
+    /// <c>ClaimInput.UpperLimitManagementResult</c>と<c>UpperLimitManagedAmountYen</c>が
+    /// 片方だけ入力されている（ADR 0022: 結果区分と管理結果後額は互いに必須ペア。Task 12）。
+    /// </summary>
+    InconsistentUpperLimitManagementInput = 11,
 }
 
 public enum ClaimPreparationValueKind

@@ -16,6 +16,11 @@ public sealed class ClaimCalculatorTests
     // 「証上限の指定なし」をnullで表すことは許されない（ADR 0025のfail-closed方針）。
     private const int UnboundedSyntheticCapYen = 9_999_999;
 
+    // テスト専用の合成負担区分・区分上限（制度上の値ではない）。ADR 0022の不変条件
+    // （証上限≦区分上限）を壊さないよう、UnboundedSyntheticCapYen以上の区分上限を用意する。
+    private const string SyntheticBurdenCategory = "cat-a";
+    private const int SyntheticBurdenCategoryCapYen = 99_999_999;
+
     // 合成マスタは定員を頭数(int)で表す閾値条件（capacity, less-than-or-equal, 20）で表現する。
     // ServiceCodeResolverTestsと同じヘルパ形式（baseUnits=700, unitPriceYen=10.00m）を使う。
     private static readonly string[] DefaultConditionSelectors =
@@ -26,7 +31,7 @@ public sealed class ClaimCalculatorTests
     {
         var result = ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
             Month, DefaultContext(), "region-a", "b-type",
-            [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: 0)]));
+            [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: 0, BurdenCategory: SyntheticBurdenCategory)]));
 
         var detail = result.Details.Should().ContainSingle().Subject;
         detail.TotalUnits.Should().Be(700 * 20);
@@ -45,7 +50,7 @@ public sealed class ClaimCalculatorTests
         // 700*20*10.00=140,000円。1割相当額=14,000円だがcap=4,600円 → 負担は4,600円に制限される。
         var result = ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
             Month, DefaultContext(), "region-a", "b-type",
-            [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: 4600)]));
+            [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: 4600, BurdenCategory: SyntheticBurdenCategory)]));
 
         var detail = result.Details.Should().ContainSingle().Subject;
         detail.TotalCostYen.Should().Be(140000);
@@ -61,7 +66,7 @@ public sealed class ClaimCalculatorTests
         // （ADR 0025のfail-closed方針。CertificateMonthlyCapYenは必須int、確認済みの証拠から入る）。
         var result = ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
             Month, DefaultContext(), "region-a", "b-type",
-            [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: UnboundedSyntheticCapYen)]));
+            [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: UnboundedSyntheticCapYen, BurdenCategory: SyntheticBurdenCategory)]));
 
         var detail = result.Details.Should().ContainSingle().Subject;
         detail.TotalCostYen.Should().Be(140000);
@@ -76,8 +81,8 @@ public sealed class ClaimCalculatorTests
         var result = ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
             Month, DefaultContext(), "region-a", "b-type",
             [
-                new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: UnboundedSyntheticCapYen),
-                new RecipientClaimSource(RecipientB, BilledDays: 15, BenefitRatePercent: 90, CertificateMonthlyCapYen: 3000),
+                new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: UnboundedSyntheticCapYen, BurdenCategory: SyntheticBurdenCategory),
+                new RecipientClaimSource(RecipientB, BilledDays: 15, BenefitRatePercent: 90, CertificateMonthlyCapYen: 3000, BurdenCategory: SyntheticBurdenCategory),
             ]));
 
         result.Details.Should().HaveCount(2);
@@ -91,7 +96,7 @@ public sealed class ClaimCalculatorTests
     public void Throws_when_region_unit_price_is_missing()
         => FluentActions.Invoking(() => ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
                 Month, DefaultContext(), "region-unknown", "b-type",
-                [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: UnboundedSyntheticCapYen)])))
+                [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: UnboundedSyntheticCapYen, BurdenCategory: SyntheticBurdenCategory)])))
             .Should().Throw<ClaimCalculationException>()
             .Which.Code.Should().Be(ClaimCalculationErrorCode.RegionUnitPriceUnavailable);
 
@@ -102,7 +107,7 @@ public sealed class ClaimCalculatorTests
     public void Rejects_invalid_billed_days(int days)
         => FluentActions.Invoking(() => ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
                 Month, DefaultContext(), "region-a", "b-type",
-                [new RecipientClaimSource(RecipientA, BilledDays: days, BenefitRatePercent: 90, CertificateMonthlyCapYen: UnboundedSyntheticCapYen)])))
+                [new RecipientClaimSource(RecipientA, BilledDays: days, BenefitRatePercent: 90, CertificateMonthlyCapYen: UnboundedSyntheticCapYen, BurdenCategory: SyntheticBurdenCategory)])))
             .Should().Throw<ClaimCalculationException>()
             .Which.Code.Should().Be(ClaimCalculationErrorCode.InvalidInput);
 
@@ -112,7 +117,7 @@ public sealed class ClaimCalculatorTests
     public void Rejects_invalid_benefit_rate_percent(int benefitRatePercent)
         => FluentActions.Invoking(() => ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
                 Month, DefaultContext(), "region-a", "b-type",
-                [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: benefitRatePercent, CertificateMonthlyCapYen: UnboundedSyntheticCapYen)])))
+                [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: benefitRatePercent, CertificateMonthlyCapYen: UnboundedSyntheticCapYen, BurdenCategory: SyntheticBurdenCategory)])))
             .Should().Throw<ClaimCalculationException>()
             .Which.Code.Should().Be(ClaimCalculationErrorCode.InvalidInput);
 
@@ -123,7 +128,7 @@ public sealed class ClaimCalculatorTests
         // 統計的負担＝総費用額そのものが利用者負担となる。benefit = cost − burdenの関係も同時に検証する。
         var result = ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
             Month, DefaultContext(), "region-a", "b-type",
-            [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 0, CertificateMonthlyCapYen: UnboundedSyntheticCapYen)]));
+            [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 0, CertificateMonthlyCapYen: UnboundedSyntheticCapYen, BurdenCategory: SyntheticBurdenCategory)]));
 
         var detail = result.Details.Should().ContainSingle().Subject;
         detail.TotalCostYen.Should().Be(140000);
@@ -138,7 +143,7 @@ public sealed class ClaimCalculatorTests
         // BenefitRatePercent=100（給付率100%）→ 負担割合0/100 → 利用者負担は0円。
         var result = ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
             Month, DefaultContext(), "region-a", "b-type",
-            [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 100, CertificateMonthlyCapYen: UnboundedSyntheticCapYen)]));
+            [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 100, CertificateMonthlyCapYen: UnboundedSyntheticCapYen, BurdenCategory: SyntheticBurdenCategory)]));
 
         var detail = result.Details.Should().ContainSingle().Subject;
         detail.TotalCostYen.Should().Be(140000);
@@ -151,7 +156,7 @@ public sealed class ClaimCalculatorTests
     public void Rejects_negative_certificate_monthly_cap()
         => FluentActions.Invoking(() => ClaimCalculator.Calculate(SyntheticMasters(), new ClaimCalculationRequest(
                 Month, DefaultContext(), "region-a", "b-type",
-                [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: -1)])))
+                [new RecipientClaimSource(RecipientA, BilledDays: 20, BenefitRatePercent: 90, CertificateMonthlyCapYen: -1, BurdenCategory: SyntheticBurdenCategory)])))
             .Should().Throw<ClaimCalculationException>()
             .Which.Code.Should().Be(ClaimCalculationErrorCode.InvalidInput);
 
@@ -232,11 +237,15 @@ public sealed class ClaimCalculatorTests
     private static RegionUnitPriceMasterRow RegionUnitPrice() => new(
         "price-a", "region-a", "b-type", 10.00m, new ServiceMonth(2024, 4), null, [SourceRef()]);
 
+    private static BurdenCapMasterRow BurdenCap() => new(
+        "burden-cap-a", SyntheticBurdenCategory, SyntheticBurdenCategoryCapYen,
+        new ServiceMonth(2024, 4), null, [SourceRef()]);
+
     private static ClaimCalculationMasterBundle SyntheticMasters() => new(
         BasicRewards: [BasicReward()],
         UnitAdjustments: [],
         RegionUnitPrices: [RegionUnitPrice()],
-        BurdenCaps: [],
+        BurdenCaps: [BurdenCap()],
         TransitionRules: [],
         ServiceCodes: [ServiceCode()],
         ConditionDefinitions: DefaultConditions());

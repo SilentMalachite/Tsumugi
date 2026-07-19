@@ -105,6 +105,19 @@ internal static class ClaimPreparationViewModelTestKit
         };
     }
 
+    internal static Certificate Certificate() => Domain.Entities.Certificate.Create(
+        Guid.NewGuid(),
+        RecipientId,
+        "certificate-no-1",
+        new DateRange(new DateOnly(2024, 4, 1), null),
+        supplyDays: 23,
+        monthlyCostCap: 37_200,
+        municipality: "テスト市",
+        "tester",
+        Now,
+        Guid.NewGuid(),
+        paymentBurden: PaymentBurdenCategory.General2);
+
     internal static AverageWageAnnualEvidence AverageWageEvidence()
     {
         var id = Guid.NewGuid();
@@ -131,10 +144,24 @@ internal static class ClaimPreparationViewModelTestKit
         new Dictionary<Guid, CertificateClaimEvidence> { [RecipientId] = Evidence() },
         [AverageWageEvidence()],
         new Dictionary<Guid, int> { [RecipientId] = billedDays },
-        new Dictionary<Guid, int> { [RecipientId] = 1 });
+        new Dictionary<Guid, int> { [RecipientId] = 1 },
+        new Dictionary<Guid, Certificate> { [RecipientId] = Certificate() });
+
+    /// <summary>
+    /// Task 12（ADR 0022）: <see cref="PaymentBurdenCategory"/>→burden-caps.json正準keyの対応。
+    /// productionと同じ完全一致表を合成語彙として複製する。
+    /// </summary>
+    private static readonly IReadOnlyDictionary<PaymentBurdenCategory, string> BurdenCategoryTokens =
+        new Dictionary<PaymentBurdenCategory, string>
+        {
+            [PaymentBurdenCategory.Welfare] = "welfare",
+            [PaymentBurdenCategory.LowIncome] = "low-income",
+            [PaymentBurdenCategory.General1] = "general-1",
+            [PaymentBurdenCategory.General2] = "general-2",
+        };
 
     internal static ClaimBillingConditionTokens Tokens() =>
-        new("b-type", "region-a", "b-type", 20, "staff-a");
+        new("b-type", "region-a", "b-type", 20, "staff-a", BurdenCategoryTokens: BurdenCategoryTokens);
 
     internal static ClaimMasterRelease Release() =>
         new(new ClaimMasterVersion("master-v1"), new ServiceMonth(2024, 4), null, ["doc-1"]);
@@ -166,7 +193,13 @@ internal static class ClaimPreparationViewModelTestKit
             new RegionUnitPriceMasterRow(
                 "price-a", "region-a", "b-type", 10.00m, new ServiceMonth(2024, 4), null, [SourceRef()]),
         ],
-        BurdenCaps: [],
+        BurdenCaps:
+        [
+            // Task 12（ADR 0022）: 既定証（PaymentBurden=General2）→区分key"general-2"に対応する
+            // 合成マスタ行（制度上の値ではない）。
+            new BurdenCapMasterRow(
+                "burden-cap-general-2", "general-2", 37_200, new ServiceMonth(2024, 4), null, [SourceRef()]),
+        ],
         TransitionRules: [],
         ServiceCodes:
         [

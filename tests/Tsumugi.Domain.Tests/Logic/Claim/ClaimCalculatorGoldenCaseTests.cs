@@ -24,6 +24,11 @@ public sealed class ClaimCalculatorGoldenCaseTests
     // golden caseの前提（証上限は1割相当額以上）を「十分大きい合成上限」で表す。
     private const int UnboundedSyntheticCapYen = 9_999_999;
 
+    // テスト専用の合成負担区分・区分上限（制度上の値ではない）。ADR 0022の不変条件
+    // （証上限≦区分上限）を壊さないよう、UnboundedSyntheticCapYen以上の区分上限を用意する。
+    private const string SyntheticBurdenCategory = "cat-a";
+    private const int SyntheticBurdenCategoryCapYen = 99_999_999;
+
     public static TheoryData<string, ClaimBillingConditionContext, string, int, int, int, int, int> GoldenCases()
     {
         var data = new TheoryData<string, ClaimBillingConditionContext, string, int, int, int, int, int>();
@@ -108,7 +113,9 @@ public sealed class ClaimCalculatorGoldenCaseTests
     {
         var result = ClaimCalculator.Calculate(Masters(), new ClaimCalculationRequest(
             Month, context, regionKey, "b-type",
-            [new RecipientClaimSource(RecipientA, billedDays, BenefitRatePercent: 90, CertificateMonthlyCapYen: UnboundedSyntheticCapYen)],
+            [new RecipientClaimSource(
+                RecipientA, billedDays, BenefitRatePercent: 90,
+                CertificateMonthlyCapYen: UnboundedSyntheticCapYen, BurdenCategory: SyntheticBurdenCategory)],
             CountSelectorBindings));
 
         var detail = result.Details.Should().ContainSingle().Subject;
@@ -151,7 +158,7 @@ public sealed class ClaimCalculatorGoldenCaseTests
             [
                 new RecipientClaimSource(
                     RecipientA, BilledDays: 22, BenefitRatePercent: 90,
-                    CertificateMonthlyCapYen: UnboundedSyntheticCapYen,
+                    CertificateMonthlyCapYen: UnboundedSyntheticCapYen, BurdenCategory: SyntheticBurdenCategory,
                     AbsenceSupportCount: 2,
                     MealProvidedDays: 20,
                     TransportOneWayCount: 40),
@@ -202,7 +209,7 @@ public sealed class ClaimCalculatorGoldenCaseTests
             [
                 new RecipientClaimSource(
                     RecipientA, BilledDays: 22, BenefitRatePercent: 90,
-                    CertificateMonthlyCapYen: UnboundedSyntheticCapYen,
+                    CertificateMonthlyCapYen: UnboundedSyntheticCapYen, BurdenCategory: SyntheticBurdenCategory,
                     AbsenceSupportCount: 2,
                     MealProvidedDays: 20,
                     TransportOneWayCount: 40),
@@ -252,7 +259,7 @@ public sealed class ClaimCalculatorGoldenCaseTests
             [
                 new RecipientClaimSource(
                     RecipientA, BilledDays: 20, BenefitRatePercent: 90,
-                    CertificateMonthlyCapYen: UnboundedSyntheticCapYen,
+                    CertificateMonthlyCapYen: UnboundedSyntheticCapYen, BurdenCategory: SyntheticBurdenCategory,
                     InitialPeriodServiceDays: 10,
                     TransportSamePremisesOneWayCount: 36),
             ],
@@ -359,6 +366,10 @@ public sealed class ClaimCalculatorGoldenCaseTests
     private static RegionUnitPriceMasterRow RegionUnitPrice(string regionKey, decimal unitPriceYen) => new(
         $"price-{regionKey}", regionKey, "b-type", unitPriceYen, new ServiceMonth(2024, 4), null, [SourceRef()]);
 
+    private static BurdenCapMasterRow BurdenCap() => new(
+        "burden-cap-a", SyntheticBurdenCategory, SyntheticBurdenCategoryCapYen,
+        new ServiceMonth(2024, 4), null, [SourceRef()]);
+
     private static ClaimCalculationMasterBundle Masters() => new(
         BasicRewards:
         [
@@ -395,7 +406,7 @@ public sealed class ClaimCalculatorGoldenCaseTests
             RegionUnitPrice("region-other", 10.00m),
             RegionUnitPrice("region-grade-1", 11.14m),
         ],
-        BurdenCaps: [],
+        BurdenCaps: [BurdenCap()],
         TransitionRules: [],
         ServiceCodes:
         [

@@ -14,6 +14,12 @@ public enum ClaimCalculationErrorCode
     /// countSelector・想定外のbillingUnit/rounding等）。推測して算定せずフェイルクローズする。
     /// </summary>
     UnsupportedAdditionRule = 4,
+
+    /// <summary>
+    /// <see cref="RecipientClaimSource.BurdenCategory"/>に一致する<see cref="BurdenCapMasterRow"/>が
+    /// サービス月に0件または2件以上（ADR 0022: 区分の対応key・版なし・重複はフェイルクローズ）。
+    /// </summary>
+    BurdenCapUnavailable = 5,
 }
 
 public sealed class ClaimCalculationException(ClaimCalculationErrorCode code)
@@ -55,16 +61,37 @@ public sealed class ClaimCalculationException(ClaimCalculationErrorCode code)
 /// 同一敷地内送迎の片道回数。ADR 0028決定5のとおり同一敷地内判別のストレージが未実装（gap）の
 /// ため、production builderは常に0を渡す（対応する行はseedしない）。
 /// </param>
+/// <param name="BurdenCategory">
+/// 受給者証<c>Certificate.PaymentBurden</c>に対応する<see cref="BurdenCapMasterRow.BurdenCategory"/>
+/// の正準key（ADR 0022: Welfare→welfare、LowIncome→low-income、General1→general-1、
+/// General2→general-2の完全一致だけを許可する）。この対応表はseedの正準文字列を運ぶため
+/// Domain/Applicationへハードコードできず（<c>ClaimSpecificationBoundaryTests</c>）、
+/// seedと同居するInfrastructure（<c>OfficeClaimBillingTokenProvider</c>）が値として供給する。
+/// 空白・未対応区分（<c>Unspecified</c>含む）を渡してはならない（呼び出し側が事前にissue化する）。
+/// </param>
+/// <param name="UpperLimitResult">
+/// 正式な上限額管理結果票の結果区分（ADR 0022の1/2/3）。上限額管理対象外のときは<c>null</c>。
+/// <see cref="UpperLimitManagedAmountYen"/>とは互いに必須ペアであり、片方だけの指定は
+/// 呼び出し側の不整合として扱う（本関数はnullの片方欠落を推測せず<c>InvalidInput</c>で拒否する）。
+/// </param>
+/// <param name="UpperLimitManagedAmountYen">
+/// 正式な上限額管理結果票の「管理結果後利用者負担額」（ADR 0022手順9・当該事業所行の転記値）。
+/// 上限額管理対象外のときは<c>null</c>。非負整数円で、負担額のmin候補へ加わる
+/// （<see cref="UpperLimitResult"/>とのペア必須は上記のとおり）。
+/// </param>
 public sealed record RecipientClaimSource(
     Guid RecipientId,
     int BilledDays,
     int BenefitRatePercent,
     int CertificateMonthlyCapYen,
+    string BurdenCategory,
     int AbsenceSupportCount = 0,
     int MealProvidedDays = 0,
     int TransportOneWayCount = 0,
     int InitialPeriodServiceDays = 0,
-    int TransportSamePremisesOneWayCount = 0);
+    int TransportSamePremisesOneWayCount = 0,
+    UpperLimitManagementResult? UpperLimitResult = null,
+    int? UpperLimitManagedAmountYen = null);
 
 /// <param name="CountSelectorBindings">
 /// countSelectorトークン（seed正準文字列）→<see cref="ClaimCountMetric"/>の束縛。トークン文字列は
@@ -131,7 +158,8 @@ public static class ClaimCalculator
             ?? throw new ClaimCalculationException(ClaimCalculationErrorCode.RegionUnitPriceUnavailable);
 
         var details = request.Recipients
-            .Select(source => BuildDetail(resolved, additions, request.CountSelectorBindings, unitPrice, source))
+            .Select(source => BuildDetail(
+                resolved, additions, request.CountSelectorBindings, unitPrice, masters.BurdenCaps, source))
             .ToArray();
 
         return new ClaimCalculationResult(
@@ -147,10 +175,13 @@ public static class ClaimCalculator
         IReadOnlyList<ResolvedUnitAddition> additions,
         IReadOnlyDictionary<string, ClaimCountMetric>? countBindings,
         RegionUnitPriceMasterRow unitPrice,
+        IReadOnlyList<BurdenCapMasterRow> burdenCaps,
         RecipientClaimSource source)
     {
         // 月の日数上限は暦月で31。0日以下・32日以上・給付率が0〜100外・上限額が負値は入力エラー（フェイルクローズ）。
         // 加算実績カウントも同様に閉域で検証する（負値、日数系の月日数超過、送迎の片道2回/日超過）。
+        // 区分keyの空白、上限額管理結果区分の未定義値、結果区分と管理結果後額の片方だけの指定、
+        // 管理結果後額の負値も同様にフェイルクローズする（ADR 0022）。
         if (source.BilledDays is <= 0 or > 31
             || source.BenefitRatePercent is < 0 or > 100
             || source.CertificateMonthlyCapYen is < 0
@@ -160,10 +191,28 @@ public static class ClaimCalculator
             || source.TransportOneWayCount < 0
             || source.TransportOneWayCount > checked(2 * source.BilledDays)
             || source.TransportSamePremisesOneWayCount < 0
-            || source.TransportSamePremisesOneWayCount > checked(2 * source.BilledDays))
+            || source.TransportSamePremisesOneWayCount > checked(2 * source.BilledDays)
+            || string.IsNullOrWhiteSpace(source.BurdenCategory)
+            || (source.UpperLimitResult is { } result && !Enum.IsDefined(result))
+            || (source.UpperLimitResult is null) != (source.UpperLimitManagedAmountYen is null)
+            || source.UpperLimitManagedAmountYen is < 0)
         {
             throw new ClaimCalculationException(ClaimCalculationErrorCode.InvalidInput);
         }
+
+        // ADR 0022: 区分の制度上限額はサービス月で一意に解決できる版付き行だけを許可する。
+        // 0件・2件以上（重複key等）は算定不能とし、近い行や制度額0円で補完しない。
+        var burdenCapRow = burdenCaps
+            .Where(row => string.Equals(row.BurdenCategory, source.BurdenCategory, StringComparison.Ordinal))
+            .ToArray();
+        if (burdenCapRow.Length != 1)
+            throw new ClaimCalculationException(ClaimCalculationErrorCode.BurdenCapUnavailable);
+        var categoryCapYen = burdenCapRow[0].CapYen;
+
+        // ADR 0022手順4の不変条件（証記載上限は制度上限以下）。証実値が制度マスタから外れて
+        // いる場合は市町村認定と入力の不整合として算定を停止する（証実値を制度額へ丸めない）。
+        if (source.CertificateMonthlyCapYen > categoryCapYen)
+            throw new ClaimCalculationException(ClaimCalculationErrorCode.InvalidInput);
 
         // ADR 0025: 月次給付単位数は整数合算（丸めなし）。
         var baseUnits = checked(resolved.UnitsPerDay * source.BilledDays);
@@ -180,7 +229,12 @@ public static class ClaimCalculator
         var statutoryBurdenYen = ClaimRoundingRules.Apply(
             ClaimRoundingRules.BurdenFloorYenV1, totalCostYen * (decimal)burdenSharePercent / 100m);
 
-        var burdenYen = Math.Min(statutoryBurdenYen, source.CertificateMonthlyCapYen);
+        // ADR 0022手順5・6・9: 暫定負担額＝min(1割相当額, 区分上限, 証上限)。上限額管理対象者は、
+        // 正式な管理結果票の「管理結果後利用者負担額」（呼び出し側が検証済みの当該事業所行から
+        // 渡す）を追加のmin候補とする。対象外（UpperLimitResult=null）はここで終える。
+        var burdenYen = Math.Min(Math.Min(statutoryBurdenYen, categoryCapYen), source.CertificateMonthlyCapYen);
+        if (source.UpperLimitManagedAmountYen is { } managedAmountYen)
+            burdenYen = Math.Min(burdenYen, managedAmountYen);
 
         // ADR 0025: 給付費＝総費用額－決定利用者負担額。総費用額×90%を別計算しない。
         var benefitYen = totalCostYen - burdenYen;

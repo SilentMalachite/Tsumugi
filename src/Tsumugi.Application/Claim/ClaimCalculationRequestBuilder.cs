@@ -47,8 +47,12 @@ public static class ClaimCalculationRequestBuilder
     internal const string ServiceCategoryField = nameof(Office) + "." + nameof(Office.ServiceCategory);
     internal const string OfficeCapabilityField =
         nameof(OfficeCapability) + "." + nameof(OfficeCapability.Flags);
-    internal const string MealProvisionApplicableField =
-        nameof(Certificate) + "." + nameof(Certificate.MealProvisionApplicable);
+    internal const string PaymentBurdenField =
+        nameof(Certificate) + "." + nameof(Certificate.PaymentBurden);
+    internal const string UpperLimitManagementResultField =
+        nameof(ClaimInput) + "." + nameof(ClaimInput.UpperLimitManagementResult);
+    internal const string UpperLimitManagedAmountField =
+        nameof(ClaimInput) + "." + nameof(ClaimInput.UpperLimitManagedAmountYen);
 
     public static ClaimCalculationRequestBuildResult Build(
         ClaimCalculationSnapshot snapshot,
@@ -63,7 +67,7 @@ public static class ClaimCalculationRequestBuilder
         var reformStatus = ResolveReformStatus(snapshot.Profile, issues);
         var capabilityKeys = ResolveOfficeCapabilityKeys(snapshot, serviceMonth, issues);
         ValidateTokens(tokens, issues);
-        var sources = BuildSources(snapshot, issues);
+        var sources = BuildSources(snapshot, tokens, issues);
 
         if (issues.Count > 0)
         {
@@ -219,7 +223,9 @@ public static class ClaimCalculationRequestBuilder
     }
 
     private static List<RecipientClaimSource> BuildSources(
-        ClaimCalculationSnapshot snapshot, List<ClaimPreparationIssue> issues)
+        ClaimCalculationSnapshot snapshot,
+        ClaimBillingConditionTokens? tokens,
+        List<ClaimPreparationIssue> issues)
     {
         var evidenceByRecipient = snapshot.EffectiveCertificateEvidenceByRecipient;
         var sources = new List<RecipientClaimSource>();
@@ -270,36 +276,67 @@ public static class ClaimCalculationRequestBuilder
                 continue;
             }
 
+            // Task 12（ADR 0022）: 負担区分の唯一の権威ソースはCertificate.PaymentBurdenであり、
+            // 別の請求入力へ複製しない。証実体がsnapshotにない、または区分がUnspecified・
+            // 未対応値（対応表にkeyなし）のときは推測せずissue化する（フェイルクローズ）。
+            var certificate = snapshot.EffectiveCertificateByRecipient?.GetValueOrDefault(recipientId);
+            if (certificate is null)
+            {
+                issues.Add(new ClaimPreparationIssue(
+                    ClaimPreparationIssueCode.MissingRequiredEvidence,
+                    recipientId,
+                    PaymentBurdenField,
+                    ClaimInputDestination.Certificate));
+                continue;
+            }
+
+            var burdenCategory = tokens?.BurdenCategoryTokens?.GetValueOrDefault(certificate.PaymentBurden);
+            if (string.IsNullOrWhiteSpace(burdenCategory))
+            {
+                issues.Add(new ClaimPreparationIssue(
+                    ClaimPreparationIssueCode.MissingRequiredField,
+                    recipientId,
+                    PaymentBurdenField,
+                    ClaimInputDestination.Certificate));
+                continue;
+            }
+
+            // Task 12（ADR 0022）: 上限額管理結果区分と管理結果後額（ClaimInput）は互いに必須ペア。
+            // 対象外（両方null）はそのまま通し、片方だけの入力は不整合としてissue化する。
+            var claimInput = snapshot.EffectiveClaimInputs
+                .Where(input => input.RecipientId == recipientId)
+                .ToArray() is [var singleInput] ? singleInput : null;
+            var upperLimitResult = claimInput?.UpperLimitManagementResult;
+            var upperLimitManagedAmountYen = claimInput?.UpperLimitManagedAmountYen;
+            if ((upperLimitResult is null) != (upperLimitManagedAmountYen is null))
+            {
+                issues.Add(new ClaimPreparationIssue(
+                    ClaimPreparationIssueCode.InconsistentUpperLimitManagementInput,
+                    recipientId,
+                    upperLimitResult is null ? UpperLimitManagedAmountField : UpperLimitManagementResultField,
+                    ClaimInputDestination.ClaimInput));
+                continue;
+            }
+
             // Task 11（ADR 0028決定5）: 加算実績カウント。食事提供日数は受給者証の対象判定
-            // （MealProvisionApplicable）を掛けてから渡す。提供実績があるのに受給者証実体が
-            // snapshotにない場合は対象判定を推測せずissue化する（フェイルクローズ）。
+            // （MealProvisionApplicable）を掛けてから渡す（証実体は上記で解決済み・非null確定）。
             var counts = snapshot.AdditionDailyCountsByRecipient?.GetValueOrDefault(recipientId)
                 ?? ClaimAdditionDailyCounts.Empty;
-            var mealProvidedDays = 0;
-            if (counts.MealProvidedDays > 0)
-            {
-                var certificate = snapshot.EffectiveCertificateByRecipient?.GetValueOrDefault(recipientId);
-                if (certificate is null)
-                {
-                    issues.Add(new ClaimPreparationIssue(
-                        ClaimPreparationIssueCode.MissingRequiredEvidence,
-                        recipientId,
-                        MealProvisionApplicableField,
-                        ClaimInputDestination.Certificate));
-                    continue;
-                }
-
-                mealProvidedDays = certificate.MealProvisionApplicable ? counts.MealProvidedDays : 0;
-            }
+            var mealProvidedDays = counts.MealProvidedDays > 0 && certificate.MealProvisionApplicable
+                ? counts.MealProvidedDays
+                : 0;
 
             sources.Add(new RecipientClaimSource(
                 recipientId,
                 billedDays,
                 StatutoryBenefitRatePercent,
                 capYen,
+                burdenCategory,
                 AbsenceSupportCount: counts.AbsenceSupportDays,
                 MealProvidedDays: mealProvidedDays,
-                TransportOneWayCount: counts.TransportOneWayCount));
+                TransportOneWayCount: counts.TransportOneWayCount,
+                UpperLimitResult: upperLimitResult,
+                UpperLimitManagedAmountYen: upperLimitManagedAmountYen));
         }
 
         return sources;

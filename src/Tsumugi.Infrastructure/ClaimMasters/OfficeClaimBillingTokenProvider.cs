@@ -53,6 +53,22 @@ public sealed class OfficeClaimBillingTokenProvider : IClaimBillingTokenProvider
             ["previous-year-six-month-employment-count"] = ClaimCountMetric.PreviousYearSixMonthEmployment,
         };
 
+    /// <summary>
+    /// <see cref="PaymentBurdenCategory"/>→burden-caps.json正準key（ADR 0022の完全一致対応表・
+    /// Task 12）。正準文字列はDomain/Applicationへハードコードできないため、seedと同居する
+    /// 本クラスが値として供給する。<see cref="PaymentBurdenCategory.Unspecified"/>は非入力状態
+    /// であり制度額0の区分ではないため、意図的にこの対応表へ含めない
+    /// （<c>ClaimCalculationRequestBuilder</c>が未対応区分としてissue化する）。
+    /// </summary>
+    private static readonly IReadOnlyDictionary<PaymentBurdenCategory, string> BurdenCategoryTokens =
+        new Dictionary<PaymentBurdenCategory, string>
+        {
+            [PaymentBurdenCategory.Welfare] = "welfare",
+            [PaymentBurdenCategory.LowIncome] = "low-income",
+            [PaymentBurdenCategory.General1] = "general-1",
+            [PaymentBurdenCategory.General2] = "general-2",
+        };
+
     public ClaimBillingConditionTokens Resolve(
         Office office, OfficeClaimProfile? profile, ServiceMonth serviceMonth)
     {
@@ -71,7 +87,8 @@ public sealed class OfficeClaimBillingTokenProvider : IClaimBillingTokenProvider
             CapacityHeadcount: profile?.CapacityHeadcount,
             StaffingKey: profile?.StaffingKey,
             RegionKeyConflict: regionKeyConflict,
-            CountSelectorBindings: CountSelectorBindings);
+            CountSelectorBindings: CountSelectorBindings,
+            BurdenCategoryTokens: BurdenCategoryTokens);
     }
 
     private static (string? RegionKey, bool Conflict) ResolveRegionKey(

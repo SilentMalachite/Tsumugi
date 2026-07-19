@@ -115,7 +115,8 @@ internal static class ClaimPreparationTestKit
         string? municipalityNumber = null,
         string? subsidyMunicipalityNumber = null,
         string? upperLimitManagementProviderNumber = null,
-        bool mealProvisionApplicable = false)
+        bool mealProvisionApplicable = false,
+        PaymentBurdenCategory paymentBurden = PaymentBurdenCategory.General2)
         => Domain.Entities.Certificate.Create(
             Guid.NewGuid(),
             RecipientId,
@@ -130,7 +131,8 @@ internal static class ClaimPreparationTestKit
             municipalityNumber: municipalityNumber,
             subsidyMunicipalityNumber: subsidyMunicipalityNumber,
             upperLimitManagementProviderNumber: upperLimitManagementProviderNumber,
-            mealProvisionApplicable: mealProvisionApplicable);
+            mealProvisionApplicable: mealProvisionApplicable,
+            paymentBurden: paymentBurden);
 
     internal static ContractedProvider ContractedProvider(int? certificateEntryNumber = null)
         => Domain.Entities.ContractedProvider.Create(
@@ -188,7 +190,10 @@ internal static class ClaimPreparationTestKit
             averageWageEvidences ?? [AverageWageEvidence()],
             billedDays ?? new Dictionary<Guid, int> { [RecipientId] = 2 },
             certificateCounts ?? new Dictionary<Guid, int> { [RecipientId] = 1 },
-            certificateByRecipient,
+            // Task 12（ADR 0022）: 負担区分の解決にCertificateが必須になったため、既定は
+            // 証あり（PaymentBurden=General2）を前提とする。「証なし」を明示的に検証するテストは
+            // 空dictionaryを渡す。
+            certificateByRecipient ?? new Dictionary<Guid, Certificate> { [RecipientId] = Certificate() },
             contractedProviderByRecipient,
             dailyRecordAggregateByRecipient,
             intensiveSupportEpisodeStartDateByRecipient,
@@ -208,6 +213,19 @@ internal static class ClaimPreparationTestKit
             createdAt ?? Now,
             Guid.NewGuid());
 
+    /// <summary>
+    /// Task 12（ADR 0022）: <see cref="PaymentBurdenCategory"/>→burden-caps.json正準keyの対応。
+    /// production（<c>OfficeClaimBillingTokenProvider</c>）と同じ完全一致表を合成語彙として複製する。
+    /// </summary>
+    private static readonly IReadOnlyDictionary<PaymentBurdenCategory, string> DefaultBurdenCategoryTokens =
+        new Dictionary<PaymentBurdenCategory, string>
+        {
+            [PaymentBurdenCategory.Welfare] = "welfare",
+            [PaymentBurdenCategory.LowIncome] = "low-income",
+            [PaymentBurdenCategory.General1] = "general-1",
+            [PaymentBurdenCategory.General2] = "general-2",
+        };
+
     internal static ClaimBillingConditionTokens Tokens(
         string? rewardSystem = "b-type",
         string? regionKey = "region-a",
@@ -215,10 +233,12 @@ internal static class ClaimPreparationTestKit
         int? capacityHeadcount = 20,
         string? staffingKey = "staff-a",
         bool regionKeyConflict = false,
-        IReadOnlyDictionary<string, ClaimCountMetric>? countSelectorBindings = null)
+        IReadOnlyDictionary<string, ClaimCountMetric>? countSelectorBindings = null,
+        IReadOnlyDictionary<PaymentBurdenCategory, string>? burdenCategoryTokens = null)
         => new(
             rewardSystem, regionKey, serviceKind, capacityHeadcount, staffingKey, regionKeyConflict,
-            countSelectorBindings);
+            countSelectorBindings,
+            burdenCategoryTokens ?? DefaultBurdenCategoryTokens);
 
     internal static ClaimMasterRelease Release()
         => new(new ClaimMasterVersion("master-v1"), new ServiceMonth(2024, 4), null, ["doc-1"]);
@@ -250,7 +270,13 @@ internal static class ClaimPreparationTestKit
             new RegionUnitPriceMasterRow(
                 "price-a", "region-a", "b-type", 10.00m, new ServiceMonth(2024, 4), null, [SourceRef()]),
         ],
-        BurdenCaps: [],
+        BurdenCaps:
+        [
+            // Task 12（ADR 0022）: 既定証（PaymentBurden=General2）→区分key"general-2"に対応する
+            // 合成マスタ行（制度上の値ではない）。
+            new BurdenCapMasterRow(
+                "burden-cap-general-2", "general-2", 37_200, new ServiceMonth(2024, 4), null, [SourceRef()]),
+        ],
         TransitionRules: [],
         ServiceCodes:
         [
