@@ -1119,7 +1119,7 @@ git commit -m "feat(phase3-1): apply burden caps and upper limit results (task 1
   - 境界月テスト: 同一入力で 2026-05 はR6行・2026-06 はR8行のservice code/単位数が解決されること（`ResolveCalculationMasters` 経由）
   - 経過措置: `OfficeClaimProfile` の届出情報から `R8ReformStatus` / band optionを検証する既存 `OfficeClaimProfilePolicy` 経路をsnapshot→条件contextの写像に接続。**判定に必要な入力が不足なら算定不能（推測しない）**
 
-- [ ] **Step 1〜5: TDD（式→境界月→経過措置の順に Red→Green→コミット）**
+- [x] **Step 1〜5: TDD（式→境界月→経過措置の順に Red→Green→コミット）**
 
 Run: `dotnet test --filter "AverageWageFormula|ClaimMasterR8Boundary" -v minimal`
 
