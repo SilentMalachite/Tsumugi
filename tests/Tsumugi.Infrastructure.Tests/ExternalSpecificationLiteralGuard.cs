@@ -7,7 +7,6 @@ using System.Numerics;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Tsumugi.Infrastructure.Tests;
 
@@ -93,6 +92,37 @@ internal static class ExternalSpecificationLiteralGuard
             ("src/Tsumugi.Domain/Logic/Claim/ClaimRoundingRules.cs", 16, "claim.rounding.units.half-up.v1"),
             ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 270, "claim.rounding.units.half-up.v1"),
             ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 282, "claim.rounding.units.half-up.v1"),
+        ];
+
+    /// <summary>
+    /// Task 11 fix round 1 (Finding 1): a blanket "skip every enum member discriminant"
+    /// structural rule was removed because it created a bypass channel — an institutional
+    /// reward value could be parked as `enum X { Absence = 94 }` and consumed only via
+    /// <c>(int)X.Absence</c>, never re-spelling the literal anywhere the guard would look, and
+    /// escape detection forever in ANY production enum. Each collision that motivated the old
+    /// blanket skip is pinned here individually instead, by exact (path, line, literal), so a
+    /// new enum member elsewhere (or even a later member added to one of these same enums)
+    /// still re-triggers the guard. All four are ordinal type-discriminants for enums that
+    /// exist purely as C# type contracts (matched by member name in code, e.g.
+    /// <c>ClaimSourceSupport.MasterValues</c>) and coincide in magnitude with an unrelated
+    /// claim-master seed literal (Task 11 / ADR 0028 per-count unit values 10/15):
+    /// <list type="bullet">
+    /// <item><c>ClaimSourceSupport.MasterValues = 10</c> (ClaimCalculationMasters.cs:43)</item>
+    /// <item><c>ClaimSourceSupport.UnitRuleRuntimeInputProvenance = 15</c>
+    /// (ClaimCalculationMasters.cs:48)</item>
+    /// <item><c>ClaimConditionKind.FacilityClassification = 10</c>
+    /// (ClaimCalculationMasters.cs:74)</item>
+    /// <item><c>ClaimPreparationIssueCode.RegionKeySourceConflict = 10</c>
+    /// (ClaimPreparationContracts.cs:22)</item>
+    /// </list>
+    /// </summary>
+    private static readonly (string RelativePath, int LineNumber, string Literal)[]
+        KnownEnumDiscriminantLiteralMatches =
+        [
+            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 43, "10"),
+            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 48, "15"),
+            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 74, "10"),
+            ("src/Tsumugi.Application/Claim/ClaimPreparationContracts.cs", 22, "10"),
         ];
 
     public static IReadOnlyList<Violation> ScanProduction()
@@ -602,6 +632,9 @@ internal static class ExternalSpecificationLiteralGuard
             (relativePath, lineNumber, literal)) >= 0
         || Array.IndexOf(
             SharedRoundingRuleIdentifierMatches,
+            (relativePath, lineNumber, literal)) >= 0
+        || Array.IndexOf(
+            KnownEnumDiscriminantLiteralMatches,
             (relativePath, lineNumber, literal)) >= 0;
 
     private static void AddLiteralViolations(
@@ -680,22 +713,10 @@ internal static class ExternalSpecificationLiteralGuard
             .Concat(disabledTokens)
             .DistinctBy(token => (token.SpanStart, token.Span.Length, token.RawKind))
             .OrderBy(token => token.SpanStart)
-            .Where(token => !IsEnumMemberDiscriminant(token))
             .Select(token => ToSourceLiteral(syntaxTree, token))
             .OfType<SourceLiteral>()
             .ToList();
     }
-
-    /// <summary>
-    /// enumメンバの判別値（<c>Kind = 10</c> 等）は型契約上の構造値であり、報酬告示の単位数等の
-    /// 外部仕様値をここへ「置く」ことは機能しない（値として参照した瞬間に別の式リテラルとして
-    /// 検出される）。加算seed投入（Task 11）以降、単位数（10・15等）と既存enum判別値の偶然一致が
-    /// 常態化するため、enumメンバ判別値の数値リテラルのみ走査対象から除外する。
-    /// disabled-textから復元したトークンは構文木を持たないため本判定の対象外（従来どおり検出）。
-    /// </summary>
-    private static bool IsEnumMemberDiscriminant(SyntaxToken token) =>
-        token.IsKind(SyntaxKind.NumericLiteralToken)
-        && token.Parent?.AncestorsAndSelf().OfType<EnumMemberDeclarationSyntax>().Any() == true;
 
     private static SourceLiteral? ToSourceLiteral(SyntaxTree syntaxTree, SyntaxToken token)
     {

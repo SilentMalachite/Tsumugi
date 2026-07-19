@@ -115,31 +115,67 @@ public sealed class ClaimSpecificationBoundaryTests
         violation.LineNumber.Should().Be(1);
     }
 
-    [Fact]
-    public void Scan_ignores_master_number_used_as_enum_member_discriminant()
+    [Theory]
+    [InlineData(
+        "src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 43, "10")]
+    [InlineData(
+        "src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 48, "15")]
+    [InlineData(
+        "src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 74, "10")]
+    [InlineData(
+        "src/Tsumugi.Application/Claim/ClaimPreparationContracts.cs", 22, "10")]
+    public void Scan_suppresses_only_the_exact_pinned_enum_discriminant_line(
+        string relativePath,
+        int pinnedLine,
+        string literal)
     {
-        // enumメンバの判別値は型契約上の構造値であり、告示単位数の「置き場」にはならない
-        // （値として使うには別の式リテラルが必要で、そちらは従来どおり検出される）。
-        // Task 11で加算単位数（10・15等）と既存enum判別値の偶然一致が常態化したための恒久除外。
+        // Task 11 fix round 1 (Finding 1): the old blanket "skip every enum member
+        // discriminant" rule was removed because it let a real reward literal hide,
+        // unspellable, in any production enum's numeric discriminant. Each real collision
+        // that motivated the old rule is now pinned to its exact (path, line, literal)
+        // instead. This proves the pin is precise: the exact pinned line is suppressed,
+        // but an adjacent line in the very same file (same literal, ordinary — not
+        // enum-discriminant — use) still fires, and so does an unrelated file.
+        ArgumentException.ThrowIfNullOrWhiteSpace(relativePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(literal);
+        using var fixture = new SpecificationFixture();
+        fixture.WriteMasterNumber(literal);
+
+        var padding = Enumerable.Range(1, pinnedLine - 1).Select(_ => "// padding");
+        fixture.Write(
+            relativePath,
+            string.Join('\n', padding) +
+            $"\ninternal enum PinnedDiscriminant {{ Member = {literal} }}\n" +
+            $"internal static class AdjacentUse {{ internal static int Value => {literal}; }}\n");
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/UnrelatedFile.cs",
+            $"namespace Tsumugi.Domain.Logic.Claim; internal static class UnrelatedFile {{ " +
+            $"internal static int Value => {literal}; }}");
+
+        var violations = fixture.Scan()
+            .Where(v => v.Rule == "claim-master-literal" && v.Literal == literal)
+            .ToArray();
+
+        violations.Should().NotContain(v =>
+            v.RelativePath == relativePath && v.LineNumber == pinnedLine);
+        violations.Should().Contain(v =>
+            v.RelativePath == relativePath && v.LineNumber == pinnedLine + 1);
+        violations.Should().Contain(v =>
+            v.RelativePath == "src/Tsumugi.Domain/Logic/Claim/UnrelatedFile.cs");
+    }
+
+    [Fact]
+    public void Scan_detects_enum_discriminant_literal_outside_the_pinned_lines()
+    {
+        // Same enum-discriminant shape as the pinned collisions, but at an unpinned line
+        // and file: the guard must still detect it. This is the compensating proof that
+        // per-line pinning (not a structural "any enum member" skip) is what suppresses
+        // the four known collisions.
         using var fixture = new SpecificationFixture();
         fixture.WriteMasterNumber("15");
         fixture.Write(
             "src/Tsumugi.Domain/Logic/Claim/DiscriminantEnum.cs",
             "namespace Tsumugi.Domain.Logic.Claim; internal enum Support { Value = 15 }");
-
-        fixture.Scan().Should().NotContain(
-            v => v.Rule == "claim-master-literal" && v.Literal == "15");
-    }
-
-    [Fact]
-    public void Scan_still_detects_master_number_outside_enum_discriminants()
-    {
-        using var fixture = new SpecificationFixture();
-        fixture.WriteMasterNumber("15");
-        fixture.Write(
-            "src/Tsumugi.Domain/Logic/Claim/DiscriminantEnumUse.cs",
-            "namespace Tsumugi.Domain.Logic.Claim; internal enum Support { Value = 15 } " +
-            "internal static class Uses { internal static int Value => 15; }");
 
         Assert.Single(
             fixture.Scan(),
