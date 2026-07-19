@@ -200,7 +200,27 @@ internal static class ClaimPreparationViewModelTestKit
             new BurdenCapMasterRow(
                 "burden-cap-general-2", "general-2", 37_200, new ServiceMonth(2024, 4), null, [SourceRef()]),
         ],
-        TransitionRules: [],
+        // Task 13（ADR 0023）: 経過措置guard（ClaimPreviewPipeline）が要求する版付き許可
+        // option集合の合成行。Profile()の宣言（master-v1 / NotApplicableBeforeR8 / Numeric(5)）
+        // と一致する。
+        TransitionRules:
+        [
+            new OfficeClaimProfileTransitionRuleMasterRow(
+                "transition-a",
+                new ClaimMasterVersion("master-v1"),
+                [new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 5)],
+                new Dictionary<R8ReformStatus, IReadOnlyCollection<AverageWageBandOption>>
+                {
+                    [R8ReformStatus.NotApplicableBeforeR8] =
+                        [new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 5)],
+                },
+                new DateOnly(2026, 6, 1),
+                FiledTransitionExclusiveEndRule.AddYearsExclusive,
+                1,
+                new ServiceMonth(2024, 4),
+                null,
+                [SourceRef()]),
+        ],
         ServiceCodes:
         [
             new ServiceCodeMasterRow(

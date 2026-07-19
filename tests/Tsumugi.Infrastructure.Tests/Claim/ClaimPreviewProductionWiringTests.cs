@@ -224,12 +224,15 @@ public sealed class ClaimPreviewProductionWiringTests
         {
             Id = profileId,
             OfficeId = OfficeId,
-            EffectiveFrom = new DateOnly(2024, 4, 1),
-            EffectiveTo = null,
+            // Task 13（ADR 0023）: profileのMasterVersionは体制届optionのedition版
+            // （claim-master-r6-06 = 2024-06〜2026-05の対象月をcover）であり、2025-04の
+            // transition-rules行（経過措置guard）と一致させる。期間もedition窓へ合わせる。
+            EffectiveFrom = new DateOnly(2024, 6, 1),
+            EffectiveTo = new DateOnly(2026, 5, 31),
             RootId = profileId,
             Revision = 1,
             Kind = RecordKind.New,
-            MasterVersion = new ClaimMasterVersion("claim-master-r7-01"),
+            MasterVersion = new ClaimMasterVersion("claim-master-r6-06"),
             ReformStatus = R8ReformStatus.NotApplicableBeforeR8,
             AverageWageBandOption = new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 5),
             EvidenceDocumentId = "profile-doc",

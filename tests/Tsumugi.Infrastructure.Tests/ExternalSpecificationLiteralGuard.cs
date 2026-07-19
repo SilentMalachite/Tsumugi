@@ -64,6 +64,10 @@ internal static class ExternalSpecificationLiteralGuard
     /// <item>ClaimCalculationMasters.cs RequiredStatutoryFormula fixes the protected
     /// facility unit-price divisor 10円 (Task 13 closed contract) — a statutory divisor,
     /// not a per-count unit value.</item>
+    /// <item>AverageWageFormula.cs line 44 fixes the decimal-place shift (×10/÷10) that
+    /// implements ADR 0023's「小数点第1位への切上げ」— an arithmetic base-10 scaling factor of
+    /// the versioned rounding algorithm, unrelated to the per-count unit value 10 that
+    /// Task 11 addition seeds carry.</item>
     /// </list>
     /// </remarks>
     private static readonly (string RelativePath, int LineNumber, string Literal)[]
@@ -75,6 +79,7 @@ internal static class ExternalSpecificationLiteralGuard
             ("src/Tsumugi.Domain/Entities/WageSettings.cs", 23, "30"),
             ("src/Tsumugi.Application/UseCases/Certificate/RegisterCertificateUseCase.cs", 67, "10"),
             ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 266, "10"),
+            ("src/Tsumugi.Domain/Logic/Claim/AverageWageFormula.cs", 44, "10"),
         ];
 
     /// <summary>

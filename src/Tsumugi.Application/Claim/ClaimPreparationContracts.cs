@@ -26,6 +26,14 @@ public enum ClaimPreparationIssueCode
     /// 片方だけ入力されている（ADR 0022: 結果区分と管理結果後額は互いに必須ペア。Task 12）。
     /// </summary>
     InconsistentUpperLimitManagementInput = 11,
+
+    /// <summary>
+    /// Task 13 (ADR 0023): 対象月の経過措置rule（transition-rules行）に対し、profileの
+    /// master版が一意に解決できない、又は宣言済み<c>R8ReformStatus</c>×版付き平均工賃optionの
+    /// 組合せが版の許可集合に含まれない。R8-06境界で旧版profile・R6区分の残留による
+    /// 無検証の単価請求をフェイルクローズする（<c>OfficeClaimProfileTransitionGuard</c>）。
+    /// </summary>
+    ReformTransitionMismatch = 12,
 }
 
 public enum ClaimPreparationValueKind

@@ -4,6 +4,7 @@ using Tsumugi.Application.Claim;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Application.UseCases.Claim;
 using Tsumugi.Domain.Entities;
+using Tsumugi.Domain.Logic.Claim.Models;
 using Xunit;
 using Kit = Tsumugi.Application.Tests.UseCases.Claim.ClaimPreparationTestKit;
 
@@ -58,6 +59,47 @@ public sealed class CalculateClaimUseCaseTests
         dto.TotalCostYen.Should().Be(14000);
         dto.TotalBenefitYen.Should().Be(12600);
         dto.TotalBurdenYen.Should().Be(1400);
+    }
+
+    [Fact]
+    public async Task Execute_fails_closed_when_the_month_has_no_transition_rule_for_the_profile_version()
+    {
+        // Task 13 (ADR 0023): 対象月のマスタ束にprofileのmaster版へ対応する経過措置rule
+        // （transition-rules行）が無ければ算定しない（例: R8施行後にR6版profileが残留し
+        // snapshot readerが期限切れprofileを返した場合の無検証単価請求を遮断する）。
+        var useCase = CreateUseCase(
+            Kit.Snapshot(),
+            masterProvider: new Kit.FakeMasterProvider(
+                Kit.Release(), Kit.SyntheticMasters(includeTransitionRule: false)));
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeFalse();
+        dto.Details.Should().BeEmpty();
+        dto.PreviewHash.Should().BeEmpty();
+        dto.Issues.Should().ContainSingle(issue =>
+            issue.Code == ClaimPreparationIssueCode.ReformTransitionMismatch
+            && issue.FieldCode == "OfficeClaimProfile.MasterVersion");
+    }
+
+    [Fact]
+    public async Task Execute_fails_closed_when_reform_status_and_band_option_disagree_with_the_month_rule()
+    {
+        // Task 13 (ADR 0023): R8ReformStatusと版付き許可option集合の不一致はフェイルクローズ
+        // （合成ruleはNotApplicableBeforeR8だけへoptionを対応付けており、ReformExemptの
+        // 宣言は経過措置検証で算定不能になる）。
+        var useCase = CreateUseCase(
+            Kit.Snapshot(profile: Kit.Profile(reformStatus: R8ReformStatus.ReformExempt)));
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeFalse();
+        dto.Details.Should().BeEmpty();
+        dto.Issues.Should().ContainSingle(issue =>
+            issue.Code == ClaimPreparationIssueCode.ReformTransitionMismatch
+            && issue.FieldCode == "OfficeClaimProfile.AverageWageBandOption");
     }
 
     [Fact]

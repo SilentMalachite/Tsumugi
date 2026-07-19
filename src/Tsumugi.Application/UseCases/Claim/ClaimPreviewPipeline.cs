@@ -61,6 +61,18 @@ internal sealed class ClaimPreviewPipeline(
         }
 
         var masters = masterProvider.ResolveCalculationMasters(serviceMonth);
+
+        // Task 13 (ADR 0023): 経過措置（対象月のtransition-rules行 × profileの版・R8状態・
+        // 版付きoption）の不一致は算定前にフェイルクローズする。R8-06境界で旧版profileや
+        // R6区分の残留による無検証の単価請求を生成しない（推測しない）。
+        var transitionIssues = OfficeClaimProfileTransitionGuard.Validate(
+            masters.TransitionRules, snapshot.Profile);
+        if (transitionIssues.Count > 0)
+        {
+            return new ClaimPreviewComputation(
+                claimMasterVersion, Normalize(transitionIssues), null, [], "");
+        }
+
         var result = ClaimCalculator.Calculate(masters, request);
         var detailDrafts = BuildDetailDrafts(
             snapshot, serviceMonth, claimMasterVersion, request, result);
