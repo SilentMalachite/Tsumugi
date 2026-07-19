@@ -73,7 +73,8 @@ public sealed class AppNavigationServiceTests
         codeBehind.Should().Contain("nameof(MainViewModel.SelectedSection)");
         xaml.Should().Contain("<views:ClaimInputView DataContext=\"{Binding ClaimInput}\" />");
         xaml.Should().NotContain("ClaimInputAvailable");
-        xaml.Should().NotContain("ClaimPreparationView");
+        xaml.Should().Contain(
+            "<views:ClaimPreparationView DataContext=\"{Binding ClaimPreparation}\" />");
     }
 
     [Fact]
@@ -285,22 +286,35 @@ public sealed class AppNavigationServiceTests
         main.DailyRecord.RecipientId.Should().Be(fixture.RecipientId);
     }
 
-    [Theory]
-    [InlineData(AppSection.ClaimPreparation)]
-    public async Task Future_target_returns_closed_error_without_changing_selection_or_request(
-        AppSection futureSection)
+    [Fact]
+    public async Task ClaimPreparation_request_with_no_context_changes_selection()
+    {
+        // Task 10: ClaimPreparationはClaimInputのように文脈を持たない画面
+        // （事業所・対象月は画面内で選択する）ため、他のno-contextタブと同じ扱いになる。
+        await using var fixture = await NavigationFixture.CreateAsync();
+        fixture.Main.SelectedSection = AppSection.DailyRecord;
+
+        var result = await fixture.Navigation.NavigateAsync(
+            new NavigationRequest(AppSection.ClaimPreparation));
+
+        result.IsSuccess.Should().BeTrue();
+        fixture.Main.SelectedSection.Should().Be(AppSection.ClaimPreparation);
+    }
+
+    [Fact]
+    public async Task ClaimPreparation_request_with_context_is_rejected_as_invalid()
     {
         await using var fixture = await NavigationFixture.CreateAsync();
         fixture.Main.SelectedSection = AppSection.DailyRecord;
         var request = new NavigationRequest(
-            futureSection,
+            AppSection.ClaimPreparation,
             fixture.RecipientId,
             ServiceMonth: new ServiceMonth(2026, 6));
 
         var result = await fixture.Navigation.NavigateAsync(request);
 
         result.IsSuccess.Should().BeFalse();
-        result.ErrorCode.Should().Be(NavigationErrorCode.NavigationTargetUnavailable);
+        result.ErrorCode.Should().Be(NavigationErrorCode.InvalidNavigationContext);
         result.Request.Should().BeSameAs(request);
         fixture.Main.SelectedSection.Should().Be(AppSection.DailyRecord);
         fixture.Main.LastNavigationResult.Should().BeSameAs(result);

@@ -27,6 +27,7 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
         WageCalculationViewModel wageCalculation,
         WageStatementViewModel wageStatement,
         ClaimInputViewModel claimInput,
+        ClaimPreparationViewModel claimPreparation,
         IMessenger messenger)
     {
         ArgumentNullException.ThrowIfNull(messenger);
@@ -46,6 +47,7 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
         WageCalculation = wageCalculation;
         WageStatement = wageStatement;
         ClaimInput = claimInput;
+        ClaimPreparation = claimPreparation;
         messenger.Register<MainViewModel, AppNavigationMessage>(
             this,
             static (recipient, message) => message.Reply(
@@ -77,6 +79,7 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
     public WageStatementViewModel WageStatement { get; }
 
     public ClaimInputViewModel ClaimInput { get; }
+    public ClaimPreparationViewModel ClaimPreparation { get; }
 
     // Phase 4 S0 tabs
     public RecipientHourlyRateViewModel RecipientHourlyRate { get; }
@@ -122,13 +125,6 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
         NavigationRequest request,
         CancellationToken ct)
     {
-        if (request.Section == AppSection.ClaimPreparation)
-        {
-            return NavigationResult.Failure(
-                request,
-                NavigationErrorCode.NavigationTargetUnavailable);
-        }
-
         var isValid = request.Section switch
         {
             AppSection.Certificate => await ApplyCertificateContextAsync(request, ct),
@@ -146,7 +142,8 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
                 or AppSection.RecipientHourlyRate
                 or AppSection.WageAdjustment
                 or AppSection.WageCalculation
-                or AppSection.WageStatement => HasNoContext(request),
+                or AppSection.WageStatement
+                or AppSection.ClaimPreparation => HasNoContext(request),
             _ => false,
         };
 

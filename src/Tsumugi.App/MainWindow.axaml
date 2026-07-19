@@ -59,5 +59,8 @@
         <TabItem Header="請求入力(_G)">
             <views:ClaimInputView DataContext="{Binding ClaimInput}" />
         </TabItem>
+        <TabItem Header="請求確定(_H)">
+            <views:ClaimPreparationView DataContext="{Binding ClaimPreparation}" />
+        </TabItem>
     </TabControl>
 </Window>

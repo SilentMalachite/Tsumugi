@@ -150,6 +150,7 @@ public static class CompositionRoot
         services.AddTransient<WageCalculationViewModel>();
         services.AddTransient<WageStatementViewModel>();
         services.AddTransient<ClaimInputViewModel>();
+        services.AddTransient<ClaimPreparationViewModel>();
         // Phase 4 S0 ViewModels
         services.AddTransient<RecipientHourlyRateViewModel>();
         services.AddTransient<WageAdjustmentViewModel>();

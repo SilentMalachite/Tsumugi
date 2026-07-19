@@ -1,0 +1,101 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             xmlns:conv="using:Tsumugi.App.Converters"
+             x:Class="Tsumugi.App.Views.ClaimPreparationView"
+             x:DataType="vm:ClaimPreparationViewModel">
+    <ScrollViewer>
+        <StackPanel Spacing="12" Margin="12">
+            <TextBlock Text="請求確定"
+                       FontSize="{DynamicResource HeadingFontSize}" />
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="事業所（必須）" />
+                <ComboBox ItemsSource="{Binding Offices}"
+                          SelectedItem="{Binding SelectedOffice}"
+                          PlaceholderText="事業所を選択"
+                          HorizontalAlignment="Stretch">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="対象年" />
+                    <NumericUpDown Value="{Binding Year}" Minimum="1900" Maximum="2200"
+                                   FormatString="0" Width="120" />
+                </StackPanel>
+                <StackPanel Spacing="4">
+                    <TextBlock Text="対象月" />
+                    <NumericUpDown Value="{Binding Month}" Minimum="1" Maximum="12"
+                                   FormatString="0" Width="100" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <Button Content="プレビュー" Command="{Binding PreviewCommand}"
+                        IsDefault="True" />
+                <Button Content="確定" Command="{Binding CloseCommand}" />
+                <Button Content="取下げ" Command="{Binding CancelCommand}" />
+            </StackPanel>
+
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red"
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                       TextWrapping="Wrap" />
+
+            <TextBlock Text="readiness上の確認事項" FontWeight="Bold"
+                       IsVisible="{Binding Issues.Count, Converter={x:Static conv:CountGreaterThanZeroConverter.Instance}}" />
+            <ItemsControl ItemsSource="{Binding Issues}"
+                          IsVisible="{Binding Issues.Count, Converter={x:Static conv:CountGreaterThanZeroConverter.Instance}}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock
+                            Text="{Binding Converter={x:Static conv:ClaimPreparationIssueConverter.Instance}}"
+                            Foreground="Orange" TextWrapping="Wrap" Margin="0,2" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Text="プレビュー明細" FontWeight="Bold" />
+            <DataGrid ItemsSource="{Binding Preview.Details}"
+                      AutoGenerateColumns="False" IsReadOnly="True"
+                      MaxHeight="260">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="利用者ID" Binding="{Binding RecipientId}" Width="2*" />
+                    <DataGridTextColumn Header="サービスコード" Binding="{Binding ServiceCode}" Width="*" />
+                    <DataGridTextColumn Header="日数" Binding="{Binding BilledDays}" Width="80" />
+                    <DataGridTextColumn Header="単位数" Binding="{Binding TotalUnits}" Width="100" />
+                    <DataGridTextColumn Header="費用（円）" Binding="{Binding TotalCostYen}" Width="110" />
+                    <DataGridTextColumn Header="給付（円）" Binding="{Binding BenefitYen}" Width="110" />
+                    <DataGridTextColumn Header="利用者負担（円）" Binding="{Binding BurdenYen}" Width="130" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <StackPanel Orientation="Horizontal" Spacing="24"
+                        IsVisible="{Binding Preview, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <TextBlock Text="{Binding Preview.TotalUnits, StringFormat='合計単位数: {0}'}" />
+                <TextBlock Text="{Binding Preview.TotalCostYen, StringFormat='合計費用: {0}円'}" />
+                <TextBlock Text="{Binding Preview.TotalBenefitYen, StringFormat='合計給付: {0}円'}" />
+                <TextBlock Text="{Binding Preview.TotalBurdenYen, StringFormat='合計利用者負担: {0}円'}" />
+            </StackPanel>
+
+            <TextBlock Text="確定履歴" FontWeight="Bold" />
+            <DataGrid ItemsSource="{Binding History}"
+                      AutoGenerateColumns="False" IsReadOnly="True"
+                      MaxHeight="220">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="revision" Binding="{Binding Revision}" Width="80" />
+                    <DataGridTextColumn Header="区分" Binding="{Binding Kind}" Width="100" />
+                    <DataGridTextColumn Header="合計単位数" Binding="{Binding TotalUnits}" Width="110" />
+                    <DataGridTextColumn Header="合計費用（円）" Binding="{Binding TotalCostYen}" Width="120" />
+                    <DataGridTextColumn Header="確定日時" Binding="{Binding CreatedAt}" Width="2*" />
+                    <DataGridTextColumn Header="確定者" Binding="{Binding CreatedBy}" Width="*" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
