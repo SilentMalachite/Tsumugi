@@ -107,13 +107,15 @@ public sealed class ClaimPreviewProductionWiringTests
         // 体制届（ADR 0021の正式one-hotキー）を持つ事業所に福祉専門職員配置等加算(Ⅰ)
         // （466037、15単位/日）が加算されることを検証する。体制届が無い上のReadyテストは
         // 基本報酬のみ（totalsが変わらないこと）の対照実験になっている。
+        // 選択番号5=(Ⅰ)（Task 11 fix round 1・2026-07-19、r6-capability-202404/202406/
+        // r8-capability-202606を一次資料で検証。ADR 0028補記参照。旧値`.3`は実際には(Ⅱ)だった）。
         var capability = OfficeCapability.Create(
             Guid.NewGuid(),
             OfficeId,
             new DateRange(new DateOnly(2024, 4, 1), null),
             new Dictionary<string, bool>
             {
-                ["mhlw.b46.capability.welfare-professional-staffing.3"] = true,
+                ["mhlw.b46.capability.welfare-professional-staffing.5"] = true,
             },
             "tester",
             Now,

@@ -437,6 +437,23 @@ public sealed class ClaimCalculatorAdditionTests
     }
 
     [Fact]
+    public void Percentage_addition_rounds_an_exact_half_unit_away_from_zero_at_an_even_boundary()
+    {
+        // 境界値（Task 11 fix round 1・Minor 4）: 対象合計 = 基本700×3日 + 固定15×3日 = 2,145。
+        // 50% = 1,072.5 ちょうど半値で、下側の1,072が偶数（銀行丸め＝ToEvenなら1,072へ丸まってしまう
+        // 境界）。claim.rounding.units.half-up.v1はMidpointRounding.AwayFromZeroであり、
+        // 既定のbanker's roundingに依存しないため1,073へ丸める。
+        var masters = MastersWithPercentage(("adj-pct-half", "610903", 0.5m, 1));
+
+        var result = ClaimCalculator.Calculate(masters, Request([CapabilityWpsI], billedDays: 3));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        detail.AdditionLines[^1].ServiceCode.Should().Be("610903");
+        detail.AdditionLines[^1].Units.Should().Be(1_073);
+        detail.TotalUnits.Should().Be(2_145 + 1_073);
+    }
+
+    [Fact]
     public void Percentage_rows_do_not_compound_each_other()
     {
         // order=1と2の両行とも同一の対象合計14,300へ独立に加算する（%行同士は複利にしない）。

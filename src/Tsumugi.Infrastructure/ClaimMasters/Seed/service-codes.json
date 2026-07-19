@@ -428,12 +428,12 @@
       "effectiveTo": null,
       "kind": "office-capability",
       "operator": "equals",
-      "value": "mhlw.b46.capability.welfare-professional-staffing.3",
+      "value": "mhlw.b46.capability.welfare-professional-staffing.5",
       "sourceRefs": [
         {
           "documentId": "r6-capability-202404",
           "sha256": "fa24cd44e81cf1f1118b4a4c8a0b28bce31ee5227f13b9f8baa260ea6f223531",
-          "locator": "基本情報シート281行 福祉専門職員配置等加算（許可選択番号{1,3,4,5}・ADR 0021。1=なし、3=加算(Ⅰ)、4=加算(Ⅱ)、5=加算(Ⅲ)）",
+          "locator": "基本情報シート281行（r6-capability-202406 248行/r8-capability-202606 250行でも同一表示文字列を確認） 福祉専門職員配置等加算（許可選択番号{1,3,4,5}・ADR 0021）。38列目の表示文字列は「１．なし　３．Ⅱ　４．Ⅲ　５．Ⅰ」（Task 11 fix round 1・2026-07-19検証、ADR 0028補記参照）。1=なし、3=加算(Ⅱ)、4=加算(Ⅲ)、5=加算(Ⅰ)",
           "evidenceRole": "authoritative",
           "supports": [
             "conditions",
@@ -457,12 +457,12 @@
       "effectiveTo": null,
       "kind": "office-capability",
       "operator": "equals",
-      "value": "mhlw.b46.capability.welfare-professional-staffing.4",
+      "value": "mhlw.b46.capability.welfare-professional-staffing.3",
       "sourceRefs": [
         {
           "documentId": "r6-capability-202404",
           "sha256": "fa24cd44e81cf1f1118b4a4c8a0b28bce31ee5227f13b9f8baa260ea6f223531",
-          "locator": "基本情報シート281行 福祉専門職員配置等加算（許可選択番号{1,3,4,5}・ADR 0021。1=なし、3=加算(Ⅰ)、4=加算(Ⅱ)、5=加算(Ⅲ)）",
+          "locator": "基本情報シート281行（r6-capability-202406 248行/r8-capability-202606 250行でも同一表示文字列を確認） 福祉専門職員配置等加算（許可選択番号{1,3,4,5}・ADR 0021）。38列目の表示文字列は「１．なし　３．Ⅱ　４．Ⅲ　５．Ⅰ」（Task 11 fix round 1・2026-07-19検証、ADR 0028補記参照）。1=なし、3=加算(Ⅱ)、4=加算(Ⅲ)、5=加算(Ⅰ)",
           "evidenceRole": "authoritative",
           "supports": [
             "conditions",
@@ -486,12 +486,12 @@
       "effectiveTo": null,
       "kind": "office-capability",
       "operator": "equals",
-      "value": "mhlw.b46.capability.welfare-professional-staffing.5",
+      "value": "mhlw.b46.capability.welfare-professional-staffing.4",
       "sourceRefs": [
         {
           "documentId": "r6-capability-202404",
           "sha256": "fa24cd44e81cf1f1118b4a4c8a0b28bce31ee5227f13b9f8baa260ea6f223531",
-          "locator": "基本情報シート281行 福祉専門職員配置等加算（許可選択番号{1,3,4,5}・ADR 0021。1=なし、3=加算(Ⅰ)、4=加算(Ⅱ)、5=加算(Ⅲ)）",
+          "locator": "基本情報シート281行（r6-capability-202406 248行/r8-capability-202606 250行でも同一表示文字列を確認） 福祉専門職員配置等加算（許可選択番号{1,3,4,5}・ADR 0021）。38列目の表示文字列は「１．なし　３．Ⅱ　４．Ⅲ　５．Ⅰ」（Task 11 fix round 1・2026-07-19検証、ADR 0028補記参照）。1=なし、3=加算(Ⅱ)、4=加算(Ⅲ)、5=加算(Ⅰ)",
           "evidenceRole": "authoritative",
           "supports": [
             "conditions",
@@ -654,7 +654,7 @@
         {
           "documentId": "r6-capability-202406",
           "sha256": "d1edf9715b8c41660d6e4278ebd886861d0758c75109e4efc594f5d70f197c50",
-          "locator": "基本情報シート258行 福祉・介護職員等処遇改善加算（許可選択番号{1,2,3,4,5,6}・ADR 0021。1=なし、2=(Ⅰ)、3=(Ⅱ)、4=(Ⅲ)、5=(Ⅳ)、6=(Ⅴ)は2025-03まで）",
+          "locator": "基本情報シート258行 福祉・介護職員等処遇改善加算（許可選択番号{1,2,3,4,5,6}・ADR 0021）。38列目の表示文字列は「１．なし　２．Ⅰ　３．Ⅱ　４．Ⅲ　５．Ⅳ　６．Ⅴ」（Task 11 fix round 1・2026-07-19検証、ADR 0028補記参照）。1=なし、2=(Ⅰ)、3=(Ⅱ)、4=(Ⅲ)、5=(Ⅳ)、6=(Ⅴ)は2025-03まで",
           "evidenceRole": "authoritative",
           "supports": [
             "conditions",
@@ -683,7 +683,7 @@
         {
           "documentId": "r6-capability-202406",
           "sha256": "d1edf9715b8c41660d6e4278ebd886861d0758c75109e4efc594f5d70f197c50",
-          "locator": "基本情報シート258行 福祉・介護職員等処遇改善加算（許可選択番号{1,2,3,4,5,6}・ADR 0021。1=なし、2=(Ⅰ)、3=(Ⅱ)、4=(Ⅲ)、5=(Ⅳ)、6=(Ⅴ)は2025-03まで）",
+          "locator": "基本情報シート258行 福祉・介護職員等処遇改善加算（許可選択番号{1,2,3,4,5,6}・ADR 0021）。38列目の表示文字列は「１．なし　２．Ⅰ　３．Ⅱ　４．Ⅲ　５．Ⅳ　６．Ⅴ」（Task 11 fix round 1・2026-07-19検証、ADR 0028補記参照）。1=なし、2=(Ⅰ)、3=(Ⅱ)、4=(Ⅲ)、5=(Ⅳ)、6=(Ⅴ)は2025-03まで",
           "evidenceRole": "authoritative",
           "supports": [
             "conditions",
@@ -712,7 +712,7 @@
         {
           "documentId": "r6-capability-202406",
           "sha256": "d1edf9715b8c41660d6e4278ebd886861d0758c75109e4efc594f5d70f197c50",
-          "locator": "基本情報シート258行 福祉・介護職員等処遇改善加算（許可選択番号{1,2,3,4,5,6}・ADR 0021。1=なし、2=(Ⅰ)、3=(Ⅱ)、4=(Ⅲ)、5=(Ⅳ)、6=(Ⅴ)は2025-03まで）",
+          "locator": "基本情報シート258行 福祉・介護職員等処遇改善加算（許可選択番号{1,2,3,4,5,6}・ADR 0021）。38列目の表示文字列は「１．なし　２．Ⅰ　３．Ⅱ　４．Ⅲ　５．Ⅳ　６．Ⅴ」（Task 11 fix round 1・2026-07-19検証、ADR 0028補記参照）。1=なし、2=(Ⅰ)、3=(Ⅱ)、4=(Ⅲ)、5=(Ⅳ)、6=(Ⅴ)は2025-03まで",
           "evidenceRole": "authoritative",
           "supports": [
             "conditions",
@@ -741,7 +741,7 @@
         {
           "documentId": "r6-capability-202406",
           "sha256": "d1edf9715b8c41660d6e4278ebd886861d0758c75109e4efc594f5d70f197c50",
-          "locator": "基本情報シート258行 福祉・介護職員等処遇改善加算（許可選択番号{1,2,3,4,5,6}・ADR 0021。1=なし、2=(Ⅰ)、3=(Ⅱ)、4=(Ⅲ)、5=(Ⅳ)、6=(Ⅴ)は2025-03まで）",
+          "locator": "基本情報シート258行 福祉・介護職員等処遇改善加算（許可選択番号{1,2,3,4,5,6}・ADR 0021）。38列目の表示文字列は「１．なし　２．Ⅰ　３．Ⅱ　４．Ⅲ　５．Ⅳ　６．Ⅴ」（Task 11 fix round 1・2026-07-19検証、ADR 0028補記参照）。1=なし、2=(Ⅰ)、3=(Ⅱ)、4=(Ⅲ)、5=(Ⅳ)、6=(Ⅴ)は2025-03まで",
           "evidenceRole": "authoritative",
           "supports": [
             "conditions",

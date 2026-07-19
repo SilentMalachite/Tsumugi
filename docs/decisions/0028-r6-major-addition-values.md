@@ -207,3 +207,14 @@ ADR 0025の割合加減算source row契約に従い、全行とも `PercentageOf
 - `ClaimCalculator` の加算明細は、固定単位行を `UnitsPerCountAmount`（`claim.step.units.multiply-count.v1`・丸めなし）、%行を `PercentageOfTargetAmount`（`MonthlyTargetUnitSum`・`claim.step.units.monthly-target.percentage.v1`・`claim.rounding.units.half-up.v1`）で実装する。決定6の3ケースをgolden caseとして固定する。
 - 決定5のgap 3点（同一敷地内送迎の判別、利用開始日、欠席時対応の構造化記録）は、実装dispatchがseedで補わずreadiness gate／入力UIで顕在化させる。
 - 再検証手順: `sources.json` の各URLを取得し `shasum -a 256` が登録値と一致することを確認した上で、(1) `r6-service-codes-2-xlsx` シート `18就労継続支援(B・基本)` の決定3・4記載行の48列目と `r6-service-codes-2-pdf` pp.257-259を突合、(2) `r6-fee-notice` pp.146-152（第1条表・左欄）とpp.235-238（第2条表・左欄）の率・単位数を2方式で抽出して照合、(3) `current-fee-notice-html` の第14の該当項番号の条文値を照合、(4) `r8-service-codes-2-xlsx` の決定3記載行で同一コード・同一単位数を確認する。ハッシュ不一致時は値を使わず `docs/open-questions.md` に起票して停止する（ADR 0020）。
+
+## 補記（2026-07-19・Task 11 fix round 1）
+
+コードレビュー指摘（Finding 2）を受け、決定3の福祉専門職員配置等加算と決定4の統一処遇改善加算について、`service-codes.json` の`conditionDefinitions`が体制届の選択番号→区分（Ⅰ〜Ⅴ）をどう対応付けるかを、ADR 0021本文（205行・223行）は許可選択肢の**集合**（`welfare-professional-staffing`は`{1,3,4,5}`、`treatment-improvement`は`{1,2,3,4,5,6}`）しか確定しておらず、番号と区分の対応そのものは確定していなかった。これを一次資料で直接検証した。
+
+- **検証資料**: `r6-capability-202404.xlsx`（sha256 `fa24cd44e8...`）・`r6-capability-202406.xlsx`（sha256 `d1edf9715b...`）・`r8-capability-202606.xlsx`（sha256 `84ff0b3b34...`）を再取得し、`shasum -a 256` が `sources.json` 登録値と全て一致することを確認してから、シート「介護給付費等　体制等状況一覧」（r8は「別紙１-１」）を読んだ。追加取得・登録は行っていない（既存sources.jsonの値のまま）。
+- **福祉専門職員配置等加算（wps）**: 281行（r6-04）・248行（r6-06）・250行（r8-06）の3版とも38列目（32列目のラベルは「福祉専門職員配置等」）の表示文字列は `１．なし　３．Ⅱ　４．Ⅲ　５．Ⅰ` で一致した。**決定3の元locator「1=なし、3=加算(Ⅰ)、4=加算(Ⅱ)、5=加算(Ⅲ)」はこの文字列と矛盾する**（正しくは3=Ⅱ、4=Ⅲ、5=Ⅰ）。単位数・サービスコードの対応（466037=Ⅰ=15単位、466035=Ⅱ=10単位、466036=Ⅲ=6単位）自体は決定3表のとおり正しく、誤っていたのはOfficeCapability条件が要求する選択番号の側だけである。`service-codes.json`の`capability-welfare-professional-staffing-i/ii/iii`の`value`を検証結果に合わせて訂正した（i: `.3`→`.5`、ii: `.4`→`.3`、iii: `.5`→`.4`）。連動して`ClaimPreviewProductionWiringTests.cs`の実seed経由テストも `.3`→`.5` に更新した（`ClaimCalculatorGoldenCaseTests.cs`のwps関連token値は自己完結した合成マスタ固有のものでありADR/seedの値と無関係のため変更していない）。
+- **福祉・介護職員等処遇改善加算（treatment-improvement）**: 258行（r6-06、32列目ラベル「福祉・介護職員等処遇改善加算対象」）の38列目の表示文字列は `１．なし　２．Ⅰ　３．Ⅱ　４．Ⅲ　５．Ⅳ　６．Ⅴ` — 決定4・seedの「2=Ⅰ、3=Ⅱ、4=Ⅲ、5=Ⅳ」と完全一致した。**確認済み**、seedの`value`は変更していない。両family（wps 3行・treatment-improvement 4行）の`conditionDefinitions`のlocatorに、検証済みの表示文字列と本補記への参照を追記した。
+- 再検証者: Claude Code（Task 11 fix round 1、2026-07-19）。
+
+**CalculationOrder捕捉（Minor 3）**: 決定4の統一処遇改善(Ⅰ)〜(Ⅳ)は本文で「相互排他ゆえorder=1」と書いたが、実装seedはcalculationOrder 1〜4を採番している。ADR 0025の同一targetSelector内一意連番検証が`[1,1,1,1]`を拒否するための実装上の必要であり、one-hot体制排他により同時算定は構造上不可能なため、算定結果は本ADRの意図と同値である（percentage行同士は互いのtargetSelectorに入らないため非複利＝適用順に依存しない。詳細はTask 11実装レポート「ADRとの差分・判断」1項）。
