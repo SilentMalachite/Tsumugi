@@ -292,6 +292,47 @@ public sealed class ClaimCalculatorAdditionTests
             .Which.Code.Should().Be(ClaimCalculationErrorCode.InvalidInput);
     }
 
+    [Theory]
+    [InlineData(2, 94 * 2)]
+    [InlineData(4, 94 * 4)]
+    [InlineData(6, 94 * 4)] // 月4回を上限にcap（上限値はマスタ行のMonthlyCountCapのみが運ぶ）
+    public void Absence_response_count_is_capped_by_the_master_monthly_count_cap(
+        int absenceSupportCount, int expectedUnits)
+    {
+        // 欠席時対応加算型（ADR 0028決定3: 1回につき・月4回限度・体制届出不要）。
+        var amount = new UnitsPerCountAmount(94, "count-absence", MonthlyCountCap: 4);
+        var masters = Masters() with
+        {
+            UnitAdjustments = [Adjustment("adj-absence", amount, BillingUnit.PerUse)],
+            ServiceCodes =
+            [
+                Masters().ServiceCodes[0],
+                AdditionService(
+                    "svc-absence", "610501", "欠席時対応", "adj-absence", amount, BillingUnit.PerUse,
+                    ["cond-system-b"]),
+            ],
+        };
+        var request = new ClaimCalculationRequest(
+            Month,
+            Context([]),
+            "region-x",
+            "b-type",
+            [
+                new RecipientClaimSource(
+                    RecipientA, 20, 90, SyntheticCapYen, AbsenceSupportCount: absenceSupportCount),
+            ],
+            new Dictionary<string, ClaimCountMetric>(StringComparer.Ordinal)
+            {
+                ["count-absence"] = ClaimCountMetric.AbsenceSupport,
+            });
+
+        var result = ClaimCalculator.Calculate(masters, request);
+
+        result.Details.Should().ContainSingle()
+            .Which.AdditionLines.Should().ContainSingle()
+            .Which.Units.Should().Be(expectedUnits);
+    }
+
     [Fact]
     public void Negative_addition_counts_are_rejected()
     {
