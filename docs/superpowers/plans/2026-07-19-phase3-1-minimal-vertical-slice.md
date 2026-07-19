@@ -1029,11 +1029,11 @@ git commit -m "feat(phase3-1): calculate, close, cancel, query claim use cases (
 - Consumes: `CalculateClaimUseCase` / `CloseClaimUseCase` / `CancelClaimUseCase` / `QueryClaimUseCase`（Task 9）、`ListOfficesUseCase`（既存）、`IAppNavigationService` / `NavigationRequest`（既存）
 - Produces: `ClaimPreparationViewModel`（`ObservableProperty`: 選択Office・対象月・`ClaimPreviewDto? Preview`・Issues・履歴、`RelayCommand`: `PreviewAsync` / `CloseAsync` / `CancelAsync`）。確定は成功時に履歴を再読込。エラーは型付き例外をcatchしてユーザー向けメッセージへ（個人情報・フルパスを含めない）
 
-- [ ] **Step 1: 失敗するViewModelテストを書く**
+- [x] **Step 1: 失敗するViewModelテストを書く**
 
 主要ケース: (a) PreviewAsyncがUseCaseを呼びPreview/Issuesを公開、(b) IsReady=falseでCloseコマンドが実行不可、(c) CloseAsync成功でQueryが再実行される、(d) 例外時にErrorMessageが設定されPreviewは保持。UseCaseはコンストラクタ注入のフェイク（既存 `ClaimInputViewModel` テストの流儀に合わせる）。
 
-- [ ] **Step 2: 失敗確認 → 実装（VM/View/配線）→ 成功確認**
+- [x] **Step 2: 失敗確認 → 実装（VM/View/配線）→ 成功確認**
 
 - `MainViewModel.DispatchAsync` の `AppSection.ClaimPreparation` 短絡（`NavigationTargetUnavailable` 返却）を削除し、他セクションと同じVM委譲へ
 - `MainWindow.axaml` の請求入力タブの直後に追加:
@@ -1048,7 +1048,7 @@ git commit -m "feat(phase3-1): calculate, close, cancel, query claim use cases (
 
 Run: `dotnet test tests/Tsumugi.App.Tests --filter ClaimPreparationViewModel -v minimal` → PASS
 
-- [ ] **Step 3: 手動貫通確認 → コミット**
+- [x] **Step 3: 手動貫通確認 → コミット**（自動起動確認＋VMテストで代替。GUI手動確認はユーザー実施推奨）
 
 Run: `dotnet run --project src/Tsumugi.App`
 確認: 記録済みデータのある月でプレビュー→明細表示→確定→履歴に revision 1 が出る→取下げ→履歴に Cancel が出る。
