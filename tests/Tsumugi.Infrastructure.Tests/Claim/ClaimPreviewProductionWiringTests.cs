@@ -101,6 +101,37 @@ public sealed class ClaimPreviewProductionWiringTests
     }
 
     [Fact]
+    public async Task Real_production_wiring_bills_a_seeded_addition_when_the_capability_is_held()
+    {
+        // Task 11: 実seed（additions.json / service-codes.json / ADR 0028）と実provider経由で、
+        // 体制届（ADR 0021の正式one-hotキー）を持つ事業所に福祉専門職員配置等加算(Ⅰ)
+        // （466037、15単位/日）が加算されることを検証する。体制届が無い上のReadyテストは
+        // 基本報酬のみ（totalsが変わらないこと）の対照実験になっている。
+        var capability = OfficeCapability.Create(
+            Guid.NewGuid(),
+            OfficeId,
+            new DateRange(new DateOnly(2024, 4, 1), null),
+            new Dictionary<string, bool>
+            {
+                ["mhlw.b46.capability.welfare-professional-staffing.3"] = true,
+            },
+            "tester",
+            Now,
+            Guid.NewGuid());
+        var useCase = CreateUseCase(
+            BuildSnapshot(staffingKey: "staff-6-1", officeCapabilities: [capability]),
+            new EmptyRequirementProvider());
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeTrue();
+        dto.Issues.Should().BeEmpty();
+        var detail = dto.Details.Should().ContainSingle().Subject;
+        detail.TotalUnits.Should().Be((ExpectedBaseUnitsPerDay + 15) * BilledDays);
+    }
+
+    [Fact]
     public async Task Real_production_wiring_flips_to_not_ready_when_staffing_key_is_blank()
     {
         // 対照実験: staffingKeyだけを空にする。実OfficeClaimBillingTokenProviderが本当に
@@ -183,7 +214,8 @@ public sealed class ClaimPreviewProductionWiringTests
 
     private static ClaimCalculationSnapshot BuildSnapshot(
         string? staffingKey,
-        string? certificateMunicipalityNumber = "131000")
+        string? certificateMunicipalityNumber = "131000",
+        IReadOnlyList<OfficeCapability>? officeCapabilities = null)
     {
         var profileId = Guid.NewGuid();
         var profile = new OfficeClaimProfile
@@ -327,7 +359,8 @@ public sealed class ClaimPreviewProductionWiringTests
             new Dictionary<Guid, Certificate> { [RecipientId] = certificate },
             new Dictionary<Guid, ContractedProvider> { [RecipientId] = contractedProvider },
             new Dictionary<Guid, ClaimDailyRecordAggregate> { [RecipientId] = dailyRecordAggregate },
-            new Dictionary<Guid, DateOnly> { [RecipientId] = new DateOnly(2025, 1, 6) });
+            new Dictionary<Guid, DateOnly> { [RecipientId] = new DateOnly(2025, 1, 6) },
+            officeCapabilities);
     }
 
     /// <summary>
