@@ -1095,7 +1095,7 @@ git commit -m "feat(phase3-1): claim preparation screen with preview and close (
 - Consumes: ADR 0022（`PaymentBurdenCategory` と月額上限）、`BurdenCapMasterRow`、`ClaimInput.UpperLimitManagementResult` / `UpperLimitManagedAmountYen`、`CertificateClaimEvidence.MonthlyCostCap`（既存）
 - Produces: `RecipientClaimSource` に `string BurdenCategory` と `UpperLimitManagementResult? UpperLimitResult` / `int? UpperLimitManagedAmountYen` を追加。負担額 = min(法定負担, 区分上限capYen, 証記載上限, 上限管理結果額)。**不変条件テスト: 負担 ≦ 証記載上限 ≦ 法定上限**、Σ明細=合計
 
-- [ ] **Step 1〜4: TDD（Red→Green→golden case→コミット）**
+- [x] **Step 1〜4: TDD（Red→Green→golden case→コミット）**
 
 Run: `dotnet test tests/Tsumugi.Domain.Tests --filter ClaimCalculatorBurden -v minimal`
 
