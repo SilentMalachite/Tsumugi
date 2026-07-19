@@ -124,6 +124,32 @@ public sealed class QueryClaimInputWorkspaceUseCaseTests
     }
 
     [Fact]
+    public async Task Execute_exposes_the_official_average_wage_month_only_for_complete_evidence()
+    {
+        // Task 13 (ADR 0023): Complete実績には正式式の平均工賃月額を付す
+        // （1,200,000円 ÷ (120人日 ÷ 240日 = 0.5人) ÷ 12 = 200,000円）。区分（band）導出は
+        // PaymentBand数値境界マスタ未実装のため行わない（docs/open-questions.mdへ起票済み。
+        // 宣言済みOfficeClaimProfile.AverageWageBandOptionが引き続き入力の正）。
+        var repositories = new WorkspaceRepositories();
+        var wageRoot = Guid.NewGuid();
+        var cancelId = Guid.NewGuid();
+        repositories.AverageWage.Items.AddRange([
+            AverageWageRevision(wageRoot, wageRoot, 1, RecordKind.New, null),
+            AverageWageRevision(cancelId, wageRoot, 2, RecordKind.Cancel, wageRoot),
+        ]);
+
+        var result = await CreateSut(repositories).ExecuteAsync(ValidRequest(), default);
+
+        result.AverageWageAnnualEvidenceChain.Should().NotBeNull();
+        var revisions = result.AverageWageAnnualEvidenceChain!.Revisions;
+        revisions.Should().HaveCount(2);
+        revisions[0].ComputedAverageWageMonthYen.Should().Be(
+            200_000, "Complete実績はADR 0023正式式の算出額を提示する");
+        revisions[1].ComputedAverageWageMonthYen.Should().BeNull(
+            "取消revisionは実績値を持たず、算出額を推測しない");
+    }
+
+    [Fact]
     public async Task Execute_rejects_multiple_average_wage_roots_with_sanitized_error()
     {
         var repositories = new WorkspaceRepositories();

@@ -51,6 +51,14 @@ public sealed record ClaimInputQueryRevisionDto(
     DateTimeOffset CreatedAt,
     string CreatedBy);
 
+/// <param name="ComputedAverageWageMonthYen">
+/// ADR 0023の正式式（<c>AverageWageFormula</c>）で当該revisionの確認済み実績から算出した
+/// 平均工賃月額（円）。<c>Completeness=Complete</c>かつ3入力が有効な場合だけ値を持ち、
+/// それ以外（取消revision・実績不完全）は<c>null</c>（Task 13）。
+/// 区分（band option）の導出は行わない: 数値境界（PaymentBandマスタ）が未実装のため、
+/// 導出はdocs/open-questions.mdへ起票のうえ保留し、宣言済み
+/// <c>OfficeClaimProfile.AverageWageBandOption</c>が引き続き入力の正となる。
+/// </param>
 public sealed record AverageWageAnnualEvidenceQueryRevisionDto(
     Guid Id,
     Guid OfficeId,
@@ -72,7 +80,8 @@ public sealed record AverageWageAnnualEvidenceQueryRevisionDto(
     string? ConfirmedBy,
     string? ConfirmationReason,
     DateTimeOffset CreatedAt,
-    string CreatedBy);
+    string CreatedBy,
+    int? ComputedAverageWageMonthYen);
 
 public sealed record OfficeClaimProfileQueryRevisionDto(
     Guid Id,

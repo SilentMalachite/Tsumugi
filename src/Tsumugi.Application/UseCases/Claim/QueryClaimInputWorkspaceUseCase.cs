@@ -3,6 +3,7 @@ using Tsumugi.Application.Dtos;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic.Claim;
+using Tsumugi.Domain.Logic.Claim.Models;
 
 namespace Tsumugi.Application.UseCases.Claim;
 
@@ -233,7 +234,30 @@ public sealed class QueryClaimInputWorkspaceUseCase(
             item.ConfirmedBy,
             item.ConfirmationReason,
             item.CreatedAt,
-            item.CreatedBy);
+            item.CreatedBy,
+            ComputedAverageWageMonthYen(item));
+
+    /// <summary>
+    /// Task 13 (ADR 0023): 確認済み（<c>Complete</c>）の前年度実績revisionにだけ正式式の
+    /// 平均工賃月額を付す。実績が不完全・取消のときは推測せず<c>null</c>。区分導出は
+    /// PaymentBand数値境界マスタが未実装のため行わない（docs/open-questions.md）。
+    /// </summary>
+    private static int? ComputedAverageWageMonthYen(AverageWageAnnualEvidence item)
+    {
+        if (item.Completeness != FiscalYearCompleteness.Complete
+            || item.AnnualWagePaidYen is not { } annualWagePaidYen
+            || item.AnnualExtendedUsers is not { } annualExtendedUsers
+            || item.AnnualOpeningDays is not { } annualOpeningDays
+            || annualWagePaidYen < 0
+            || annualExtendedUsers <= 0
+            || annualOpeningDays <= 0)
+        {
+            return null;
+        }
+
+        return AverageWageFormula.Calculate(
+            annualWagePaidYen, annualExtendedUsers, annualOpeningDays);
+    }
 
     private static OfficeClaimProfileQueryRevisionDto Map(OfficeClaimProfile item) =>
         new(
