@@ -1074,11 +1074,11 @@ git commit -m "feat(phase3-1): claim preparation screen with preview and close (
 - Consumes: ADR 0027の様式・Task 3のseed形式・`UnitAdjustmentMasterRow` / `FixedUnitsAmount` / `UnitsPerCountAmount` / `PercentageOfTargetAmount`（Domain既存）
 - Produces: `RecipientClaimSource` へ加算算定に必要な実績値を追加（例: `int TransportCount`（送迎回数）、`int AbsenceResponseCount`（欠席時対応回数）、`bool MealProvided…` 等 — **確定フィールドはADR 0028の加算リスト確定後に決める**が、値はすべてsnapshot経由の入力実績で、推測しない）。`ClaimCalculator` が加算明細行（serviceCodeごと）を `RecipientClaimResult` に追加
 
-- [ ] **Step 1: ADR 0028を作成（Task 2 Step 1〜3と同じ手順）**
+- [x] **Step 1: ADR 0028を作成（Task 2 Step 1〜3と同じ手順）**
 
 候補（specの§3.1-3）: 送迎加算、欠席時対応加算、食事提供体制加算（ADR 0020済）、目標工賃達成指導員配置加算、福祉専門職員配置等加算、初期加算、処遇改善加算系。**一次資料から単位数・算定条件を一意に確定できたものだけ**をADRの決定表に載せ、確定できないものは open-questions に起票してスコープ外を明記。処遇改善加算系（%ベース）は `PercentageOfTargetAmount` の適用順（`CalculationOrder`）と丸めをADRで確定できた場合のみ含める。
 
-- [ ] **Step 2: 加算ごとにTDDで縦に足す**
+- [x] **Step 2: 加算ごとにTDDで縦に足す**
 
 加算1つずつ: 合成マスタテスト（Red）→ seed追記＋Calculator拡張（Green）→ golden case追加 → コミット（`feat(phase3-1): add <加算名> to claim calculation (task 11)`）。全加算の後に `dotnet test -v minimal` 全緑を確認。
 
