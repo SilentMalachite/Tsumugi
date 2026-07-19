@@ -1,5 +1,90 @@
 {
   "schemaVersion": "2",
   "masterKind": "burden-caps",
-  "entries": []
+  "entries": [
+    {
+      "key": "burden-cap.r6.welfare",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-disability-support-guide-202404",
+          "sha256": "3ead1b2d235ff15e6d0c71a129e7ef880e119272a00acd043e635aee8c637469",
+          "locator": "r6-disability-support-guide-202404 物理9頁（printed page 17）表 生活保護受給世帯 0円",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "burdenCategory": "welfare",
+        "capYen": 0
+      }
+    },
+    {
+      "key": "burden-cap.r6.low-income",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-disability-support-guide-202404",
+          "sha256": "3ead1b2d235ff15e6d0c71a129e7ef880e119272a00acd043e635aee8c637469",
+          "locator": "r6-disability-support-guide-202404 物理9頁（printed page 17）表 市町村民税非課税世帯 0円",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "burdenCategory": "low-income",
+        "capYen": 0
+      }
+    },
+    {
+      "key": "burden-cap.r6.general-1",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-disability-support-guide-202404",
+          "sha256": "3ead1b2d235ff15e6d0c71a129e7ef880e119272a00acd043e635aee8c637469",
+          "locator": "r6-disability-support-guide-202404 物理9頁（printed page 17）表 市町村民税課税世帯（所得割16万円未満。20歳以上の入所施設利用者・グループホーム利用者を除く）9,300円",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "burdenCategory": "general-1",
+        "capYen": 9300
+      }
+    },
+    {
+      "key": "burden-cap.r6.general-2",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-disability-support-guide-202404",
+          "sha256": "3ead1b2d235ff15e6d0c71a129e7ef880e119272a00acd043e635aee8c637469",
+          "locator": "r6-disability-support-guide-202404 物理9頁（printed page 17）表 上記以外（20歳以上の入所施設利用者・グループホーム利用者は市町村民税課税世帯なら該当）37,200円",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "burdenCategory": "general-2",
+        "capYen": 37200
+      }
+    }
+  ]
 }
