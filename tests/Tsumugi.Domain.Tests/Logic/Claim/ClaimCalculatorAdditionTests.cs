@@ -375,6 +375,129 @@ public sealed class ClaimCalculatorAdditionTests
             .Which.Units.Should().Be(7 * 36);
     }
 
+    private static ClaimCalculationMasterBundle MastersWithPercentage(
+        params (string Key, string Code, decimal Percentage, int Order)[] percentageRows)
+    {
+        // 基本行＋固定単位行（Ⅰ=15単位/日）にtargetトークンを付与し、%行は付与しない
+        // （%行自身は月次対象合計に含まない=複利にしない。ADR 0025/0028）。
+        var masters = Masters();
+        var baseRow = masters.ServiceCodes[0] with
+        {
+            Selectors = ["selector:svc-base", "tgt-a"],
+        };
+        var fixedRow = masters.ServiceCodes[1] with
+        {
+            Selectors = ["selector:svc-add-a1", "tgt-a"],
+        };
+        var adjustments = new List<UnitAdjustmentMasterRow>
+        {
+            masters.UnitAdjustments[0],
+        };
+        var services = new List<ServiceCodeMasterRow> { baseRow, fixedRow };
+        foreach (var (key, code, percentage, order) in percentageRows)
+        {
+            var amount = new PercentageOfTargetAmount(
+                percentage,
+                PercentageApplicationKind.Add,
+                PercentageBaseScope.MonthlyTargetUnitSum,
+                "tgt-a",
+                order);
+            adjustments.Add(new UnitAdjustmentMasterRow(
+                key, amount, "step-pct", "claim.rounding.units.half-up.v1", BillingUnit.PerMonth,
+                new ServiceMonth(2024, 4), null, [SourceRef()]));
+            services.Add(new ServiceCodeMasterRow(
+                $"svc-{key}", code, $"割合加算{code}", "b-type", [$"selector:svc-{key}"],
+                ["cond-system-b", "cond-cap-a1"],
+                new UnitAdditionRule(
+                    key, amount, "step-pct", "claim.rounding.units.half-up.v1", BillingUnit.PerMonth),
+                [new ClaimComponentRef(ClaimComponentMasterKind.Additions, key, ClaimComponentRole.Adjustment)],
+                new ServiceMonth(2024, 4), null, [SourceRef()]));
+        }
+
+        return masters with
+        {
+            UnitAdjustments = adjustments,
+            ServiceCodes = services,
+        };
+    }
+
+    [Fact]
+    public void Percentage_addition_applies_to_the_monthly_target_sum_with_half_up_rounding()
+    {
+        // 対象合計 = 基本 700×20 + 固定 15×20 = 14,300。9.3% = 1,329.9 → 半上げ → 1,330。
+        var masters = MastersWithPercentage(("adj-pct-a", "610901", 0.093m, 1));
+
+        var result = ClaimCalculator.Calculate(masters, Request([CapabilityWpsI]));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        detail.AdditionLines.Should().HaveCount(2);
+        detail.AdditionLines[^1].ServiceCode.Should().Be("610901");
+        detail.AdditionLines[^1].Units.Should().Be(1_330);
+        detail.TotalUnits.Should().Be(14_300 + 1_330);
+    }
+
+    [Fact]
+    public void Percentage_rows_do_not_compound_each_other()
+    {
+        // order=1と2の両行とも同一の対象合計14,300へ独立に加算する（%行同士は複利にしない）。
+        var masters = MastersWithPercentage(
+            ("adj-pct-a", "610901", 0.093m, 1),
+            ("adj-pct-b", "610902", 0.017m, 2));
+
+        var result = ClaimCalculator.Calculate(masters, Request([CapabilityWpsI]));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        // 14,300×0.093=1,329.9→1,330。14,300×0.017=243.1→243（複利なら243を超える）。
+        detail.AdditionLines.Select(line => line.Units).Should().ContainInOrder(1_330, 243);
+        detail.TotalUnits.Should().Be(14_300 + 1_330 + 243);
+    }
+
+    [Fact]
+    public void Duplicate_percentage_calculation_orders_fail_closed()
+    {
+        var masters = MastersWithPercentage(
+            ("adj-pct-a", "610901", 0.093m, 1),
+            ("adj-pct-b", "610902", 0.017m, 1));
+
+        var act = () => ClaimCalculator.Calculate(masters, Request([CapabilityWpsI]));
+
+        act.Should().Throw<ClaimCalculationException>()
+            .Which.Code.Should().Be(ClaimCalculationErrorCode.InvalidInput);
+    }
+
+    [Fact]
+    public void Percentage_addition_without_a_rounding_rule_fails_closed()
+    {
+        var masters = MastersWithPercentage(("adj-pct-a", "610901", 0.093m, 1));
+        var stripped = masters with
+        {
+            UnitAdjustments =
+            [
+                masters.UnitAdjustments[0],
+                masters.UnitAdjustments[1] with { RoundingRuleId = null },
+            ],
+            ServiceCodes =
+            [
+                masters.ServiceCodes[0],
+                masters.ServiceCodes[1],
+                masters.ServiceCodes[2] with
+                {
+                    UnitRule = new UnitAdditionRule(
+                        "adj-pct-a",
+                        masters.UnitAdjustments[1].Amount,
+                        "step-pct",
+                        null,
+                        BillingUnit.PerMonth),
+                },
+            ],
+        };
+
+        var act = () => ClaimCalculator.Calculate(stripped, Request([CapabilityWpsI]));
+
+        act.Should().Throw<ClaimCalculationException>()
+            .Which.Code.Should().Be(ClaimCalculationErrorCode.RoundingRuleUnavailable);
+    }
+
     [Fact]
     public void Negative_addition_counts_are_rejected()
     {

@@ -78,6 +78,23 @@ internal static class ExternalSpecificationLiteralGuard
             ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 266, "10"),
         ];
 
+    /// <summary>
+    /// NOT coincidences: rounding-rule ids are the Domain rule engine's own vocabulary
+    /// (ADR 0025 fixes the algorithm per stable roundingRuleId; <c>ClaimRoundingRules</c> must
+    /// spell the id it implements, and the Task 13 protected-facility closed contract pins the
+    /// same id). Once addition seeds (Task 11, ADR 0028) declare
+    /// <c>claim.rounding.units.half-up.v1</c> as a row value, the id exists on both sides by
+    /// design. The exemption is still pinned to exact (path, line, literal) so any new spelling
+    /// of the id elsewhere in Domain/Application re-triggers the guard.
+    /// </summary>
+    private static readonly (string RelativePath, int LineNumber, string Literal)[]
+        SharedRoundingRuleIdentifierMatches =
+        [
+            ("src/Tsumugi.Domain/Logic/Claim/ClaimRoundingRules.cs", 16, "claim.rounding.units.half-up.v1"),
+            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 270, "claim.rounding.units.half-up.v1"),
+            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 282, "claim.rounding.units.half-up.v1"),
+        ];
+
     public static IReadOnlyList<Violation> ScanProduction()
     {
         var solutionRoot = TsumugiAssemblyLocator.FindSolutionRoot();
@@ -582,6 +599,9 @@ internal static class ExternalSpecificationLiteralGuard
         string literal) =>
         Array.IndexOf(
             KnownCoincidentalLiteralMatches,
+            (relativePath, lineNumber, literal)) >= 0
+        || Array.IndexOf(
+            SharedRoundingRuleIdentifierMatches,
             (relativePath, lineNumber, literal)) >= 0;
 
     private static void AddLiteralViolations(

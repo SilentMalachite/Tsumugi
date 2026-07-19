@@ -173,6 +173,58 @@ public sealed class ClaimCalculatorGoldenCaseTests
     }
 
     /// <summary>
+    /// ADR 0028決定6 ケースB: ケースA＋統一 福祉・介護職員等処遇改善加算(Ⅰ)（2024-06以降の月）。
+    /// 月次対象単位合計（target.b46.items-1-to-16-4.v1）= 15,972（%行自身は含まない）。
+    /// 処遇改善(Ⅰ) 15,972×93/1000=1,485.396 → claim.rounding.units.half-up.v1 → 1,485単位。
+    /// 最終給付単位数 17,457。総費用額 17,457×10.91=190,455.87→190,455円、
+    /// 1割相当 19,045円、給付費 171,410円。
+    /// </summary>
+    [Fact]
+    public void Matches_adr_0028_worked_example_b_unified_treatment_improvement()
+    {
+        var context = new ClaimBillingConditionContext(
+            RewardSystem: "b-type",
+            PaymentBand: "band-20000-25000",
+            CapacityHeadcount: 20,
+            StaffingKey: "staff-7.5-1",
+            AverageWageBandOption: new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 5),
+            R8ReformStatus: R8ReformStatus.NotApplicableBeforeR8,
+            OfficeCapabilityKeys:
+            [
+                "mhlw.b46.capability.welfare-professional-staffing.3",
+                "mhlw.b46.capability.meal-provision-system.2",
+                "mhlw.b46.capability.transport-system.3",
+                "mhlw.b46.capability.treatment-improvement.2",
+            ]);
+
+        var result = ClaimCalculator.Calculate(Masters(), new ClaimCalculationRequest(
+            Month, context, "region-grade-2", "b-type",
+            [
+                new RecipientClaimSource(
+                    RecipientA, BilledDays: 22, BenefitRatePercent: 90,
+                    CertificateMonthlyCapYen: UnboundedSyntheticCapYen,
+                    AbsenceSupportCount: 2,
+                    MealProvidedDays: 20,
+                    TransportOneWayCount: 40),
+            ],
+            CountSelectorBindings));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        detail.AdditionLines.Select(line => (line.ServiceCode, line.Units)).Should().BeEquivalentTo(
+        [
+            ("466037", 330),
+            ("465070", 600),
+            ("466590", 840),
+            ("466040", 188),
+            ("465120", 1_485),
+        ]);
+        detail.TotalUnits.Should().Be(17_457);
+        detail.TotalCostYen.Should().Be(190_455);
+        detail.BurdenYen.Should().Be(19_045);
+        detail.BenefitYen.Should().Be(171_410);
+    }
+
+    /// <summary>
     /// ADR 0028決定6 ケースC: ADR 0027ケース2＋定員連動・初期・同一敷地送迎
     /// （cap-20-or-less × band-under-10000 × staff-10-1 × region-other、2025-04）。
     /// 基本 490×20=9,800 ＋ 目標工賃達成指導員（定員20人以下）45×20=900 ＋ 初期 30×10=300 ＋
@@ -296,6 +348,14 @@ public sealed class ClaimCalculatorGoldenCaseTests
     private static readonly UnitsPerCountAmount InitialAddition =
         new(30, "count.b46.initial-period-service-days.v1");
 
+    // ADR 0028決定4.1: 統一 福祉・介護職員等処遇改善加算(Ⅰ)（2024-06-01〜2026-05-31、率93/1000）。
+    private static readonly PercentageOfTargetAmount UnifiedTreatmentImprovementI = new(
+        0.093m,
+        PercentageApplicationKind.Add,
+        PercentageBaseScope.MonthlyTargetUnitSum,
+        MonthlyTargetSelector,
+        CalculationOrder: 1);
+
     private static RegionUnitPriceMasterRow RegionUnitPrice(string regionKey, decimal unitPriceYen) => new(
         $"price-{regionKey}", regionKey, "b-type", unitPriceYen, new ServiceMonth(2024, 4), null, [SourceRef()]);
 
@@ -318,6 +378,15 @@ public sealed class ClaimCalculatorGoldenCaseTests
             Adjustment("addition.absence-response", AbsenceResponse, BillingUnit.PerUse),
             Adjustment("addition.target-wage-instructor.cap-20-or-less", TargetWageInstructorCap20, BillingUnit.PerDay),
             Adjustment("addition.initial", InitialAddition, BillingUnit.PerDay),
+            new UnitAdjustmentMasterRow(
+                "addition.treatment-improvement.unified.i",
+                UnifiedTreatmentImprovementI,
+                "claim.step.units.monthly-target.percentage.v1",
+                "claim.rounding.units.half-up.v1",
+                BillingUnit.PerMonth,
+                new ServiceMonth(2024, 6),
+                new ServiceMonth(2026, 5),
+                [SourceRef()]),
         ],
         RegionUnitPrices:
         [
@@ -371,6 +440,26 @@ public sealed class ClaimCalculatorGoldenCaseTests
                 "sc-465050", "465050", "初期加算",
                 "addition.initial", InitialAddition, BillingUnit.PerDay,
                 ["cond-system-b"]),
+            // %行はSelectorsにMonthlyTargetSelectorを載せない（%行自身は対象合計に含まない）。
+            new ServiceCodeMasterRow(
+                "sc-465120", "465120", "福祉・介護職員等処遇改善加算(Ⅰ)", "b-type",
+                ["selector:sc-465120"],
+                ["cond-system-b", "cond-cap-treatment-i"],
+                new UnitAdditionRule(
+                    "addition.treatment-improvement.unified.i",
+                    UnifiedTreatmentImprovementI,
+                    "claim.step.units.monthly-target.percentage.v1",
+                    "claim.rounding.units.half-up.v1",
+                    BillingUnit.PerMonth),
+                [
+                    new ClaimComponentRef(
+                        ClaimComponentMasterKind.Additions,
+                        "addition.treatment-improvement.unified.i",
+                        ClaimComponentRole.Adjustment),
+                ],
+                new ServiceMonth(2024, 6),
+                new ServiceMonth(2026, 5),
+                [SourceRef()]),
         ],
         ConditionDefinitions:
         [
@@ -389,6 +478,9 @@ public sealed class ClaimCalculatorGoldenCaseTests
             ConditionDefinition(
                 "cond-cap-twi", ClaimConditionKind.OfficeCapability, ClaimConditionOperator.Equals,
                 new ClaimConditionTokenOperand("mhlw.b46.capability.target-wage-instructor.2")),
+            ConditionDefinition(
+                "cond-cap-treatment-i", ClaimConditionKind.OfficeCapability, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand("mhlw.b46.capability.treatment-improvement.2")),
             ConditionDefinition(
                 "cond-system-b", ClaimConditionKind.RewardSystem, ClaimConditionOperator.Equals,
                 new ClaimConditionTokenOperand("b-type")),

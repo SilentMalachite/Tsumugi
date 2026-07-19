@@ -756,6 +756,242 @@
         "roundingRuleId": null,
         "billingUnit": "per-use"
       }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.i",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2026-05",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.235（第2条表・左欄改正後 第14の17）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1061",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.093",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 1
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.ii",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2026-05",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.236（第2条表・左欄改正後 第14の17）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1063",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.091",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 2
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.iii",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2026-05",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.236（第2条表・左欄改正後 第14の17）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1065",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.076",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 3
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.iv",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2026-05",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.236（第2条表・左欄改正後 第14の17）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1067",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.062",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 4
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
     }
   ]
 }

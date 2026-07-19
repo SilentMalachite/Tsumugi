@@ -642,6 +642,122 @@
           ]
         }
       ]
+    },
+    {
+      "key": "capability-treatment-improvement-i",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2026-05",
+      "kind": "office-capability",
+      "operator": "equals",
+      "value": "mhlw.b46.capability.treatment-improvement.2",
+      "sourceRefs": [
+        {
+          "documentId": "r6-capability-202406",
+          "sha256": "d1edf9715b8c41660d6e4278ebd886861d0758c75109e4efc594f5d70f197c50",
+          "locator": "基本情報シート258行 福祉・介護職員等処遇改善加算（許可選択番号{1,2,3,4,5,6}・ADR 0021。1=なし、2=(Ⅰ)、3=(Ⅱ)、4=(Ⅲ)、5=(Ⅳ)、6=(Ⅴ)は2025-03まで）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.235（第2条表・左欄 第14の17 区分）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "capability-treatment-improvement-ii",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2026-05",
+      "kind": "office-capability",
+      "operator": "equals",
+      "value": "mhlw.b46.capability.treatment-improvement.3",
+      "sourceRefs": [
+        {
+          "documentId": "r6-capability-202406",
+          "sha256": "d1edf9715b8c41660d6e4278ebd886861d0758c75109e4efc594f5d70f197c50",
+          "locator": "基本情報シート258行 福祉・介護職員等処遇改善加算（許可選択番号{1,2,3,4,5,6}・ADR 0021。1=なし、2=(Ⅰ)、3=(Ⅱ)、4=(Ⅲ)、5=(Ⅳ)、6=(Ⅴ)は2025-03まで）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.236（第2条表・左欄 第14の17 区分）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "capability-treatment-improvement-iii",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2026-05",
+      "kind": "office-capability",
+      "operator": "equals",
+      "value": "mhlw.b46.capability.treatment-improvement.4",
+      "sourceRefs": [
+        {
+          "documentId": "r6-capability-202406",
+          "sha256": "d1edf9715b8c41660d6e4278ebd886861d0758c75109e4efc594f5d70f197c50",
+          "locator": "基本情報シート258行 福祉・介護職員等処遇改善加算（許可選択番号{1,2,3,4,5,6}・ADR 0021。1=なし、2=(Ⅰ)、3=(Ⅱ)、4=(Ⅲ)、5=(Ⅳ)、6=(Ⅴ)は2025-03まで）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.236（第2条表・左欄 第14の17 区分）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "capability-treatment-improvement-iv",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2026-05",
+      "kind": "office-capability",
+      "operator": "equals",
+      "value": "mhlw.b46.capability.treatment-improvement.5",
+      "sourceRefs": [
+        {
+          "documentId": "r6-capability-202406",
+          "sha256": "d1edf9715b8c41660d6e4278ebd886861d0758c75109e4efc594f5d70f197c50",
+          "locator": "基本情報シート258行 福祉・介護職員等処遇改善加算（許可選択番号{1,2,3,4,5,6}・ADR 0021。1=なし、2=(Ⅰ)、3=(Ⅱ)、4=(Ⅲ)、5=(Ⅳ)、6=(Ⅴ)は2025-03まで）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.236（第2条表・左欄 第14の17 区分）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
     }
   ],
   "entries": [
@@ -671,7 +787,8 @@
         "officialLabel": "就継ＢⅠ１１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-45000-plus.staff-6-1"
+          "selector:b-service.r6.cap-20-or-less.band-45000-plus.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -722,7 +839,8 @@
         "officialLabel": "就継ＢⅠ１２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-35000-45000.staff-6-1"
+          "selector:b-service.r6.cap-20-or-less.band-35000-45000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -773,7 +891,8 @@
         "officialLabel": "就継ＢⅠ１３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-30000-35000.staff-6-1"
+          "selector:b-service.r6.cap-20-or-less.band-30000-35000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -824,7 +943,8 @@
         "officialLabel": "就継ＢⅠ１４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-25000-30000.staff-6-1"
+          "selector:b-service.r6.cap-20-or-less.band-25000-30000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -875,7 +995,8 @@
         "officialLabel": "就継ＢⅠ１５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-20000-25000.staff-6-1"
+          "selector:b-service.r6.cap-20-or-less.band-20000-25000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -926,7 +1047,8 @@
         "officialLabel": "就継ＢⅠ１６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-15000-20000.staff-6-1"
+          "selector:b-service.r6.cap-20-or-less.band-15000-20000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -977,7 +1099,8 @@
         "officialLabel": "就継ＢⅠ１７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-10000-15000.staff-6-1"
+          "selector:b-service.r6.cap-20-or-less.band-10000-15000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1028,7 +1151,8 @@
         "officialLabel": "就継ＢⅠ１８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-under-10000.staff-6-1"
+          "selector:b-service.r6.cap-20-or-less.band-under-10000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1079,7 +1203,8 @@
         "officialLabel": "就継ＢⅠ２１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-45000-plus.staff-6-1"
+          "selector:b-service.r6.cap-21-40.band-45000-plus.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1131,7 +1256,8 @@
         "officialLabel": "就継ＢⅠ２２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-35000-45000.staff-6-1"
+          "selector:b-service.r6.cap-21-40.band-35000-45000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1183,7 +1309,8 @@
         "officialLabel": "就継ＢⅠ２３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-30000-35000.staff-6-1"
+          "selector:b-service.r6.cap-21-40.band-30000-35000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1235,7 +1362,8 @@
         "officialLabel": "就継ＢⅠ２４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-25000-30000.staff-6-1"
+          "selector:b-service.r6.cap-21-40.band-25000-30000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1287,7 +1415,8 @@
         "officialLabel": "就継ＢⅠ２５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-20000-25000.staff-6-1"
+          "selector:b-service.r6.cap-21-40.band-20000-25000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1339,7 +1468,8 @@
         "officialLabel": "就継ＢⅠ２６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-15000-20000.staff-6-1"
+          "selector:b-service.r6.cap-21-40.band-15000-20000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1391,7 +1521,8 @@
         "officialLabel": "就継ＢⅠ２７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-10000-15000.staff-6-1"
+          "selector:b-service.r6.cap-21-40.band-10000-15000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1443,7 +1574,8 @@
         "officialLabel": "就継ＢⅠ２８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-under-10000.staff-6-1"
+          "selector:b-service.r6.cap-21-40.band-under-10000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1495,7 +1627,8 @@
         "officialLabel": "就継ＢⅠ３１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-45000-plus.staff-6-1"
+          "selector:b-service.r6.cap-41-60.band-45000-plus.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1547,7 +1680,8 @@
         "officialLabel": "就継ＢⅠ３２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-35000-45000.staff-6-1"
+          "selector:b-service.r6.cap-41-60.band-35000-45000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1599,7 +1733,8 @@
         "officialLabel": "就継ＢⅠ３３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-30000-35000.staff-6-1"
+          "selector:b-service.r6.cap-41-60.band-30000-35000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1651,7 +1786,8 @@
         "officialLabel": "就継ＢⅠ３４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-25000-30000.staff-6-1"
+          "selector:b-service.r6.cap-41-60.band-25000-30000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1703,7 +1839,8 @@
         "officialLabel": "就継ＢⅠ３５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-20000-25000.staff-6-1"
+          "selector:b-service.r6.cap-41-60.band-20000-25000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1755,7 +1892,8 @@
         "officialLabel": "就継ＢⅠ３６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-15000-20000.staff-6-1"
+          "selector:b-service.r6.cap-41-60.band-15000-20000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1807,7 +1945,8 @@
         "officialLabel": "就継ＢⅠ３７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-10000-15000.staff-6-1"
+          "selector:b-service.r6.cap-41-60.band-10000-15000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1859,7 +1998,8 @@
         "officialLabel": "就継ＢⅠ３８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-under-10000.staff-6-1"
+          "selector:b-service.r6.cap-41-60.band-under-10000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1911,7 +2051,8 @@
         "officialLabel": "就継ＢⅠ４１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-45000-plus.staff-6-1"
+          "selector:b-service.r6.cap-61-80.band-45000-plus.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -1963,7 +2104,8 @@
         "officialLabel": "就継ＢⅠ４２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-35000-45000.staff-6-1"
+          "selector:b-service.r6.cap-61-80.band-35000-45000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2015,7 +2157,8 @@
         "officialLabel": "就継ＢⅠ４３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-30000-35000.staff-6-1"
+          "selector:b-service.r6.cap-61-80.band-30000-35000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2067,7 +2210,8 @@
         "officialLabel": "就継ＢⅠ４４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-25000-30000.staff-6-1"
+          "selector:b-service.r6.cap-61-80.band-25000-30000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2119,7 +2263,8 @@
         "officialLabel": "就継ＢⅠ４５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-20000-25000.staff-6-1"
+          "selector:b-service.r6.cap-61-80.band-20000-25000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2171,7 +2316,8 @@
         "officialLabel": "就継ＢⅠ４６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-15000-20000.staff-6-1"
+          "selector:b-service.r6.cap-61-80.band-15000-20000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2223,7 +2369,8 @@
         "officialLabel": "就継ＢⅠ４７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-10000-15000.staff-6-1"
+          "selector:b-service.r6.cap-61-80.band-10000-15000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2275,7 +2422,8 @@
         "officialLabel": "就継ＢⅠ４８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-under-10000.staff-6-1"
+          "selector:b-service.r6.cap-61-80.band-under-10000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2327,7 +2475,8 @@
         "officialLabel": "就継ＢⅠ５１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-45000-plus.staff-6-1"
+          "selector:b-service.r6.cap-81-plus.band-45000-plus.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2378,7 +2527,8 @@
         "officialLabel": "就継ＢⅠ５２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-35000-45000.staff-6-1"
+          "selector:b-service.r6.cap-81-plus.band-35000-45000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2429,7 +2579,8 @@
         "officialLabel": "就継ＢⅠ５３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-30000-35000.staff-6-1"
+          "selector:b-service.r6.cap-81-plus.band-30000-35000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2480,7 +2631,8 @@
         "officialLabel": "就継ＢⅠ５４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-25000-30000.staff-6-1"
+          "selector:b-service.r6.cap-81-plus.band-25000-30000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2531,7 +2683,8 @@
         "officialLabel": "就継ＢⅠ５５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-20000-25000.staff-6-1"
+          "selector:b-service.r6.cap-81-plus.band-20000-25000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2582,7 +2735,8 @@
         "officialLabel": "就継ＢⅠ５６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-15000-20000.staff-6-1"
+          "selector:b-service.r6.cap-81-plus.band-15000-20000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2633,7 +2787,8 @@
         "officialLabel": "就継ＢⅠ５７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-10000-15000.staff-6-1"
+          "selector:b-service.r6.cap-81-plus.band-10000-15000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2684,7 +2839,8 @@
         "officialLabel": "就継ＢⅠ５８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-under-10000.staff-6-1"
+          "selector:b-service.r6.cap-81-plus.band-under-10000.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2735,7 +2891,8 @@
         "officialLabel": "就継ＢⅡ１１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-45000-plus.staff-7.5-1"
+          "selector:b-service.r6.cap-20-or-less.band-45000-plus.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2786,7 +2943,8 @@
         "officialLabel": "就継ＢⅡ１２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-35000-45000.staff-7.5-1"
+          "selector:b-service.r6.cap-20-or-less.band-35000-45000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2837,7 +2995,8 @@
         "officialLabel": "就継ＢⅡ１３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-30000-35000.staff-7.5-1"
+          "selector:b-service.r6.cap-20-or-less.band-30000-35000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2888,7 +3047,8 @@
         "officialLabel": "就継ＢⅡ１４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-25000-30000.staff-7.5-1"
+          "selector:b-service.r6.cap-20-or-less.band-25000-30000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2939,7 +3099,8 @@
         "officialLabel": "就継ＢⅡ１５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-20000-25000.staff-7.5-1"
+          "selector:b-service.r6.cap-20-or-less.band-20000-25000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -2990,7 +3151,8 @@
         "officialLabel": "就継ＢⅡ１６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-15000-20000.staff-7.5-1"
+          "selector:b-service.r6.cap-20-or-less.band-15000-20000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3041,7 +3203,8 @@
         "officialLabel": "就継ＢⅡ１７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-10000-15000.staff-7.5-1"
+          "selector:b-service.r6.cap-20-or-less.band-10000-15000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3092,7 +3255,8 @@
         "officialLabel": "就継ＢⅡ１８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-under-10000.staff-7.5-1"
+          "selector:b-service.r6.cap-20-or-less.band-under-10000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3143,7 +3307,8 @@
         "officialLabel": "就継ＢⅡ２１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-45000-plus.staff-7.5-1"
+          "selector:b-service.r6.cap-21-40.band-45000-plus.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3195,7 +3360,8 @@
         "officialLabel": "就継ＢⅡ２２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-35000-45000.staff-7.5-1"
+          "selector:b-service.r6.cap-21-40.band-35000-45000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3247,7 +3413,8 @@
         "officialLabel": "就継ＢⅡ２３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-30000-35000.staff-7.5-1"
+          "selector:b-service.r6.cap-21-40.band-30000-35000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3299,7 +3466,8 @@
         "officialLabel": "就継ＢⅡ２４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-25000-30000.staff-7.5-1"
+          "selector:b-service.r6.cap-21-40.band-25000-30000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3351,7 +3519,8 @@
         "officialLabel": "就継ＢⅡ２５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-20000-25000.staff-7.5-1"
+          "selector:b-service.r6.cap-21-40.band-20000-25000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3403,7 +3572,8 @@
         "officialLabel": "就継ＢⅡ２６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-15000-20000.staff-7.5-1"
+          "selector:b-service.r6.cap-21-40.band-15000-20000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3455,7 +3625,8 @@
         "officialLabel": "就継ＢⅡ２７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-10000-15000.staff-7.5-1"
+          "selector:b-service.r6.cap-21-40.band-10000-15000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3507,7 +3678,8 @@
         "officialLabel": "就継ＢⅡ２８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-under-10000.staff-7.5-1"
+          "selector:b-service.r6.cap-21-40.band-under-10000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3559,7 +3731,8 @@
         "officialLabel": "就継ＢⅡ３１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-45000-plus.staff-7.5-1"
+          "selector:b-service.r6.cap-41-60.band-45000-plus.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3611,7 +3784,8 @@
         "officialLabel": "就継ＢⅡ３２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-35000-45000.staff-7.5-1"
+          "selector:b-service.r6.cap-41-60.band-35000-45000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3663,7 +3837,8 @@
         "officialLabel": "就継ＢⅡ３３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-30000-35000.staff-7.5-1"
+          "selector:b-service.r6.cap-41-60.band-30000-35000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3715,7 +3890,8 @@
         "officialLabel": "就継ＢⅡ３４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-25000-30000.staff-7.5-1"
+          "selector:b-service.r6.cap-41-60.band-25000-30000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3767,7 +3943,8 @@
         "officialLabel": "就継ＢⅡ３５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-20000-25000.staff-7.5-1"
+          "selector:b-service.r6.cap-41-60.band-20000-25000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3819,7 +3996,8 @@
         "officialLabel": "就継ＢⅡ３６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-15000-20000.staff-7.5-1"
+          "selector:b-service.r6.cap-41-60.band-15000-20000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3871,7 +4049,8 @@
         "officialLabel": "就継ＢⅡ３７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-10000-15000.staff-7.5-1"
+          "selector:b-service.r6.cap-41-60.band-10000-15000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3923,7 +4102,8 @@
         "officialLabel": "就継ＢⅡ３８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-under-10000.staff-7.5-1"
+          "selector:b-service.r6.cap-41-60.band-under-10000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -3975,7 +4155,8 @@
         "officialLabel": "就継ＢⅡ４１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-45000-plus.staff-7.5-1"
+          "selector:b-service.r6.cap-61-80.band-45000-plus.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4027,7 +4208,8 @@
         "officialLabel": "就継ＢⅡ４２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-35000-45000.staff-7.5-1"
+          "selector:b-service.r6.cap-61-80.band-35000-45000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4079,7 +4261,8 @@
         "officialLabel": "就継ＢⅡ４３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-30000-35000.staff-7.5-1"
+          "selector:b-service.r6.cap-61-80.band-30000-35000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4131,7 +4314,8 @@
         "officialLabel": "就継ＢⅡ４４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-25000-30000.staff-7.5-1"
+          "selector:b-service.r6.cap-61-80.band-25000-30000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4183,7 +4367,8 @@
         "officialLabel": "就継ＢⅡ４５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-20000-25000.staff-7.5-1"
+          "selector:b-service.r6.cap-61-80.band-20000-25000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4235,7 +4420,8 @@
         "officialLabel": "就継ＢⅡ４６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-15000-20000.staff-7.5-1"
+          "selector:b-service.r6.cap-61-80.band-15000-20000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4287,7 +4473,8 @@
         "officialLabel": "就継ＢⅡ４７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-10000-15000.staff-7.5-1"
+          "selector:b-service.r6.cap-61-80.band-10000-15000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4339,7 +4526,8 @@
         "officialLabel": "就継ＢⅡ４８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-under-10000.staff-7.5-1"
+          "selector:b-service.r6.cap-61-80.band-under-10000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4391,7 +4579,8 @@
         "officialLabel": "就継ＢⅡ５１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-45000-plus.staff-7.5-1"
+          "selector:b-service.r6.cap-81-plus.band-45000-plus.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4442,7 +4631,8 @@
         "officialLabel": "就継ＢⅡ５２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-35000-45000.staff-7.5-1"
+          "selector:b-service.r6.cap-81-plus.band-35000-45000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4493,7 +4683,8 @@
         "officialLabel": "就継ＢⅡ５３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-30000-35000.staff-7.5-1"
+          "selector:b-service.r6.cap-81-plus.band-30000-35000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4544,7 +4735,8 @@
         "officialLabel": "就継ＢⅡ５４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-25000-30000.staff-7.5-1"
+          "selector:b-service.r6.cap-81-plus.band-25000-30000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4595,7 +4787,8 @@
         "officialLabel": "就継ＢⅡ５５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-20000-25000.staff-7.5-1"
+          "selector:b-service.r6.cap-81-plus.band-20000-25000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4646,7 +4839,8 @@
         "officialLabel": "就継ＢⅡ５６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-15000-20000.staff-7.5-1"
+          "selector:b-service.r6.cap-81-plus.band-15000-20000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4697,7 +4891,8 @@
         "officialLabel": "就継ＢⅡ５７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-10000-15000.staff-7.5-1"
+          "selector:b-service.r6.cap-81-plus.band-10000-15000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4748,7 +4943,8 @@
         "officialLabel": "就継ＢⅡ５８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-under-10000.staff-7.5-1"
+          "selector:b-service.r6.cap-81-plus.band-under-10000.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4799,7 +4995,8 @@
         "officialLabel": "就継ＢⅢ１１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-45000-plus.staff-10-1"
+          "selector:b-service.r6.cap-20-or-less.band-45000-plus.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4850,7 +5047,8 @@
         "officialLabel": "就継ＢⅢ１２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-35000-45000.staff-10-1"
+          "selector:b-service.r6.cap-20-or-less.band-35000-45000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4901,7 +5099,8 @@
         "officialLabel": "就継ＢⅢ１３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-30000-35000.staff-10-1"
+          "selector:b-service.r6.cap-20-or-less.band-30000-35000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -4952,7 +5151,8 @@
         "officialLabel": "就継ＢⅢ１４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-25000-30000.staff-10-1"
+          "selector:b-service.r6.cap-20-or-less.band-25000-30000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5003,7 +5203,8 @@
         "officialLabel": "就継ＢⅢ１５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-20000-25000.staff-10-1"
+          "selector:b-service.r6.cap-20-or-less.band-20000-25000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5054,7 +5255,8 @@
         "officialLabel": "就継ＢⅢ１６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-15000-20000.staff-10-1"
+          "selector:b-service.r6.cap-20-or-less.band-15000-20000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5105,7 +5307,8 @@
         "officialLabel": "就継ＢⅢ１７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-10000-15000.staff-10-1"
+          "selector:b-service.r6.cap-20-or-less.band-10000-15000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5156,7 +5359,8 @@
         "officialLabel": "就継ＢⅢ１８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-under-10000.staff-10-1"
+          "selector:b-service.r6.cap-20-or-less.band-under-10000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5207,7 +5411,8 @@
         "officialLabel": "就継ＢⅢ２１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-45000-plus.staff-10-1"
+          "selector:b-service.r6.cap-21-40.band-45000-plus.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5259,7 +5464,8 @@
         "officialLabel": "就継ＢⅢ２２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-35000-45000.staff-10-1"
+          "selector:b-service.r6.cap-21-40.band-35000-45000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5311,7 +5517,8 @@
         "officialLabel": "就継ＢⅢ２３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-30000-35000.staff-10-1"
+          "selector:b-service.r6.cap-21-40.band-30000-35000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5363,7 +5570,8 @@
         "officialLabel": "就継ＢⅢ２４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-25000-30000.staff-10-1"
+          "selector:b-service.r6.cap-21-40.band-25000-30000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5415,7 +5623,8 @@
         "officialLabel": "就継ＢⅢ２５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-20000-25000.staff-10-1"
+          "selector:b-service.r6.cap-21-40.band-20000-25000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5467,7 +5676,8 @@
         "officialLabel": "就継ＢⅢ２６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-15000-20000.staff-10-1"
+          "selector:b-service.r6.cap-21-40.band-15000-20000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5519,7 +5729,8 @@
         "officialLabel": "就継ＢⅢ２７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-10000-15000.staff-10-1"
+          "selector:b-service.r6.cap-21-40.band-10000-15000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5571,7 +5782,8 @@
         "officialLabel": "就継ＢⅢ２８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-under-10000.staff-10-1"
+          "selector:b-service.r6.cap-21-40.band-under-10000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5623,7 +5835,8 @@
         "officialLabel": "就継ＢⅢ３１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-45000-plus.staff-10-1"
+          "selector:b-service.r6.cap-41-60.band-45000-plus.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5675,7 +5888,8 @@
         "officialLabel": "就継ＢⅢ３２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-35000-45000.staff-10-1"
+          "selector:b-service.r6.cap-41-60.band-35000-45000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5727,7 +5941,8 @@
         "officialLabel": "就継ＢⅢ３３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-30000-35000.staff-10-1"
+          "selector:b-service.r6.cap-41-60.band-30000-35000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5779,7 +5994,8 @@
         "officialLabel": "就継ＢⅢ３４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-25000-30000.staff-10-1"
+          "selector:b-service.r6.cap-41-60.band-25000-30000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5831,7 +6047,8 @@
         "officialLabel": "就継ＢⅢ３５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-20000-25000.staff-10-1"
+          "selector:b-service.r6.cap-41-60.band-20000-25000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5883,7 +6100,8 @@
         "officialLabel": "就継ＢⅢ３６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-15000-20000.staff-10-1"
+          "selector:b-service.r6.cap-41-60.band-15000-20000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5935,7 +6153,8 @@
         "officialLabel": "就継ＢⅢ３７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-10000-15000.staff-10-1"
+          "selector:b-service.r6.cap-41-60.band-10000-15000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -5987,7 +6206,8 @@
         "officialLabel": "就継ＢⅢ３８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-under-10000.staff-10-1"
+          "selector:b-service.r6.cap-41-60.band-under-10000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6039,7 +6259,8 @@
         "officialLabel": "就継ＢⅢ４１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-45000-plus.staff-10-1"
+          "selector:b-service.r6.cap-61-80.band-45000-plus.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6091,7 +6312,8 @@
         "officialLabel": "就継ＢⅢ４２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-35000-45000.staff-10-1"
+          "selector:b-service.r6.cap-61-80.band-35000-45000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6143,7 +6365,8 @@
         "officialLabel": "就継ＢⅢ４３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-30000-35000.staff-10-1"
+          "selector:b-service.r6.cap-61-80.band-30000-35000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6195,7 +6418,8 @@
         "officialLabel": "就継ＢⅢ４４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-25000-30000.staff-10-1"
+          "selector:b-service.r6.cap-61-80.band-25000-30000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6247,7 +6471,8 @@
         "officialLabel": "就継ＢⅢ４５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-20000-25000.staff-10-1"
+          "selector:b-service.r6.cap-61-80.band-20000-25000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6299,7 +6524,8 @@
         "officialLabel": "就継ＢⅢ４６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-15000-20000.staff-10-1"
+          "selector:b-service.r6.cap-61-80.band-15000-20000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6351,7 +6577,8 @@
         "officialLabel": "就継ＢⅢ４７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-10000-15000.staff-10-1"
+          "selector:b-service.r6.cap-61-80.band-10000-15000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6403,7 +6630,8 @@
         "officialLabel": "就継ＢⅢ４８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-under-10000.staff-10-1"
+          "selector:b-service.r6.cap-61-80.band-under-10000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6455,7 +6683,8 @@
         "officialLabel": "就継ＢⅢ５１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-45000-plus.staff-10-1"
+          "selector:b-service.r6.cap-81-plus.band-45000-plus.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6506,7 +6735,8 @@
         "officialLabel": "就継ＢⅢ５２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-35000-45000.staff-10-1"
+          "selector:b-service.r6.cap-81-plus.band-35000-45000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6557,7 +6787,8 @@
         "officialLabel": "就継ＢⅢ５３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-30000-35000.staff-10-1"
+          "selector:b-service.r6.cap-81-plus.band-30000-35000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6608,7 +6839,8 @@
         "officialLabel": "就継ＢⅢ５４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-25000-30000.staff-10-1"
+          "selector:b-service.r6.cap-81-plus.band-25000-30000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6659,7 +6891,8 @@
         "officialLabel": "就継ＢⅢ５５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-20000-25000.staff-10-1"
+          "selector:b-service.r6.cap-81-plus.band-20000-25000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6710,7 +6943,8 @@
         "officialLabel": "就継ＢⅢ５６",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-15000-20000.staff-10-1"
+          "selector:b-service.r6.cap-81-plus.band-15000-20000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6761,7 +6995,8 @@
         "officialLabel": "就継ＢⅢ５７",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-10000-15000.staff-10-1"
+          "selector:b-service.r6.cap-81-plus.band-10000-15000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6812,7 +7047,8 @@
         "officialLabel": "就継ＢⅢ５８",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-under-10000.staff-10-1"
+          "selector:b-service.r6.cap-81-plus.band-under-10000.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6863,7 +7099,8 @@
         "officialLabel": "就継ＢⅣ１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-participation.staff-6-1"
+          "selector:b-service.r6.cap-20-or-less.band-participation.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6914,7 +7151,8 @@
         "officialLabel": "就継ＢⅣ２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-participation.staff-6-1"
+          "selector:b-service.r6.cap-21-40.band-participation.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -6966,7 +7204,8 @@
         "officialLabel": "就継ＢⅣ３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-participation.staff-6-1"
+          "selector:b-service.r6.cap-41-60.band-participation.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7018,7 +7257,8 @@
         "officialLabel": "就継ＢⅣ４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-participation.staff-6-1"
+          "selector:b-service.r6.cap-61-80.band-participation.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7070,7 +7310,8 @@
         "officialLabel": "就継ＢⅣ５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-participation.staff-6-1"
+          "selector:b-service.r6.cap-81-plus.band-participation.staff-6-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7121,7 +7362,8 @@
         "officialLabel": "就継ＢⅤ１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-participation.staff-7.5-1"
+          "selector:b-service.r6.cap-20-or-less.band-participation.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7172,7 +7414,8 @@
         "officialLabel": "就継ＢⅤ２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-participation.staff-7.5-1"
+          "selector:b-service.r6.cap-21-40.band-participation.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7224,7 +7467,8 @@
         "officialLabel": "就継ＢⅤ３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-participation.staff-7.5-1"
+          "selector:b-service.r6.cap-41-60.band-participation.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7276,7 +7520,8 @@
         "officialLabel": "就継ＢⅤ４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-participation.staff-7.5-1"
+          "selector:b-service.r6.cap-61-80.band-participation.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7328,7 +7573,8 @@
         "officialLabel": "就継ＢⅤ５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-participation.staff-7.5-1"
+          "selector:b-service.r6.cap-81-plus.band-participation.staff-7.5-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7379,7 +7625,8 @@
         "officialLabel": "就継ＢⅥ１",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-20-or-less.band-participation.staff-10-1"
+          "selector:b-service.r6.cap-20-or-less.band-participation.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7430,7 +7677,8 @@
         "officialLabel": "就継ＢⅥ２",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-21-40.band-participation.staff-10-1"
+          "selector:b-service.r6.cap-21-40.band-participation.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7482,7 +7730,8 @@
         "officialLabel": "就継ＢⅥ３",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-41-60.band-participation.staff-10-1"
+          "selector:b-service.r6.cap-41-60.band-participation.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7534,7 +7783,8 @@
         "officialLabel": "就継ＢⅥ４",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-61-80.band-participation.staff-10-1"
+          "selector:b-service.r6.cap-61-80.band-participation.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7586,7 +7836,8 @@
         "officialLabel": "就継ＢⅥ５",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-service.r6.cap-81-plus.band-participation.staff-10-1"
+          "selector:b-service.r6.cap-81-plus.band-participation.staff-10-1",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7686,7 +7937,8 @@
         "officialLabel": "福祉専門職員配置等加算(Ⅰ)",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-addition.r6.welfare-professional-staffing.i"
+          "selector:b-addition.r6.welfare-professional-staffing.i",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7788,7 +8040,8 @@
         "officialLabel": "福祉専門職員配置等加算(Ⅱ)",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-addition.r6.welfare-professional-staffing.ii"
+          "selector:b-addition.r6.welfare-professional-staffing.ii",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -7890,7 +8143,8 @@
         "officialLabel": "福祉専門職員配置等加算(Ⅲ)",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-addition.r6.welfare-professional-staffing.iii"
+          "selector:b-addition.r6.welfare-professional-staffing.iii",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -8008,7 +8262,8 @@
         "officialLabel": "目標工賃達成指導員配置加算（定員20人以下）",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-addition.r6.target-wage-instructor.cap-20-or-less"
+          "selector:b-addition.r6.target-wage-instructor.cap-20-or-less",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -8127,7 +8382,8 @@
         "officialLabel": "目標工賃達成指導員配置加算（定員21〜40人）",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-addition.r6.target-wage-instructor.cap-21-40"
+          "selector:b-addition.r6.target-wage-instructor.cap-21-40",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -8247,7 +8503,8 @@
         "officialLabel": "目標工賃達成指導員配置加算（定員41〜60人）",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-addition.r6.target-wage-instructor.cap-41-60"
+          "selector:b-addition.r6.target-wage-instructor.cap-41-60",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -8367,7 +8624,8 @@
         "officialLabel": "目標工賃達成指導員配置加算（定員61〜80人）",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-addition.r6.target-wage-instructor.cap-61-80"
+          "selector:b-addition.r6.target-wage-instructor.cap-61-80",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -8487,7 +8745,8 @@
         "officialLabel": "目標工賃達成指導員配置加算（定員81人以上）",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-addition.r6.target-wage-instructor.cap-81-plus"
+          "selector:b-addition.r6.target-wage-instructor.cap-81-plus",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -8606,7 +8865,8 @@
         "officialLabel": "食事提供体制加算",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-addition.r6.meal-provision"
+          "selector:b-addition.r6.meal-provision",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -8724,7 +8984,8 @@
         "officialLabel": "欠席時対応加算",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-addition.r6.absence-response"
+          "selector:b-addition.r6.absence-response",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b"
@@ -8826,7 +9087,8 @@
         "officialLabel": "送迎加算(Ⅰ)",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-addition.r6.transport.i"
+          "selector:b-addition.r6.transport.i",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -8928,7 +9190,8 @@
         "officialLabel": "送迎加算(Ⅱ)",
         "serviceKind": "employment-continuation-support-b",
         "selectors": [
-          "selector:b-addition.r6.transport.ii"
+          "selector:b-addition.r6.transport.ii",
+          "target.b46.items-1-to-16-4.v1"
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
@@ -8950,6 +9213,362 @@
           {
             "masterKind": "additions",
             "key": "addition.transport.ii",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r6-06.treatment-improvement.unified.i",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2026-05",
+      "sourceRefs": [
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1061（注記: 令和6年6月1日から算定可能）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.235（第2条表・左欄改正後 第14の17 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-value"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "465120",
+        "officialLabel": "福祉・介護職員等処遇改善加算(Ⅰ)",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r6-06.treatment-improvement.unified.i"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-treatment-improvement-i"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.treatment-improvement.unified.i",
+          "amount": {
+            "kind": "percentage-of-target",
+            "percentage": "0.093",
+            "applicationKind": "add",
+            "percentageBaseScope": "monthly-target-unit-sum",
+            "targetSelector": "target.b46.items-1-to-16-4.v1",
+            "calculationOrder": 1
+          },
+          "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+          "roundingRuleId": "claim.rounding.units.half-up.v1",
+          "billingUnit": "per-month"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.treatment-improvement.unified.i",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r6-06.treatment-improvement.unified.ii",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2026-05",
+      "sourceRefs": [
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1063（注記: 令和6年6月1日から算定可能）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.236（第2条表・左欄改正後 第14の17 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-value"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "465121",
+        "officialLabel": "福祉・介護職員等処遇改善加算(Ⅱ)",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r6-06.treatment-improvement.unified.ii"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-treatment-improvement-ii"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.treatment-improvement.unified.ii",
+          "amount": {
+            "kind": "percentage-of-target",
+            "percentage": "0.091",
+            "applicationKind": "add",
+            "percentageBaseScope": "monthly-target-unit-sum",
+            "targetSelector": "target.b46.items-1-to-16-4.v1",
+            "calculationOrder": 2
+          },
+          "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+          "roundingRuleId": "claim.rounding.units.half-up.v1",
+          "billingUnit": "per-month"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.treatment-improvement.unified.ii",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r6-06.treatment-improvement.unified.iii",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2026-05",
+      "sourceRefs": [
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1065（注記: 令和6年6月1日から算定可能）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.236（第2条表・左欄改正後 第14の17 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-value"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "465122",
+        "officialLabel": "福祉・介護職員等処遇改善加算(Ⅲ)",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r6-06.treatment-improvement.unified.iii"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-treatment-improvement-iii"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.treatment-improvement.unified.iii",
+          "amount": {
+            "kind": "percentage-of-target",
+            "percentage": "0.076",
+            "applicationKind": "add",
+            "percentageBaseScope": "monthly-target-unit-sum",
+            "targetSelector": "target.b46.items-1-to-16-4.v1",
+            "calculationOrder": 3
+          },
+          "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+          "roundingRuleId": "claim.rounding.units.half-up.v1",
+          "billingUnit": "per-month"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.treatment-improvement.unified.iii",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r6-06.treatment-improvement.unified.iv",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2026-05",
+      "sourceRefs": [
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1067（注記: 令和6年6月1日から算定可能）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.236（第2条表・左欄改正後 第14の17 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-value"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "465123",
+        "officialLabel": "福祉・介護職員等処遇改善加算(Ⅳ)",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r6-06.treatment-improvement.unified.iv"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-treatment-improvement-iv"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.treatment-improvement.unified.iv",
+          "amount": {
+            "kind": "percentage-of-target",
+            "percentage": "0.062",
+            "applicationKind": "add",
+            "percentageBaseScope": "monthly-target-unit-sum",
+            "targetSelector": "target.b46.items-1-to-16-4.v1",
+            "calculationOrder": 4
+          },
+          "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+          "roundingRuleId": "claim.rounding.units.half-up.v1",
+          "billingUnit": "per-month"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.treatment-improvement.unified.iv",
             "role": "adjustment"
           }
         ]
