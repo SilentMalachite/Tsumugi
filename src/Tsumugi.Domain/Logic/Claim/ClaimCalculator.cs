@@ -36,8 +36,8 @@ public sealed class ClaimCalculationException(ClaimCalculationErrorCode code)
 /// 呼び出し側（Task 9のbuilder）は、未確認（unconfirmed）の証拠をreadiness gateで弾いたうえで
 /// 確定値のみをここへ渡す責務を負う。tri-stateの「未確認」判定はこの境界（呼び出し側）に閉じ込め、
 /// 本関数はnullを受理しない・fail-openしない純粋関数として総額を必ず返す。
-/// 法31条特例・制度上限・上限額管理結果・同一事業所内調整はADR 0025が定める後続ステップであり、
-/// 本スライスでは未実装（別タスクで追加する）。
+/// 法31条特例・同一事業所内調整はADR 0025が定める後続ステップであり、本スライスでは未実装（別タスク）。
+/// 制度上限・上限額管理結果は本スライスで実装済み（ADR 0022）。
 /// </summary>
 /// <param name="AbsenceSupportCount">
 /// 欠席時対応の実施回数。実効DailyRecord（訂正・取消反映後）の<c>Attendance=AbsenceSupport</c>
@@ -231,7 +231,7 @@ public static class ClaimCalculator
 
         // ADR 0022手順5・6・9: 暫定負担額＝min(1割相当額, 区分上限, 証上限)。上限額管理対象者は、
         // 正式な管理結果票の「管理結果後利用者負担額」（当該事業所行から渡す）を採用する前に、
-        // 本算定器が管理結果額を上限管理前額（暫定負担額）と照合してADR 0022 step 8の検証を遂行する。
+        // 本算定器が管理結果額をcapBoundYen以下に制約する（amount-vs-bound確認）。
         // 管理結果額＞暫定額の場合は入力不整合として拒否し、推測で補正しない。対象外（UpperLimitResult=null）は
         // capBoundYenを最終負担とする。
         var capBoundYen = Math.Min(Math.Min(statutoryBurdenYen, categoryCapYen), source.CertificateMonthlyCapYen);
