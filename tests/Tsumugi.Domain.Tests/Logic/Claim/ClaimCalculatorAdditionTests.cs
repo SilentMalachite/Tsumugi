@@ -179,6 +179,60 @@ public sealed class ClaimCalculatorAdditionTests
     }
 
     [Fact]
+    public void Initial_period_addition_bills_days_within_the_initial_window_without_a_capability()
+    {
+        // 初期加算（ADR 0028決定3）: 体制届出不要・利用開始日から30日以内のサービス提供日数×30単位。
+        // 利用開始日ストレージは未実装（決定5 gap）のためproduction seedには行を置かず、
+        // セマンティクスのみ合成マスタで固定する（ClaimAdditionSeedScopeTestsが除外をpin）。
+        var amount = new UnitsPerCountAmount(30, "count-initial");
+        var masters = Masters() with
+        {
+            UnitAdjustments = [Adjustment("adj-init", amount, BillingUnit.PerDay)],
+            ServiceCodes =
+            [
+                Masters().ServiceCodes[0],
+                AdditionService(
+                    "svc-init", "610301", "初期加算", "adj-init", amount, BillingUnit.PerDay,
+                    ["cond-system-b"]),
+            ],
+        };
+        var request = new ClaimCalculationRequest(
+            Month,
+            Context([]),
+            "region-x",
+            "b-type",
+            [new RecipientClaimSource(RecipientA, 20, 90, SyntheticCapYen, InitialPeriodServiceDays: 10)],
+            new Dictionary<string, ClaimCountMetric>(StringComparer.Ordinal)
+            {
+                ["count-initial"] = ClaimCountMetric.InitialPeriodServiceDays,
+            });
+
+        var result = ClaimCalculator.Calculate(masters, request);
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        // 基本 700×20=14,000 + 初期 30×10=300。
+        detail.TotalUnits.Should().Be(14_300);
+        detail.AdditionLines.Should().ContainSingle().Which.Units.Should().Be(300);
+    }
+
+    [Fact]
+    public void Initial_period_days_beyond_billed_days_are_rejected()
+    {
+        var request = new ClaimCalculationRequest(
+            Month,
+            Context([]),
+            "region-x",
+            "b-type",
+            [new RecipientClaimSource(RecipientA, 20, 90, SyntheticCapYen, InitialPeriodServiceDays: 21)],
+            Bindings());
+
+        var act = () => ClaimCalculator.Calculate(Masters(), request);
+
+        act.Should().Throw<ClaimCalculationException>()
+            .Which.Code.Should().Be(ClaimCalculationErrorCode.InvalidInput);
+    }
+
+    [Fact]
     public void Negative_addition_counts_are_rejected()
     {
         var request = new ClaimCalculationRequest(
