@@ -313,7 +313,7 @@ public static class ClaimCalculationRequestBuilder
                 issues.Add(new ClaimPreparationIssue(
                     ClaimPreparationIssueCode.InconsistentUpperLimitManagementInput,
                     recipientId,
-                    upperLimitResult is null ? UpperLimitManagedAmountField : UpperLimitManagementResultField,
+                    upperLimitResult is null ? UpperLimitManagementResultField : UpperLimitManagedAmountField,
                     ClaimInputDestination.ClaimInput));
                 continue;
             }

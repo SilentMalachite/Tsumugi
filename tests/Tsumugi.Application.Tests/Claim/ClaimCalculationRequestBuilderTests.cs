@@ -130,6 +130,51 @@ public sealed class ClaimCalculationRequestBuilderTests
     }
 
     [Fact]
+    public void Build_threads_upper_limit_management_result_and_amount_from_claim_input()
+    {
+        var snapshot = Kit.Snapshot(
+            inputs: [Kit.Input(upperLimitManagementResult: UpperLimitManagementResult.Result2,
+                upperLimitManagedAmountYen: 5_000)]);
+
+        var result = ClaimCalculationRequestBuilder.Build(snapshot, Kit.Month, Kit.Tokens());
+
+        result.Issues.Should().BeEmpty();
+        var source = result.Request!.Recipients.Should().ContainSingle().Subject;
+        source.UpperLimitResult.Should().Be(UpperLimitManagementResult.Result2);
+        source.UpperLimitManagedAmountYen.Should().Be(5_000);
+    }
+
+    [Fact]
+    public void Build_fails_closed_when_the_result_code_is_set_without_an_amount()
+    {
+        var snapshot = Kit.Snapshot(
+            inputs: [Kit.Input(upperLimitManagementResult: UpperLimitManagementResult.Result2)]);
+
+        var result = ClaimCalculationRequestBuilder.Build(snapshot, Kit.Month, Kit.Tokens());
+
+        result.Request.Should().BeNull();
+        result.Issues.Should().Contain(issue =>
+            issue.Code == ClaimPreparationIssueCode.InconsistentUpperLimitManagementInput
+            && issue.RecipientId == Kit.RecipientId
+            && issue.FieldCode == "ClaimInput.UpperLimitManagedAmountYen");
+    }
+
+    [Fact]
+    public void Build_fails_closed_when_the_amount_is_set_without_a_result_code()
+    {
+        var snapshot = Kit.Snapshot(
+            inputs: [Kit.Input(upperLimitManagedAmountYen: 5_000)]);
+
+        var result = ClaimCalculationRequestBuilder.Build(snapshot, Kit.Month, Kit.Tokens());
+
+        result.Request.Should().BeNull();
+        result.Issues.Should().Contain(issue =>
+            issue.Code == ClaimPreparationIssueCode.InconsistentUpperLimitManagementInput
+            && issue.RecipientId == Kit.RecipientId
+            && issue.FieldCode == "ClaimInput.UpperLimitManagementResult");
+    }
+
+    [Fact]
     public void Build_resolves_effective_capability_flag_keys_into_the_context()
     {
         var snapshot = Kit.Snapshot(officeCapabilities:

@@ -62,7 +62,10 @@ internal static class ClaimPreparationTestKit
         };
     }
 
-    internal static ClaimInput Input(Guid? recipientId = null)
+    internal static ClaimInput Input(
+        Guid? recipientId = null,
+        UpperLimitManagementResult? upperLimitManagementResult = null,
+        int? upperLimitManagedAmountYen = null)
     {
         var id = Guid.NewGuid();
         return new ClaimInput
@@ -74,6 +77,8 @@ internal static class ClaimPreparationTestKit
             RootId = id,
             Revision = 1,
             Kind = RecordKind.New,
+            UpperLimitManagementResult = upperLimitManagementResult,
+            UpperLimitManagedAmountYen = upperLimitManagedAmountYen,
             CreatedAt = Now,
             CreatedBy = "tester",
             ConcurrencyToken = Guid.NewGuid(),
