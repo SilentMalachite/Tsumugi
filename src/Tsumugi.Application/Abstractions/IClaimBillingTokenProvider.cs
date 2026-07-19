@@ -1,4 +1,5 @@
 using Tsumugi.Domain.Entities;
+using Tsumugi.Domain.Logic.Claim.Models;
 using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.Application.Abstractions;
@@ -35,10 +36,17 @@ public interface IClaimBillingTokenProvider
 /// （<c>ClaimCalculationRequestBuilder</c>）が地域区分不一致専用のreadiness issueへ変換して
 /// フェイルクローズする（controller decision 2026-07-19, Task 9b fix round）。
 /// </param>
+/// <param name="CountSelectorBindings">
+/// countSelectorトークン（ADR 0028決定2のseed正準語彙）→<see cref="ClaimCountMetric"/>の束縛
+/// （Task 11）。事業所に依存しない静的語彙だが、正準文字列はseedと同居するInfrastructure実装だけが
+/// 供給できるため本トークン束に載せて運ぶ。<c>null</c>は「語彙未供給」で、countSelectorを使う
+/// 加算行に遭遇した時点で算定はフェイルクローズする（<c>ClaimCalculator</c>）。
+/// </param>
 public sealed record ClaimBillingConditionTokens(
     string? RewardSystem,
     string? RegionKey,
     string? RegionUnitPriceServiceKind,
     int? CapacityHeadcount,
     string? StaffingKey,
-    bool RegionKeyConflict = false);
+    bool RegionKeyConflict = false,
+    IReadOnlyDictionary<string, ClaimCountMetric>? CountSelectorBindings = null);

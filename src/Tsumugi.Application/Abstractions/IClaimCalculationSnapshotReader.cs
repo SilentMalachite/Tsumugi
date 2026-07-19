@@ -91,6 +91,12 @@ public sealed record ClaimDailyRecordAggregate(
 /// 縮約した結果、取消でない実効エピソードが存在する利用者だけを鍵として開始日を保持する
 /// （取消済み・未登録はエントリなし）。
 /// </para>
+/// <para>
+/// （Task 11追加）<see cref="OfficeCapabilities"/> は事業所の体制届（<c>OfficeCapability</c>）
+/// 全レコード（同一読み取りtx）。実効1件の選定（<c>OfficeCapabilityPolicy.Resolve</c>・ADR 0021）と
+/// 曖昧時のフェイルクローズは<c>ClaimCalculationRequestBuilder</c>の責務。
+/// <c>null</c>（旧snapshot形状）は「体制届未登録」と同義に扱う（production readerは常に非null）。
+/// </para>
 /// </remarks>
 public sealed record ClaimCalculationSnapshot(
     IReadOnlyList<Guid> RecipientIds,
@@ -103,7 +109,8 @@ public sealed record ClaimCalculationSnapshot(
     IReadOnlyDictionary<Guid, Certificate>? EffectiveCertificateByRecipient = null,
     IReadOnlyDictionary<Guid, ContractedProvider>? EffectiveContractedProviderByRecipient = null,
     IReadOnlyDictionary<Guid, ClaimDailyRecordAggregate>? DailyRecordAggregateByRecipient = null,
-    IReadOnlyDictionary<Guid, DateOnly>? IntensiveSupportEpisodeStartDateByRecipient = null);
+    IReadOnlyDictionary<Guid, DateOnly>? IntensiveSupportEpisodeStartDateByRecipient = null,
+    IReadOnlyList<OfficeCapability>? OfficeCapabilities = null);
 
 /// <summary>
 /// 事業所・サービス月のクレーム算定入力を単一の読み取り専用トランザクションで取得する。

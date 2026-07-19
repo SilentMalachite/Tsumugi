@@ -73,6 +73,43 @@ public enum ClaimConditionKind
     R8ReformStatus = 9,
     FacilityClassification = 10,
     EmploymentOutcomeCount = 11,
+
+    /// <summary>
+    /// 事業所体制届（ADR 0021の正式one-hotキー）による算定条件。operandのトークンが
+    /// <see cref="ClaimBillingConditionContext.OfficeCapabilityKeys"/>（実効体制届の有効キー集合）に
+    /// 含まれるとき成立する。キー集合が未取得（<c>null</c>）ならフェイルクローズ（Task 11・ADR 0028）。
+    /// </summary>
+    OfficeCapability = 12,
+}
+
+/// <summary>
+/// countSelectorトークン（ADR 0028決定2の実績語彙）が束縛される実績値の種別。
+/// トークン文字列⇔本enumの対応（<c>CountSelectorBindings</c>）はseedと同居するInfrastructureが
+/// 値として供給し、Domain/Applicationにはトークン文字列を置かない
+/// （<c>ClaimSpecificationBoundaryTests</c>のclaim-master-literal検査）。
+/// </summary>
+public enum ClaimCountMetric
+{
+    /// <summary>基本報酬算定日数（実効DailyRecordのAttendance=Present日数=BilledDays）。</summary>
+    ServiceDays = 1,
+
+    /// <summary>利用開始日から30日以内のサービス提供日数（ADR 0028決定5: 利用開始日ストレージはgap）。</summary>
+    InitialPeriodServiceDays = 2,
+
+    /// <summary>欠席時対応の実施回数（実効DailyRecordのAttendance=AbsenceSupport日数）。</summary>
+    AbsenceSupport = 3,
+
+    /// <summary>対象利用者への食事提供日数（実効Present日のMealProvided=true×受給者証対象）。</summary>
+    MealProvidedDays = 4,
+
+    /// <summary>送迎の片道回数（実効Present日のTransport: Outbound/Inbound=1、Round=2）。</summary>
+    TransportOneWay = 5,
+
+    /// <summary>同一敷地内送迎の片道回数（ADR 0028決定5: 判別ストレージはgap）。</summary>
+    TransportOneWaySamePremises = 6,
+
+    /// <summary>前年度6月超就労定着者数（既存vocabulary。Task 11の算定対象外）。</summary>
+    PreviousYearSixMonthEmployment = 7,
 }
 
 public enum ClaimConditionOperator
@@ -101,9 +138,15 @@ public abstract record UnitAdjustmentAmount;
 
 public sealed record FixedUnitsAmount(int AddedUnits) : UnitAdjustmentAmount;
 
+/// <summary>
+/// 整数単位×回数（丸めなし: ADR 0028決定3）。<paramref name="MonthlyCountCap"/>は月あたりの
+/// 算定回数上限（例: 欠席時対応加算の月4回。現行第14の9注）で、マスタ行が値として運ぶ
+/// （Domainコードに上限リテラルを置かない）。<c>null</c>は上限なし。
+/// </summary>
 public sealed record UnitsPerCountAmount(
     int UnitsPerCount,
-    string CountSelector) : UnitAdjustmentAmount;
+    string CountSelector,
+    int? MonthlyCountCap = null) : UnitAdjustmentAmount;
 
 public sealed record PercentageOfTargetAmount(
     decimal Percentage,

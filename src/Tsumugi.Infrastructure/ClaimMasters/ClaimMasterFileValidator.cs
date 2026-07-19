@@ -545,6 +545,7 @@ internal static class ClaimMasterFileValidator
             "r8-reform-status" => ClaimConditionKind.R8ReformStatus,
             "facility-classification" => ClaimConditionKind.FacilityClassification,
             "employment-outcome-count" => ClaimConditionKind.EmploymentOutcomeCount,
+            "office-capability" => ClaimConditionKind.OfficeCapability,
             _ => throw Invalid(fileName, key, "kind", $"unknown condition kind '{value}'"),
         };
 
@@ -575,7 +576,8 @@ internal static class ClaimMasterFileValidator
             ClaimConditionKind.Staffing or
             ClaimConditionKind.PlanStatus or
             ClaimConditionKind.R8ReformStatus or
-            ClaimConditionKind.FacilityClassification;
+            ClaimConditionKind.FacilityClassification or
+            ClaimConditionKind.OfficeCapability;
         var isInteger = kind is
             ClaimConditionKind.Capacity or
             ClaimConditionKind.ShortageDuration or
@@ -665,6 +667,14 @@ internal static class ClaimMasterFileValidator
                 "unchanged-below-15000"))
         {
             throw Invalid(fileName, key, "value", $"unknown r8-reform-status '{value}'");
+        }
+
+        // ADR 0021: 体制届キーは「mhlw.b46.capability.<field>.<option>」の正式one-hotキーのみ。
+        // 旧暫定キー（mealProvision等）や別体系のトークンをここで受け付けない。
+        if (kind is ClaimConditionKind.OfficeCapability
+            && !value.StartsWith("mhlw.b46.capability.", StringComparison.Ordinal))
+        {
+            throw Invalid(fileName, key, "value", $"unknown office-capability key '{value}'");
         }
     }
 
@@ -1173,33 +1183,49 @@ internal static class ClaimMasterFileValidator
         return new FixedUnitsAmount(PositiveInt(element, "addedUnits", fileName, key));
     }
 
+    /// <summary>
+    /// countSelectorの正準語彙（ADR 0028決定2＋既存の就労定着者数）。runtime束縛は
+    /// <c>OfficeClaimBillingTokenProvider.CountSelectorBindings</c>が同じ語彙で供給する。
+    /// </summary>
+    private static readonly string[] KnownCountSelectors =
+    [
+        "previous-year-six-month-employment-count",
+        "count.b46.service-days.v1",
+        "count.b46.initial-period-service-days.v1",
+        "count.b46.absence-support.v1",
+        "count.b46.meal-provided-days.v1",
+        "count.b46.transport-one-way.v1",
+        "count.b46.transport-one-way.same-premises.v1",
+    ];
+
     private static UnitsPerCountAmount ParseUnitsPerCount(
         JsonElement element,
         string fileName,
         string key,
         bool validateRuntimeSelectors)
     {
+        // monthlyCountCapは任意（例: 欠席時対応加算の月4回上限。ADR 0028決定3・現行第14の9注）。
+        var hasMonthlyCountCap = element.ValueKind == JsonValueKind.Object
+            && element.TryGetProperty("monthlyCountCap", out _);
         RequireProperties(
             element,
             fileName,
             key,
             "amount",
-            "kind",
-            "unitsPerCount",
-            "countSelector");
+            hasMonthlyCountCap
+                ? ["kind", "unitsPerCount", "countSelector", "monthlyCountCap"]
+                : ["kind", "unitsPerCount", "countSelector"]);
         var selector = RequiredString(element, "countSelector", fileName, key);
         if (validateRuntimeSelectors
-            && !string.Equals(
-                selector,
-                "previous-year-six-month-employment-count",
-                StringComparison.Ordinal))
+            && !KnownCountSelectors.Contains(selector, StringComparer.Ordinal))
         {
             throw Invalid(fileName, key, "countSelector", $"unknown value '{selector}'");
         }
 
         return new UnitsPerCountAmount(
             PositiveInt(element, "unitsPerCount", fileName, key),
-            selector);
+            selector,
+            hasMonthlyCountCap ? PositiveInt(element, "monthlyCountCap", fileName, key) : null);
     }
 
     private static PercentageOfTargetAmount ParsePercentageOfTarget(

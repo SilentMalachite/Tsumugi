@@ -26,14 +26,17 @@ public sealed class ClaimMasterSeedPhase31Tests
 
     // ADR 0027 fixes 135 basic-reward rows (service fee I-III: 3 staffing x 5 capacity x
     // 8 wage bands = 120, plus participation-evaluation IV-VI: 15), a matching 135
-    // service-code rows (one per basic-reward row), and 8 region unit prices. This asserts
-    // the seed JSON itself (not the not-yet-wired ResolveCalculationMasters) carries those
-    // counts, so it is RED before Task 3 populates the seeds and GREEN after.
+    // service-code rows (one per basic-reward row), and 8 region unit prices. Task 11
+    // (ADR 0028) adds one service-code row per seeded addition row on top of the 135
+    // (see ClaimAdditionSeedScopeTests for the per-code scope). This asserts the seed JSON
+    // itself (not the not-yet-wired ResolveCalculationMasters) carries those counts.
     [Fact]
     public void LoadEmbedded_embeds_the_adr0027_r6_seed_row_counts()
     {
         CountEmbeddedEntries(".ClaimMasters.Seed.basic-rewards.json").Should().Be(135);
-        CountEmbeddedEntries(".ClaimMasters.Seed.service-codes.json").Should().Be(135);
+        var additionEntries = CountEmbeddedEntries(".ClaimMasters.Seed.additions.json");
+        CountEmbeddedEntries(".ClaimMasters.Seed.service-codes.json")
+            .Should().Be(135 + additionEntries);
         CountEmbeddedEntries(".ClaimMasters.Seed.region-unit-prices.json").Should().Be(8);
     }
 

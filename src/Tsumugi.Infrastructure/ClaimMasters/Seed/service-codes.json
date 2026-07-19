@@ -421,6 +421,93 @@
           ]
         }
       ]
+    },
+    {
+      "key": "capability-welfare-professional-staffing-i",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "kind": "office-capability",
+      "operator": "equals",
+      "value": "mhlw.b46.capability.welfare-professional-staffing.3",
+      "sourceRefs": [
+        {
+          "documentId": "r6-capability-202404",
+          "sha256": "fa24cd44e81cf1f1118b4a4c8a0b28bce31ee5227f13b9f8baa260ea6f223531",
+          "locator": "基本情報シート281行 福祉専門職員配置等加算（許可選択番号{1,3,4,5}・ADR 0021。1=なし、3=加算(Ⅰ)、4=加算(Ⅱ)、5=加算(Ⅲ)）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "current-fee-notice-html",
+          "sha256": "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768",
+          "locator": "現行第14の8イ",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "capability-welfare-professional-staffing-ii",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "kind": "office-capability",
+      "operator": "equals",
+      "value": "mhlw.b46.capability.welfare-professional-staffing.4",
+      "sourceRefs": [
+        {
+          "documentId": "r6-capability-202404",
+          "sha256": "fa24cd44e81cf1f1118b4a4c8a0b28bce31ee5227f13b9f8baa260ea6f223531",
+          "locator": "基本情報シート281行 福祉専門職員配置等加算（許可選択番号{1,3,4,5}・ADR 0021。1=なし、3=加算(Ⅰ)、4=加算(Ⅱ)、5=加算(Ⅲ)）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "current-fee-notice-html",
+          "sha256": "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768",
+          "locator": "現行第14の8ロ",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "capability-welfare-professional-staffing-iii",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "kind": "office-capability",
+      "operator": "equals",
+      "value": "mhlw.b46.capability.welfare-professional-staffing.5",
+      "sourceRefs": [
+        {
+          "documentId": "r6-capability-202404",
+          "sha256": "fa24cd44e81cf1f1118b4a4c8a0b28bce31ee5227f13b9f8baa260ea6f223531",
+          "locator": "基本情報シート281行 福祉専門職員配置等加算（許可選択番号{1,3,4,5}・ADR 0021。1=なし、3=加算(Ⅰ)、4=加算(Ⅱ)、5=加算(Ⅲ)）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "current-fee-notice-html",
+          "sha256": "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768",
+          "locator": "現行第14の8ハ",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
     }
   ],
   "entries": [
@@ -7386,6 +7473,312 @@
             "masterKind": "basic-rewards",
             "key": "b-basic.r6.cap-81-plus.band-participation.staff-10-1",
             "role": "base"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r6.welfare-professional-staffing.i",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=921",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-value",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.257",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-value",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "18就労継続支援(B・基本) row=2001（同一コード・同一単位数のcontinuity照合）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-value",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "current-fee-notice-html",
+          "sha256": "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768",
+          "locator": "現行第14の8イ（15単位・1日につき。注2・注3のⅠ>Ⅱ>Ⅲ排他）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-value",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "466037",
+        "officialLabel": "福祉専門職員配置等加算(Ⅰ)",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r6.welfare-professional-staffing.i"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-welfare-professional-staffing-i"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.welfare-professional-staffing.i",
+          "amount": {
+            "kind": "units-per-count",
+            "unitsPerCount": 15,
+            "countSelector": "count.b46.service-days.v1"
+          },
+          "calculationStepId": "claim.step.units.service-code.multiply-count.v1",
+          "roundingRuleId": null,
+          "billingUnit": "per-day"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.welfare-professional-staffing.i",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r6.welfare-professional-staffing.ii",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=922",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-value",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.257",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-value",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "18就労継続支援(B・基本) row=2002（同一コード・同一単位数のcontinuity照合）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-value",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "current-fee-notice-html",
+          "sha256": "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768",
+          "locator": "現行第14の8ロ（10単位・1日につき。注2・注3のⅠ>Ⅱ>Ⅲ排他）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-value",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "466035",
+        "officialLabel": "福祉専門職員配置等加算(Ⅱ)",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r6.welfare-professional-staffing.ii"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-welfare-professional-staffing-ii"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.welfare-professional-staffing.ii",
+          "amount": {
+            "kind": "units-per-count",
+            "unitsPerCount": 10,
+            "countSelector": "count.b46.service-days.v1"
+          },
+          "calculationStepId": "claim.step.units.service-code.multiply-count.v1",
+          "roundingRuleId": null,
+          "billingUnit": "per-day"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.welfare-professional-staffing.ii",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r6.welfare-professional-staffing.iii",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=923",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-value",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.257",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-value",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "18就労継続支援(B・基本) row=2003（同一コード・同一単位数のcontinuity照合）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-value",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "current-fee-notice-html",
+          "sha256": "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768",
+          "locator": "現行第14の8ハ（6単位・1日につき。注2・注3のⅠ>Ⅱ>Ⅲ排他）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-value",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "466036",
+        "officialLabel": "福祉専門職員配置等加算(Ⅲ)",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r6.welfare-professional-staffing.iii"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-welfare-professional-staffing-iii"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.welfare-professional-staffing.iii",
+          "amount": {
+            "kind": "units-per-count",
+            "unitsPerCount": 6,
+            "countSelector": "count.b46.service-days.v1"
+          },
+          "calculationStepId": "claim.step.units.service-code.multiply-count.v1",
+          "roundingRuleId": null,
+          "billingUnit": "per-day"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.welfare-professional-staffing.iii",
+            "role": "adjustment"
           }
         ]
       }

@@ -1,6 +1,7 @@
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
+using Tsumugi.Domain.Logic.Claim.Models;
 using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.Infrastructure.ClaimMasters;
@@ -34,6 +35,24 @@ namespace Tsumugi.Infrastructure.ClaimMasters;
 /// </remarks>
 public sealed class OfficeClaimBillingTokenProvider : IClaimBillingTokenProvider
 {
+    /// <summary>
+    /// countSelectorトークン（ADR 0028決定2）→<see cref="ClaimCountMetric"/>の束縛（Task 11）。
+    /// seedの正準文字列はDomain/Applicationへハードコードできないため、seedと同居する本クラスが
+    /// 値として供給する。この束縛にないcountSelectorを持つ加算行はClaimCalculatorが
+    /// フェイルクローズする。
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, ClaimCountMetric> CountSelectorBindings =
+        new Dictionary<string, ClaimCountMetric>(StringComparer.Ordinal)
+        {
+            ["count.b46.service-days.v1"] = ClaimCountMetric.ServiceDays,
+            ["count.b46.initial-period-service-days.v1"] = ClaimCountMetric.InitialPeriodServiceDays,
+            ["count.b46.absence-support.v1"] = ClaimCountMetric.AbsenceSupport,
+            ["count.b46.meal-provided-days.v1"] = ClaimCountMetric.MealProvidedDays,
+            ["count.b46.transport-one-way.v1"] = ClaimCountMetric.TransportOneWay,
+            ["count.b46.transport-one-way.same-premises.v1"] = ClaimCountMetric.TransportOneWaySamePremises,
+            ["previous-year-six-month-employment-count"] = ClaimCountMetric.PreviousYearSixMonthEmployment,
+        };
+
     public ClaimBillingConditionTokens Resolve(
         Office office, OfficeClaimProfile? profile, ServiceMonth serviceMonth)
     {
@@ -51,7 +70,8 @@ public sealed class OfficeClaimBillingTokenProvider : IClaimBillingTokenProvider
             RegionUnitPriceServiceKind: "employment-continuation-support",
             CapacityHeadcount: profile?.CapacityHeadcount,
             StaffingKey: profile?.StaffingKey,
-            RegionKeyConflict: regionKeyConflict);
+            RegionKeyConflict: regionKeyConflict,
+            CountSelectorBindings: CountSelectorBindings);
     }
 
     private static (string? RegionKey, bool Conflict) ResolveRegionKey(

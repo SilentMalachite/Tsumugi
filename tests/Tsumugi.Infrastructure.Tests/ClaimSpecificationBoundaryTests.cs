@@ -116,6 +116,37 @@ public sealed class ClaimSpecificationBoundaryTests
     }
 
     [Fact]
+    public void Scan_ignores_master_number_used_as_enum_member_discriminant()
+    {
+        // enumメンバの判別値は型契約上の構造値であり、告示単位数の「置き場」にはならない
+        // （値として使うには別の式リテラルが必要で、そちらは従来どおり検出される）。
+        // Task 11で加算単位数（10・15等）と既存enum判別値の偶然一致が常態化したための恒久除外。
+        using var fixture = new SpecificationFixture();
+        fixture.WriteMasterNumber("15");
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/DiscriminantEnum.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal enum Support { Value = 15 }");
+
+        fixture.Scan().Should().NotContain(
+            v => v.Rule == "claim-master-literal" && v.Literal == "15");
+    }
+
+    [Fact]
+    public void Scan_still_detects_master_number_outside_enum_discriminants()
+    {
+        using var fixture = new SpecificationFixture();
+        fixture.WriteMasterNumber("15");
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/DiscriminantEnumUse.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal enum Support { Value = 15 } " +
+            "internal static class Uses { internal static int Value => 15; }");
+
+        Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-literal" && v.Literal == "15");
+    }
+
+    [Fact]
     public void Scan_detects_nested_master_string_literal_in_application_source()
     {
         using var fixture = new SpecificationFixture();

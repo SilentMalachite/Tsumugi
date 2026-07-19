@@ -75,6 +75,13 @@ public sealed class ClaimCalculationSnapshotReader(
             var intensiveSupportEpisodeStartDateByRecipient =
                 await ReadIntensiveSupportEpisodeStartDatesByRecipientAsync(db, officeId, recipientIds, ct);
 
+            // Task 11: 体制届（加算の体制条件・ADR 0021）。実効1件の選定はDomainの
+            // OfficeCapabilityPolicyへ委譲するため、ここでは同一tx内の全件読取に徹する
+            // （DateRangeはJSON列のためSQLレベルで期間フィルタできない。Contractと同じ制約）。
+            var officeCapabilities = await db.OfficeCapabilities.AsNoTracking()
+                .Where(capability => capability.OfficeId == officeId)
+                .ToListAsync(ct);
+
             return new ClaimCalculationSnapshot(
                 recipientIds,
                 profile,
@@ -86,7 +93,8 @@ public sealed class ClaimCalculationSnapshotReader(
                 effectiveCertificateByRecipient,
                 effectiveContractedProviderByRecipient,
                 dailyRecordAggregateByRecipient,
-                intensiveSupportEpisodeStartDateByRecipient);
+                intensiveSupportEpisodeStartDateByRecipient,
+                officeCapabilities);
         }
         finally
         {

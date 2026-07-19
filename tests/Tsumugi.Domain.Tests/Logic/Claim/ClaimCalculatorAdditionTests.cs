@@ -1,0 +1,297 @@
+using FluentAssertions;
+using Tsumugi.Domain.Logic.Claim;
+using Tsumugi.Domain.Logic.Claim.Models;
+using Tsumugi.Domain.ValueObjects;
+
+namespace Tsumugi.Domain.Tests.Logic.Claim;
+
+/// <summary>
+/// Task 11（ADR 0028）: 加算明細の算定セマンティクスを合成マスタで固定する。
+/// マスタ値・トークンはすべて合成（production seedの正準文字列はDomainテストへ複製しない。
+/// <c>ClaimSpecificationBoundaryTests</c>の検査対象はproductionソースのみだが、意図としても
+/// seed実値はgolden caseテストの再掲値に限定する）。
+/// <list type="bullet">
+/// <item>体制条件（<see cref="ClaimConditionKind.OfficeCapability"/>）: 実効な体制届キー集合に
+/// 含まれる場合のみ加算行が成立する。キー集合が<c>null</c>（未取得）ならフェイルクローズ。</item>
+/// <item><see cref="UnitsPerCountAmount"/>: 整数単位×回数（丸めなし）。回数は
+/// <see cref="ClaimCalculationRequest.CountSelectorBindings"/>で束縛された
+/// <see cref="RecipientClaimSource"/>の型付き実績フィールドから取る。</item>
+/// <item><see cref="FixedUnitsAmount"/>: 1日につき=単位×請求日数、1月につき=単位×1。</item>
+/// </list>
+/// </summary>
+public sealed class ClaimCalculatorAdditionTests
+{
+    private static readonly ServiceMonth Month = new(2025, 4);
+    private static readonly Guid RecipientA = Guid.Parse("33333333-3333-3333-3333-333333333333");
+    private const int SyntheticCapYen = 9_999_999;
+
+    private const string CapabilityWpsI = "cap.staffing-addition.a";
+    private const string CapabilityWpsII = "cap.staffing-addition.b";
+
+    private static ClaimBillingConditionContext Context(
+        IReadOnlyCollection<string>? capabilityKeys) => new(
+        RewardSystem: "b-type",
+        PaymentBand: "band-x",
+        CapacityHeadcount: 20,
+        StaffingKey: "staff-x",
+        AverageWageBandOption: new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 5),
+        R8ReformStatus: R8ReformStatus.NotApplicableBeforeR8,
+        OfficeCapabilityKeys: capabilityKeys);
+
+    private static Dictionary<string, ClaimCountMetric> Bindings() =>
+        new Dictionary<string, ClaimCountMetric>(StringComparer.Ordinal)
+        {
+            ["count-days"] = ClaimCountMetric.ServiceDays,
+        };
+
+    private static ClaimCalculationRequest Request(
+        IReadOnlyCollection<string>? capabilityKeys,
+        int billedDays = 20,
+        IReadOnlyDictionary<string, ClaimCountMetric>? bindings = null) => new(
+        Month,
+        Context(capabilityKeys),
+        "region-x",
+        "b-type",
+        [new RecipientClaimSource(RecipientA, billedDays, 90, SyntheticCapYen)],
+        bindings ?? Bindings());
+
+    [Fact]
+    public void Per_day_count_addition_applies_when_office_holds_the_capability()
+    {
+        var result = ClaimCalculator.Calculate(Masters(), Request([CapabilityWpsI]));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        // 基本 700×20=14,000 + 加算 15×20=300
+        detail.TotalUnits.Should().Be(14_300);
+        var line = detail.AdditionLines.Should().ContainSingle().Subject;
+        line.ServiceCode.Should().Be("610101");
+        line.OfficialLabel.Should().Be("加算Ａ（Ⅰ）");
+        line.Units.Should().Be(300);
+        // ADR 0025: 総費用額=14,300×10.00=143,000円、1割相当=14,300円、給付費=128,700円。
+        detail.TotalCostYen.Should().Be(143_000);
+        detail.BurdenYen.Should().Be(14_300);
+        detail.BenefitYen.Should().Be(128_700);
+    }
+
+    [Fact]
+    public void Addition_is_not_billed_when_office_does_not_hold_the_capability()
+    {
+        var result = ClaimCalculator.Calculate(Masters(), Request(capabilityKeys: []));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        detail.TotalUnits.Should().Be(14_000);
+        detail.AdditionLines.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void One_hot_capability_selects_only_the_matching_variant()
+    {
+        var result = ClaimCalculator.Calculate(Masters(), Request([CapabilityWpsII]));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        // 加算Ａ（Ⅱ）: 10×20=200のみ。Ⅰ（15単位）は体制外。
+        detail.TotalUnits.Should().Be(14_200);
+        detail.AdditionLines.Should().ContainSingle().Which.ServiceCode.Should().Be("610102");
+    }
+
+    [Fact]
+    public void Capability_condition_fails_closed_when_capability_keys_are_unavailable()
+    {
+        var act = () => ClaimCalculator.Calculate(Masters(), Request(capabilityKeys: null));
+
+        act.Should().Throw<ServiceCodeResolutionException>()
+            .Which.Code.Should().Be(ServiceCodeResolutionErrorCode.ConditionUnresolved);
+    }
+
+    [Fact]
+    public void Count_addition_fails_closed_when_count_selector_binding_is_missing()
+    {
+        var act = () => ClaimCalculator.Calculate(
+            Masters(),
+            Request(
+                [CapabilityWpsI],
+                bindings: new Dictionary<string, ClaimCountMetric>(StringComparer.Ordinal)));
+
+        act.Should().Throw<ClaimCalculationException>()
+            .Which.Code.Should().Be(ClaimCalculationErrorCode.UnsupportedAdditionRule);
+    }
+
+    [Fact]
+    public void Addition_fails_closed_when_component_row_is_missing()
+    {
+        var masters = Masters() with { UnitAdjustments = [] };
+
+        var act = () => ClaimCalculator.Calculate(masters, Request([CapabilityWpsI]));
+
+        act.Should().Throw<ServiceCodeResolutionException>()
+            .Which.Code.Should().Be(ServiceCodeResolutionErrorCode.ComponentMissing);
+    }
+
+    [Fact]
+    public void Addition_fails_closed_when_component_row_amount_disagrees_with_the_rule()
+    {
+        var masters = Masters();
+        var mismatched = masters with
+        {
+            UnitAdjustments =
+            [
+                Adjustment(
+                    "adj-a1",
+                    new UnitsPerCountAmount(14, "count-days"),
+                    BillingUnit.PerDay),
+                masters.UnitAdjustments[1],
+            ],
+        };
+
+        var act = () => ClaimCalculator.Calculate(mismatched, Request([CapabilityWpsI]));
+
+        act.Should().Throw<ServiceCodeResolutionException>()
+            .Which.Code.Should().Be(ServiceCodeResolutionErrorCode.ComponentMismatch);
+    }
+
+    [Fact]
+    public void Fixed_units_amount_bills_per_day_and_per_month_billing_units()
+    {
+        var masters = MastersWithFixedAdditions();
+
+        var result = ClaimCalculator.Calculate(masters, Request([CapabilityWpsI], billedDays: 20));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        // per-day 30×20=600、per-month 55×1=55。
+        detail.AdditionLines.Should().HaveCount(2);
+        detail.TotalUnits.Should().Be(14_000 + 600 + 55);
+    }
+
+    [Fact]
+    public void Zero_count_produces_no_addition_line()
+    {
+        // BilledDays>0は基本報酬の前提のためServiceDaysでは0回を作れない。
+        // 束縛先を欠席時対応系フィールド（既定0）へ差し替えて0回を表す。
+        var bindings = new Dictionary<string, ClaimCountMetric>(StringComparer.Ordinal)
+        {
+            ["count-days"] = ClaimCountMetric.AbsenceSupport,
+        };
+
+        var result = ClaimCalculator.Calculate(
+            Masters(), Request([CapabilityWpsI], bindings: bindings));
+
+        result.Details.Should().ContainSingle().Which.AdditionLines.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Negative_addition_counts_are_rejected()
+    {
+        var request = new ClaimCalculationRequest(
+            Month,
+            Context([]),
+            "region-x",
+            "b-type",
+            [new RecipientClaimSource(RecipientA, 20, 90, SyntheticCapYen, AbsenceSupportCount: -1)],
+            Bindings());
+
+        var act = () => ClaimCalculator.Calculate(Masters(), request);
+
+        act.Should().Throw<ClaimCalculationException>()
+            .Which.Code.Should().Be(ClaimCalculationErrorCode.InvalidInput);
+    }
+
+    private static ClaimSourceRef SourceRef() => new(
+        "r6-fee-notice",
+        "0000000000000000000000000000000000000000000000000000000000000",
+        "synthetic",
+        ClaimSourceEvidenceRole.Authoritative,
+        [ClaimSourceSupport.MasterValues, ClaimSourceSupport.EffectivePeriod]);
+
+    private static ClaimConditionDefinition Condition(
+        string key, ClaimConditionKind kind, ClaimConditionOperand operand) => new(
+        key, new ServiceMonth(2024, 4), null, kind, ClaimConditionOperator.Equals, operand, [SourceRef()]);
+
+    private static UnitAdjustmentMasterRow Adjustment(
+        string key, UnitAdjustmentAmount amount, BillingUnit billingUnit) => new(
+        key, amount, "step-add", null, billingUnit,
+        new ServiceMonth(2024, 4), null, [SourceRef()]);
+
+    private static ServiceCodeMasterRow AdditionService(
+        string key, string serviceCode, string officialLabel, string adjustmentKey,
+        UnitAdjustmentAmount amount, BillingUnit billingUnit,
+        IReadOnlyList<string> conditionSelectors) => new(
+        key, serviceCode, officialLabel, "b-type", [$"selector:{key}"], conditionSelectors,
+        new UnitAdditionRule(adjustmentKey, amount, "step-add", null, billingUnit),
+        [new ClaimComponentRef(ClaimComponentMasterKind.Additions, adjustmentKey, ClaimComponentRole.Adjustment)],
+        new ServiceMonth(2024, 4), null, [SourceRef()]);
+
+    private static ClaimCalculationMasterBundle Masters()
+    {
+        var amountI = new UnitsPerCountAmount(15, "count-days");
+        var amountII = new UnitsPerCountAmount(10, "count-days");
+        return new ClaimCalculationMasterBundle(
+            BasicRewards:
+            [
+                new BasicRewardMasterRow(
+                    "base-a", "band-x", "staff-x", "cap-x", "610000", 700,
+                    new ServiceMonth(2024, 4), null, [SourceRef()]),
+            ],
+            UnitAdjustments:
+            [
+                Adjustment("adj-a1", amountI, BillingUnit.PerDay),
+                Adjustment("adj-a2", amountII, BillingUnit.PerDay),
+            ],
+            RegionUnitPrices:
+            [
+                new RegionUnitPriceMasterRow(
+                    "price-x", "region-x", "b-type", 10.00m,
+                    new ServiceMonth(2024, 4), null, [SourceRef()]),
+            ],
+            BurdenCaps: [],
+            TransitionRules: [],
+            ServiceCodes:
+            [
+                new ServiceCodeMasterRow(
+                    "svc-base", "610000", "基本Ａ", "b-type", ["selector:svc-base"], ["cond-system-b"],
+                    new BaseComponentPassThroughRule("base-a", "step-base", null, BillingUnit.PerDay),
+                    [new ClaimComponentRef(ClaimComponentMasterKind.BasicRewards, "base-a", ClaimComponentRole.Base)],
+                    new ServiceMonth(2024, 4), null, [SourceRef()]),
+                AdditionService(
+                    "svc-add-a1", "610101", "加算Ａ（Ⅰ）", "adj-a1", amountI, BillingUnit.PerDay,
+                    ["cond-system-b", "cond-cap-a1"]),
+                AdditionService(
+                    "svc-add-a2", "610102", "加算Ａ（Ⅱ）", "adj-a2", amountII, BillingUnit.PerDay,
+                    ["cond-system-b", "cond-cap-a2"]),
+            ],
+            ConditionDefinitions:
+            [
+                Condition("cond-system-b", ClaimConditionKind.RewardSystem, new ClaimConditionTokenOperand("b-type")),
+                Condition(
+                    "cond-cap-a1", ClaimConditionKind.OfficeCapability,
+                    new ClaimConditionTokenOperand(CapabilityWpsI)),
+                Condition(
+                    "cond-cap-a2", ClaimConditionKind.OfficeCapability,
+                    new ClaimConditionTokenOperand(CapabilityWpsII)),
+            ]);
+    }
+
+    private static ClaimCalculationMasterBundle MastersWithFixedAdditions()
+    {
+        var masters = Masters();
+        var perDay = new FixedUnitsAmount(30);
+        var perMonth = new FixedUnitsAmount(55);
+        return masters with
+        {
+            UnitAdjustments =
+            [
+                Adjustment("adj-fix-day", perDay, BillingUnit.PerDay),
+                Adjustment("adj-fix-month", perMonth, BillingUnit.PerMonth),
+            ],
+            ServiceCodes =
+            [
+                masters.ServiceCodes[0],
+                AdditionService(
+                    "svc-fix-day", "610201", "加算Ｂ", "adj-fix-day", perDay, BillingUnit.PerDay,
+                    ["cond-system-b", "cond-cap-a1"]),
+                AdditionService(
+                    "svc-fix-month", "610202", "加算Ｃ", "adj-fix-month", perMonth, BillingUnit.PerMonth,
+                    ["cond-system-b", "cond-cap-a1"]),
+            ],
+        };
+    }
+}

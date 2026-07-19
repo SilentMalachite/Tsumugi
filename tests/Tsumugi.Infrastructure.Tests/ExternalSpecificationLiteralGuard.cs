@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Tsumugi.Infrastructure.Tests;
 
@@ -52,10 +53,28 @@ internal static class ExternalSpecificationLiteralGuard
     /// 512 (cap-81-plus / band-35000-45000 / staff-10-1, service code 462769). Both values
     /// are correct and independently fixed; the match is coincidental.
     /// </summary>
+    /// <remarks>
+    /// Task 11 additions seeding (ADR 0028) fixes per-count unit values 15/10/6 (welfare
+    /// professional staffing) and later families (30, 94, 45-36, 21, 7). Coincidental
+    /// matches added for it:
+    /// <list type="bullet">
+    /// <item>WageSettings.cs AllowedHourUnitMinutes fixes the Phase 2 wage time-unit
+    /// divisors of 60 minutes (10 and 15 among them) — unrelated to reward units.</item>
+    /// <item>RegisterCertificateUseCase.cs line 67 fixes the 10-digit provider-number
+    /// length of the certificate form (ADR 0010) — unrelated to reward units.</item>
+    /// <item>ClaimCalculationMasters.cs RequiredStatutoryFormula fixes the protected
+    /// facility unit-price divisor 10円 (Task 13 closed contract) — a statutory divisor,
+    /// not a per-count unit value.</item>
+    /// </list>
+    /// </remarks>
     private static readonly (string RelativePath, int LineNumber, string Literal)[]
         KnownCoincidentalLiteralMatches =
         [
             ("src/Tsumugi.Application/Audit/ClaimAuditEntryFactory.cs", 40, "512"),
+            ("src/Tsumugi.Domain/Entities/WageSettings.cs", 23, "10"),
+            ("src/Tsumugi.Domain/Entities/WageSettings.cs", 23, "15"),
+            ("src/Tsumugi.Application/UseCases/Certificate/RegisterCertificateUseCase.cs", 67, "10"),
+            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 266, "10"),
         ];
 
     public static IReadOnlyList<Violation> ScanProduction()
@@ -640,10 +659,22 @@ internal static class ExternalSpecificationLiteralGuard
             .Concat(disabledTokens)
             .DistinctBy(token => (token.SpanStart, token.Span.Length, token.RawKind))
             .OrderBy(token => token.SpanStart)
+            .Where(token => !IsEnumMemberDiscriminant(token))
             .Select(token => ToSourceLiteral(syntaxTree, token))
             .OfType<SourceLiteral>()
             .ToList();
     }
+
+    /// <summary>
+    /// enumメンバの判別値（<c>Kind = 10</c> 等）は型契約上の構造値であり、報酬告示の単位数等の
+    /// 外部仕様値をここへ「置く」ことは機能しない（値として参照した瞬間に別の式リテラルとして
+    /// 検出される）。加算seed投入（Task 11）以降、単位数（10・15等）と既存enum判別値の偶然一致が
+    /// 常態化するため、enumメンバ判別値の数値リテラルのみ走査対象から除外する。
+    /// disabled-textから復元したトークンは構文木を持たないため本判定の対象外（従来どおり検出）。
+    /// </summary>
+    private static bool IsEnumMemberDiscriminant(SyntaxToken token) =>
+        token.IsKind(SyntaxKind.NumericLiteralToken)
+        && token.Parent?.AncestorsAndSelf().OfType<EnumMemberDeclarationSyntax>().Any() == true;
 
     private static SourceLiteral? ToSourceLiteral(SyntaxTree syntaxTree, SyntaxToken token)
     {

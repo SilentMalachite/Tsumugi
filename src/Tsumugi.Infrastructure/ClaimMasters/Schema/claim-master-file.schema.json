@@ -219,7 +219,18 @@
       "properties": {
         "kind": { "const": "units-per-count" },
         "unitsPerCount": { "type": "integer", "minimum": 1 },
-        "countSelector": { "$ref": "#/$defs/nonBlank" }
+        "countSelector": {
+          "enum": [
+            "previous-year-six-month-employment-count",
+            "count.b46.service-days.v1",
+            "count.b46.initial-period-service-days.v1",
+            "count.b46.absence-support.v1",
+            "count.b46.meal-provided-days.v1",
+            "count.b46.transport-one-way.v1",
+            "count.b46.transport-one-way.same-premises.v1"
+          ]
+        },
+        "monthlyCountCap": { "type": "integer", "minimum": 1 }
       }
     },
     "percentageOfTargetAmount": {
@@ -787,7 +798,8 @@
             "municipality-ownership",
             "r8-reform-status",
             "facility-classification",
-            "employment-outcome-count"
+            "employment-outcome-count",
+            "office-capability"
           ]
         },
         "operator": {
@@ -830,7 +842,8 @@
                   "staffing",
                   "plan-status",
                   "r8-reform-status",
-                  "facility-classification"
+                  "facility-classification",
+                  "office-capability"
                 ]
               }
             }
@@ -841,6 +854,21 @@
               "value": { "$ref": "#/$defs/nonBlank" },
               "values": {
                 "items": { "$ref": "#/$defs/nonBlank" }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": { "const": "office-capability" }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": { "pattern": "^mhlw\\.b46\\.capability\\." },
+              "values": {
+                "items": { "pattern": "^mhlw\\.b46\\.capability\\." }
               }
             }
           }

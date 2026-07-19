@@ -1,5 +1,6 @@
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Domain.Entities;
+using Tsumugi.Domain.Logic;
 using Tsumugi.Domain.Logic.Claim;
 using Tsumugi.Domain.Logic.Claim.Models;
 using Tsumugi.Domain.ValueObjects;
@@ -44,6 +45,8 @@ public static class ClaimCalculationRequestBuilder
     internal const string RegionKeyConflictField =
         nameof(OfficeClaimProfile) + "." + nameof(OfficeClaimProfile.RegionKey);
     internal const string ServiceCategoryField = nameof(Office) + "." + nameof(Office.ServiceCategory);
+    internal const string OfficeCapabilityField =
+        nameof(OfficeCapability) + "." + nameof(OfficeCapability.Flags);
 
     public static ClaimCalculationRequestBuildResult Build(
         ClaimCalculationSnapshot snapshot,
@@ -56,6 +59,7 @@ public static class ClaimCalculationRequestBuilder
         var issues = new List<ClaimPreparationIssue>();
         var bandOption = ResolveNumericBandOption(snapshot.Profile, issues);
         var reformStatus = ResolveReformStatus(snapshot.Profile, issues);
+        var capabilityKeys = ResolveOfficeCapabilityKeys(snapshot, serviceMonth, issues);
         ValidateTokens(tokens, issues);
         var sources = BuildSources(snapshot, issues);
 
@@ -72,11 +76,50 @@ public static class ClaimCalculationRequestBuilder
                 tokens.CapacityHeadcount!.Value,
                 tokens.StaffingKey!,
                 bandOption!.Value,
-                reformStatus!.Value),
+                reformStatus!.Value,
+                capabilityKeys),
             tokens.RegionKey!,
             tokens.RegionUnitPriceServiceKind!,
-            sources);
+            sources,
+            tokens.CountSelectorBindings);
         return new ClaimCalculationRequestBuildResult(request, issues);
+    }
+
+    /// <summary>
+    /// 実効体制届の有効フラグキー集合を解決する（Task 11・ADR 0021の実効レコード選定）。
+    /// 選定が曖昧（<c>Period.Start</c>・<c>CreatedAt</c>同値の複数候補）な場合は専用issueで
+    /// フェイルクローズする。実効レコードなし（未登録）は空集合＝「加算体制なし」として
+    /// 基本報酬のみ算定する（正しい請求挙動）。snapshotが旧形状（<c>OfficeCapabilities=null</c>）の
+    /// 場合も未登録と同義に扱う（production readerは常に非nullを供給する）。
+    /// asOfは対象サービス月の1日（月途中で開始する体制届は当月に算定しない保守側の選定）。
+    /// </summary>
+    private static HashSet<string> ResolveOfficeCapabilityKeys(
+        ClaimCalculationSnapshot snapshot,
+        ServiceMonth serviceMonth,
+        List<ClaimPreparationIssue> issues)
+    {
+        if (snapshot.OfficeCapabilities is not { Count: > 0 } records)
+            return [];
+
+        var asOf = new DateOnly(serviceMonth.Year, serviceMonth.Month, 1);
+        var resolution = OfficeCapabilityPolicy.Resolve(records, asOf);
+        if (resolution.IsAmbiguous)
+        {
+            issues.Add(new ClaimPreparationIssue(
+                ClaimPreparationIssueCode.InvalidEffectiveHistory,
+                RecipientId: null,
+                OfficeCapabilityField,
+                ClaimInputDestination.Office));
+            return [];
+        }
+
+        if (resolution.Effective is not { } effective)
+            return [];
+
+        return effective.Flags
+            .Where(flag => flag.Value)
+            .Select(flag => flag.Key)
+            .ToHashSet(StringComparer.Ordinal);
     }
 
     private static AverageWageBandOption? ResolveNumericBandOption(
