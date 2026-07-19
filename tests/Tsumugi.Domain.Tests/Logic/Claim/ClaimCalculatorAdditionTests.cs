@@ -334,6 +334,48 @@ public sealed class ClaimCalculatorAdditionTests
     }
 
     [Fact]
+    public void Same_premises_transport_uses_its_own_one_way_count_metric()
+    {
+        // 送迎加算の同一敷地variant（ADR 0028決定3）: 合成済み固定単位×同一敷地片道回数。
+        // 同一敷地判別のストレージは未実装（決定5 gap）のためproduction seedには行を置かず、
+        // セマンティクスのみ固定する（ClaimAdditionSeedScopeTestsが除外をpin）。
+        var amount = new UnitsPerCountAmount(7, "count-transport-same");
+        var masters = Masters() with
+        {
+            UnitAdjustments = [Adjustment("adj-tsp", amount, BillingUnit.PerUse)],
+            ServiceCodes =
+            [
+                Masters().ServiceCodes[0],
+                AdditionService(
+                    "svc-tsp", "610601", "送迎（同一敷地）", "adj-tsp", amount, BillingUnit.PerUse,
+                    ["cond-system-b", "cond-cap-a1"]),
+            ],
+        };
+        var request = new ClaimCalculationRequest(
+            Month,
+            Context([CapabilityWpsI]),
+            "region-x",
+            "b-type",
+            [
+                new RecipientClaimSource(
+                    RecipientA, 20, 90, SyntheticCapYen,
+                    TransportOneWayCount: 5,
+                    TransportSamePremisesOneWayCount: 36),
+            ],
+            new Dictionary<string, ClaimCountMetric>(StringComparer.Ordinal)
+            {
+                ["count-transport-same"] = ClaimCountMetric.TransportOneWaySamePremises,
+            });
+
+        var result = ClaimCalculator.Calculate(masters, request);
+
+        // 通常送迎の片道回数（5）ではなく同一敷地片道回数（36）に束縛される。
+        result.Details.Should().ContainSingle()
+            .Which.AdditionLines.Should().ContainSingle()
+            .Which.Units.Should().Be(7 * 36);
+    }
+
+    [Fact]
     public void Negative_addition_counts_are_rejected()
     {
         var request = new ClaimCalculationRequest(

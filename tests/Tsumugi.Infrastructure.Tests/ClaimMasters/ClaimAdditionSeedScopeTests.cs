@@ -61,7 +61,9 @@ public sealed class ClaimAdditionSeedScopeTests
             "466035",  // 福祉専門職員配置等加算(Ⅱ)
             "466036",  // 福祉専門職員配置等加算(Ⅲ)
             "466037",  // 福祉専門職員配置等加算(Ⅰ)
-            "466040"); // 欠席時対応加算（月4回上限はマスタ行のmonthlyCountCap）
+            "466040",  // 欠席時対応加算（月4回上限はマスタ行のmonthlyCountCap）
+            "466590",  // 送迎加算(Ⅰ)
+            "466591"); // 送迎加算(Ⅱ)（同一敷地variantは決定5 gapのため未seed）
     }
 
     [Fact]
