@@ -62,7 +62,7 @@ public sealed class ClaimCalculationSnapshotReader(
                 .OrderBy(id => id)
                 .ToArray();
 
-            var (billedDaysByRecipient, dailyRecordAggregateByRecipient) =
+            var (billedDaysByRecipient, dailyRecordAggregateByRecipient, additionDailyCountsByRecipient) =
                 await ReadDailyRecordDataByRecipientAsync(db, recipientIds, monthStart, monthEnd, ct);
             var (certificateCountByRecipient, effectiveCertificateEvidenceByRecipient,
                     effectiveCertificateByRecipient) =
@@ -94,7 +94,8 @@ public sealed class ClaimCalculationSnapshotReader(
                 effectiveContractedProviderByRecipient,
                 dailyRecordAggregateByRecipient,
                 intensiveSupportEpisodeStartDateByRecipient,
-                officeCapabilities);
+                officeCapabilities,
+                additionDailyCountsByRecipient);
         }
         finally
         {
@@ -157,12 +158,16 @@ public sealed class ClaimCalculationSnapshotReader(
     }
 
     /// <summary>
-    /// 出席日数と<see cref="ClaimDailyRecordAggregate"/>を同じ実効化走査から導出する
+    /// 出席日数・<see cref="ClaimDailyRecordAggregate"/>・加算実績カウント
+    /// （<see cref="ClaimAdditionDailyCounts"/>・Task 11）を同じ実効化走査から導出する
     /// （DailyRecordの月次クエリと訂正・取消縮約を1回で共用し、二重取得しない）。
+    /// 欠席時対応回数は実効レコードの<see cref="Attendance.AbsenceSupport"/>日数、
+    /// 食事提供日数・送迎片道回数は実効Present日から数える（欠席日に提供・送迎はない）。
     /// </summary>
     private static async Task<(
         IReadOnlyDictionary<Guid, int> BilledDaysByRecipient,
-        IReadOnlyDictionary<Guid, ClaimDailyRecordAggregate> AggregateByRecipient)>
+        IReadOnlyDictionary<Guid, ClaimDailyRecordAggregate> AggregateByRecipient,
+        IReadOnlyDictionary<Guid, ClaimAdditionDailyCounts> AdditionCountsByRecipient)>
         ReadDailyRecordDataByRecipientAsync(
             TsumugiDbContext db,
             IReadOnlyCollection<Guid> recipientIds,
@@ -172,6 +177,7 @@ public sealed class ClaimCalculationSnapshotReader(
     {
         var billedDaysByRecipient = new Dictionary<Guid, int>();
         var aggregateByRecipient = new Dictionary<Guid, ClaimDailyRecordAggregate>();
+        var additionCountsByRecipient = new Dictionary<Guid, ClaimAdditionDailyCounts>();
         foreach (var recipientId in recipientIds)
         {
             var dailyRecords = await db.DailyRecords.AsNoTracking()
@@ -186,6 +192,16 @@ public sealed class ClaimCalculationSnapshotReader(
                 .ToArray();
 
             billedDaysByRecipient[recipientId] = presentDays.Length;
+            additionCountsByRecipient[recipientId] = new ClaimAdditionDailyCounts(
+                AbsenceSupportDays: effectiveByDate.Values
+                    .Count(record => record.Attendance == Attendance.AbsenceSupport),
+                MealProvidedDays: presentDays.Count(record => record.MealProvided),
+                TransportOneWayCount: presentDays.Sum(record => record.Transport switch
+                {
+                    TransportKind.Outbound or TransportKind.Inbound => 1,
+                    TransportKind.Round => 2,
+                    _ => 0,
+                }));
             aggregateByRecipient[recipientId] = presentDays.Length == 0
                 ? ClaimDailyRecordAggregate.Empty
                 : new ClaimDailyRecordAggregate(
@@ -210,7 +226,7 @@ public sealed class ClaimCalculationSnapshotReader(
                     EmergencyAdmissionApplied: presentDays
                         .Any(record => record.EmergencyAdmissionApplied == true));
         }
-        return (billedDaysByRecipient, aggregateByRecipient);
+        return (billedDaysByRecipient, aggregateByRecipient, additionCountsByRecipient);
     }
 
     /// <summary>

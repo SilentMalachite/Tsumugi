@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Logic.Claim.Models;
@@ -34,6 +35,135 @@ public sealed class ClaimCalculationRequestBuilderTests
         source.BilledDays.Should().Be(2);
         source.BenefitRatePercent.Should().Be(90);
         source.CertificateMonthlyCapYen.Should().Be(9300);
+    }
+
+    [Fact]
+    public void Build_threads_addition_counts_with_certificate_gated_meal_days()
+    {
+        // Task 11（ADR 0028決定5）: 欠席時対応・送迎はDailyRecord縮約値をそのまま、
+        // 食事提供日数は受給者証のMealProvisionApplicableで対象判定してから渡す。
+        var snapshot = Kit.Snapshot(
+            certificateByRecipient: new Dictionary<Guid, Certificate>
+            {
+                [Kit.RecipientId] = Kit.Certificate(mealProvisionApplicable: true),
+            },
+            additionDailyCountsByRecipient: new Dictionary<Guid, ClaimAdditionDailyCounts>
+            {
+                [Kit.RecipientId] = new(AbsenceSupportDays: 2, MealProvidedDays: 1, TransportOneWayCount: 4),
+            });
+
+        var result = ClaimCalculationRequestBuilder.Build(snapshot, Kit.Month, Kit.Tokens());
+
+        result.Issues.Should().BeEmpty();
+        var source = result.Request!.Recipients.Should().ContainSingle().Subject;
+        source.AbsenceSupportCount.Should().Be(2);
+        source.MealProvidedDays.Should().Be(1);
+        source.TransportOneWayCount.Should().Be(4);
+        // ストレージgap（ADR 0028決定5）の実績は常に0（推測しない）。
+        source.InitialPeriodServiceDays.Should().Be(0);
+        source.TransportSamePremisesOneWayCount.Should().Be(0);
+    }
+
+    [Fact]
+    public void Build_zeroes_meal_days_when_certificate_says_not_applicable()
+    {
+        var snapshot = Kit.Snapshot(
+            certificateByRecipient: new Dictionary<Guid, Certificate>
+            {
+                [Kit.RecipientId] = Kit.Certificate(mealProvisionApplicable: false),
+            },
+            additionDailyCountsByRecipient: new Dictionary<Guid, ClaimAdditionDailyCounts>
+            {
+                [Kit.RecipientId] = new(AbsenceSupportDays: 0, MealProvidedDays: 2, TransportOneWayCount: 0),
+            });
+
+        var result = ClaimCalculationRequestBuilder.Build(snapshot, Kit.Month, Kit.Tokens());
+
+        result.Issues.Should().BeEmpty();
+        result.Request!.Recipients.Should().ContainSingle()
+            .Which.MealProvidedDays.Should().Be(0);
+    }
+
+    [Fact]
+    public void Build_fails_closed_when_meal_days_exist_without_the_certificate_entity()
+    {
+        // 提供実績があるのに対象判定材料（受給者証実体）がsnapshotにない場合は推測せずissue化する。
+        var snapshot = Kit.Snapshot(
+            additionDailyCountsByRecipient: new Dictionary<Guid, ClaimAdditionDailyCounts>
+            {
+                [Kit.RecipientId] = new(AbsenceSupportDays: 0, MealProvidedDays: 1, TransportOneWayCount: 0),
+            });
+
+        var result = ClaimCalculationRequestBuilder.Build(snapshot, Kit.Month, Kit.Tokens());
+
+        result.Request.Should().BeNull();
+        result.Issues.Should().Contain(issue =>
+            issue.Code == ClaimPreparationIssueCode.MissingRequiredEvidence
+            && issue.RecipientId == Kit.RecipientId
+            && issue.FieldCode == "Certificate.MealProvisionApplicable");
+    }
+
+    [Fact]
+    public void Build_resolves_effective_capability_flag_keys_into_the_context()
+    {
+        var snapshot = Kit.Snapshot(officeCapabilities:
+        [
+            Kit.Capability(new Dictionary<string, bool>
+            {
+                ["cap.synthetic.a"] = true,
+                ["cap.synthetic.b"] = false,
+            }),
+        ]);
+
+        var result = ClaimCalculationRequestBuilder.Build(snapshot, Kit.Month, Kit.Tokens());
+
+        result.Issues.Should().BeEmpty();
+        result.Request!.Conditions.OfficeCapabilityKeys.Should().BeEquivalentTo(["cap.synthetic.a"]);
+    }
+
+    [Fact]
+    public void Build_treats_missing_capability_records_as_an_empty_key_set()
+    {
+        var result = ClaimCalculationRequestBuilder.Build(
+            Kit.Snapshot(officeCapabilities: []), Kit.Month, Kit.Tokens());
+
+        result.Issues.Should().BeEmpty();
+        result.Request!.Conditions.OfficeCapabilityKeys.Should().NotBeNull();
+        result.Request.Conditions.OfficeCapabilityKeys.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Build_fails_closed_when_effective_capability_selection_is_ambiguous()
+    {
+        // ADR 0021: Period.StartとCreatedAtがともに同値の複数候補は曖昧（算定不能）。
+        var snapshot = Kit.Snapshot(officeCapabilities:
+        [
+            Kit.Capability(),
+            Kit.Capability(new Dictionary<string, bool> { ["cap.synthetic.b"] = true }),
+        ]);
+
+        var result = ClaimCalculationRequestBuilder.Build(snapshot, Kit.Month, Kit.Tokens());
+
+        result.Request.Should().BeNull();
+        result.Issues.Should().Contain(issue =>
+            issue.Code == ClaimPreparationIssueCode.InvalidEffectiveHistory
+            && issue.RecipientId == null
+            && issue.FieldCode == "OfficeCapability.Flags");
+    }
+
+    [Fact]
+    public void Build_passes_count_selector_bindings_through_to_the_request()
+    {
+        var bindings = new Dictionary<string, ClaimCountMetric>(StringComparer.Ordinal)
+        {
+            ["count-a"] = ClaimCountMetric.ServiceDays,
+        };
+
+        var result = ClaimCalculationRequestBuilder.Build(
+            Kit.Snapshot(), Kit.Month, Kit.Tokens(countSelectorBindings: bindings));
+
+        result.Issues.Should().BeEmpty();
+        result.Request!.CountSelectorBindings.Should().BeSameAs(bindings);
     }
 
     [Fact]

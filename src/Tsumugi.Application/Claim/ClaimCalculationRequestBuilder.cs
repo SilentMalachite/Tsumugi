@@ -47,6 +47,8 @@ public static class ClaimCalculationRequestBuilder
     internal const string ServiceCategoryField = nameof(Office) + "." + nameof(Office.ServiceCategory);
     internal const string OfficeCapabilityField =
         nameof(OfficeCapability) + "." + nameof(OfficeCapability.Flags);
+    internal const string MealProvisionApplicableField =
+        nameof(Certificate) + "." + nameof(Certificate.MealProvisionApplicable);
 
     public static ClaimCalculationRequestBuildResult Build(
         ClaimCalculationSnapshot snapshot,
@@ -268,8 +270,36 @@ public static class ClaimCalculationRequestBuilder
                 continue;
             }
 
+            // Task 11（ADR 0028決定5）: 加算実績カウント。食事提供日数は受給者証の対象判定
+            // （MealProvisionApplicable）を掛けてから渡す。提供実績があるのに受給者証実体が
+            // snapshotにない場合は対象判定を推測せずissue化する（フェイルクローズ）。
+            var counts = snapshot.AdditionDailyCountsByRecipient?.GetValueOrDefault(recipientId)
+                ?? ClaimAdditionDailyCounts.Empty;
+            var mealProvidedDays = 0;
+            if (counts.MealProvidedDays > 0)
+            {
+                var certificate = snapshot.EffectiveCertificateByRecipient?.GetValueOrDefault(recipientId);
+                if (certificate is null)
+                {
+                    issues.Add(new ClaimPreparationIssue(
+                        ClaimPreparationIssueCode.MissingRequiredEvidence,
+                        recipientId,
+                        MealProvisionApplicableField,
+                        ClaimInputDestination.Certificate));
+                    continue;
+                }
+
+                mealProvidedDays = certificate.MealProvisionApplicable ? counts.MealProvidedDays : 0;
+            }
+
             sources.Add(new RecipientClaimSource(
-                recipientId, billedDays, StatutoryBenefitRatePercent, capYen));
+                recipientId,
+                billedDays,
+                StatutoryBenefitRatePercent,
+                capYen,
+                AbsenceSupportCount: counts.AbsenceSupportDays,
+                MealProvidedDays: mealProvidedDays,
+                TransportOneWayCount: counts.TransportOneWayCount));
         }
 
         return sources;

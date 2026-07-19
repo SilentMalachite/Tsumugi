@@ -52,6 +52,7 @@ public sealed class ClaimAdditionSeedScopeTests
             .Order(StringComparer.Ordinal);
 
         codes.Should().Equal(
+            "465070",  // 食事提供体制加算
             "465255",  // 目標工賃達成指導員配置加算（定員20人以下）
             "465256",  // 同（定員21〜40人）
             "465257",  // 同（定員41〜60人）

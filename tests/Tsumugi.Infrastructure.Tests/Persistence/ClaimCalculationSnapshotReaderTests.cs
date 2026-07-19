@@ -817,6 +817,65 @@ public sealed class ClaimCalculationSnapshotReaderTests : IClassFixture<SqliteFi
     }
 
     [Fact]
+    public async Task Reads_addition_daily_counts_and_office_capabilities_in_the_same_snapshot()
+    {
+        // Task 11（ADR 0028決定5）: 欠席時対応=実効AbsenceSupport日数、食事提供=実効Present日の
+        // MealProvided日数、送迎=実効Present日の片道換算（Outbound/Inbound=1、Round=2）。
+        // 体制届は事業所の全レコードを同一txで搬送する（実効選定はbuilder側のDomain policy）。
+        var officeId = Guid.NewGuid();
+        var recipientId = Guid.NewGuid();
+        var month = new ServiceMonth(2027, 5);
+        var factory = new TestDbContextFactory(_fixture.DbPath);
+        var t0 = DateTimeOffset.UnixEpoch;
+
+        var dailyRecords = new[]
+        {
+            DailyRecord.NewRecord(
+                Guid.NewGuid(), recipientId, new DateOnly(2027, 5, 6),
+                Attendance.Present, TransportKind.Round, true, null, "tester", t0),
+            DailyRecord.NewRecord(
+                Guid.NewGuid(), recipientId, new DateOnly(2027, 5, 7),
+                Attendance.Present, TransportKind.Outbound, true, null, "tester", t0),
+            DailyRecord.NewRecord(
+                Guid.NewGuid(), recipientId, new DateOnly(2027, 5, 8),
+                Attendance.Present, TransportKind.Inbound, false, null, "tester", t0),
+            DailyRecord.NewRecord(
+                Guid.NewGuid(), recipientId, new DateOnly(2027, 5, 9),
+                Attendance.AbsenceSupport, TransportKind.None, false, null, "tester", t0),
+            // 欠席（対応なし）とMealProvided付きAbsent日はどのカウントにも入らない。
+            DailyRecord.NewRecord(
+                Guid.NewGuid(), recipientId, new DateOnly(2027, 5, 10),
+                Attendance.Absent, TransportKind.Round, true, null, "tester", t0),
+        };
+        var capability = OfficeCapability.Create(
+            Guid.NewGuid(), officeId, new DateRange(new DateOnly(2027, 5, 1), null),
+            new Dictionary<string, bool> { ["cap.reader.a"] = true },
+            "tester", t0, Guid.NewGuid());
+
+        await using (var seed = factory.CreateDbContext())
+        {
+            seed.AddRange(Rows.Office(officeId), Rows.Recipient(recipientId));
+            seed.AddRange(dailyRecords);
+            seed.Add(capability);
+            await seed.SaveChangesAsync();
+        }
+
+        var reader = new ClaimCalculationSnapshotReader(
+            factory, new FakeOfficeClaimProfilePolicyProvider(MasterVersion));
+
+        var snapshot = await reader.ReadAsync(officeId, month, default);
+
+        snapshot.AdditionDailyCountsByRecipient.Should().ContainKey(recipientId);
+        var counts = snapshot.AdditionDailyCountsByRecipient![recipientId];
+        counts.AbsenceSupportDays.Should().Be(1);
+        counts.MealProvidedDays.Should().Be(2);
+        counts.TransportOneWayCount.Should().Be(4); // Round(2) + Outbound(1) + Inbound(1)
+
+        snapshot.OfficeCapabilities.Should().ContainSingle()
+            .Which.Flags.Should().ContainKey("cap.reader.a");
+    }
+
+    [Fact]
     public async Task Contracted_provider_belonging_to_a_different_provider_number_is_not_resolved()
     {
         // Task 9c fail-closed: ProviderNumberが本事業所のOfficeNumberと一致しない行は

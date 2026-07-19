@@ -114,7 +114,8 @@ internal static class ClaimPreparationTestKit
     internal static Certificate Certificate(
         string? municipalityNumber = null,
         string? subsidyMunicipalityNumber = null,
-        string? upperLimitManagementProviderNumber = null)
+        string? upperLimitManagementProviderNumber = null,
+        bool mealProvisionApplicable = false)
         => Domain.Entities.Certificate.Create(
             Guid.NewGuid(),
             RecipientId,
@@ -128,7 +129,8 @@ internal static class ClaimPreparationTestKit
             Guid.NewGuid(),
             municipalityNumber: municipalityNumber,
             subsidyMunicipalityNumber: subsidyMunicipalityNumber,
-            upperLimitManagementProviderNumber: upperLimitManagementProviderNumber);
+            upperLimitManagementProviderNumber: upperLimitManagementProviderNumber,
+            mealProvisionApplicable: mealProvisionApplicable);
 
     internal static ContractedProvider ContractedProvider(int? certificateEntryNumber = null)
         => Domain.Entities.ContractedProvider.Create(
@@ -175,7 +177,9 @@ internal static class ClaimPreparationTestKit
         IReadOnlyDictionary<Guid, Certificate>? certificateByRecipient = null,
         IReadOnlyDictionary<Guid, ContractedProvider>? contractedProviderByRecipient = null,
         IReadOnlyDictionary<Guid, ClaimDailyRecordAggregate>? dailyRecordAggregateByRecipient = null,
-        IReadOnlyDictionary<Guid, DateOnly>? intensiveSupportEpisodeStartDateByRecipient = null)
+        IReadOnlyDictionary<Guid, DateOnly>? intensiveSupportEpisodeStartDateByRecipient = null,
+        IReadOnlyList<OfficeCapability>? officeCapabilities = null,
+        IReadOnlyDictionary<Guid, ClaimAdditionDailyCounts>? additionDailyCountsByRecipient = null)
         => new(
             recipientIds ?? [RecipientId],
             includeProfile ? profile ?? Profile() : null,
@@ -187,7 +191,22 @@ internal static class ClaimPreparationTestKit
             certificateByRecipient,
             contractedProviderByRecipient,
             dailyRecordAggregateByRecipient,
-            intensiveSupportEpisodeStartDateByRecipient);
+            intensiveSupportEpisodeStartDateByRecipient,
+            officeCapabilities,
+            additionDailyCountsByRecipient);
+
+    internal static OfficeCapability Capability(
+        IReadOnlyDictionary<string, bool>? flags = null,
+        DateOnly? periodStart = null,
+        DateTimeOffset? createdAt = null)
+        => OfficeCapability.Create(
+            Guid.NewGuid(),
+            OfficeId,
+            new DateRange(periodStart ?? new DateOnly(2024, 4, 1), null),
+            flags ?? new Dictionary<string, bool> { ["cap.synthetic.a"] = true },
+            "tester",
+            createdAt ?? Now,
+            Guid.NewGuid());
 
     internal static ClaimBillingConditionTokens Tokens(
         string? rewardSystem = "b-type",
@@ -195,8 +214,11 @@ internal static class ClaimPreparationTestKit
         string? serviceKind = "b-type",
         int? capacityHeadcount = 20,
         string? staffingKey = "staff-a",
-        bool regionKeyConflict = false)
-        => new(rewardSystem, regionKey, serviceKind, capacityHeadcount, staffingKey, regionKeyConflict);
+        bool regionKeyConflict = false,
+        IReadOnlyDictionary<string, ClaimCountMetric>? countSelectorBindings = null)
+        => new(
+            rewardSystem, regionKey, serviceKind, capacityHeadcount, staffingKey, regionKeyConflict,
+            countSelectorBindings);
 
     internal static ClaimMasterRelease Release()
         => new(new ClaimMasterVersion("master-v1"), new ServiceMonth(2024, 4), null, ["doc-1"]);

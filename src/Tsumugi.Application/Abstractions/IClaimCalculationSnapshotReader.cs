@@ -42,6 +42,24 @@ public sealed record ClaimDailyRecordAggregate(
 }
 
 /// <summary>
+/// 利用者・サービス月ごとの加算実績カウント（Task 11・ADR 0028決定5）。
+/// 実効DailyRecord（訂正・取消反映済み）の純粋な縮約であり、値を捏造しない。
+/// </summary>
+/// <param name="AbsenceSupportDays">実効レコードの<c>Attendance=AbsenceSupport</c>日数（欠席時対応）。</param>
+/// <param name="MealProvidedDays">
+/// 実効Present日の<c>MealProvided=true</c>日数。受給者証の対象判定
+/// （<c>Certificate.MealProvisionApplicable</c>）はここでは掛けない（builderの責務）。
+/// </param>
+/// <param name="TransportOneWayCount">実効Present日の<c>Transport</c>片道換算合計（Outbound/Inbound=1、Round=2）。</param>
+public sealed record ClaimAdditionDailyCounts(
+    int AbsenceSupportDays,
+    int MealProvidedDays,
+    int TransportOneWayCount)
+{
+    public static ClaimAdditionDailyCounts Empty { get; } = new(0, 0, 0);
+}
+
+/// <summary>
 /// 事業所・サービス月単位で、請求算定に必要な入力の一貫したスナップショット。
 /// 各コレクションは追記型revision chainを実効値へ縮約済み（取消・訂正は反映済み）。
 /// </summary>
@@ -97,6 +115,12 @@ public sealed record ClaimDailyRecordAggregate(
 /// 曖昧時のフェイルクローズは<c>ClaimCalculationRequestBuilder</c>の責務。
 /// <c>null</c>（旧snapshot形状）は「体制届未登録」と同義に扱う（production readerは常に非null）。
 /// </para>
+/// <para>
+/// （Task 11追加）<see cref="AdditionDailyCountsByRecipient"/> は
+/// <see cref="ClaimAdditionDailyCounts"/>を参照（<see cref="BilledDaysByRecipient"/>と同じ
+/// 実効化走査から導出）。エントリのない利用者・<c>null</c>（旧snapshot形状）は
+/// <see cref="ClaimAdditionDailyCounts.Empty"/>と同義。
+/// </para>
 /// </remarks>
 public sealed record ClaimCalculationSnapshot(
     IReadOnlyList<Guid> RecipientIds,
@@ -110,7 +134,8 @@ public sealed record ClaimCalculationSnapshot(
     IReadOnlyDictionary<Guid, ContractedProvider>? EffectiveContractedProviderByRecipient = null,
     IReadOnlyDictionary<Guid, ClaimDailyRecordAggregate>? DailyRecordAggregateByRecipient = null,
     IReadOnlyDictionary<Guid, DateOnly>? IntensiveSupportEpisodeStartDateByRecipient = null,
-    IReadOnlyList<OfficeCapability>? OfficeCapabilities = null);
+    IReadOnlyList<OfficeCapability>? OfficeCapabilities = null,
+    IReadOnlyDictionary<Guid, ClaimAdditionDailyCounts>? AdditionDailyCountsByRecipient = null);
 
 /// <summary>
 /// 事業所・サービス月のクレーム算定入力を単一の読み取り専用トランザクションで取得する。

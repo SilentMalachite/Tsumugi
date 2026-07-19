@@ -73,6 +73,7 @@ internal static class ExternalSpecificationLiteralGuard
             ("src/Tsumugi.Application/Audit/ClaimAuditEntryFactory.cs", 40, "512"),
             ("src/Tsumugi.Domain/Entities/WageSettings.cs", 23, "10"),
             ("src/Tsumugi.Domain/Entities/WageSettings.cs", 23, "15"),
+            ("src/Tsumugi.Domain/Entities/WageSettings.cs", 23, "30"),
             ("src/Tsumugi.Application/UseCases/Certificate/RegisterCertificateUseCase.cs", 67, "10"),
             ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 266, "10"),
         ];
