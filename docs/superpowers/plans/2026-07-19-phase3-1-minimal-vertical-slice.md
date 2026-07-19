@@ -1139,16 +1139,16 @@ git commit -m "feat(phase3-1): r8 boundary switch and official average wage form
 - Consumes: 全タスクの成果
 - Produces: Phase 3-1（本スライス）の受け入れ判定。Phase 3-2（帳票）へ進む前提
 
-- [ ] **Step 1: 品質ゲート一括実行**
+- [x] **Step 1: 品質ゲート一括実行**
 
 Run: `./build/ci.sh`
 Expected: `==> CI OK`（format / build 警告ゼロ / 全テスト / Domain≧95% / Application≧70%）
 
-- [ ] **Step 2: 受け入れ証跡を記録**
+- [x] **Step 2: 受け入れ証跡を記録**
 
 `docs/phase3-1-acceptance.md` に、specの§8成功基準5項目それぞれについて 判定（✔/✘）・証跡（テスト名 or 実行コマンドと結果）を表で記録。`Logic.Claim` の分岐カバレッジ実測値も記載（100%未達なら不足箇所と理由）。
 
-- [ ] **Step 3: CLAUDE.md現在地を「Phase 3-1垂直スライス受け入れ済み、次はPhase 3-2帳票」へ更新しコミット**
+- [x] **Step 3: CLAUDE.md現在地を「Phase 3-1垂直スライス受け入れ済み、次はPhase 3-2帳票」へ更新しコミット**
 
 ```bash
 git add docs/ CLAUDE.md
