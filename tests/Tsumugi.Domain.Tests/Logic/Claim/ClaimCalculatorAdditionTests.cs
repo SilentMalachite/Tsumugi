@@ -178,6 +178,66 @@ public sealed class ClaimCalculatorAdditionTests
         result.Details.Should().ContainSingle().Which.AdditionLines.Should().BeEmpty();
     }
 
+    [Theory]
+    [InlineData(20, "610401", 45 * 20)]
+    [InlineData(30, "610402", 40 * 20)]
+    public void Capacity_banded_addition_variant_follows_the_office_headcount(
+        int capacityHeadcount, string expectedServiceCode, int expectedUnits)
+    {
+        // 目標工賃達成指導員配置加算型（ADR 0028決定3）: 定員区分ごとの行を頭数の閾値条件で選ぶ。
+        // 閾値はマスタ条件（ClaimConditionKind.Capacity）にのみ置く。
+        var amount45 = new UnitsPerCountAmount(45, "count-days");
+        var amount40 = new UnitsPerCountAmount(40, "count-days");
+        var masters = Masters() with
+        {
+            UnitAdjustments =
+            [
+                Adjustment("adj-twi-small", amount45, BillingUnit.PerDay),
+                Adjustment("adj-twi-mid", amount40, BillingUnit.PerDay),
+            ],
+            ServiceCodes =
+            [
+                Masters().ServiceCodes[0],
+                AdditionService(
+                    "svc-twi-small", "610401", "指導員配置（小）", "adj-twi-small", amount45,
+                    BillingUnit.PerDay, ["cond-system-b", "cond-cap-a1", "cond-cap-small"]),
+                AdditionService(
+                    "svc-twi-mid", "610402", "指導員配置（中）", "adj-twi-mid", amount40,
+                    BillingUnit.PerDay, ["cond-system-b", "cond-cap-a1", "cond-cap-mid-gte", "cond-cap-mid-lte"]),
+            ],
+            ConditionDefinitions =
+            [
+                .. Masters().ConditionDefinitions,
+                new ClaimConditionDefinition(
+                    "cond-cap-small", new ServiceMonth(2024, 4), null,
+                    ClaimConditionKind.Capacity, ClaimConditionOperator.LessThanOrEqual,
+                    new ClaimConditionIntegerOperand(20), [SourceRef()]),
+                new ClaimConditionDefinition(
+                    "cond-cap-mid-gte", new ServiceMonth(2024, 4), null,
+                    ClaimConditionKind.Capacity, ClaimConditionOperator.GreaterThanOrEqual,
+                    new ClaimConditionIntegerOperand(21), [SourceRef()]),
+                new ClaimConditionDefinition(
+                    "cond-cap-mid-lte", new ServiceMonth(2024, 4), null,
+                    ClaimConditionKind.Capacity, ClaimConditionOperator.LessThanOrEqual,
+                    new ClaimConditionIntegerOperand(40), [SourceRef()]),
+            ],
+        };
+        var request = new ClaimCalculationRequest(
+            Month,
+            Context([CapabilityWpsI]) with { CapacityHeadcount = capacityHeadcount },
+            "region-x",
+            "b-type",
+            [new RecipientClaimSource(RecipientA, 20, 90, SyntheticCapYen)],
+            Bindings());
+
+        var result = ClaimCalculator.Calculate(masters, request);
+
+        var line = result.Details.Should().ContainSingle()
+            .Which.AdditionLines.Should().ContainSingle().Subject;
+        line.ServiceCode.Should().Be(expectedServiceCode);
+        line.Units.Should().Be(expectedUnits);
+    }
+
     [Fact]
     public void Initial_period_addition_bills_days_within_the_initial_window_without_a_capability()
     {

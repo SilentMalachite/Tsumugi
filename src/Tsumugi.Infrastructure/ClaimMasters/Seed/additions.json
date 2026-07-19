@@ -172,6 +172,341 @@
         "roundingRuleId": null,
         "billingUnit": "per-day"
       }
+    },
+    {
+      "key": "addition.target-wage-instructor.cap-20-or-less",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1032",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.258",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "18就労継続支援(B・基本) row=2232（同一コード・同一単位数のcontinuity照合）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "current-fee-notice-html",
+          "sha256": "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768",
+          "locator": "現行第14の13イ",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.148（第1条表・左欄改正後 第14の13）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "units-per-count",
+          "unitsPerCount": 45,
+          "countSelector": "count.b46.service-days.v1"
+        },
+        "calculationStepId": "claim.step.units.service-code.multiply-count.v1",
+        "roundingRuleId": null,
+        "billingUnit": "per-day"
+      }
+    },
+    {
+      "key": "addition.target-wage-instructor.cap-21-40",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1033",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.258",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "18就労継続支援(B・基本) row=2233（同一コード・同一単位数のcontinuity照合）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "current-fee-notice-html",
+          "sha256": "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768",
+          "locator": "現行第14の13ロ",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.148（第1条表・左欄改正後 第14の13）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "units-per-count",
+          "unitsPerCount": 40,
+          "countSelector": "count.b46.service-days.v1"
+        },
+        "calculationStepId": "claim.step.units.service-code.multiply-count.v1",
+        "roundingRuleId": null,
+        "billingUnit": "per-day"
+      }
+    },
+    {
+      "key": "addition.target-wage-instructor.cap-41-60",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1034",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.258",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "18就労継続支援(B・基本) row=2234（同一コード・同一単位数のcontinuity照合）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "current-fee-notice-html",
+          "sha256": "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768",
+          "locator": "現行第14の13ハ",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.148（第1条表・左欄改正後 第14の13）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "units-per-count",
+          "unitsPerCount": 38,
+          "countSelector": "count.b46.service-days.v1"
+        },
+        "calculationStepId": "claim.step.units.service-code.multiply-count.v1",
+        "roundingRuleId": null,
+        "billingUnit": "per-day"
+      }
+    },
+    {
+      "key": "addition.target-wage-instructor.cap-61-80",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1035",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.258",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "18就労継続支援(B・基本) row=2235（同一コード・同一単位数のcontinuity照合）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "current-fee-notice-html",
+          "sha256": "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768",
+          "locator": "現行第14の13ニ",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.148（第1条表・左欄改正後 第14の13）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "units-per-count",
+          "unitsPerCount": 37,
+          "countSelector": "count.b46.service-days.v1"
+        },
+        "calculationStepId": "claim.step.units.service-code.multiply-count.v1",
+        "roundingRuleId": null,
+        "billingUnit": "per-day"
+      }
+    },
+    {
+      "key": "addition.target-wage-instructor.cap-81-plus",
+      "effectiveFrom": "2024-04",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1036",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.258",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "18就労継続支援(B・基本) row=2236（同一コード・同一単位数のcontinuity照合）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "current-fee-notice-html",
+          "sha256": "0b5c75203f589701e8d0d3ba7cf192f4873b7aeae023da6e137882b225286768",
+          "locator": "現行第14の13ホ",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "p.148（第1条表・左欄改正後 第14の13）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "units-per-count",
+          "unitsPerCount": 36,
+          "countSelector": "count.b46.service-days.v1"
+        },
+        "calculationStepId": "claim.step.units.service-code.multiply-count.v1",
+        "roundingRuleId": null,
+        "billingUnit": "per-day"
+      }
     }
   ]
 }
