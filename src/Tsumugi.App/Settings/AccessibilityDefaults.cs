@@ -11,8 +11,13 @@ namespace Tsumugi.App.Settings;
 /// </summary>
 public static class AccessibilityDefaults
 {
-    public static ThemeVariant Theme =>
-        UiDefaults.DefaultTheme == UiTheme.Dark ? ThemeVariant.Dark : ThemeVariant.Light;
+    public static ThemeVariant Theme => ToThemeVariant(UiDefaults.DefaultTheme);
+
+    private static ThemeVariant ToThemeVariant(UiTheme theme) => theme switch
+    {
+        UiTheme.Light => ThemeVariant.Light,
+        _ => ThemeVariant.Dark,
+    };
 
     public static bool ReducedMotion => UiDefaults.ReducedMotion;
 
@@ -49,7 +54,7 @@ public static class AccessibilityDefaults
     private static Style BuildReducedMotionStyle()
     {
         var style = new Style(s => s.OfType<Control>());
-        style.Setters.Add(new Avalonia.Styling.Setter(Animatable.TransitionsProperty, null));
+        style.Setters.Add(new Setter(Animatable.TransitionsProperty, null));
         return style;
     }
 }
