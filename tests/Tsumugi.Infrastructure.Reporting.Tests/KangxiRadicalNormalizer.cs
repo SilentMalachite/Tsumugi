@@ -33,6 +33,8 @@ internal static class KangxiRadicalNormalizer
         ['⾷'] = '食', // KANGXI RADICAL EAT -> 食
         ['⼊'] = '入', // KANGXI RADICAL ENTER -> 入
         ['⼒'] = '力', // KANGXI RADICAL POWER -> 力
+        ['‧'] = '・', // HYPHENATION POINT (U+2027) -> KATAKANA MIDDLE DOT (U+30FB)
+                     // phase3-2/task 11: 「介護給付費・訓練等給付費等請求書」の中点がこの字形で抽出される。
     };
 
     public static string FoldKangxiRadicals(string s)

@@ -93,8 +93,62 @@ public sealed class ClaimReportGenerator(TimeProvider timeProvider) : IClaimRepo
         return doc.GeneratePdf();
     }
 
-    public byte[] GenerateClaimInvoice(ClaimInvoiceDto dto) =>
-        throw new NotImplementedException("Task 11");
+    public byte[] GenerateClaimInvoice(ClaimInvoiceDto dto)
+    {
+        ArgumentNullException.ThrowIfNull(dto);
+        var generatedAt = timeProvider.GetUtcNow();
+
+        var doc = Document.Create(c =>
+        {
+            c.Page(p =>
+            {
+                p.Size(PageSizes.A4);
+                p.Margin(2, Unit.Centimetre);
+                p.DefaultTextStyle(x => x.FontFamily(QuestPdfLicenseConfigurator.NotoSansJpFamilyName).FontSize(11));
+
+                p.Header().Column(col =>
+                {
+                    col.Spacing(4);
+                    col.Item().AlignCenter().Text("介護給付費・訓練等給付費等請求書").FontSize(18).Bold();
+                    col.Item().Text($"請求対象月: {dto.YearMonth.Year}年{dto.YearMonth.Month}月");
+                    col.Item().Text($"事業所: {dto.Office.OfficeName}（{dto.Office.OfficeNumber}）");
+                    col.Item().Text($"郵便番号: {dto.Office.PostalCode}");
+                    col.Item().Text($"所在地: {dto.Office.Address}");
+                    col.Item().Text($"電話番号: {dto.Office.PhoneNumber}");
+                    col.Item().Text($"代表者: {dto.Office.RepresentativeTitleAndName}");
+                });
+
+                p.Content().Table(t =>
+                {
+                    t.ColumnsDefinition(cd =>
+                    {
+                        cd.RelativeColumn(2);
+                        cd.RelativeColumn(1);
+                    });
+
+                    AddTotalRow(t, "総単位数", dto.TotalUnit);
+                    AddTotalRow(t, "総費用額（円）", dto.TotalCostYen);
+                    AddTotalRow(t, "給付費請求額（円）", dto.TotalBenefitYen);
+                    AddTotalRow(t, "利用者負担合計（円）", dto.TotalBurdenYen);
+                });
+
+                p.Footer().Column(col =>
+                {
+                    col.Spacing(2);
+                    AddVersionLine(col, "claim-master", dto.SpecVersion.ClaimMasterVersion);
+                    AddVersionLine(col, "CSV仕様", dto.SpecVersion.CsvSpecificationVersion);
+                    AddVersionLine(col, "帳票仕様", dto.SpecVersion.ReportSpecificationVersion);
+                    col.Item().AlignCenter().Text(
+                        $"出力日時: {generatedAt.UtcDateTime.ToString("yyyy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture)} UTC");
+                });
+            });
+        }).WithMetadata(new DocumentMetadata
+        {
+            CreationDate = generatedAt,
+            ModifiedDate = generatedAt,
+        });
+        return doc.GeneratePdf();
+    }
 
     public byte[] GenerateClaimStatement(ClaimStatementDto dto) =>
         throw new NotImplementedException("Task 12");
@@ -107,6 +161,36 @@ public sealed class ClaimReportGenerator(TimeProvider timeProvider) : IClaimRepo
 
     private static void AddCell(TableDescriptor t, string text) =>
         t.Cell().Text(text).FontSize(8);
+
+    private static void AddTotalRow(TableDescriptor t, string label, int amountYen)
+    {
+        t.Cell().Text(label);
+        t.Cell().AlignRight().Text(amountYen.ToString("N0", CultureInfo.InvariantCulture));
+    }
+
+    /// <summary>
+    /// フッタの仕様バージョン識別子（例: "r6-2026-04"）を1行描画する。
+    /// 英字接頭辞に数字が直接続くASCII文字列を、CJKラベルと同一の QuestPDF Text() 呼び出しで
+    /// 描画すると、Skia の文字整形結果に対して PdfPig が ToUnicode を誤って解決し、
+    /// 抽出テキストでは接頭辞直後の数字以降が NUL (U+0000) に化ける事象を Task 11 で確認した
+    /// （生成される PDF の見た目のグリフ自体は正しく、抽出テキストのみに影響）。
+    /// 英字接頭辞を含むラベル部分と、先頭が数字になる残り部分を Row 上の別 Text 要素に分離す
+    /// ることで、Skia が両者を別々の文字整形単位として扱い、抽出結果の破損を避けられることを
+    /// 実測で確認済み。Row の AutoItem は既定で隙間を空けないため、視覚的には連続した1行として
+    /// 表示される。
+    /// </summary>
+    private static void AddVersionLine(ColumnDescriptor col, string label, string version)
+    {
+        var digitStart = 0;
+        while (digitStart < version.Length && !char.IsAsciiDigit(version[digitStart])) digitStart++;
+
+        col.Item().Row(r =>
+        {
+            r.AutoItem().Text($"{label}: {version[..digitStart]}");
+            if (digitStart < version.Length)
+                r.AutoItem().Text(version[digitStart..]);
+        });
+    }
 
     private static string AttendanceLabel(Tsumugi.Domain.Enums.Attendance attendance) => attendance switch
     {

@@ -105,10 +105,11 @@ public sealed class ClaimReportGeneratorServiceProvisionRecordTests
     }
 
     [Fact]
-    public void GenerateClaimInvoice_and_GenerateClaimStatement_are_not_yet_implemented()
+    public void GenerateClaimStatement_is_not_yet_implemented()
     {
+        // GenerateClaimInvoice の未実装検証は Task 11 で実装済みとなったため
+        // ClaimReportGeneratorClaimInvoiceTests へ移動した。
         var gen = new ClaimReportGenerator(TimeProvider.System);
-        FluentActions.Invoking(() => gen.GenerateClaimInvoice(null!)).Should().Throw<NotImplementedException>();
         FluentActions.Invoking(() => gen.GenerateClaimStatement(null!)).Should().Throw<NotImplementedException>();
     }
 
