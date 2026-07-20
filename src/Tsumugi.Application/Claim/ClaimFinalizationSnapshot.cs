@@ -1,3 +1,4 @@
+using Tsumugi.Application.Dtos.Claim.Reports;
 using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.ValueObjects;
 
@@ -75,14 +76,6 @@ public sealed record ClaimFinalizationDailyRecordSnapshot(
     bool RecipientConfirmation);
 
 public sealed record ClaimFinalizationIntensiveSupportEpisodeSnapshot(DateOnly StartDate);
-
-// TODO(task 9): move ClaimDetailLineKind to Tsumugi.Application.Dtos.Claim.Reports and have report
-// renderers (tasks 10-12) reference the shared enum from there instead of Tsumugi.Application.Claim.
-public enum ClaimDetailLineKind
-{
-    Basic,
-    Addition,
-}
 
 /// <param name="AmountYen">
 /// 行単位の金額（円）。<b>導出値であり、正本ではない</b>

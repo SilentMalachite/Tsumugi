@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
+using Tsumugi.Application.Dtos.Claim.Reports;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic.Claim;

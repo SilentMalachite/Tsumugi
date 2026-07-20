@@ -1,4 +1,5 @@
 using Tsumugi.Application.Abstractions;
+using Tsumugi.Application.Dtos.Claim.Reports;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic;

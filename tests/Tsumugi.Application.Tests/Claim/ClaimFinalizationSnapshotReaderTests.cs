@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Tsumugi.Application.Claim;
+using Tsumugi.Application.Dtos.Claim.Reports;
 using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.ValueObjects;
 using Xunit;

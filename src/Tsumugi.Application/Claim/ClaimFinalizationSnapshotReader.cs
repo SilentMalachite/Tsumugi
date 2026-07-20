@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using Tsumugi.Application.Dtos.Claim.Reports;
 using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.ValueObjects;
 
