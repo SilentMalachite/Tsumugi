@@ -104,14 +104,8 @@ public sealed class ClaimReportGeneratorServiceProvisionRecordTests
         text.Should().Contain("集中的支援エピソード開始日");
     }
 
-    [Fact]
-    public void GenerateClaimStatement_is_not_yet_implemented()
-    {
-        // GenerateClaimInvoice の未実装検証は Task 11 で実装済みとなったため
-        // ClaimReportGeneratorClaimInvoiceTests へ移動した。
-        var gen = new ClaimReportGenerator(TimeProvider.System);
-        FluentActions.Invoking(() => gen.GenerateClaimStatement(null!)).Should().Throw<NotImplementedException>();
-    }
+    // GenerateClaimStatement の実装・null検証は Task 12 で実装済みとなったため
+    // ClaimReportGeneratorClaimStatementTests へ移動した。
 
     private static ServiceProvisionRecordDto SampleDto() =>
         new(
