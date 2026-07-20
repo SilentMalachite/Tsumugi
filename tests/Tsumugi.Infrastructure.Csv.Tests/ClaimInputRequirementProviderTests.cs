@@ -143,6 +143,45 @@ public sealed class ClaimInputRequirementProviderTests
             modelPresent => modelPresent.ModelPath == "Certificate.UpperLimitManagementProviderNumber");
     }
 
+    [Theory]
+    [InlineData(
+        "report:benefit-claim-form:header:004", "Office.PostalCode")]
+    [InlineData(
+        "report:benefit-claim-form:header:005", "Office.Address")]
+    [InlineData(
+        "report:benefit-claim-form:header:006", "Office.PhoneNumber")]
+    [InlineData(
+        "report:benefit-claim-form:header:008", "Office.RepresentativeTitleAndName")]
+    public void Provider_registers_office_report_fields(string fieldId, string targetPath)
+    {
+        // Phase 3-2 Task 6: report-field-mapping-r8-06.jsonのOffice 4フィールド
+        // （header:004-006, 008）がClaimInputRequirementとして登録され、
+        // OfficeViewへ向くことを検証する（Task 4/5と同型のregistration pin）。
+        var requirements = ClaimInputRequirementProvider.LoadEmbedded().GetRequirements();
+
+        var requirement = requirements.Should().ContainSingle(r => r.TargetPath == targetPath).Subject;
+        requirement.FieldIds.Should().Contain(fieldId);
+        requirement.Destination.Should().Be(ClaimInputDestination.Office);
+    }
+
+    [Theory]
+    [InlineData("Office.PostalCode")]
+    [InlineData("Office.Address")]
+    [InlineData("Office.PhoneNumber")]
+    [InlineData("Office.RepresentativeTitleAndName")]
+    public void Provider_keeps_office_report_fields_always_required(string targetPath)
+    {
+        // Phase 3-2 Task 6: Office 4フィールドは常時必須（spec §10）。MunicipalityNumberと同様、
+        // 自己参照条件ではなくAlways条件のため、ClaimPreparationContextBuilderが実値
+        // （office.PostalCode等）をIsPresentで判定でき、未入力を検知できる
+        // （silently inertにならないことはClaimPreparationReadinessTests /
+        // ClaimPreparationContextBuilderTestsのend-to-endで検証済み）。
+        var requirements = ClaimInputRequirementProvider.LoadEmbedded().GetRequirements();
+
+        var requirement = requirements.Single(r => r.TargetPath == targetPath);
+        requirement.Condition.Should().BeOfType<ClaimRequirementCondition.Always>();
+    }
+
     [Fact]
     public void Provider_rejects_unknown_condition()
     {
