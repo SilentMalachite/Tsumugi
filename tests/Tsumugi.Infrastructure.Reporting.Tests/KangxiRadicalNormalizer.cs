@@ -14,7 +14,8 @@ namespace Tsumugi.Infrastructure.Reporting.Tests;
 ///
 /// <see cref="WageStatementPdfGeneratorTests"/> / <see cref="WagePaymentListPdfGeneratorTests"/> の
 /// 両テストで重複していた fold ヘルパーを Task 9.6 (final review M-3) でここへ集約。
-/// 表は両テストで実際に出現した部首の合併集合。
+/// 表は全テストで実際に出現した部首の合併集合（phase3-2/task 10 で
+/// <see cref="ClaimReportGeneratorServiceProvisionRecordTests"/> 用に月/用/日/欠/食/入/力を追加）。
 /// </summary>
 internal static class KangxiRadicalNormalizer
 {
@@ -25,6 +26,13 @@ internal static class KangxiRadicalNormalizer
         ['⼯'] = '工', // KANGXI RADICAL WORK -> 工
         ['⽀'] = '支', // KANGXI RADICAL BRANCH -> 支
         ['⼀'] = '一', // KANGXI RADICAL ONE -> 一
+        ['⽉'] = '月', // KANGXI RADICAL MOON -> 月
+        ['⽤'] = '用', // KANGXI RADICAL USE -> 用
+        ['⽇'] = '日', // KANGXI RADICAL SUN -> 日
+        ['⽋'] = '欠', // KANGXI RADICAL LACK -> 欠
+        ['⾷'] = '食', // KANGXI RADICAL EAT -> 食
+        ['⼊'] = '入', // KANGXI RADICAL ENTER -> 入
+        ['⼒'] = '力', // KANGXI RADICAL POWER -> 力
     };
 
     public static string FoldKangxiRadicals(string s)
