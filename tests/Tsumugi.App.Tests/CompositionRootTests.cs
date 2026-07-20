@@ -201,6 +201,10 @@ public sealed class CompositionRootTests
             // Phase 2 report generator
             scope.ServiceProvider.GetRequiredService<IWageReportGenerator>().Should().NotBeNull();
 
+            // Phase 3-2: 3帳票のconsumer側orchestration（Task 13）
+            scope.ServiceProvider.GetRequiredService<IClaimReportGenerator>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<GenerateClaimReportsUseCase>().Should().NotBeNull();
+
             // Phase 2 ViewModels resolve
             scope.ServiceProvider.GetRequiredService<WorkRecordViewModel>().Should().NotBeNull();
             scope.ServiceProvider.GetRequiredService<WageFundSettingsViewModel>().Should().NotBeNull();

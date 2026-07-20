@@ -97,6 +97,13 @@ public static class CompositionRoot
         services.AddScoped<CancelClaimUseCase>();
         services.AddScoped<QueryClaimUseCase>();
 
+        // Phase 3-2: 3帳票（実績記録票／請求書／請求明細書）。GeneratorはQuestPDF描画のみのstateless実装
+        // なのでSingletonで共有し、consumer側orchestrationのUseCaseはIClaimBatchRepository経由のため
+        // Scoped（他のUseCaseと同様）。
+        services.AddSingleton<IClaimReportGenerator>(
+            sp => new ClaimReportGenerator(sp.GetRequiredService<TimeProvider>()));
+        services.AddScoped<GenerateClaimReportsUseCase>();
+
         // Phase 2: 工賃計算戦略（4 方式並存; D3 CalculateWagesUseCase が IReadOnlyList<IWageMethodStrategy> を要求）
         services.AddSingleton<IReadOnlyList<IWageMethodStrategy>>(_ => new IWageMethodStrategy[]
         {
