@@ -115,6 +115,21 @@ public sealed class ClaimReportGeneratorClaimStatementTests
     }
 
     [Fact]
+    public void GenerateClaimStatement_footer_timestamp_extracts_without_nul_corruption()
+    {
+        // I3: 出力日時行はタイムスタンプ本体(ASCII数字)と末尾のUTC(ASCII英字)が同一Text()呼び出しに
+        // 混在すると抽出時に数字がNULへ化ける。AddGeneratedAtLine への統一後の回帰確認。
+        QuestPdfLicenseConfigurator.Initialize();
+        var clock = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z", CultureInfo.InvariantCulture));
+        var dto = SingleRecipientDto();
+
+        var text = ExtractText(new ClaimReportGenerator(clock).GenerateClaimStatement(dto));
+
+        text.Should().Contain("出力日時: 2026/06/29 00:00:00 UTC",
+            because: "タイムスタンプ本体(ASCII数字)と末尾のUTC(ASCII英字)混在によるNUL破損なく抽出される (I3)");
+    }
+
+    [Fact]
     public void GenerateClaimStatement_throws_on_null_dto()
     {
         var gen = new ClaimReportGenerator(TimeProvider.System);

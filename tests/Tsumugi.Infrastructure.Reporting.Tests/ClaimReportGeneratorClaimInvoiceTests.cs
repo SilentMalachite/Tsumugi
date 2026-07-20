@@ -53,6 +53,23 @@ public sealed class ClaimReportGeneratorClaimInvoiceTests
     }
 
     [Fact]
+    public void GenerateClaimInvoice_extracts_digit_first_spec_version_without_nul_corruption()
+    {
+        // 最終ブランチレビュー指摘 (I2): 旧 AddVersionLine は最初のASCII数字の直前1箇所でのみ
+        // 分割していたため、バージョン文字列が数字始まりだと分割位置が先頭（空文字列）になり、
+        // 実質的に分割されずバグが再発していた。AddSplitAsciiText への委譲後は数字/非数字の
+        // 交互境界すべてで分割するため、数字始まりのバージョンでも欠落なく抽出できることを確認する。
+        QuestPdfLicenseConfigurator.Initialize();
+        var clock = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z", CultureInfo.InvariantCulture));
+        var dto = SampleDto() with { SpecVersion = new ClaimReportSpecVersionDto("1r6-2026-04", "r7-10", "r1-10") };
+
+        var text = ExtractText(new ClaimReportGenerator(clock).GenerateClaimInvoice(dto));
+
+        text.Should().Contain("1r6-2026-04",
+            because: "数字始まりのバージョン文字列でもAddSplitAsciiTextへの委譲でNUL破損なく抽出される (I2)");
+    }
+
+    [Fact]
     public void GenerateClaimInvoice_throws_on_null_dto()
     {
         var gen = new ClaimReportGenerator(TimeProvider.System);

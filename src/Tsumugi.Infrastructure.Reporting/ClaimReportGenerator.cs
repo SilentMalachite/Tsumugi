@@ -77,12 +77,10 @@ public sealed class ClaimReportGenerator(TimeProvider timeProvider) : IClaimRepo
                 p.Footer().Column(col =>
                 {
                     col.Spacing(2);
-                    col.Item().AlignCenter().Text(
-                        $"claim-master: {dto.SpecVersion.ClaimMasterVersion}　" +
-                        $"CSV仕様: {dto.SpecVersion.CsvSpecificationVersion}　" +
-                        $"帳票仕様: {dto.SpecVersion.ReportSpecificationVersion}");
-                    col.Item().AlignCenter().Text(
-                        $"出力日時: {generatedAt.UtcDateTime.ToString("yyyy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture)} UTC");
+                    AddVersionLine(col, "claim-master", dto.SpecVersion.ClaimMasterVersion);
+                    AddVersionLine(col, "CSV仕様", dto.SpecVersion.CsvSpecificationVersion);
+                    AddVersionLine(col, "帳票仕様", dto.SpecVersion.ReportSpecificationVersion);
+                    AddGeneratedAtLine(col, generatedAt);
                 });
             });
         }).WithMetadata(new DocumentMetadata
@@ -138,8 +136,7 @@ public sealed class ClaimReportGenerator(TimeProvider timeProvider) : IClaimRepo
                     AddVersionLine(col, "claim-master", dto.SpecVersion.ClaimMasterVersion);
                     AddVersionLine(col, "CSV仕様", dto.SpecVersion.CsvSpecificationVersion);
                     AddVersionLine(col, "帳票仕様", dto.SpecVersion.ReportSpecificationVersion);
-                    col.Item().AlignCenter().Text(
-                        $"出力日時: {generatedAt.UtcDateTime.ToString("yyyy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture)} UTC");
+                    AddGeneratedAtLine(col, generatedAt);
                 });
             });
         }).WithMetadata(new DocumentMetadata
@@ -192,8 +189,7 @@ public sealed class ClaimReportGenerator(TimeProvider timeProvider) : IClaimRepo
                     AddVersionLine(col, "claim-master", dto.SpecVersion.ClaimMasterVersion);
                     AddVersionLine(col, "CSV仕様", dto.SpecVersion.CsvSpecificationVersion);
                     AddVersionLine(col, "帳票仕様", dto.SpecVersion.ReportSpecificationVersion);
-                    col.Item().AlignCenter().Text(
-                        $"出力日時: {generatedAt.UtcDateTime.ToString("yyyy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture)} UTC");
+                    AddGeneratedAtLine(col, generatedAt);
                 });
             });
         }).WithMetadata(new DocumentMetadata
@@ -292,23 +288,17 @@ public sealed class ClaimReportGenerator(TimeProvider timeProvider) : IClaimRepo
     /// 描画すると、Skia の文字整形結果に対して PdfPig が ToUnicode を誤って解決し、
     /// 抽出テキストでは接頭辞直後の数字以降が NUL (U+0000) に化ける事象を Task 11 で確認した
     /// （生成される PDF の見た目のグリフ自体は正しく、抽出テキストのみに影響）。
-    /// 英字接頭辞を含むラベル部分と、先頭が数字になる残り部分を Row 上の別 Text 要素に分離す
-    /// ることで、Skia が両者を別々の文字整形単位として扱い、抽出結果の破損を避けられることを
-    /// 実測で確認済み。Row の AutoItem は既定で隙間を空けないため、視覚的には連続した1行として
-    /// 表示される。
+    ///
+    /// Task 11 時点の実装は最初の ASCII 数字の直前1箇所でのみ分割しており、バージョン文字列が
+    /// 数字始まり（例: "1a"）の場合は分割位置が先頭（空文字列）になり、実質的に分割されずバグを
+    /// 再発する欠陥を最終ブランチレビューで指摘された。Task 12 で一般化した
+    /// <see cref="AddSplitAsciiText"/> は「数字だけの連続」と「数字を含まない連続」を交互に分割
+    /// するため、分割位置に依存するこの欠陥を持たない。よって本メソッドは
+    /// <see cref="AddSplitAsciiText"/> に委譲し、呼び出し側には (label, version) の2引数
+    /// シグネチャのみを維持する。
     /// </summary>
-    private static void AddVersionLine(ColumnDescriptor col, string label, string version)
-    {
-        var digitStart = 0;
-        while (digitStart < version.Length && !char.IsAsciiDigit(version[digitStart])) digitStart++;
-
-        col.Item().Row(r =>
-        {
-            r.AutoItem().Text($"{label}: {version[..digitStart]}");
-            if (digitStart < version.Length)
-                r.AutoItem().Text(version[digitStart..]);
-        });
-    }
+    private static void AddVersionLine(ColumnDescriptor col, string label, string version) =>
+        AddSplitAsciiText(col.Item(), $"{label}: {version}");
 
     /// <summary>
     /// サービスコード等、AddVersionLine より letter/digit 混在パターンが複雑な任意の ASCII 文字列を
@@ -340,6 +330,33 @@ public sealed class ClaimReportGenerator(TimeProvider timeProvider) : IClaimRepo
         {
             foreach (var segment in segments)
                 r.AutoItem().Text(segment);
+        });
+    }
+
+    /// <summary>
+    /// フッタの「出力日時: yyyy/MM/dd HH:mm:ss UTC」行を描画する。
+    /// タイムスタンプ本体は ASCII 数字のみだが、末尾の "UTC" が同一 QuestPDF Text() 呼び出し内で
+    /// ASCII 英字として共存すると、AddVersionLine/AddSplitAsciiText と同じ根本原因（PdfPig の
+    /// ToUnicode 誤解決）で抽出テキストの数字が NUL に化る。
+    ///
+    /// AddSplitAsciiText をそのまま適用すると、区切り文字（"/" "：" 半角空白）ごとに数字/非数字の
+    /// 境界が何度も生じ、"yyyy/MM/dd HH:mm:ss" の途中に断片が多数できる。実測したところ QuestPDF の
+    /// Text() は各断片の**末尾**の空白を Row 上でレイアウトする際に幅ゼロとして扱う（先頭の空白は
+    /// 保持される）ため、断片境界がちょうど空白と重なると抽出テキストからその空白が消える
+    /// （例: "2026/06/29 00:00:00" が断片化されると "2026/06/2900:00:00" のように空白が失われる）。
+    /// この行はラベル・タイムスタンプ本体（ASCII数字と "/" ":" 半角空白のみで ASCII 英字を含まない
+    /// ため単独では破損しない）と、末尾の " UTC"（先頭に空白を残したまま独立させても安全）の
+    /// 2断片にのみ分割すれば、ASCII英字と数字の共存を避けつつ内部の空白破損も起きない。
+    /// よって本行は AddSplitAsciiText の汎用アルゴリズムを使わず、専用の2断片分割とする。
+    /// </summary>
+    private static void AddGeneratedAtLine(ColumnDescriptor col, DateTimeOffset generatedAt)
+    {
+        var timestampBody =
+            $"出力日時: {generatedAt.UtcDateTime.ToString("yyyy/MM/dd HH:mm:ss", CultureInfo.InvariantCulture)}";
+        col.Item().AlignCenter().Row(r =>
+        {
+            r.AutoItem().Text(timestampBody);
+            r.AutoItem().Text(" UTC");
         });
     }
 

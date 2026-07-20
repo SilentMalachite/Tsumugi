@@ -104,6 +104,26 @@ public sealed class ClaimReportGeneratorServiceProvisionRecordTests
         text.Should().Contain("集中的支援エピソード開始日");
     }
 
+    [Fact]
+    public void GenerateServiceProvisionRecord_footer_spec_versions_and_timestamp_extract_without_nul_corruption()
+    {
+        // 事前修正 (Task 10): この帳票のフッタは AddVersionLine/AddSplitAsciiText を使わず
+        // 生の文字列補間で描画していたため、CJKラベル・英字接頭辞・数字が同一 Text() 呼び出しに
+        // 混在し、PdfPig 抽出時に数字が NUL (U+0000) に化けていた（見た目は正しい）。本テストは
+        // AddVersionLine/AddGeneratedAtLine への統一後、数字を含む全断片が欠落なく抽出できることを
+        // 確認する回帰テスト。
+        QuestPdfLicenseConfigurator.Initialize();
+        var clock = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z", CultureInfo.InvariantCulture));
+        var dto = SampleDto();
+        var text = ExtractText(new ClaimReportGenerator(clock).GenerateServiceProvisionRecord(dto));
+
+        text.Should().Contain("r6-2026-04", because: "claim-master バージョン (数字を含む) がNUL破損なく抽出される")
+            .And.Contain("r7-10", because: "CSV仕様バージョン")
+            .And.Contain("r1-10", because: "帳票仕様バージョン")
+            .And.Contain("出力日時: 2026/06/29 00:00:00 UTC",
+                because: "タイムスタンプ本体(ASCII数字)と末尾のUTC(ASCII英字)混在によるNUL破損なく抽出される");
+    }
+
     // GenerateClaimStatement の実装・null検証は Task 12 で実装済みとなったため
     // ClaimReportGeneratorClaimStatementTests へ移動した。
 
