@@ -174,6 +174,22 @@ public static class ClaimPreparationContextBuilder
             // Certificate.*（Task 9c）。MunicipalityNumberは常時必須（always）、他の2件は
             // 自己参照modelPresent（値がある時だけその値自体が要求を満たす＝実質「入力するなら
             // 空にしない」程度の意味）。
+            //
+            // Phase 3-2 Task 5 review: SubsidyMunicipalityNumber / UpperLimitManagementProviderNumber
+            // 自身の自己参照条件は、値が無ければ即NotApplicable・値があれば即IsPresent一致で、
+            // AddMissingRequirementIssueに到達しない（永久にfail-open）。これはバグではなく仕様
+            // （spec §10: 両者とも任意、null許容）に一致した意図的な設計。ただし
+            // UpperLimitManagementProviderNumberが非nullのとき ClaimInput.UpperLimitManagementResult /
+            // UpperLimitManagedAmountYen を必須化する（spec §10）というクロスフィールド規則は別途、
+            // report-field-mapping-r8-06.jsonのupper-limit-management:003/004
+            // （requiredCondition=modelPresent(Certificate.UpperLimitManagementProviderNumber)、
+            // targetはClaimInput側で非自己参照）＋field-mapping-r7-10.jsonのprovider:J121:01:016/017
+            // （自己参照レグ）が同一TargetPathへ合流し、ClaimInputRequirementProvider.CreateRequirementが
+            // Any(...)へラップすることで実現されている。この2フィールド自身を「必須化」したい場合は、
+            // Certificate.UpperLimitManagementProviderNumberの自己参照条件ではなく、この既存の
+            // クロスフィールドAny合流の方を見ること（回帰は
+            // ClaimPreviewProductionWiringTests.Real_embedded_requirement_provider_requires_upper_limit_*
+            // で固定済み）。
             [Path(nameof(Certificate), nameof(Certificate.MunicipalityNumber))] =
                 TextOrNotApplicable(certificate?.MunicipalityNumber),
             [Path(nameof(Certificate), nameof(Certificate.SubsidyMunicipalityNumber))] =

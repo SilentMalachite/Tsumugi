@@ -73,6 +73,76 @@ public sealed class ClaimInputRequirementProviderTests
         requirement.Destination.Should().Be(ClaimInputDestination.DailyRecord);
     }
 
+    [Theory]
+    [InlineData(
+        "report:benefit-claim-detail:header:001", "Certificate.MunicipalityNumber",
+        ClaimInputDestination.Certificate)]
+    [InlineData(
+        "report:benefit-claim-detail:header:003", "Certificate.SubsidyMunicipalityNumber",
+        ClaimInputDestination.Certificate)]
+    [InlineData(
+        "report:benefit-claim-detail:upper-limit-management:001",
+        "Certificate.UpperLimitManagementProviderNumber", ClaimInputDestination.Certificate)]
+    public void Provider_registers_certificate_report_fields(
+        string fieldId, string targetPath, ClaimInputDestination expectedDestination)
+    {
+        // Phase 3-2 Task 5: report-field-mapping-r8-06.jsonのCertificate 3フィールド
+        // （header:001/003, upper-limit-management:001）がClaimInputRequirementとして登録され、
+        // CertificateViewへ向くことを検証する（Task 4と同型のregistration pin）。
+        var requirements = ClaimInputRequirementProvider.LoadEmbedded().GetRequirements();
+
+        var requirement = requirements.Should().ContainSingle(r => r.TargetPath == targetPath).Subject;
+        requirement.FieldIds.Should().Contain(fieldId);
+        requirement.Destination.Should().Be(expectedDestination);
+    }
+
+    [Fact]
+    public void Provider_keeps_municipality_number_always_required()
+    {
+        // Phase 3-2 Task 5: MunicipalityNumberは常時必須（spec §10）。自己参照条件と違い、
+        // Always条件は値そのものを見ずにIsPresentだけで判定するため、未入力を検知できる
+        // （silently inertにならないことはClaimPreviewProductionWiringTestsのend-to-endで検証）。
+        var requirements = ClaimInputRequirementProvider.LoadEmbedded().GetRequirements();
+
+        var municipality = requirements.Single(r => r.TargetPath == "Certificate.MunicipalityNumber");
+        municipality.Condition.Should().BeOfType<ClaimRequirementCondition.Always>();
+    }
+
+    [Theory]
+    [InlineData("Certificate.SubsidyMunicipalityNumber")]
+    [InlineData("Certificate.UpperLimitManagementProviderNumber")]
+    public void Provider_keeps_optional_certificate_fields_self_referential(string targetPath)
+    {
+        // Phase 3-2 Task 5: SubsidyMunicipalityNumber / UpperLimitManagementProviderNumberは
+        // spec §10でoptional（null許容）。自己参照ModelPresent(<自身>)条件はfail-openのまま
+        // 維持する（deliberately weak、ClaimPreparationContextBuilder.csのTask 5 review comment参照）。
+        var requirements = ClaimInputRequirementProvider.LoadEmbedded().GetRequirements();
+
+        var requirement = requirements.Single(r => r.TargetPath == targetPath);
+        var modelPresent = requirement.Condition.Should()
+            .BeOfType<ClaimRequirementCondition.ModelPresent>().Subject;
+        modelPresent.ModelPath.Should().Be(targetPath);
+    }
+
+    [Theory]
+    [InlineData("ClaimInput.UpperLimitManagementResult")]
+    [InlineData("ClaimInput.UpperLimitManagedAmountYen")]
+    public void Provider_combines_upper_limit_management_cross_field_condition_via_any(string targetPath)
+    {
+        // Phase 3-2 Task 5: field-mapping-r7-10.json（自己参照レグ、provider:J121:01:016/017）と
+        // report-field-mapping-r8-06.json（クロスフィールドレグ、
+        // modelPresent(Certificate.UpperLimitManagementProviderNumber)）が同一TargetPathへ合流し、
+        // 条件文字列が異なるため CreateRequirement が Any(...) へラップする。この合流がspec §10の
+        // 「UpperLimitManagementProviderNumberが非nullならこの2フィールドを必須化」を実現している
+        // （自己参照レグ単体では恒久的にfail-openなため、クロスフィールドレグが唯一の実効ゲート）。
+        var requirements = ClaimInputRequirementProvider.LoadEmbedded().GetRequirements();
+
+        var requirement = requirements.Single(r => r.TargetPath == targetPath);
+        var any = requirement.Condition.Should().BeOfType<ClaimRequirementCondition.Any>().Subject;
+        any.Conditions.OfType<ClaimRequirementCondition.ModelPresent>().Should().Contain(
+            modelPresent => modelPresent.ModelPath == "Certificate.UpperLimitManagementProviderNumber");
+    }
+
     [Fact]
     public void Provider_rejects_unknown_condition()
     {

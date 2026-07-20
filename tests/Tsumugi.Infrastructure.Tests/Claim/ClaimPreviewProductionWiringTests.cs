@@ -62,6 +62,19 @@ namespace Tsumugi.Infrastructure.Tests.Claim;
 /// <c>DailyRecord.*</c>のtarget pathは10項目（うちRecipientConfirmationは自己参照ではなくbilledDays
 /// 依存の新規必須path）となり、計15 target pathとなった。
 /// </para>
+/// <para>
+/// Phase 3-2 Task 5: <c>Certificate.SubsidyMunicipalityNumber</c> /
+/// <c>Certificate.UpperLimitManagementProviderNumber</c>自身の自己参照条件は、Task 4 fix roundの
+/// レビューで指摘された通り恒久的にfail-open（deliberately weak、spec §10の「optional・null許容」に
+/// 一致するため放置）。一方、<c>Certificate.UpperLimitManagementProviderNumber</c>が非nullのとき
+/// <c>ClaimInput.UpperLimitManagementResult</c> / <c>UpperLimitManagedAmountYen</c>を必須化する
+/// spec §10のクロスフィールド規則は、field-mapping-r7-10.json側の自己参照レグと
+/// report-field-mapping-r8-06.json側のクロスフィールドレグが同一TargetPathへ合流し
+/// <c>ClaimInputRequirementProvider.CreateRequirement</c>が<c>Any(...)</c>へラップすることで、
+/// 既に実効fail-closedになっていた（未テストだったため本ラウンドで
+/// <c>Real_embedded_requirement_provider_requires_upper_limit_management_result_when_provider_number_is_entered</c>
+/// 等4テストで固定）。
+/// </para>
 /// </remarks>
 public sealed class ClaimPreviewProductionWiringTests
 {
@@ -203,6 +216,92 @@ public sealed class ClaimPreviewProductionWiringTests
             && issue.Destination == ClaimInputDestination.Certificate);
     }
 
+    [Fact]
+    public async Task Real_embedded_requirement_provider_does_not_require_subsidy_municipality_number_when_absent()
+    {
+        // Phase 3-2 Task 5: SubsidyMunicipalityNumberはspec §10でoptional（null許容）。
+        // 自己参照条件はfail-openのまま（deliberately weak）なので、他はフル入力のまま
+        // これだけを欠落させてもReadyを維持することを実embedded catalogで確認する。
+        var useCase = CreateUseCase(
+            BuildSnapshot(staffingKey: "staff-6-1", certificateSubsidyMunicipalityNumber: null),
+            ClaimInputRequirementProvider.LoadEmbedded());
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeTrue();
+        dto.Issues.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task
+        Real_embedded_requirement_provider_does_not_require_upper_limit_management_fields_when_provider_number_is_absent()
+    {
+        // Phase 3-2 Task 5: UpperLimitManagementProviderNumberが未入力（上限額管理なし）なら、
+        // ClaimInput.UpperLimitManagementResult / UpperLimitManagedAmountYenも未入力のままで
+        // Readyを維持する（spec §10の必須化はProviderNumberが非nullのときだけ発火する）。
+        var useCase = CreateUseCase(
+            BuildSnapshot(
+                staffingKey: "staff-6-1",
+                certificateUpperLimitManagementProviderNumber: null,
+                claimInputUpperLimitManagementResult: null,
+                claimInputUpperLimitManagedAmountYen: null),
+            ClaimInputRequirementProvider.LoadEmbedded());
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeTrue();
+        dto.Issues.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task
+        Real_embedded_requirement_provider_requires_upper_limit_management_result_when_provider_number_is_entered()
+    {
+        // Phase 3-2 Task 5: UpperLimitManagementProviderNumberが入力済みなのに
+        // ClaimInput.UpperLimitManagementResultが未入力だと、そのクロスフィールド規則
+        // （report-field-mapping-r8-06.jsonのupper-limit-management:003）がfail-closedすることを
+        // 実embedded catalogで検証する。自己参照レグ（provider:J121:01:016）単体では検知できない
+        // ケースであり、Any(...)合流の実効性を証明する（brief記載のCRITICAL cascade risk対応）。
+        var useCase = CreateUseCase(
+            BuildSnapshot(staffingKey: "staff-6-1", claimInputUpperLimitManagementResult: null),
+            ClaimInputRequirementProvider.LoadEmbedded());
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeFalse();
+        dto.Details.Should().BeEmpty();
+        dto.Issues.Should().ContainSingle(issue =>
+            issue.Code == ClaimPreparationIssueCode.MissingRequiredField
+            && issue.RecipientId == RecipientId
+            && issue.FieldCode == "ClaimInput.UpperLimitManagementResult"
+            && issue.Destination == ClaimInputDestination.ClaimInput);
+    }
+
+    [Fact]
+    public async Task
+        Real_embedded_requirement_provider_requires_upper_limit_managed_amount_when_provider_number_is_entered()
+    {
+        // Phase 3-2 Task 5: 同上のクロスフィールド規則（upper-limit-management:004）を
+        // UpperLimitManagedAmountYen側で検証する。
+        var useCase = CreateUseCase(
+            BuildSnapshot(staffingKey: "staff-6-1", claimInputUpperLimitManagedAmountYen: null),
+            ClaimInputRequirementProvider.LoadEmbedded());
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeFalse();
+        dto.Details.Should().BeEmpty();
+        dto.Issues.Should().ContainSingle(issue =>
+            issue.Code == ClaimPreparationIssueCode.MissingRequiredField
+            && issue.RecipientId == RecipientId
+            && issue.FieldCode == "ClaimInput.UpperLimitManagedAmountYen"
+            && issue.Destination == ClaimInputDestination.ClaimInput);
+    }
+
     [Theory]
     [InlineData("DailyRecord.ServiceStartTime")]
     [InlineData("DailyRecord.ServiceEndTime")]
@@ -291,6 +390,11 @@ public sealed class ClaimPreviewProductionWiringTests
     private static ClaimCalculationSnapshot BuildSnapshot(
         string? staffingKey,
         string? certificateMunicipalityNumber = "131000",
+        string? certificateSubsidyMunicipalityNumber = "132000",
+        string? certificateUpperLimitManagementProviderNumber = "1310000099",
+        UpperLimitManagementResult? claimInputUpperLimitManagementResult =
+            UpperLimitManagementResult.Result1,
+        int? claimInputUpperLimitManagedAmountYen = 0,
         IReadOnlyList<OfficeCapability>? officeCapabilities = null,
         ClaimDailyRecordAggregate? dailyRecordAggregateOverride = null,
         int? billedDaysOverride = null)
@@ -336,10 +440,12 @@ public sealed class ClaimPreviewProductionWiringTests
             RootId = inputId,
             Revision = 1,
             Kind = RecordKind.New,
-            // 値そのものは「上限額管理なし・自治体助成なし」を表す0/Result1で、Task 9b/9cの
+            // 既定値は「上限額管理なし・自治体助成なし」を表す0/Result1で、Task 9b/9cの
             // 検証対象ではない（ClaimInput.UpperLimitManagementResult等はTask 9で既に写像済み）。
-            UpperLimitManagementResult = Tsumugi.Domain.Logic.Claim.Models.UpperLimitManagementResult.Result1,
-            UpperLimitManagedAmountYen = 0,
+            // Phase 3-2 Task 5: certificate.UpperLimitManagementProviderNumberが非nullのときの
+            // クロスフィールド必須化を検証するため外から差し替え可能にした。
+            UpperLimitManagementResult = claimInputUpperLimitManagementResult,
+            UpperLimitManagedAmountYen = claimInputUpperLimitManagedAmountYen,
             MunicipalSubsidyAmountYen = 0,
             CreatedAt = Now,
             CreatedBy = "tester",
@@ -402,8 +508,8 @@ public sealed class ClaimPreviewProductionWiringTests
             Now,
             Guid.NewGuid(),
             municipalityNumber: certificateMunicipalityNumber,
-            subsidyMunicipalityNumber: "132000",
-            upperLimitManagementProviderNumber: "1310000099",
+            subsidyMunicipalityNumber: certificateSubsidyMunicipalityNumber,
+            upperLimitManagementProviderNumber: certificateUpperLimitManagementProviderNumber,
             // Task 12（ADR 0022）: 負担区分の唯一の権威ソース。evidence.MonthlyCostCap(9300)と
             // 整合する一般1（区分上限9,300円）を用いる。
             paymentBurden: PaymentBurdenCategory.General1);
