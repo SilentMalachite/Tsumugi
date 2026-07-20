@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using FluentAssertions;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
@@ -90,6 +92,32 @@ public sealed class ClaimSnapshotValidationCodecV2Tests
             .Which.Code.Should().Be(ClaimErrorCode.InvalidSnapshotEnvelope);
     }
 
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("\"just-a-string\"")]
+    [InlineData("123")]
+    [InlineData("true")]
+    public void ReadValidated_rejects_non_object_payloads(string json)
+    {
+        var codec = new ClaimSnapshotValidationCodecV2();
+        var bytes = Encoding.UTF8.GetBytes(json);
+
+        FluentActions.Invoking(() => codec.ReadValidated(bytes))
+            .Should().Throw<ClaimFinalizationException>()
+            .Which.Code.Should().Be(ClaimErrorCode.InvalidSnapshotEnvelope);
+    }
+
+    [Fact]
+    public void ReadValidated_rejects_empty_object_payload()
+    {
+        var codec = new ClaimSnapshotValidationCodecV2();
+        var bytes = "{}"u8.ToArray();
+
+        FluentActions.Invoking(() => codec.ReadValidated(bytes))
+            .Should().Throw<ClaimFinalizationException>()
+            .Which.Code.Should().Be(ClaimErrorCode.InvalidSnapshotEnvelope);
+    }
+
     [Fact]
     public void Validate_accepts_an_envelope_produced_by_this_codec()
     {
@@ -113,6 +141,22 @@ public sealed class ClaimSnapshotValidationCodecV2Tests
 
         var codec = new ClaimSnapshotValidationCodecV2();
         FluentActions.Invoking(() => codec.Validate(forged))
+            .Should().Throw<ClaimFinalizationException>()
+            .Which.Code.Should().Be(ClaimErrorCode.InvalidSnapshotEnvelope);
+    }
+
+    [Theory]
+    [InlineData("wrong-schema", "claim-snapshot-codec-v2")]
+    [InlineData("claim-snapshot-v2", "wrong-codec")]
+    public void Validate_rejects_schema_or_codec_identity_mismatch(string schemaVersion, string validationCodecId)
+    {
+        var bytes = """{"schemaVersion":"claim-snapshot-v2","validationCodecId":"claim-snapshot-codec-v2","snapshotKind":"finalization"}"""u8.ToArray();
+        var hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        var envelope = ValidatedClaimSnapshotEnvelope.CreateValidated(
+            schemaVersion, validationCodecId, hash, bytes, new object());
+
+        var codec = new ClaimSnapshotValidationCodecV2();
+        FluentActions.Invoking(() => codec.Validate(envelope))
             .Should().Throw<ClaimFinalizationException>()
             .Which.Code.Should().Be(ClaimErrorCode.InvalidSnapshotEnvelope);
     }
