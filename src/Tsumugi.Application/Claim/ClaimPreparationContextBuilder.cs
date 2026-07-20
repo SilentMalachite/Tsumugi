@@ -1,6 +1,7 @@
 using System.Globalization;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Domain.Entities;
+using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic.Claim.Models;
 
 namespace Tsumugi.Application.Claim;
@@ -19,6 +20,13 @@ public static class ClaimPreparationContextBuilder
 {
     internal const string OfficeEffectiveField = nameof(Office) + ".Effective";
     internal const string ClaimInputEffectiveField = nameof(ClaimInput) + ".Effective";
+
+    // report-field-mapping-r8-06.json の rowPresent(service-performance.daily) が参照する行スコープ。
+    // 実績記録票の日次行は当月に実効Present日が1件以上ある利用者だけに存在する
+    // （BilledDaysByRecipientと同じ実効化走査由来。Task 4 fix round: 元々rowScopesが常に空集合
+    // だったため、この行スコープを参照するreadiness ruleが恒久的にNotApplicableへ縮退し、
+    // ServiceStartTime/ServiceEndTime/RecipientConfirmationの欠落を検出できなかった）。
+    internal const string DailyRecordRowScope = "service-performance.daily";
 
     public static ClaimPreparationContextBuildResult Build(
         ClaimCalculationSnapshot snapshot,
@@ -121,11 +129,17 @@ public static class ClaimPreparationContextBuilder
                 ? startDate
                 : null;
 
+        // billedDaysは実効Present日数（本メソッド冒頭で取得済み）。1日以上あれば実績記録票の
+        // 日次行が存在するとみなし、rowPresent(service-performance.daily)をApplyさせる。
+        var rowScopes = billedDays > 0
+            ? new HashSet<string>([DailyRecordRowScope], StringComparer.Ordinal)
+            : new HashSet<string>(StringComparer.Ordinal);
+
         return new ClaimPreparationRecipientContext(
             recipientId,
             BuildRecipientValues(
                 input, certificate, contractedProvider, dailyRecordAggregate, intensiveSupportEpisodeStartDate),
-            rowScopes: new HashSet<string>(StringComparer.Ordinal),
+            rowScopes,
             certificateCount,
             CertificateEvidenceState(certificateCount, evidence),
             StatementState(evidence),
@@ -192,6 +206,14 @@ public static class ClaimPreparationContextBuilder
                 ClaimPreparationValue.Boolean(dailyRecordAggregate.IntensiveSupportApplied),
             [Path(nameof(DailyRecord), nameof(DailyRecord.EmergencyAdmissionApplied))] =
                 ClaimPreparationValue.Boolean(dailyRecordAggregate.EmergencyAdmissionApplied),
+            // RecipientConfirmation（Task 4 fix round）: rowPresent(service-performance.daily)単独条件
+            // （自己参照ではない）で判定するため、他のDailyRecord.*と異なりUnspecifiedはNotApplicable
+            // として表現する（Code("Unspecified")にすると常にIsPresent=trueになり、未確認のまま
+            // 一生issueが立たなくなるため）。
+            [Path(nameof(DailyRecord), nameof(DailyRecord.RecipientConfirmation))] =
+                dailyRecordAggregate.RecipientConfirmation == RecipientConfirmationStatus.Unspecified
+                    ? ClaimPreparationValue.NotApplicable()
+                    : ClaimPreparationValue.Code(dailyRecordAggregate.RecipientConfirmation.ToString()),
 
             // IntensiveSupportEpisode.StartDate（Task 9c）。自己参照modelPresent。
             [Path(nameof(IntensiveSupportEpisode), nameof(IntensiveSupportEpisode.StartDate))] =

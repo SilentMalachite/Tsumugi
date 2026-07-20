@@ -27,7 +27,8 @@ public sealed record ClaimDailyRecordAggregate(
     TrialUseSupportType TrialUseSupportType,
     bool RegionalCollaborationApplied,
     bool IntensiveSupportApplied,
-    bool EmergencyAdmissionApplied)
+    bool EmergencyAdmissionApplied,
+    RecipientConfirmationStatus RecipientConfirmation = RecipientConfirmationStatus.Unspecified)
 {
     public static ClaimDailyRecordAggregate Empty { get; } = new(
         ServiceStartTime: null,
@@ -38,7 +39,8 @@ public sealed record ClaimDailyRecordAggregate(
         TrialUseSupportType: TrialUseSupportType.Unspecified,
         RegionalCollaborationApplied: false,
         IntensiveSupportApplied: false,
-        EmergencyAdmissionApplied: false);
+        EmergencyAdmissionApplied: false,
+        RecipientConfirmation: RecipientConfirmationStatus.Unspecified);
 }
 
 /// <summary>

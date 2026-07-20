@@ -869,7 +869,8 @@ public sealed class ClaimCalculationSnapshotReaderTests : IClassFixture<SqliteFi
                 trialUseSupportType: TrialUseSupportType.Unspecified,
                 regionalCollaborationApplied: false,
                 intensiveSupportApplied: false,
-                emergencyAdmissionApplied: false),
+                emergencyAdmissionApplied: false,
+                recipientConfirmation: RecipientConfirmationStatus.Unspecified),
             DailyRecord.NewRecord(
                 Guid.NewGuid(), recipientId, new DateOnly(2027, 2, 2),
                 Attendance.Present, TransportKind.None, false, null, "tester", t0,
@@ -881,7 +882,8 @@ public sealed class ClaimCalculationSnapshotReaderTests : IClassFixture<SqliteFi
                 trialUseSupportType: TrialUseSupportType.TypeII,
                 regionalCollaborationApplied: true,
                 intensiveSupportApplied: false,
-                emergencyAdmissionApplied: true),
+                emergencyAdmissionApplied: true,
+                recipientConfirmation: RecipientConfirmationStatus.Confirmed),
             DailyRecord.NewRecord(
                 Guid.NewGuid(), recipientId, new DateOnly(2027, 2, 3),
                 Attendance.Absent, TransportKind.None, false, null, "tester", t0,
@@ -938,6 +940,7 @@ public sealed class ClaimCalculationSnapshotReaderTests : IClassFixture<SqliteFi
         aggregate.RegionalCollaborationApplied.Should().BeTrue();
         aggregate.IntensiveSupportApplied.Should().BeFalse(); // trueなのはAbsent日のみ -> 除外
         aggregate.EmergencyAdmissionApplied.Should().BeTrue();
+        aggregate.RecipientConfirmation.Should().Be(RecipientConfirmationStatus.Confirmed); // 2/1はUnspecified
 
         snapshot.IntensiveSupportEpisodeStartDateByRecipient.Should().ContainKey(recipientId);
         snapshot.IntensiveSupportEpisodeStartDateByRecipient![recipientId].Should().Be(new DateOnly(2027, 1, 15));

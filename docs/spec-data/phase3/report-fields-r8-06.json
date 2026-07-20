@@ -107,7 +107,7 @@
       "section": "daily",
       "position": 4,
       "officialName": "開始時間",
-      "requiredWhen": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.ServiceStartTime))",
+      "requiredWhen": "rowPresent(service-performance.daily)",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
       "sourcePage": 12,
       "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 4"
@@ -118,7 +118,7 @@
       "section": "daily",
       "position": 5,
       "officialName": "終了時間",
-      "requiredWhen": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.ServiceEndTime))",
+      "requiredWhen": "rowPresent(service-performance.daily)",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
       "sourcePage": 12,
       "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance daily row 5"

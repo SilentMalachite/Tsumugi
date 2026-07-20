@@ -99,6 +99,24 @@ public sealed class ClaimPreparationContextBuilderTests
         result.Context.Recipients[0].ExcludedFromReadinessBlocking.Should().BeFalse();
     }
 
+    [Theory]
+    [InlineData(1, true)]
+    [InlineData(0, false)]
+    public void Build_populates_daily_record_row_scope_from_billed_days(int billedDays, bool expectRowScope)
+    {
+        // Task 4 fix round: rowPresent(service-performance.daily)を参照するreadiness rule
+        // （ServiceStartTime/ServiceEndTime/RecipientConfirmation等）がApplyできるかは、
+        // ここでRowScopesへ"service-performance.daily"を積むかどうかで決まる。billedDays
+        // （当月の実効Present日数）が1件以上ならその日次行が存在するとみなす。
+        var snapshot = Kit.Snapshot(billedDays: new Dictionary<Guid, int> { [Kit.RecipientId] = billedDays });
+
+        var result = ClaimPreparationContextBuilder.Build(
+            snapshot, Kit.Office(), masterVersionAvailable: true);
+
+        var recipient = result.Context.Recipients.Should().ContainSingle().Subject;
+        recipient.RowScopes.Contains("service-performance.daily").Should().Be(expectRowScope);
+    }
+
     [Fact]
     public void Build_reports_missing_office_and_missing_master_version()
     {
@@ -237,7 +255,8 @@ public sealed class ClaimPreparationContextBuilderTests
             TrialUseSupportType: TrialUseSupportType.TypeI,
             RegionalCollaborationApplied: true,
             IntensiveSupportApplied: true,
-            EmergencyAdmissionApplied: true);
+            EmergencyAdmissionApplied: true,
+            RecipientConfirmation: RecipientConfirmationStatus.Confirmed);
         var intensiveSupportStartDate = new DateOnly(2025, 1, 6);
 
         var snapshot = Kit.Snapshot(
@@ -266,6 +285,7 @@ public sealed class ClaimPreparationContextBuilderTests
         values["DailyRecord.RegionalCollaborationApplied"].BooleanValue.Should().BeTrue();
         values["DailyRecord.IntensiveSupportApplied"].BooleanValue.Should().BeTrue();
         values["DailyRecord.EmergencyAdmissionApplied"].BooleanValue.Should().BeTrue();
+        values["DailyRecord.RecipientConfirmation"].StringValue.Should().Be("Confirmed");
         values["IntensiveSupportEpisode.StartDate"].DateValue.Should().Be(intensiveSupportStartDate);
     }
 
@@ -296,6 +316,7 @@ public sealed class ClaimPreparationContextBuilderTests
         values["DailyRecord.RegionalCollaborationApplied"].BooleanValue.Should().BeFalse();
         values["DailyRecord.IntensiveSupportApplied"].BooleanValue.Should().BeFalse();
         values["DailyRecord.EmergencyAdmissionApplied"].BooleanValue.Should().BeFalse();
+        values["DailyRecord.RecipientConfirmation"].Kind.Should().Be(ClaimPreparationValueKind.NotApplicable);
         values["IntensiveSupportEpisode.StartDate"].Kind.Should().Be(ClaimPreparationValueKind.NotApplicable);
     }
 }

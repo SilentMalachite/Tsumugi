@@ -51,6 +51,17 @@ namespace Tsumugi.Infrastructure.Tests.Claim;
 /// typed requirementそのものをスコープ外に置き、マスタ・トークン・算定という
 /// 「Task 9bが実際に配線した本番の継ぎ目」だけを実データで検証する。
 /// </para>
+/// <para>
+/// Phase 3-2 Task 4 fix round: <c>DailyRecord.RecipientConfirmation</c>
+/// （<c>report:service-performance:daily:016</c>）は当時<c>ClaimPreparationContextBuilder</c>が一切
+/// 写像しておらず、かつ<c>rowScopes</c>が常に空集合だったため、<c>DailyRecord.*</c>の
+/// <c>rowPresent(service-performance.daily)</c>系条件（daily:004/005/016）がすべて恒久的に
+/// NotApplicableへ縮退していた（fail-closedのはずが実質fail-open）。本ラウンドで
+/// <c>rowScopes</c>をbilledDays由来で母集団化し、<c>RecipientConfirmation</c>の縮約値写像を追加し、
+/// daily:004/005の<c>requiredCondition</c>から自己参照<c>modelPresent</c>を除去した結果、
+/// <c>DailyRecord.*</c>のtarget pathは10項目（うちRecipientConfirmationは自己参照ではなくbilledDays
+/// 依存の新規必須path）となり、計15 target pathとなった。
+/// </para>
 /// </remarks>
 public sealed class ClaimPreviewProductionWiringTests
 {
@@ -155,9 +166,10 @@ public sealed class ClaimPreviewProductionWiringTests
     public async Task Real_embedded_requirement_provider_reaches_ready_preview_when_snapshot_is_fully_entered()
     {
         // Task 9c: CompositionRootが実際に使う埋め込みcatalogをそのまま使い、Certificate.* /
-        // ContractedProvider.* / DailyRecord.* / IntensiveSupportEpisode.StartDateの14 target path
+        // ContractedProvider.* / DailyRecord.* / IntensiveSupportEpisode.StartDateの15 target path
         // すべてに実データを与えた「フル入力済みの事業所・月」がReadyへ到達することを検証する
-        // （本ファイル冒頭remarks参照。以前はこの14 pathが未写像で常にNotReadyだった）。
+        // （本ファイル冒頭remarks参照。以前はこの14 pathが未写像で常にNotReadyだった。Task 4 fix roundで
+        // DailyRecord.RecipientConfirmationが加わり15 pathになった）。
         var useCase = CreateUseCase(
             BuildSnapshot(staffingKey: "staff-6-1"), ClaimInputRequirementProvider.LoadEmbedded());
 
@@ -191,6 +203,68 @@ public sealed class ClaimPreviewProductionWiringTests
             && issue.Destination == ClaimInputDestination.Certificate);
     }
 
+    [Theory]
+    [InlineData("DailyRecord.ServiceStartTime")]
+    [InlineData("DailyRecord.ServiceEndTime")]
+    [InlineData("DailyRecord.RecipientConfirmation")]
+    public async Task Real_embedded_requirement_provider_reports_missing_daily_record_field_on_present_day(
+        string expectedFieldCode)
+    {
+        // Phase 3-2 Task 4 fix round: ServiceStartTime/ServiceEndTime/RecipientConfirmationは
+        // 当月にAttendance.Presentの日（billedDays>0、本フィクスチャの既定BilledDays=10）が
+        // あれば必須（fail-closed）。他はフル入力のまま対象1項目だけを欠落させ、その1件だけが
+        // issueとして残ることを検証する（rowScopes母集団化前は3項目とも恒久的にNotApplicableへ
+        // 縮退し、この欠落を検出できなかった）。
+        var dailyRecordAggregate = new ClaimDailyRecordAggregate(
+            ServiceStartTime: expectedFieldCode == "DailyRecord.ServiceStartTime" ? null : new TimeOnly(9, 0),
+            ServiceEndTime: expectedFieldCode == "DailyRecord.ServiceEndTime" ? null : new TimeOnly(15, 0),
+            SpecialVisitSupportMinutesTotal: 30,
+            OffsiteSupportApplied: true,
+            MedicalCoordinationType: MedicalCoordinationType.TypeI,
+            TrialUseSupportType: TrialUseSupportType.TypeI,
+            RegionalCollaborationApplied: true,
+            IntensiveSupportApplied: true,
+            EmergencyAdmissionApplied: true,
+            RecipientConfirmation: expectedFieldCode == "DailyRecord.RecipientConfirmation"
+                ? RecipientConfirmationStatus.Unspecified
+                : RecipientConfirmationStatus.Confirmed);
+        var useCase = CreateUseCase(
+            BuildSnapshot(staffingKey: "staff-6-1", dailyRecordAggregateOverride: dailyRecordAggregate),
+            ClaimInputRequirementProvider.LoadEmbedded());
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeFalse();
+        dto.Details.Should().BeEmpty();
+        dto.Issues.Should().ContainSingle(issue =>
+            issue.Code == ClaimPreparationIssueCode.MissingRequiredField
+            && issue.RecipientId == RecipientId
+            && issue.FieldCode == expectedFieldCode
+            && issue.Destination == ClaimInputDestination.DailyRecord);
+    }
+
+    [Fact]
+    public async Task Real_embedded_requirement_provider_does_not_require_daily_record_fields_without_a_present_day()
+    {
+        // 対照実験: billedDays=0（当月にPresent日が無い）なら、ServiceStartTime等が未入力でも
+        // rowPresent(service-performance.daily)がNotApplicableのままissueにならないこと
+        // （必須になるのはAttendance.Presentの日がある月だけ）。
+        var emptyDailyRecordAggregate = ClaimDailyRecordAggregate.Empty;
+        var useCase = CreateUseCase(
+            BuildSnapshot(
+                staffingKey: "staff-6-1",
+                dailyRecordAggregateOverride: emptyDailyRecordAggregate,
+                billedDaysOverride: 0),
+            ClaimInputRequirementProvider.LoadEmbedded());
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.Issues.Should().NotContain(issue =>
+            issue.Destination == ClaimInputDestination.DailyRecord);
+    }
+
     private static CalculateClaimUseCase CreateUseCase(
         ClaimCalculationSnapshot snapshot, IClaimInputRequirementProvider requirementProvider)
         => new(
@@ -217,7 +291,9 @@ public sealed class ClaimPreviewProductionWiringTests
     private static ClaimCalculationSnapshot BuildSnapshot(
         string? staffingKey,
         string? certificateMunicipalityNumber = "131000",
-        IReadOnlyList<OfficeCapability>? officeCapabilities = null)
+        IReadOnlyList<OfficeCapability>? officeCapabilities = null,
+        ClaimDailyRecordAggregate? dailyRecordAggregateOverride = null,
+        int? billedDaysOverride = null)
     {
         var profileId = Guid.NewGuid();
         var profile = new OfficeClaimProfile
@@ -345,7 +421,7 @@ public sealed class ClaimPreviewProductionWiringTests
             Guid.NewGuid(),
             certificateEntryNumber: 5);
 
-        var dailyRecordAggregate = new ClaimDailyRecordAggregate(
+        var dailyRecordAggregate = dailyRecordAggregateOverride ?? new ClaimDailyRecordAggregate(
             ServiceStartTime: new TimeOnly(9, 0),
             ServiceEndTime: new TimeOnly(15, 0),
             SpecialVisitSupportMinutesTotal: 30,
@@ -354,7 +430,8 @@ public sealed class ClaimPreviewProductionWiringTests
             TrialUseSupportType: TrialUseSupportType.TypeI,
             RegionalCollaborationApplied: true,
             IntensiveSupportApplied: true,
-            EmergencyAdmissionApplied: true);
+            EmergencyAdmissionApplied: true,
+            RecipientConfirmation: RecipientConfirmationStatus.Confirmed);
 
         return new ClaimCalculationSnapshot(
             [RecipientId],
@@ -362,7 +439,7 @@ public sealed class ClaimPreviewProductionWiringTests
             [claimInput],
             new Dictionary<Guid, CertificateClaimEvidence> { [RecipientId] = evidence },
             [averageWageEvidence],
-            new Dictionary<Guid, int> { [RecipientId] = BilledDays },
+            new Dictionary<Guid, int> { [RecipientId] = billedDaysOverride ?? BilledDays },
             new Dictionary<Guid, int> { [RecipientId] = 1 },
             new Dictionary<Guid, Certificate> { [RecipientId] = certificate },
             new Dictionary<Guid, ContractedProvider> { [RecipientId] = contractedProvider },

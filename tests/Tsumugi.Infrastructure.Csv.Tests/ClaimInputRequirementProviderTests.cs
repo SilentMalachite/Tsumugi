@@ -56,6 +56,23 @@ public sealed class ClaimInputRequirementProviderTests
             .Should().ContainSingle(row => row.RowScope == "service-performance.daily");
     }
 
+    [Theory]
+    [InlineData("report:service-performance:daily:004", "DailyRecord.ServiceStartTime")]
+    [InlineData("report:service-performance:daily:005", "DailyRecord.ServiceEndTime")]
+    [InlineData("report:service-performance:daily:016", "DailyRecord.RecipientConfirmation")]
+    public void Provider_registers_daily_record_fields_required_on_present_days(
+        string fieldId, string targetPath)
+    {
+        // Task 4: 対象月にAttendance.Presentの日があるとき欠落を許さない3フィールド
+        // （ServiceStartTime/ServiceEndTime/RecipientConfirmation）が、report-field-mapping-r8-06.json
+        // からClaimInputRequirementとして登録され、DailyRecordViewへ向くことを検証する。
+        var requirements = ClaimInputRequirementProvider.LoadEmbedded().GetRequirements();
+
+        var requirement = requirements.Should().ContainSingle(r => r.TargetPath == targetPath).Subject;
+        requirement.FieldIds.Should().Contain(fieldId);
+        requirement.Destination.Should().Be(ClaimInputDestination.DailyRecord);
+    }
+
     [Fact]
     public void Provider_rejects_unknown_condition()
     {

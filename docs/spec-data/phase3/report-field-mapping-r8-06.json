@@ -72,8 +72,8 @@
     },
     {
       "fieldId": "report:service-performance:daily:004",
-      "requiredCondition": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.ServiceStartTime))",
-      "notes": "Phase 3-1 AC3-8",
+      "requiredCondition": "rowPresent(service-performance.daily)",
+      "notes": "Phase 3-1 AC3-8; Task 4 fix round: dropped self-referential modelPresent(DailyRecord.ServiceStartTime) leg, which made the all(...) condition permanently NotApplicable exactly when the field was missing (see daily:016 for the already-correct bare rowPresent pattern)",
       "status": "missing",
       "targetModel": "DailyRecord",
       "targetProperty": "ServiceStartTime",
@@ -83,8 +83,8 @@
     },
     {
       "fieldId": "report:service-performance:daily:005",
-      "requiredCondition": "all(rowPresent(service-performance.daily);modelPresent(DailyRecord.ServiceEndTime))",
-      "notes": "Phase 3-1 AC3-8",
+      "requiredCondition": "rowPresent(service-performance.daily)",
+      "notes": "Phase 3-1 AC3-8; Task 4 fix round: dropped self-referential modelPresent(DailyRecord.ServiceEndTime) leg, which made the all(...) condition permanently NotApplicable exactly when the field was missing (see daily:016 for the already-correct bare rowPresent pattern)",
       "status": "missing",
       "targetModel": "DailyRecord",
       "targetProperty": "ServiceEndTime",

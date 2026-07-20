@@ -224,7 +224,10 @@ public sealed class ClaimCalculationSnapshotReader(
                         .Any(record => record.RegionalCollaborationApplied == true),
                     IntensiveSupportApplied: presentDays.Any(record => record.IntensiveSupportApplied == true),
                     EmergencyAdmissionApplied: presentDays
-                        .Any(record => record.EmergencyAdmissionApplied == true));
+                        .Any(record => record.EmergencyAdmissionApplied == true),
+                    RecipientConfirmation: presentDays
+                        .Select(record => record.RecipientConfirmation)
+                        .FirstOrDefault(value => value != RecipientConfirmationStatus.Unspecified));
         }
         return (billedDaysByRecipient, aggregateByRecipient, additionCountsByRecipient);
     }
