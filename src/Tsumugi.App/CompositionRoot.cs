@@ -91,6 +91,7 @@ public static class CompositionRoot
         services.AddSingleton<IClaimInputRequirementProvider>(
             _ => ClaimInputRequirementProvider.LoadEmbedded());
         services.AddScoped<ClaimPreparationReadiness>();
+        services.AddScoped<IOperationLocalSnapshotReader, OperationLocalSnapshotReader>();
         services.AddScoped<CalculateClaimUseCase>();
         services.AddScoped<CloseClaimUseCase>();
         services.AddScoped<CancelClaimUseCase>();

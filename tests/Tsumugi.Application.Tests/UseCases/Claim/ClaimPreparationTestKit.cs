@@ -2,6 +2,7 @@ using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
+using Tsumugi.Domain.Logic.Claim;
 using Tsumugi.Domain.Logic.Claim.Models;
 using Tsumugi.Domain.ValueObjects;
 
@@ -442,6 +443,46 @@ internal static class ClaimPreparationTestKit
             => throw new NotSupportedException();
         public Task UpdateAsync(Office entity, CancellationToken ct) => throw new NotSupportedException();
         public Task<IReadOnlyList<Office>> ListAsync(CancellationToken ct) => throw new NotSupportedException();
+    }
+
+    /// <summary>
+    /// Task 3: CloseClaimUseCaseがOperationLocalSnapshotReader経由で組み立てるv2 finalization
+    /// payload用のfake。CloseClaimUseCaseTests自体はpayloadの中身（21 report fields）ではなく
+    /// draft/store側の確定手順を検証するため、entities読み取りは行わずcalculationResultの集計値
+    /// だけを転記した最小snapshotを返す（OperationLocalSnapshotReaderTests側で実体読み取りの
+    /// 詳細は別途検証済み）。
+    /// </summary>
+    internal sealed class FakeOperationLocalSnapshotReader : IOperationLocalSnapshotReader
+    {
+        public Task<ClaimFinalizationSnapshot> ReadAsync(
+            Guid officeId,
+            Guid recipientId,
+            ServiceMonth serviceMonth,
+            RecipientClaimResult calculationResult,
+            string claimMasterVersion,
+            string csvSpecificationVersion,
+            string reportSpecificationVersion,
+            CancellationToken ct)
+            => Task.FromResult(new ClaimFinalizationSnapshot(
+                recipientId,
+                serviceMonth,
+                claimMasterVersion,
+                csvSpecificationVersion,
+                reportSpecificationVersion,
+                new ClaimFinalizationOfficeSnapshot(
+                    "1310000001", "テスト事業所", RegionGrade.Grade2,
+                    "100-0001", "東京都千代田区1-1", "03-0000-0000", "施設長 テスト"),
+                new ClaimFinalizationRecipientSnapshot("テスト利用者", "テストリヨウシャ"),
+                new ClaimFinalizationCertificateSnapshot("certificate-no-1", "131016", null, 37_200, null, null),
+                new ClaimFinalizationClaimInputSnapshot(null, null, null, null, null, null, null),
+                [],
+                null,
+                [],
+                calculationResult.BilledDays,
+                calculationResult.TotalUnits,
+                calculationResult.TotalCostYen,
+                calculationResult.BenefitYen,
+                calculationResult.BurdenYen));
     }
 
     internal sealed class FakeTokenProvider(ClaimBillingConditionTokens tokens) : IClaimBillingTokenProvider

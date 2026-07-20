@@ -161,7 +161,7 @@ public sealed class ClaimPreparationViewModelTests
             snapshotReader, masterProvider, officeRepository, tokenProvider, readiness);
         var closeClaim = new CloseClaimUseCase(
             snapshotReader, masterProvider, officeRepository, tokenProvider, readiness,
-            batchStore, batchStore);
+            batchStore, batchStore, new Kit.FakeOperationLocalSnapshotReader());
         var cancelClaim = new CancelClaimUseCase(batchStore, batchStore);
         var queryClaim = new QueryClaimUseCase(batchStore);
         var listOffices = new ListOfficesUseCase(officeRepository);

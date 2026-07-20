@@ -2,6 +2,7 @@ using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
+using Tsumugi.Domain.Logic.Claim;
 using Tsumugi.Domain.Logic.Claim.Models;
 using Tsumugi.Domain.ValueObjects;
 
@@ -297,6 +298,45 @@ internal static class ClaimPreparationViewModelTestKit
     {
         public ClaimBillingConditionTokens Resolve(
             Office office, OfficeClaimProfile? profile, ServiceMonth serviceMonth) => tokens;
+    }
+
+    /// <summary>
+    /// Task 3: CloseClaimUseCaseがv2 finalization payload組み立てに使うfake。
+    /// このVM層のテストは確定/取下げ/履歴表示の配線を検証する対象であり、payloadの中身
+    /// （21 report fields）はTsumugi.Application.Tests側で別途検証済みのため、ここでは
+    /// calculationResultの集計値だけを転記した最小snapshotを返す。
+    /// </summary>
+    internal sealed class FakeOperationLocalSnapshotReader : IOperationLocalSnapshotReader
+    {
+        public Task<ClaimFinalizationSnapshot> ReadAsync(
+            Guid officeId,
+            Guid recipientId,
+            ServiceMonth serviceMonth,
+            RecipientClaimResult calculationResult,
+            string claimMasterVersion,
+            string csvSpecificationVersion,
+            string reportSpecificationVersion,
+            CancellationToken ct)
+            => Task.FromResult(new ClaimFinalizationSnapshot(
+                recipientId,
+                serviceMonth,
+                claimMasterVersion,
+                csvSpecificationVersion,
+                reportSpecificationVersion,
+                new ClaimFinalizationOfficeSnapshot(
+                    "1310000001", "テスト事業所", RegionGrade.Grade2,
+                    "100-0001", "東京都千代田区1-1", "03-0000-0000", "施設長 テスト"),
+                new ClaimFinalizationRecipientSnapshot("テスト利用者", "テストリヨウシャ"),
+                new ClaimFinalizationCertificateSnapshot("certificate-no-1", "131016", null, 37_200, null, null),
+                new ClaimFinalizationClaimInputSnapshot(null, null, null, null, null, null, null),
+                [],
+                null,
+                [],
+                calculationResult.BilledDays,
+                calculationResult.TotalUnits,
+                calculationResult.TotalCostYen,
+                calculationResult.BenefitYen,
+                calculationResult.BurdenYen));
     }
 
     internal sealed class EmptyRequirementProvider : IClaimInputRequirementProvider

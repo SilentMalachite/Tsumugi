@@ -131,5 +131,6 @@ public sealed class CloseClaimUseCaseTests
             new Kit.FakeTokenProvider(Kit.Tokens()),
             Kit.Readiness(),
             new Kit.FakeBatchRepository(history),
-            store);
+            store,
+            new Kit.FakeOperationLocalSnapshotReader());
 }
