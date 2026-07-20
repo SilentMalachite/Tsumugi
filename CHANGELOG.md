@@ -33,6 +33,16 @@
 - 対象service-code revisionsを含む令和6/8報酬masterのproduction seed、保護施設事務費の実値recordと証拠取込、master resolver、平均工賃・基本報酬・加算減算・地域単価・利用者負担のruntime計算、production snapshot codec、validated finalization / `IValidatedClaimSnapshotReader`を実装する。
 - 3帳票と国保連提出CSV（CP932 / CRLF）の生成・保存UIを実装する。現時点では請求CSV生成完了ではない。
 
+## Phase 3-2 完了 (2026-07-20)
+
+- Claim snapshot codec v2 (`claim-snapshot-v2`) で office / recipient / certificate / dailyRecord[] / claimInput / intensiveSupportEpisode / claimLines[] を確定時に凍結
+- 3帳票 PDF: サービス提供実績記録票 / 介護給付費・訓練等給付費等 請求書 / 介護給付費・訓練等給付費等 請求明細書 を `ClaimPreparation` 画面から保存可能
+- 21 `report:*` フィールドを snapshot v2 で凍結、対応 open-questions 21件をクローズ
+- 破壊的変更: `ClaimSnapshotValidationCodecV1` 削除（Phase 3-1 マージ直後のため production 影響なし）
+- ADR 0029（codec v2）/ ADR 0030（21 report fields UI 責務分割）追加
+- OperationLocalSnapshotReader 追加 — CloseClaimUseCase が確定時に entities → v2 payload を集約
+- readiness gate 修復: rowScopes populate 拡張 + 自己参照 modelPresent 修正で 21 fields の fail-closed 動作を確立
+
 ## [0.3.1-phase4-s1] - 2026-07-05
 
 Phase 4 S1（日本語フォント埋込 + QuestPDF ライセンス確定）完了。CHANGELOG

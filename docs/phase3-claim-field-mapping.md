@@ -577,6 +577,8 @@
 ## Phase 3-1へ送る未実装入力 (51 mapping entries)
 
 > **実装進捗 (2026-07-12 / `d812e31`)**: 51 entries / 26 targetsのモデル、migration、repository、保存ユースケース、typed requirements、readiness gateは実装済み。実UIとoperation-local snapshot readerは未実装である。表の`missing`分類は`ClaimInputRequirementProvider`が算定前必須条件を抽出する契約でもあるため、UIからend-to-endで到達可能になるまで維持する。
+>
+> **実装進捗 (2026-07-20 / Phase 3-2 完了)**: 21 `report:*` フィールドは snapshot v2 (`claim-snapshot-v2`) 経由で確定時に凍結され、`ClaimReportGenerator` が生成する3帳票（サービス提供実績記録票・請求書・請求明細書）の抽出テキストで検出可能。30 `provider:*` フィールドは Phase 3-3 (CSV) スコープに引き継ぐ。証跡: `docs/phase3-2-acceptance.md`。
 
 | target | fieldId | UI | migration |
 | --- | --- | --- | --- |
