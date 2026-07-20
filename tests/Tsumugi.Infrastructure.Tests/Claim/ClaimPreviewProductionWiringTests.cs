@@ -75,6 +75,20 @@ namespace Tsumugi.Infrastructure.Tests.Claim;
 /// <c>Real_embedded_requirement_provider_requires_upper_limit_management_result_when_provider_number_is_entered</c>
 /// 等4テストで固定）。
 /// </para>
+/// <para>
+/// Phase 3-2 Task 7: <c>ClaimInput.MunicipalSubsidyAmountYen</c>も上記UpperLimitManagement系と
+/// 同型のAny-mergeクロスフィールドゲートを持つ（brief記載のCRITICAL cascade risk調査で判明）。
+/// report-field-mapping-r8-06.json側の自己参照レグ（<c>report:benefit-claim-detail:summary:015</c>、
+/// <c>modelPresent(ClaimInput.MunicipalSubsidyAmountYen)</c>）単体は他の自己参照条件と同じく恒久的に
+/// fail-openだが、field-mapping-r7-10.json側のクロスフィールドレグ（<c>provider:J121:04:025</c>、
+/// <c>modelPresent(Certificate.SubsidyMunicipalityNumber)</c>）が同一TargetPathへ合流するため、
+/// <c>Certificate.SubsidyMunicipalityNumber</c>が非nullのとき既に実効fail-closedになっていた
+/// （Task 4のDailyRecordのような真の silently inert バグではなく、UpperLimitManagement系と同じく
+/// 未テストのまま放置されていたAny-mergeゲート）。本ラウンドで
+/// <c>Real_embedded_requirement_provider_requires_municipal_subsidy_amount_when_subsidy_municipality_number_is_entered</c>
+/// / <c>Real_embedded_requirement_provider_does_not_require_municipal_subsidy_amount_when_both_legs_are_absent</c>
+/// の2テストで固定した。
+/// </para>
 /// </remarks>
 public sealed class ClaimPreviewProductionWiringTests
 {
@@ -224,6 +238,55 @@ public sealed class ClaimPreviewProductionWiringTests
         // これだけを欠落させてもReadyを維持することを実embedded catalogで確認する。
         var useCase = CreateUseCase(
             BuildSnapshot(staffingKey: "staff-6-1", certificateSubsidyMunicipalityNumber: null),
+            ClaimInputRequirementProvider.LoadEmbedded());
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeTrue();
+        dto.Issues.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task
+        Real_embedded_requirement_provider_requires_municipal_subsidy_amount_when_subsidy_municipality_number_is_entered()
+    {
+        // Phase 3-2 Task 7: SubsidyMunicipalityNumberが入力済みなのに
+        // ClaimInput.MunicipalSubsidyAmountYenが未入力だと、そのクロスフィールド規則
+        // （field-mapping-r7-10.jsonのprovider:J121:04:025）がfail-closedすることを実embedded
+        // catalogで検証する。自己参照レグ（report:benefit-claim-detail:summary:015）単体では
+        // 検知できないケースであり、Any(...)合流の実効性を証明する（brief記載のCRITICAL cascade
+        // risk対応。UpperLimitManagement系と対称のパターン）。
+        var useCase = CreateUseCase(
+            BuildSnapshot(staffingKey: "staff-6-1", claimInputMunicipalSubsidyAmountYen: null),
+            ClaimInputRequirementProvider.LoadEmbedded());
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeFalse();
+        dto.Details.Should().BeEmpty();
+        dto.Issues.Should().ContainSingle(issue =>
+            issue.Code == ClaimPreparationIssueCode.MissingRequiredField
+            && issue.RecipientId == RecipientId
+            && issue.FieldCode == "ClaimInput.MunicipalSubsidyAmountYen"
+            && issue.Destination == ClaimInputDestination.ClaimPreparation);
+    }
+
+    [Fact]
+    public async Task
+        Real_embedded_requirement_provider_does_not_require_municipal_subsidy_amount_when_both_legs_are_absent()
+    {
+        // 対照実験: SubsidyMunicipalityNumberとMunicipalSubsidyAmountYenを両方未入力にすると、
+        // Any(...)の両レグがNotApplicableとなりReadyを維持する（自己参照レグ単体は恒久的に
+        // fail-openであることの確認。SubsidyMunicipalityNumberだけ欠落させる対照実験は
+        // Real_embedded_requirement_provider_does_not_require_subsidy_municipality_number_when_absent
+        // で既に検証済み）。
+        var useCase = CreateUseCase(
+            BuildSnapshot(
+                staffingKey: "staff-6-1",
+                certificateSubsidyMunicipalityNumber: null,
+                claimInputMunicipalSubsidyAmountYen: null),
             ClaimInputRequirementProvider.LoadEmbedded());
 
         var dto = await useCase.ExecuteAsync(
@@ -395,6 +458,7 @@ public sealed class ClaimPreviewProductionWiringTests
         UpperLimitManagementResult? claimInputUpperLimitManagementResult =
             UpperLimitManagementResult.Result1,
         int? claimInputUpperLimitManagedAmountYen = 0,
+        int? claimInputMunicipalSubsidyAmountYen = 0,
         IReadOnlyList<OfficeCapability>? officeCapabilities = null,
         ClaimDailyRecordAggregate? dailyRecordAggregateOverride = null,
         int? billedDaysOverride = null)
@@ -444,9 +508,11 @@ public sealed class ClaimPreviewProductionWiringTests
             // 検証対象ではない（ClaimInput.UpperLimitManagementResult等はTask 9で既に写像済み）。
             // Phase 3-2 Task 5: certificate.UpperLimitManagementProviderNumberが非nullのときの
             // クロスフィールド必須化を検証するため外から差し替え可能にした。
+            // Phase 3-2 Task 7: MunicipalSubsidyAmountYenも同様にcertificate.SubsidyMunicipalityNumber
+            // が非nullのときのクロスフィールド必須化を検証するため外から差し替え可能にした。
             UpperLimitManagementResult = claimInputUpperLimitManagementResult,
             UpperLimitManagedAmountYen = claimInputUpperLimitManagedAmountYen,
-            MunicipalSubsidyAmountYen = 0,
+            MunicipalSubsidyAmountYen = claimInputMunicipalSubsidyAmountYen,
             CreatedAt = Now,
             CreatedBy = "tester",
             ConcurrencyToken = Guid.NewGuid(),

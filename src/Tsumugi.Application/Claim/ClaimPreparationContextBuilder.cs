@@ -160,6 +160,17 @@ public static class ClaimPreparationContextBuilder
                     : ClaimPreparationValue.NotApplicable(),
             [Path(nameof(ClaimInput), nameof(ClaimInput.UpperLimitManagedAmountYen))] =
                 NumberOrNotApplicable(input?.UpperLimitManagedAmountYen),
+            // MunicipalSubsidyAmountYen（Phase 3-2 Task 7）。自己参照レグ
+            // （report:benefit-claim-detail:summary:015、modelPresent(ClaimInput.MunicipalSubsidyAmountYen)）
+            // 単体は恒久的にfail-open。field-mapping-r7-10.jsonのprovider:J121:04:025
+            // （requiredCondition=modelPresent(Certificate.SubsidyMunicipalityNumber)、非自己参照）が
+            // 同一TargetPathへ合流し、ClaimInputRequirementProvider.CreateRequirementがAny(...)へ
+            // ラップすることで、Certificate.SubsidyMunicipalityNumberが非nullのときこのフィールドを
+            // fail-closedで必須化する（下記Certificate.SubsidyMunicipalityNumberコメントで説明する
+            // UpperLimitManagement系と同型のAny-mergeクロスフィールドゲート）。回帰は
+            // ClaimInputRequirementProviderTests.Provider_combines_municipal_subsidy_cross_field_condition_via_any
+            // と ClaimPreviewProductionWiringTests.Real_embedded_requirement_provider_requires_municipal_subsidy_amount_*
+            // で固定済み。
             [Path(nameof(ClaimInput), nameof(ClaimInput.MunicipalSubsidyAmountYen))] =
                 NumberOrNotApplicable(input?.MunicipalSubsidyAmountYen),
             [Path(nameof(ClaimInput), nameof(ClaimInput.ExceptionalUsageStartMonth))] =
@@ -189,6 +200,15 @@ public static class ClaimPreparationContextBuilder
             // Certificate.UpperLimitManagementProviderNumberの自己参照条件ではなく、この既存の
             // クロスフィールドAny合流の方を見ること（回帰は
             // ClaimPreviewProductionWiringTests.Real_embedded_requirement_provider_requires_upper_limit_*
+            // で固定済み）。
+            //
+            // Phase 3-2 Task 7: SubsidyMunicipalityNumberも同型のクロスフィールド起点である。
+            // 非nullのとき ClaimInput.MunicipalSubsidyAmountYen を必須化する規則が、
+            // field-mapping-r7-10.jsonのprovider:J121:04:025
+            // （requiredCondition=modelPresent(Certificate.SubsidyMunicipalityNumber)、非自己参照）＋
+            // report-field-mapping-r8-06.jsonのsummary:015（自己参照レグ）の合流で実現されている
+            // （上のClaimInput.MunicipalSubsidyAmountYenコメント参照。回帰は
+            // ClaimPreviewProductionWiringTests.Real_embedded_requirement_provider_requires_municipal_subsidy_amount_*
             // で固定済み）。
             [Path(nameof(Certificate), nameof(Certificate.MunicipalityNumber))] =
                 TextOrNotApplicable(certificate?.MunicipalityNumber),

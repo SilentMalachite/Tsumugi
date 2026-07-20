@@ -143,6 +143,35 @@ public sealed class ClaimInputRequirementProviderTests
             modelPresent => modelPresent.ModelPath == "Certificate.UpperLimitManagementProviderNumber");
     }
 
+    [Fact]
+    public void Provider_combines_municipal_subsidy_cross_field_condition_via_any()
+    {
+        // Phase 3-2 Task 7: field-mapping-r7-10.json（provider:J121:04:025、クロスフィールドレグ、
+        // modelPresent(Certificate.SubsidyMunicipalityNumber)）と
+        // report-field-mapping-r8-06.json（report:benefit-claim-detail:summary:015、自己参照レグ、
+        // modelPresent(ClaimInput.MunicipalSubsidyAmountYen)）が同一TargetPath
+        // "ClaimInput.MunicipalSubsidyAmountYen"へ合流し、条件文字列が異なるため CreateRequirement が
+        // Any(...)へラップする。これはTask 5で発見したUpperLimitManagement系（Certificate.
+        // UpperLimitManagementProviderNumberが非nullなら2フィールドを必須化）と同型のAny-merge
+        // クロスフィールドゲートで、Certificate.SubsidyMunicipalityNumberが非nullのとき
+        // MunicipalSubsidyAmountYenをfail-closedで必須化する（自己参照レグ単体は恒久的にfail-open）。
+        // brief記載のCRITICAL cascade risk（Task 4と同じsilently inertパターンではないか）への回答:
+        // 既にAny-merge経由で実効fail-closedであり、コード変更は不要（本テストで固定するのみ）。
+        var requirements = ClaimInputRequirementProvider.LoadEmbedded().GetRequirements();
+
+        var requirement = requirements.Single(
+            r => r.TargetPath == "ClaimInput.MunicipalSubsidyAmountYen");
+        requirement.FieldIds.Should().Contain("report:benefit-claim-detail:summary:015");
+        requirement.FieldIds.Should().Contain("provider:J121:04:025");
+        requirement.Destination.Should().Be(ClaimInputDestination.ClaimPreparation);
+
+        var any = requirement.Condition.Should().BeOfType<ClaimRequirementCondition.Any>().Subject;
+        any.Conditions.OfType<ClaimRequirementCondition.ModelPresent>().Should().Contain(
+            modelPresent => modelPresent.ModelPath == "Certificate.SubsidyMunicipalityNumber");
+        any.Conditions.OfType<ClaimRequirementCondition.ModelPresent>().Should().Contain(
+            modelPresent => modelPresent.ModelPath == "ClaimInput.MunicipalSubsidyAmountYen");
+    }
+
     [Theory]
     [InlineData(
         "report:benefit-claim-form:header:004", "Office.PostalCode")]
