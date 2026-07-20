@@ -44,6 +44,45 @@ public sealed class ClaimReportGeneratorServiceProvisionRecordTests
     }
 
     [Fact]
+    public void GenerateServiceProvisionRecord_renders_nondefault_optional_daily_fields()
+    {
+        QuestPdfLicenseConfigurator.Initialize();
+        var clock = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z", CultureInfo.InvariantCulture));
+        var dto = SampleDto() with
+        {
+            Days =
+            [
+                new DailyServiceRecordDto(
+                    new DateOnly(2026, 5, 2), Attendance.Present, false, TransportKind.None, null,
+                    null, null, 30, true, "typeA", "trialB",
+                    true, true, true, true),
+            ],
+        };
+        var text = ExtractText(new ClaimReportGenerator(clock).GenerateServiceProvisionRecord(dto));
+
+        text.Should().Contain("30", because: "SpecialVisitSupportMinutes は数値そのまま出力される");
+        text.Should().Contain("typeA", because: "MedicalCoordinationType はそのまま出力される");
+        text.Should().Contain("trialB", because: "TrialUseSupportType はそのまま出力される");
+
+        // MealProvided=false のこの行では、OffsiteSupportApplied / RegionalCollaborationApplied /
+        // IntensiveSupportApplied / EmergencyAdmissionApplied / RecipientConfirmation の
+        // 5フィールドのみが true → ○ がちょうど5個出力される。
+        CountOccurrences(text, "○").Should().Be(5,
+            because: "true の5フィールドそれぞれが独立に ○ としてレンダリングされる");
+    }
+
+    [Fact]
+    public void GenerateServiceProvisionRecord_omits_intensive_support_line_when_absent()
+    {
+        QuestPdfLicenseConfigurator.Initialize();
+        var clock = new FakeTimeProvider(DateTimeOffset.Parse("2026-06-29T00:00:00Z", CultureInfo.InvariantCulture));
+        var dto = SampleDto(); // IntensiveSupport: null
+        var text = ExtractText(new ClaimReportGenerator(clock).GenerateServiceProvisionRecord(dto));
+        text.Should().NotContain("集中的支援エピソード開始日",
+            because: "IntensiveSupport が null のときはエピソード開始日の行自体が出力されない");
+    }
+
+    [Fact]
     public void GenerateServiceProvisionRecord_is_deterministic_for_same_inputs_and_timeprovider()
     {
         QuestPdfLicenseConfigurator.Initialize();
@@ -96,5 +135,17 @@ public sealed class ClaimReportGeneratorServiceProvisionRecordTests
         var sb = new StringBuilder();
         foreach (var page in pdf.GetPages()) sb.Append(page.Text);
         return KangxiRadicalNormalizer.FoldKangxiRadicals(sb.ToString());
+    }
+
+    private static int CountOccurrences(string text, string token)
+    {
+        var count = 0;
+        var index = 0;
+        while ((index = text.IndexOf(token, index, StringComparison.Ordinal)) != -1)
+        {
+            count++;
+            index += token.Length;
+        }
+        return count;
     }
 }

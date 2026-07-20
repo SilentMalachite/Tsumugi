@@ -37,7 +37,7 @@ public sealed class ClaimReportGenerator(TimeProvider timeProvider) : IClaimRepo
                     if (dto.IntensiveSupport is { } intensive)
                     {
                         col.Item().Text(
-                            $"集中的支援エピソード開始日: {intensive.StartDate:yyyy/MM/dd}");
+                            $"集中的支援エピソード開始日: {intensive.StartDate.ToString("yyyy/MM/dd", CultureInfo.InvariantCulture)}");
                     }
                 });
 
