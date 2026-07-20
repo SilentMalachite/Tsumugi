@@ -1,5 +1,9 @@
+using System.Globalization;
+using System.Text;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Tsumugi.Application.Abstractions;
+using Tsumugi.Application.Audit;
 using Tsumugi.Application.Claim;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Application.UseCases.Claim;
@@ -9,6 +13,9 @@ using Tsumugi.Domain.Logic.Claim.Models;
 using Tsumugi.Domain.ValueObjects;
 using Tsumugi.Infrastructure.ClaimMasters;
 using Tsumugi.Infrastructure.Csv.Mapping;
+using Tsumugi.Infrastructure.Persistence;
+using Tsumugi.Infrastructure.Reporting;
+using UglyToad.PdfPig;
 using Xunit;
 
 namespace Tsumugi.Infrastructure.Tests.Claim;
@@ -488,6 +495,234 @@ public sealed class ClaimPreviewProductionWiringTests
 
         dto.IsReady.Should().BeTrue();
         dto.Issues.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Phase 3-2 最終ブランチレビュー指摘I4: 各層（<c>ClaimFinalizationSnapshotReaderTests</c>の
+    /// writer↔reader round-trip、<c>OperationLocalSnapshotReaderTests</c>のentities→snapshot、
+    /// <c>CloseClaimUseCaseTests</c>のclose flow、<c>GenerateClaimReportsUseCaseTests</c>のUseCase→
+    /// generator）はそれぞれ自前のfixtureをwriter側・reader側の両方に使うunitテストで検証済みだが、
+    /// 実<see cref="CloseClaimUseCase"/>が書き込んだv2 payload bytesを実DB列
+    /// （<see cref="Domain.Entities.ClaimDetail.CalculationSnapshotJson"/>）経由でそのまま
+    /// 実<see cref="GenerateClaimReportsUseCase"/>へ渡す1本のテストが無かった。writer側
+    /// （<see cref="OperationLocalSnapshotReader"/>）とreader側（<see cref="ClaimFinalizationSnapshotReader"/>）
+    /// のプロパティ名がサイレントに乖離しても（例: "subsidyMunicipalityNumber" vs
+    /// "SubsidyMunicipalityNumber"）、両側とも自分のfixtureに合わせて書かれたunitテストはそれを検知できない。
+    /// 本テストは実SQLite（ファイルDB、複数<see cref="TsumugiDbContext"/>を跨ぐ）へOffice/Recipient/
+    /// Certificate/DailyRecord/ClaimInputを実際に挿入し、実<c>CloseClaimUseCase.ExecuteAsync</c>で
+    /// 確定 → 実DB列へ永続化 → 実<c>GenerateClaimReportsUseCase</c>で3帳票すべてを生成し、
+    /// 抽出テキストに書込み側の実データがそのまま現れることを確認する。
+    /// </summary>
+    [Fact]
+    public async Task
+        Real_close_then_generate_flow_round_trips_the_v2_finalization_snapshot_through_the_real_database()
+    {
+        using var fixture = new SqliteFixture();
+        var contextFactory = new FileDbContextFactory(fixture.DbPath);
+        const string recipientKanjiName = "佐藤次郎";
+
+        await using (var seedContext = fixture.NewContext())
+        {
+            seedContext.Add(BuildOffice());
+            seedContext.Add(Recipient.Create(
+                RecipientId,
+                recipientKanjiName,
+                "サトウジロウ",
+                new DateOnly(1985, 5, 10),
+                "tester",
+                Now,
+                Guid.NewGuid()));
+            seedContext.Add(Certificate.Create(
+                Guid.NewGuid(),
+                RecipientId,
+                "certificate-no-1",
+                new DateRange(new DateOnly(2024, 4, 1), null),
+                supplyDays: 23,
+                monthlyCostCap: 37_200,
+                municipality: "テスト市",
+                "tester",
+                Now,
+                Guid.NewGuid(),
+                municipalityNumber: "131000",
+                subsidyMunicipalityNumber: "132000",
+                upperLimitManagementProviderNumber: "1310000099",
+                paymentBurden: PaymentBurdenCategory.General1));
+            seedContext.AddRange(
+                BuildFinalizationDailyRecord(new DateOnly(2025, 4, 1)),
+                BuildFinalizationDailyRecord(new DateOnly(2025, 4, 2)));
+            var claimInputId = Guid.NewGuid();
+            seedContext.Add(new ClaimInput
+            {
+                Id = claimInputId,
+                OfficeId = OfficeId,
+                RecipientId = RecipientId,
+                ServiceMonth = Month,
+                RootId = claimInputId,
+                Revision = 1,
+                Kind = RecordKind.New,
+                UpperLimitManagementResult = UpperLimitManagementResult.Result1,
+                UpperLimitManagedAmountYen = 0,
+                MunicipalSubsidyAmountYen = 0,
+                CreatedAt = Now,
+                CreatedBy = "tester",
+                ConcurrencyToken = Guid.NewGuid(),
+            });
+            await seedContext.SaveChangesAsync();
+        }
+
+        // (preview) 実CloseClaimUseCaseはExpectedPreviewHashの一致を要求するため、先に同じsnapshotで
+        // プレビューを走らせhashを得る（CalculateClaimUseCase/CloseClaimUseCaseと同じ規約。
+        // CloseClaimUseCaseTests.PreviewHashAsyncと同型）。
+        var snapshot = BuildSnapshot(staffingKey: "staff-6-1");
+        var preview = await CreateUseCase(snapshot, new EmptyRequirementProvider())
+            .ExecuteAsync(new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+        preview.IsReady.Should().BeTrue();
+
+        await using (var closeContext = fixture.NewContext())
+        {
+            var operationSnapshotReader = new OperationLocalSnapshotReader(
+                new OfficeRepository(closeContext),
+                new RecipientRepository(closeContext),
+                new CertificateRepository(closeContext),
+                new DailyRecordRepository(closeContext),
+                new IntensiveSupportEpisodeRepository(closeContext),
+                new ClaimInputRepository(closeContext));
+            var closeUseCase = new CloseClaimUseCase(
+                new FakeSnapshotReader(snapshot),
+                JsonClaimMasterProvider.LoadEmbedded(),
+                new FakeOfficeRepository(BuildOffice()),
+                new OfficeClaimBillingTokenProvider(),
+                new ClaimPreparationReadiness(new EmptyRequirementProvider()),
+                new ClaimBatchRepository(closeContext),
+                new ClaimFinalizationStore(
+                    contextFactory,
+                    new ClaimFinalizationOperationRegistry(),
+                    new ProductionClaimSnapshotValidationCodecRegistry(),
+                    new ClaimAuditEntryFactory(),
+                    TimeProvider.System),
+                operationSnapshotReader);
+
+            var revision = await closeUseCase.ExecuteAsync(
+                new CloseClaimRequest(OfficeId, Month, preview.PreviewHash), "closer", CancellationToken.None);
+
+            revision.Revision.Should().Be(1);
+            revision.IsReplay.Should().BeFalse();
+        }
+
+        QuestPdfLicenseConfigurator.Initialize();
+        await using var reportContext = fixture.NewContext();
+        var generateUseCase = new GenerateClaimReportsUseCase(
+            new ClaimBatchRepository(reportContext),
+            new ClaimReportGenerator(TimeProvider.System));
+
+        var invoiceBytes = await generateUseCase.GenerateClaimInvoiceAsync(
+            OfficeId, Month, CancellationToken.None);
+
+        invoiceBytes.Should().NotBeEmpty();
+        var invoiceText = ExtractPdfText(invoiceBytes);
+        invoiceText.Should().Contain("テスト事業所", because: "Office.Nameが実DB行由来のv2 finalization snapshotから描画される");
+        invoiceText.Should().Contain("100-0001", because: "郵便番号 (Office.PostalCode)");
+        invoiceText.Should().Contain("東京都千代田区1-1", because: "所在地 (Office.Address)");
+        invoiceText.Should().Contain("03-0000-0000", because: "電話番号 (Office.PhoneNumber)");
+        invoiceText.Should().Contain("施設長 テスト", because: "代表者職氏名 (Office.RepresentativeTitleAndName)");
+        invoiceText.Should().Contain(
+            preview.TotalUnits.ToString("N0", CultureInfo.InvariantCulture), because: "総単位数 = 確定時に再計算されたTotalUnits");
+        invoiceText.Should().Contain(
+            preview.TotalCostYen.ToString("N0", CultureInfo.InvariantCulture), because: "総費用額 = 確定時に再計算されたTotalCostYen");
+        invoiceText.Should().Contain(
+            preview.TotalBenefitYen.ToString("N0", CultureInfo.InvariantCulture), because: "給付費請求額 = TotalBenefitYen");
+        invoiceText.Should().Contain(
+            preview.TotalBurdenYen.ToString("N0", CultureInfo.InvariantCulture), because: "利用者負担合計 = TotalBurdenYen");
+
+        // Optional extension: 同一close revisionをsetupし直さず、残り2帳票（サービス提供実績記録票・
+        // 請求明細書）へもwriter/readerのproperty-name driftが波及していないことを確認する
+        // （brief記載の「setupが安ければ追加する」companion assertion）。
+        var recordBytes = await generateUseCase.GenerateServiceProvisionRecordAsync(
+            OfficeId, Month, RecipientId, CancellationToken.None);
+        recordBytes.Should().NotBeEmpty();
+        ExtractPdfText(recordBytes).Should().Contain(
+            recipientKanjiName, because: "Recipient.KanjiNameが実DB行由来のv2 finalization snapshotから描画される");
+
+        var statementBytes = await generateUseCase.GenerateClaimStatementAsync(
+            OfficeId, Month, CancellationToken.None);
+        statementBytes.Should().NotBeEmpty();
+        var statementText = ExtractPdfText(statementBytes);
+        statementText.Should().Contain(recipientKanjiName);
+        statementText.Should().Contain("131000", because: "Certificate.MunicipalityNumber");
+    }
+
+    private static DailyRecord BuildFinalizationDailyRecord(DateOnly serviceDate) => DailyRecord.NewRecord(
+        Guid.NewGuid(),
+        RecipientId,
+        serviceDate,
+        Attendance.Present,
+        TransportKind.Round,
+        mealProvided: true,
+        note: null,
+        "tester",
+        Now,
+        serviceStartTime: new TimeOnly(9, 0),
+        serviceEndTime: new TimeOnly(15, 0),
+        specialVisitSupportMinutes: 30,
+        offsiteSupportApplied: true,
+        medicalCoordinationType: MedicalCoordinationType.TypeI,
+        trialUseSupportType: TrialUseSupportType.TypeI,
+        regionalCollaborationApplied: true,
+        intensiveSupportApplied: false,
+        emergencyAdmissionApplied: false,
+        recipientConfirmation: RecipientConfirmationStatus.Confirmed);
+
+    /// <summary>
+    /// PdfPigでUTF-8抽出したテキストをそのまま比較する。Noto Sans JPはQuestPDF/SkiaSharpが生成する
+    /// ToUnicode CMapで一部漢字（例: 「田」）が字形を共有する康熙部首(Kangxi Radicals)のコードポイントで
+    /// 抽出されることがある（レンダリングされる字形自体は正しい。既存の
+    /// <c>Tsumugi.Infrastructure.Reporting.Tests.KangxiRadicalNormalizer</c>と同一の既知quirkであり、
+    /// そちらはinternalで別assemblyのため参照できず、本ファイル用に最小限を複製する）。
+    /// </summary>
+    private static string FoldKangxiRadicals(string text)
+    {
+        var map = new Dictionary<char, char>
+        {
+            ['⼭'] = '山',
+            ['⽥'] = '田',
+            ['⼯'] = '工',
+            ['⽀'] = '支',
+            ['⼀'] = '一',
+            ['⽉'] = '月',
+            ['⽤'] = '用',
+            ['⽇'] = '日',
+            ['⽋'] = '欠',
+            ['⾷'] = '食',
+            ['⼊'] = '入',
+            ['⼒'] = '力',
+            ['⽊'] = '木',
+            ['⼦'] = '子',
+            ['⻑'] = '長', // KANGXI RADICAL LONG (U+2F91) -> 長。「施設長」がこの字形で抽出される。
+            ['‧'] = '・',
+        };
+        var sb = new StringBuilder(text.Length);
+        foreach (var ch in text) sb.Append(map.TryGetValue(ch, out var mapped) ? mapped : ch);
+        return sb.ToString();
+    }
+
+    private static string ExtractPdfText(byte[] bytes)
+    {
+        using var stream = new MemoryStream(bytes);
+        using var pdf = PdfDocument.Open(stream);
+        var sb = new StringBuilder();
+        foreach (var page in pdf.GetPages()) sb.Append(page.Text);
+        return FoldKangxiRadicals(sb.ToString());
+    }
+
+    /// <summary>ClaimFinalizationStoreTests.RecordingFactoryと同型だが、context追跡・timeout調整は持たない
+    /// 最小実装。単一のファイルDB（<see cref="SqliteFixture.DbPath"/>）を指す新規contextを都度作る。</summary>
+    private sealed class FileDbContextFactory(string dbPath) : IDbContextFactory<TsumugiDbContext>
+    {
+        public TsumugiDbContext CreateDbContext() => new(
+            new DbContextOptionsBuilder<TsumugiDbContext>().UseSqlite($"Data Source={dbPath}").Options);
+
+        public Task<TsumugiDbContext> CreateDbContextAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult(CreateDbContext());
     }
 
     private static CalculateClaimUseCase CreateUseCase(
