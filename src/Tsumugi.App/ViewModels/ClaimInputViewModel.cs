@@ -74,6 +74,7 @@ public sealed partial class ClaimInputViewModel(
     [ObservableProperty] private Guid? _claimInputEffectiveHeadId;
     [ObservableProperty] private UpperLimitManagementResult? _upperLimitManagementResult;
     [ObservableProperty] private int? _upperLimitManagedAmountYen;
+    [ObservableProperty] private int? _municipalSubsidyAmountYen;
 
     [ObservableProperty] private Guid? _averageWageCurrentHeadId;
     [ObservableProperty] private Guid? _averageWageEffectiveHeadId;
@@ -308,7 +309,7 @@ public sealed partial class ClaimInputViewModel(
             {
                 UpperLimitManagementResult = UpperLimitManagementResult,
                 UpperLimitManagedAmountYen = UpperLimitManagedAmountYen,
-                MunicipalSubsidyAmountYen = preserve?.MunicipalSubsidyAmountYen,
+                MunicipalSubsidyAmountYen = MunicipalSubsidyAmountYen,
                 ExceptionalUsageStartMonth = preserve?.ExceptionalUsageStartMonth,
                 ExceptionalUsageEndMonth = preserve?.ExceptionalUsageEndMonth,
                 ExceptionalUsageDays = preserve?.ExceptionalUsageDays,
@@ -337,6 +338,7 @@ public sealed partial class ClaimInputViewModel(
         _claimInputReentry = true;
         UpperLimitManagementResult = null;
         UpperLimitManagedAmountYen = null;
+        MunicipalSubsidyAmountYen = null;
         ErrorMessage = null;
     }
 
@@ -670,6 +672,7 @@ public sealed partial class ClaimInputViewModel(
     {
         UpperLimitManagementResult = value?.UpperLimitManagementResult;
         UpperLimitManagedAmountYen = value?.UpperLimitManagedAmountYen;
+        MunicipalSubsidyAmountYen = value?.MunicipalSubsidyAmountYen;
         _claimInputReentry = false;
     }
 

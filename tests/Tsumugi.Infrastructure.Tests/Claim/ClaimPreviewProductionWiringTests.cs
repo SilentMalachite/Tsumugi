@@ -270,7 +270,7 @@ public sealed class ClaimPreviewProductionWiringTests
             issue.Code == ClaimPreparationIssueCode.MissingRequiredField
             && issue.RecipientId == RecipientId
             && issue.FieldCode == "ClaimInput.MunicipalSubsidyAmountYen"
-            && issue.Destination == ClaimInputDestination.ClaimPreparation);
+            && issue.Destination == ClaimInputDestination.ClaimInput);
     }
 
     [Fact]

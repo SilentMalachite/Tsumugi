@@ -894,13 +894,13 @@
     {
       "fieldId": "report:benefit-claim-detail:summary:015",
       "requiredCondition": "modelPresent(ClaimInput.MunicipalSubsidyAmountYen)",
-      "notes": "Phase 3-1 AC3-8; claim detail summary and provider-r7-10 p36 note2",
+      "notes": "Phase 3-1 AC3-8; claim detail summary and provider-r7-10 p36 note2. Task 7 fix: control placed in ClaimInputView alongside sibling UpperLimitManagedAmountYen for per-recipient editability; original ClaimPreparationView surface would require view restructuring.",
       "status": "missing",
       "sameMeaningAsCsvFieldId": "provider:J121:04:025",
       "targetModel": "ClaimInput",
       "targetProperty": "MunicipalSubsidyAmountYen",
       "migrationRequired": true,
-      "uiSurface": "ClaimPreparationView"
+      "uiSurface": "ClaimInputView"
     },
     {
       "fieldId": "report:benefit-claim-detail:special-benefit:001",

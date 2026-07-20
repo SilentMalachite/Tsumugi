@@ -156,14 +156,19 @@ public sealed class ClaimInputRequirementProviderTests
         // クロスフィールドゲートで、Certificate.SubsidyMunicipalityNumberが非nullのとき
         // MunicipalSubsidyAmountYenをfail-closedで必須化する（自己参照レグ単体は恒久的にfail-open）。
         // brief記載のCRITICAL cascade risk（Task 4と同じsilently inertパターンではないか）への回答:
-        // 既にAny-merge経由で実効fail-closedであり、コード変更は不要（本テストで固定するのみ）。
+        // 既にAny-merge経由で実効fail-closedであり、readiness gate自体のコード変更は不要だった。
+        // ただしTask 7 fix round 1で、この必須化を解消できるUI入力欄がClaimInputViewに
+        // 存在しない（=ゲートに到達したら永久にNotReadyのまま）というCRITICAL findingが別途判明し、
+        // ClaimInputViewへMunicipalSubsidyAmountYenのNumericUpDownを追加した。これに合わせ両レグの
+        // uiSurfaceをClaimInputViewへ揃えたため、合流後のDestinationはClaimInputになる
+        // （UpperLimitManagement系のTask 5合流と同じ帰結）。
         var requirements = ClaimInputRequirementProvider.LoadEmbedded().GetRequirements();
 
         var requirement = requirements.Single(
             r => r.TargetPath == "ClaimInput.MunicipalSubsidyAmountYen");
         requirement.FieldIds.Should().Contain("report:benefit-claim-detail:summary:015");
         requirement.FieldIds.Should().Contain("provider:J121:04:025");
-        requirement.Destination.Should().Be(ClaimInputDestination.ClaimPreparation);
+        requirement.Destination.Should().Be(ClaimInputDestination.ClaimInput);
 
         var any = requirement.Condition.Should().BeOfType<ClaimRequirementCondition.Any>().Subject;
         any.Conditions.OfType<ClaimRequirementCondition.ModelPresent>().Should().Contain(

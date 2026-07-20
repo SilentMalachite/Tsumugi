@@ -49,15 +49,37 @@ public sealed class ClaimInputViewModelTests
         fixture.Sut.ClaimInputRevisions.Should().ContainSingle();
         fixture.Sut.UpperLimitManagementResult.Should().Be(UpperLimitManagementResult.Result2);
         fixture.Sut.UpperLimitManagedAmountYen.Should().Be(1_000);
+        fixture.Sut.MunicipalSubsidyAmountYen.Should().Be(500);
     }
 
     [Fact]
-    public async Task Correcting_claim_input_preserves_the_five_non_owned_values()
+    public async Task MunicipalSubsidyAmountYen_is_an_editable_observable_property_included_in_the_save_payload()
+    {
+        // Task 7 fix round 1: MunicipalSubsidyAmountYen was previously read-only (preserved
+        // verbatim from the last loaded revision on every save). It is now an owned,
+        // user-editable field exposed by ClaimInputView, mirroring the sibling
+        // UpperLimitManagedAmountYen field. This test proves a value the user enters through
+        // the view model actually reaches the save payload instead of being silently discarded.
+        var fixture = CreateFixture(withActiveClaimInput: false);
+        await fixture.Sut.LoadAsync();
+        fixture.Sut.UpperLimitManagementResult = UpperLimitManagementResult.Result1;
+        fixture.Sut.UpperLimitManagedAmountYen = 100;
+        fixture.Sut.MunicipalSubsidyAmountYen = 1_234;
+
+        await fixture.Sut.SaveClaimInputAsync();
+
+        var created = fixture.ClaimInput.Items.Should().ContainSingle().Subject;
+        created.MunicipalSubsidyAmountYen.Should().Be(1_234);
+    }
+
+    [Fact]
+    public async Task Correcting_claim_input_preserves_the_four_non_owned_values_and_saves_the_edited_subsidy_amount()
     {
         var fixture = CreateFixture(withActiveClaimInput: true);
         await fixture.Sut.LoadAsync();
         fixture.Sut.UpperLimitManagementResult = UpperLimitManagementResult.Result3;
         fixture.Sut.UpperLimitManagedAmountYen = 2_000;
+        fixture.Sut.MunicipalSubsidyAmountYen = 750;
 
         await fixture.Sut.SaveClaimInputAsync();
 
@@ -65,7 +87,9 @@ public sealed class ClaimInputViewModelTests
         var saved = fixture.ClaimInput.Items[^1];
         saved.Kind.Should().Be(RecordKind.Correct);
         saved.ExpectedHeadId.Should().Be(fixture.ClaimInput.Items[0].Id);
-        saved.MunicipalSubsidyAmountYen.Should().Be(500);
+        // MunicipalSubsidyAmountYen is now owned by ClaimInputView: the edited value (750) is
+        // saved, not the previously loaded value (500) that "preserve" would have carried over.
+        saved.MunicipalSubsidyAmountYen.Should().Be(750);
         saved.ExceptionalUsageStartMonth.Should().Be(Month);
         saved.ExceptionalUsageEndMonth.Should().Be(Month);
         saved.ExceptionalUsageDays.Should().Be(10);
@@ -84,6 +108,7 @@ public sealed class ClaimInputViewModelTests
         fixture.Sut.ClaimInputRevisions.Should().BeEmpty();
         fixture.Sut.UpperLimitManagementResult.Should().BeNull();
         fixture.Sut.UpperLimitManagedAmountYen.Should().BeNull();
+        fixture.Sut.MunicipalSubsidyAmountYen.Should().BeNull();
         await fixture.Sut.SaveClaimInputAsync();
         fixture.ClaimInput.Items.Should().ContainSingle();
         fixture.Sut.ErrorMessage.Should().Be("請求入力履歴を再読込してください。");

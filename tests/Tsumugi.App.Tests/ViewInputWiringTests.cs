@@ -87,7 +87,8 @@ public sealed class ViewInputWiringTests
             "SelectedOffice", "SelectedRecipient", "SelectedCertificate", "Year", "Month",
             "SourceFiscalYear", "SelectedAggregate", "ClaimInputCurrentHeadId",
             "ClaimInputEffectiveHeadId", "ClaimInputRevisions", "UpperLimitManagementResult",
-            "UpperLimitManagedAmountYen", "AverageWageCurrentHeadId", "AverageWageEffectiveHeadId",
+            "UpperLimitManagedAmountYen", "MunicipalSubsidyAmountYen",
+            "AverageWageCurrentHeadId", "AverageWageEffectiveHeadId",
             "AnnualWagePaidYen", "AnnualExtendedUsers", "AnnualOpeningDays", "Completeness",
             "AverageWageEvidenceDocumentId", "DailyEvidenceReference", "MonthlyEvidenceReference",
             "OfficeProfileChains", "SelectedOfficeProfileChain", "OfficeProfileCurrentHeadId",
@@ -116,8 +117,7 @@ public sealed class ViewInputWiringTests
         xml.Should().Contain("{Binding AddStatementLineCommand}")
             .And.Contain("{Binding RemoveStatementLineCommand}")
             .And.Contain("{Binding SelectedStatementLine}");
-        xml.Should().NotContain("MunicipalSubsidyAmountYen")
-            .And.NotContain("ExceptionalUsageStartMonth")
+        xml.Should().NotContain("ExceptionalUsageStartMonth")
             .And.NotContain("ExceptionalUsageEndMonth")
             .And.NotContain("ExceptionalUsageDays")
             .And.NotContain("StandardUsageDayTotal")
