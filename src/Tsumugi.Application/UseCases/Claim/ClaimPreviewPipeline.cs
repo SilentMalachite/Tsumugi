@@ -28,6 +28,8 @@ internal sealed class ClaimPreviewPipeline(
     IClaimBillingTokenProvider tokenProvider,
     ClaimPreparationReadiness readiness)
 {
+    private static readonly ClaimSnapshotValidationCodecV2 SnapshotCodec = new();
+
     public async Task<ClaimPreviewComputation> ComputeAsync(
         Guid officeId, ServiceMonth serviceMonth, CancellationToken ct)
     {
@@ -95,15 +97,15 @@ internal sealed class ClaimPreviewPipeline(
                 var source = sourceByRecipient[detail.RecipientId];
                 var claimInput = snapshot.EffectiveClaimInputs
                     .Single(input => input.RecipientId == detail.RecipientId);
-                var inputEnvelope = ClaimSnapshotValidationCodecV1.CreateEnvelope(
+                var inputEnvelope = SnapshotCodec.CreateEnvelope(
                     ClaimRecipientSnapshotWriter.WriteInputSnapshot(
                         serviceMonth, request, source, claimInput));
-                var calculationEnvelope = ClaimSnapshotValidationCodecV1.CreateEnvelope(
+                var calculationEnvelope = SnapshotCodec.CreateEnvelope(
                     ClaimRecipientSnapshotWriter.WriteCalculationSnapshot(
                         serviceMonth, claimMasterVersion, detail));
                 return new ClaimFinalizationDetailDraft(
                     detail.RecipientId,
-                    ClaimSnapshotValidationCodecV1.SchemaVersionValue,
+                    ClaimSnapshotValidationCodecV2.SchemaVersionValue,
                     claimMasterVersion,
                     ClaimFinalizationVersions.CsvSpecificationVersion,
                     ClaimFinalizationVersions.ReportSpecificationVersion,

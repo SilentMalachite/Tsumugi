@@ -10,7 +10,7 @@ namespace Tsumugi.Application.Claim;
 /// <summary>
 /// 受給者単位の入力/算定snapshotをcanonical UTF-8 JSONとして決定論的に生成する
 /// （プロパティ順は本コードの記述順で固定・インデントなし・数値/GUID/月はculture非依存整形）。
-/// 生成bytesは<see cref="ClaimSnapshotValidationCodecV1.CreateEnvelope"/>で検証してenvelope化する。
+/// 生成bytesは<see cref="ClaimSnapshotValidationCodecV2.CreateEnvelope"/>で検証してenvelope化する。
 /// 同一入力→同一bytes→同一hashがPreviewHash契約の土台になる。
 /// </summary>
 public static class ClaimRecipientSnapshotWriter
@@ -115,8 +115,8 @@ public static class ClaimRecipientSnapshotWriter
 
     private static void WriteEnvelopeIdentity(Utf8JsonWriter writer, string snapshotKind)
     {
-        writer.WriteString("schemaVersion", ClaimSnapshotValidationCodecV1.SchemaVersionValue);
-        writer.WriteString("validationCodecId", ClaimSnapshotValidationCodecV1.ValidationCodecIdValue);
+        writer.WriteString("schemaVersion", ClaimSnapshotValidationCodecV2.SchemaVersionValue);
+        writer.WriteString("validationCodecId", ClaimSnapshotValidationCodecV2.ValidationCodecIdValue);
         writer.WriteString("snapshotKind", snapshotKind);
     }
 

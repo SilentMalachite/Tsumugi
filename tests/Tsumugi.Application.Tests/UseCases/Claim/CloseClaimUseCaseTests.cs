@@ -55,11 +55,11 @@ public sealed class CloseClaimUseCaseTests
         draft.TotalBurdenYen.Should().Be(1400);
         var detail = draft.Details.Should().ContainSingle().Subject;
         detail.RecipientId.Should().Be(Kit.RecipientId);
-        detail.SnapshotSchemaVersion.Should().Be(ClaimSnapshotValidationCodecV1.SchemaVersionValue);
+        detail.SnapshotSchemaVersion.Should().Be(ClaimSnapshotValidationCodecV2.SchemaVersionValue);
         detail.InputSnapshotEnvelope.ValidationCodecId
-            .Should().Be(ClaimSnapshotValidationCodecV1.ValidationCodecIdValue);
+            .Should().Be(ClaimSnapshotValidationCodecV2.ValidationCodecIdValue);
         detail.CalculationSnapshotEnvelope.ValidationCodecId
-            .Should().Be(ClaimSnapshotValidationCodecV1.ValidationCodecIdValue);
+            .Should().Be(ClaimSnapshotValidationCodecV2.ValidationCodecIdValue);
         detail.TotalUnits.Should().Be(1400);
     }
 

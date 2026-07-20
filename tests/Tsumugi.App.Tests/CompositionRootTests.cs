@@ -100,7 +100,7 @@ public sealed class CompositionRootTests
     }
 
     [Fact]
-    public async Task Claim_finalization_services_use_factory_local_context_and_production_codec_v1()
+    public async Task Claim_finalization_services_use_factory_local_context_and_production_codec_v2()
     {
         var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
         using var provider = services.BuildServiceProvider();
@@ -125,7 +125,7 @@ public sealed class CompositionRootTests
         auditFactory.Should().NotBeNull();
         localContext.Should().NotBeSameAs(scopedContext);
         codecRegistry.HasWriteSupport.Should().BeTrue();
-        var codec = codecRegistry.Find("claim-snapshot-v1", "claim-snapshot-codec-v1");
+        var codec = codecRegistry.Find("claim-snapshot-v2", "claim-snapshot-codec-v2");
         codec.Should().NotBeNull();
         codec!.CanWrite.Should().BeTrue();
         codecRegistry.Find("unknown-schema", "unknown-codec").Should().BeNull();
