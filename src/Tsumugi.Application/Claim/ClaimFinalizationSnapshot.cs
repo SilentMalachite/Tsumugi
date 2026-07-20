@@ -84,6 +84,16 @@ public enum ClaimDetailLineKind
     Addition,
 }
 
+/// <param name="AmountYen">
+/// 行単位の金額（円）。<b>導出値であり、正本ではない</b>
+/// （<see cref="OperationLocalSnapshotReader.BuildClaimLines"/>のXML docに算出根拠の詳細がある）。
+/// このReaderには地域単価（decimal）が渡されず再算定もしないため、行ごとの真の金額を一意に復元
+/// できない。<c>TotalCostYen / TotalUnits</c>の近似単価を用い、加算行は
+/// <c>Math.Floor(Unit × 近似単価)</c>で概算し、残余を基本報酬行（Kind=Basic）へ寄せることで
+/// <c>Σ(ClaimLines[].AmountYen) == TotalCostYen</c>の整合性のみを保証する（表示用の近似値）。
+/// 制度上の金額確定・国保連への反映は本フィールドではなく<c>TotalCostYen</c>/<c>BenefitYen</c>/
+/// <c>BurdenYen</c>（<see cref="ClaimFinalizationSnapshot"/>直下のrecipient集計値）が正本。
+/// </param>
 public sealed record ClaimFinalizationClaimLineSnapshot(
     ClaimDetailLineKind Kind,
     string ServiceCode,

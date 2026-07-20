@@ -450,7 +450,9 @@ internal static class ClaimPreparationTestKit
     /// payload用のfake。CloseClaimUseCaseTests自体はpayloadの中身（21 report fields）ではなく
     /// draft/store側の確定手順を検証するため、entities読み取りは行わずcalculationResultの集計値
     /// だけを転記した最小snapshotを返す（OperationLocalSnapshotReaderTests側で実体読み取りの
-    /// 詳細は別途検証済み）。
+    /// 詳細は別途検証済み）。DailyRecordsに1件のServiceStartTime付きレコードを含めるのは、
+    /// CloseClaimUseCaseTestsが「finalization payload（v2）に実際に入れ替わったこと」を、
+    /// calculation payloadには絶対現れない値で検証できるようにするため（Fix round 1）。
     /// </summary>
     internal sealed class FakeOperationLocalSnapshotReader : IOperationLocalSnapshotReader
     {
@@ -475,7 +477,24 @@ internal static class ClaimPreparationTestKit
                 new ClaimFinalizationRecipientSnapshot("テスト利用者", "テストリヨウシャ"),
                 new ClaimFinalizationCertificateSnapshot("certificate-no-1", "131016", null, 37_200, null, null),
                 new ClaimFinalizationClaimInputSnapshot(null, null, null, null, null, null, null),
-                [],
+                [
+                    new ClaimFinalizationDailyRecordSnapshot(
+                        new DateOnly(serviceMonth.Year, serviceMonth.Month, 1),
+                        Attendance.Present,
+                        true,
+                        TransportKind.Round,
+                        null,
+                        new TimeOnly(9, 0),
+                        new TimeOnly(16, 0),
+                        null,
+                        false,
+                        null,
+                        null,
+                        false,
+                        false,
+                        false,
+                        true),
+                ],
                 null,
                 [],
                 calculationResult.BilledDays,

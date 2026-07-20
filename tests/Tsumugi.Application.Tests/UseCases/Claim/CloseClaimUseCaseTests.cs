@@ -1,3 +1,4 @@
+using System.Text;
 using FluentAssertions;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
@@ -61,6 +62,24 @@ public sealed class CloseClaimUseCaseTests
         detail.CalculationSnapshotEnvelope.ValidationCodecId
             .Should().Be(ClaimSnapshotValidationCodecV2.ValidationCodecIdValue);
         detail.TotalUnits.Should().Be(1400);
+
+        // (f) CalculationSnapshotEnvelopeが実際にv2 finalization payload（Kit.FakeOperationLocalSnapshotReader
+        // 経由）へ入れ替わっていることを確認する。SnapshotSchemaVersion/ValidationCodecIdは
+        // calculation/finalization双方で同じv2 codecを使うため区別できず、BuildFinalizationDetailDraftsAsync
+        // が退行してcalculation payloadのまま素通りしても上のアサーションは検知できない
+        // （Task 3 review Finding 1）。snapshotKindとcalculation payloadには絶対現れないfixture値
+        // （Office.PostalCode / Certificate.MunicipalityNumber / DailyRecords[0].ServiceStartTime）を
+        // 直接検証することでpayload種別そのものを固定する。
+        var canonicalBytes = detail.CalculationSnapshotEnvelope.GetCanonicalUtf8Bytes();
+        Encoding.UTF8.GetString(canonicalBytes)
+            .Should().Contain("\"snapshotKind\":\"finalization\"")
+            .And.NotContain("\"snapshotKind\":\"calculation\"");
+
+        var finalizationSnapshot = ClaimFinalizationSnapshotReader.Parse(canonicalBytes);
+        finalizationSnapshot.Office.PostalCode.Should().Be("100-0001");
+        finalizationSnapshot.Certificate.MunicipalityNumber.Should().Be("131016");
+        var dailyRecord = finalizationSnapshot.DailyRecords.Should().ContainSingle().Subject;
+        dailyRecord.ServiceStartTime.Should().Be(new TimeOnly(9, 0));
     }
 
     [Fact]

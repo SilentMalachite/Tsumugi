@@ -144,6 +144,66 @@ public sealed class OperationLocalSnapshotReaderTests
         (basic.AmountYen + addition.AmountYen).Should().Be(calculationResult.TotalCostYen);
     }
 
+    /// <summary>
+    /// Task 3 review Finding 2: the sibling test above uses TotalCostYen=126_000 / TotalUnits=12_600,
+    /// which divides evenly (unitPriceApprox = 10.0m exactly), so <c>Math.Floor</c> never truncates
+    /// and the "remainder allocated to the basic line" rule is never actually exercised. This fixture
+    /// uses TotalCostYen=1234 / TotalUnits=100 (unitPriceApprox = 12.34m, fractional) with two addition
+    /// lines of distinct unit counts, and pins the exact per-line <c>AmountYen</c> derived by hand from
+    /// <see cref="OperationLocalSnapshotReader.BuildClaimLines"/>'s documented rule:
+    /// addition amount = Math.Floor(units * 12.34m), basic amount = TotalCostYen - Σ(addition amounts).
+    /// addition A: 7 * 12.34 = 86.38 → floor 86. addition B: 13 * 12.34 = 160.42 → floor 160.
+    /// basic: 1234 - (86 + 160) = 988.
+    /// </summary>
+    [Fact]
+    public async Task ReadAsync_floors_addition_amounts_and_allocates_remainder_to_basic_line_when_unit_price_is_fractional()
+    {
+        var sut = CreateSut(SampleOffice(), SampleRecipient(), SampleCertificate(), [], [], []);
+        var calculationResult = new RecipientClaimResult(
+            RecipientId,
+            "B_BASE_FRACTIONAL",
+            BilledDays: 20,
+            TotalUnits: 100,
+            TotalCostYen: 1234,
+            BenefitYen: 1110,
+            BurdenYen: 124,
+            AdditionLines:
+            [
+                new RecipientClaimAdditionLine("ADDITION_A", "加算A", 7),
+                new RecipientClaimAdditionLine("ADDITION_B", "加算B", 13),
+            ]);
+
+        var snapshot = await sut.ReadAsync(
+            OfficeId, RecipientId, Month, calculationResult,
+            "r6-2026-04", "r7-10", "r1-10", CancellationToken.None);
+
+        snapshot.ClaimLines.Should().HaveCount(3);
+
+        var basic = snapshot.ClaimLines[0];
+        basic.Kind.Should().Be(ClaimDetailLineKind.Basic);
+        basic.ServiceCode.Should().Be("B_BASE_FRACTIONAL");
+        basic.Unit.Should().Be(4); // (100 - 20) / 20
+        basic.Count.Should().Be(20);
+        basic.AmountYen.Should().Be(988);
+
+        var additionA = snapshot.ClaimLines[1];
+        additionA.Kind.Should().Be(ClaimDetailLineKind.Addition);
+        additionA.ServiceCode.Should().Be("ADDITION_A");
+        additionA.Unit.Should().Be(7);
+        additionA.Count.Should().Be(1);
+        additionA.AmountYen.Should().Be(86);
+
+        var additionB = snapshot.ClaimLines[2];
+        additionB.Kind.Should().Be(ClaimDetailLineKind.Addition);
+        additionB.ServiceCode.Should().Be("ADDITION_B");
+        additionB.Unit.Should().Be(13);
+        additionB.Count.Should().Be(1);
+        additionB.AmountYen.Should().Be(160);
+
+        (basic.AmountYen + additionA.AmountYen + additionB.AmountYen)
+            .Should().Be(calculationResult.TotalCostYen);
+    }
+
     private static RecipientClaimResult SampleCalculationResult() => new(
         RecipientId,
         "B_BASE_W1_C20_S1",
