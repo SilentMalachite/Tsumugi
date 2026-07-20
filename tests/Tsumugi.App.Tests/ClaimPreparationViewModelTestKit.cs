@@ -1,5 +1,6 @@
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
+using Tsumugi.Application.Dtos.Claim.Reports;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic.Claim;
@@ -36,6 +37,16 @@ internal static class ClaimPreparationViewModelTestKit
         address: "東京都千代田区1-1",
         phoneNumber: "03-0000-0000",
         representativeTitleAndName: "施設長 テスト");
+
+    /// <summary>Task 14: 帳票出力セクションの受給者選択・ファイル名生成に使う最小限の受給者。</summary>
+    internal static Recipient Recipient() => Domain.Entities.Recipient.Create(
+        RecipientId,
+        "テスト利用者",
+        "テストリヨウシャ",
+        new DateOnly(1990, 1, 1),
+        "tester",
+        Now,
+        Guid.NewGuid());
 
     internal static OfficeClaimProfile Profile()
     {
@@ -298,6 +309,39 @@ internal static class ClaimPreparationViewModelTestKit
     {
         public ClaimBillingConditionTokens Resolve(
             Office office, OfficeClaimProfile? profile, ServiceMonth serviceMonth) => tokens;
+    }
+
+    /// <summary>Task 14: 帳票出力セクション用の受給者一覧取得先（<see cref="RecipientId"/>のみ知っていれば十分）。</summary>
+    internal sealed class FakeRecipientRepository(Recipient recipient) : IRecipientRepository
+    {
+        public Task AddAsync(Recipient r, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<Recipient?> FindByIdAsync(Guid id, CancellationToken ct) =>
+            Task.FromResult(id == recipient.Id ? recipient : null);
+
+        public Task UpdateAsync(Recipient r, CancellationToken ct) => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<Recipient>> ListAsync(bool includeArchived, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<Recipient>>([recipient]);
+    }
+
+    /// <summary>Task 14: このテストキットの対象はPreview/Close/Cancel/Historyの配線であり、
+    /// 帳票の実バイト列生成は検証範囲外（<c>ClaimReportSectionTests</c>で別途検証済み）。</summary>
+    internal sealed class NoOpClaimReportGenerator : IClaimReportGenerator
+    {
+        public byte[] GenerateServiceProvisionRecord(ServiceProvisionRecordDto dto) => [];
+
+        public byte[] GenerateClaimInvoice(ClaimInvoiceDto dto) => [];
+
+        public byte[] GenerateClaimStatement(ClaimStatementDto dto) => [];
+    }
+
+    /// <summary>Task 14: 帳票の保存ダイアログはこのテストキットの対象外のためno-op。</summary>
+    internal sealed class NoOpFileSaveService : Tsumugi.App.Services.IFileSaveService
+    {
+        public Task<bool> SaveAsync(
+            byte[] bytes, string suggestedFileName, string fileTypeName, string extension,
+            CancellationToken ct = default) => Task.FromResult(false);
     }
 
     /// <summary>

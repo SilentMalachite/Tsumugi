@@ -3,6 +3,7 @@ using Tsumugi.App.ViewModels;
 using Tsumugi.Application.Claim;
 using Tsumugi.Application.UseCases.Claim;
 using Tsumugi.Application.UseCases.Office;
+using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Domain.Enums;
 using Kit = Tsumugi.App.Tests.ClaimPreparationViewModelTestKit;
 
@@ -64,6 +65,10 @@ public sealed class ClaimPreparationViewModelTests
             item => item.Revision == 1 && item.Kind == RecordKind.New);
         fixture.Sut.ErrorMessage.Should().BeNull();
         fixture.Sut.CancelCommand.CanExecute(null).Should().BeTrue();
+        // Task 14: 確定によりReportSectionへ確定済revisionの有無と受給者候補が反映される。
+        fixture.Sut.ReportSection.HasFinalizedRevision.Should().BeTrue();
+        fixture.Sut.ReportSection.Recipients.Should().ContainSingle(
+            option => option.RecipientId == Kit.RecipientId && option.KanjiName == "テスト利用者");
     }
 
     [Fact]
@@ -105,6 +110,9 @@ public sealed class ClaimPreparationViewModelTests
             item => item.Revision == 2 && item.Kind == RecordKind.Cancel);
         fixture.Sut.CancelCommand.CanExecute(null).Should().BeFalse();
         fixture.Sut.ErrorMessage.Should().BeNull();
+        // Task 14: 取下げ後は最新履歴がCancelになるため帳票出力コマンドも再び無効化される。
+        fixture.Sut.ReportSection.HasFinalizedRevision.Should().BeFalse();
+        fixture.Sut.ReportSection.Recipients.Should().BeEmpty();
     }
 
     [Fact]
@@ -136,6 +144,9 @@ public sealed class ClaimPreparationViewModelTests
         fixture.Sut.History.Should().BeEmpty();
         fixture.Sut.ErrorMessage.Should().BeNull();
         fixture.Sut.CancelCommand.CanExecute(null).Should().BeFalse();
+        // Task 14: 事業所変更で帳票出力セクションも確定済revisionなし相当へ戻る。
+        fixture.Sut.ReportSection.HasFinalizedRevision.Should().BeFalse();
+        fixture.Sut.ReportSection.Recipients.Should().BeEmpty();
     }
 
     [Fact]
@@ -165,9 +176,13 @@ public sealed class ClaimPreparationViewModelTests
         var cancelClaim = new CancelClaimUseCase(batchStore, batchStore);
         var queryClaim = new QueryClaimUseCase(batchStore);
         var listOffices = new ListOfficesUseCase(officeRepository);
+        var listRecipients = new ListRecipientsUseCase(new Kit.FakeRecipientRepository(Kit.Recipient()));
+        var generateClaimReports = new GenerateClaimReportsUseCase(batchStore, new Kit.NoOpClaimReportGenerator());
+        var fileSaveService = new Kit.NoOpFileSaveService();
 
         var sut = new ClaimPreparationViewModel(
-            listOffices, calculateClaim, closeClaim, cancelClaim, queryClaim)
+            listOffices, calculateClaim, closeClaim, cancelClaim, queryClaim,
+            listRecipients, generateClaimReports, fileSaveService)
         {
             OfficeId = Kit.OfficeId,
             Year = Kit.Month.Year,

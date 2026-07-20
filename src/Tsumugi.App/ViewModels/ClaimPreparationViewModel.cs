@@ -1,11 +1,13 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Tsumugi.App.ViewModels.Claim;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Application.UseCases.Claim;
 using Tsumugi.Application.UseCases.Office;
+using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.ValueObjects;
 
@@ -14,7 +16,7 @@ namespace Tsumugi.App.ViewModels;
 /// <summary>
 /// 請求確定画面。プレビュー（<see cref="CalculateClaimUseCase"/>）→確定
 /// （<see cref="CloseClaimUseCase"/>）→取下げ（<see cref="CancelClaimUseCase"/>）→履歴
-/// （<see cref="QueryClaimUseCase"/>）を1画面で調停する。
+/// （<see cref="QueryClaimUseCase"/>）→帳票出力（<see cref="ReportSection"/>）を1画面で調停する。
 /// エラーメッセージは常に固定文言（氏名・受給者証番号・保存先フルパスを含めない。ハード制約4）。
 /// </summary>
 public sealed partial class ClaimPreparationViewModel(
@@ -22,7 +24,10 @@ public sealed partial class ClaimPreparationViewModel(
     CalculateClaimUseCase calculateClaim,
     CloseClaimUseCase closeClaim,
     CancelClaimUseCase cancelClaim,
-    QueryClaimUseCase queryClaim) : ViewModelBase
+    QueryClaimUseCase queryClaim,
+    ListRecipientsUseCase listRecipients,
+    GenerateClaimReportsUseCase generateClaimReports,
+    Tsumugi.App.Services.IFileSaveService fileSaveService) : ViewModelBase
 {
     private const string ContextRequiredMessage = "事業所と対象月を選択してください。";
     private const string MasterUnavailableMessage = "請求制度マスターを利用できません。";
@@ -38,6 +43,7 @@ public sealed partial class ClaimPreparationViewModel(
     private readonly CloseClaimUseCase _closeClaim = closeClaim;
     private readonly CancelClaimUseCase _cancelClaim = cancelClaim;
     private readonly QueryClaimUseCase _queryClaim = queryClaim;
+    private readonly ListRecipientsUseCase _listRecipients = listRecipients;
 
     [ObservableProperty] private OfficeDto? _selectedOffice;
     [ObservableProperty] private Guid _officeId;
@@ -53,6 +59,10 @@ public sealed partial class ClaimPreparationViewModel(
     public ObservableCollection<OfficeDto> Offices { get; } = [];
     public ObservableCollection<ClaimPreparationIssue> Issues { get; } = [];
     public ObservableCollection<ClaimBatchHistoryDto> History { get; } = [];
+
+    /// <summary>「帳票出力」セクション（Task 14）。確定済revisionの有無と受給者一覧は
+    /// <see cref="RefreshReportSectionAsync"/>で本ViewModelから都度反映する。</summary>
+    public ClaimReportSection ReportSection { get; } = new(generateClaimReports, fileSaveService);
 
     public async Task InitializeAsync(CancellationToken ct = default)
     {
@@ -168,6 +178,9 @@ public sealed partial class ClaimPreparationViewModel(
         History.Clear();
         ErrorMessage = null;
         CancelCommand.NotifyCanExecuteChanged();
+        ReportSection.HasFinalizedRevision = false;
+        ReportSection.Recipients.Clear();
+        ReportSection.SelectedRecipient = null;
     }
 
     private async Task RefreshHistoryAsync(WorkspaceContext context, CancellationToken ct)
@@ -176,6 +189,43 @@ public sealed partial class ClaimPreparationViewModel(
             new QueryClaimRequest(context.OfficeId, context.ServiceMonth), ct);
         Replace(History, history);
         CancelCommand.NotifyCanExecuteChanged();
+        await RefreshReportSectionAsync(context, ct);
+    }
+
+    /// <summary>
+    /// 「帳票出力」セクション（Task 14）へOffice/対象月・確定済revisionの有無・
+    /// 選択可能な受給者一覧を反映する。確定済revision＝<see cref="CanCancel"/>と同じ判定
+    /// （<see cref="RecordKind.Cancel"/>以外の最新履歴）。受給者氏名はHistoryのDetailに含まれない
+    /// ため、<see cref="ListRecipientsUseCase"/>で別途解決してクロス参照する
+    /// （Phase 2 <c>WageStatementViewModel</c>の<c>_recipientCache</c>と同じ方式）。
+    /// </summary>
+    private async Task RefreshReportSectionAsync(WorkspaceContext context, CancellationToken ct)
+    {
+        ReportSection.OfficeId = context.OfficeId;
+        ReportSection.ServiceMonth = context.ServiceMonth;
+        ReportSection.Office = SelectedOffice;
+
+        var hasFinalizedRevision = CanCancel();
+        ReportSection.HasFinalizedRevision = hasFinalizedRevision;
+        var latest = hasFinalizedRevision ? History[^1] : null;
+
+        ReportSection.Recipients.Clear();
+        if (latest is { Details.Count: > 0 })
+        {
+            var recipients = await _listRecipients.ExecuteAsync(includeArchived: true, ct);
+            var kanjiNameById = recipients.ToDictionary(recipient => recipient.Id, recipient => recipient.KanjiName);
+            foreach (var detail in latest.Details)
+            {
+                if (kanjiNameById.TryGetValue(detail.RecipientId, out var kanjiName))
+                    ReportSection.Recipients.Add(new ClaimReportRecipientOption(detail.RecipientId, kanjiName));
+            }
+        }
+
+        if (ReportSection.SelectedRecipient is { } selected
+            && ReportSection.Recipients.All(option => option.RecipientId != selected.RecipientId))
+        {
+            ReportSection.SelectedRecipient = null;
+        }
     }
 
     private bool TryCaptureContext(out WorkspaceContext context)
