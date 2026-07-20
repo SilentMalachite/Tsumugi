@@ -205,6 +205,11 @@ public sealed class CompositionRootTests
             scope.ServiceProvider.GetRequiredService<IClaimReportGenerator>().Should().NotBeNull();
             scope.ServiceProvider.GetRequiredService<GenerateClaimReportsUseCase>().Should().NotBeNull();
 
+            // Phase 3-2: ClaimPreparationViewModelが帳票出力セクションを解決できる（Task 14）
+            var claimPreparation = scope.ServiceProvider.GetRequiredService<ClaimPreparationViewModel>();
+            claimPreparation.Should().NotBeNull();
+            claimPreparation.ReportSection.Should().NotBeNull();
+
             // Phase 2 ViewModels resolve
             scope.ServiceProvider.GetRequiredService<WorkRecordViewModel>().Should().NotBeNull();
             scope.ServiceProvider.GetRequiredService<WageFundSettingsViewModel>().Should().NotBeNull();
