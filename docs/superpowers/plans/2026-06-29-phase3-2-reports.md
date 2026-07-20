@@ -1,3 +1,5 @@
+> **Status: SUPERSEDED（2026-07-20）** — 本計画は spec §8「確定時のスナップショットだけを入力」規約に反する設計だったため、`docs/superpowers/specs/2026-07-20-phase3-2-reports-redesign-design.md` と `docs/superpowers/plans/2026-07-20-phase3-2-reports.md` に置き換え。以後編集しない。履歴として保存。
+
 # Tsumugi Phase 3-2 実装計画 — 帳票（QuestPDF）
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
