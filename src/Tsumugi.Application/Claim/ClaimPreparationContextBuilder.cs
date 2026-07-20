@@ -28,6 +28,18 @@ public static class ClaimPreparationContextBuilder
     // ServiceStartTime/ServiceEndTime/RecipientConfirmationの欠落を検出できなかった）。
     internal const string DailyRecordRowScope = "service-performance.daily";
 
+    // report-field-mapping-r8-06.json の rowPresent(service-performance.intensive-support) が参照する
+    // 行スコープ（Phase 3-2 Task 8）。IntensiveSupportEpisode.StartDateはspec §10により「対象月に
+    // DailyRecord.IntensiveSupportApplied=trueの日があるときのみ」必須。dailyRecordAggregate.
+    // IntensiveSupportApplied（当月の実効Present日をOR縮約した値。ClaimDailyRecordAggregateの
+    // doc-comment参照）が true のときだけこのスコープをApplyさせる。requiredCondition側は
+    // 元の自己参照modelPresent(IntensiveSupportEpisode.StartDate)を捨ててこのrowPresent単独条件に
+    // 置換した（daily:004/005/016と同じTask 4 fixパターン。all(rowPresent(...);modelPresent(...))には
+    // しない — All()はNotApplicable優勢のため、StartDate未入力時に自己参照modelPresent legが
+    // NotApplicableへ縮退し、rowPresent側のApplyを打ち消してしまい、修正前と同型のfail-openバグを
+    // 別形で再現するため）。
+    internal const string IntensiveSupportRowScope = "service-performance.intensive-support";
+
     public static ClaimPreparationContextBuildResult Build(
         ClaimCalculationSnapshot snapshot,
         Office? office,
@@ -134,6 +146,13 @@ public static class ClaimPreparationContextBuilder
         var rowScopes = billedDays > 0
             ? new HashSet<string>([DailyRecordRowScope], StringComparer.Ordinal)
             : new HashSet<string>(StringComparer.Ordinal);
+        // Phase 3-2 Task 8: 当月いずれかの実効Present日でIntensiveSupportApplied=trueなら
+        // rowPresent(service-performance.intensive-support)をApplyさせる（IntensiveSupportRowScope
+        // のdoc-comment参照）。
+        if (dailyRecordAggregate.IntensiveSupportApplied)
+        {
+            rowScopes.Add(IntensiveSupportRowScope);
+        }
 
         return new ClaimPreparationRecipientContext(
             recipientId,
@@ -251,7 +270,11 @@ public static class ClaimPreparationContextBuilder
                     ? ClaimPreparationValue.NotApplicable()
                     : ClaimPreparationValue.Code(dailyRecordAggregate.RecipientConfirmation.ToString()),
 
-            // IntensiveSupportEpisode.StartDate（Task 9c）。自己参照modelPresent。
+            // IntensiveSupportEpisode.StartDate（Task 9c）。Phase 3-2 Task 8 fix: requiredConditionは
+            // rowPresent(service-performance.intensive-support)単独条件（自己参照ではない、
+            // IntensiveSupportRowScopeのdoc-comment参照）で判定するため、他のDailyRecord.*と異なり
+            // 値そのものはUnspecified/NotApplicableを気にせず素直にDateOrNotApplicableへ渡してよい
+            // （rowScope側が「必須な状況か否か」を、この値自体が「値あり/なし」を判定する二段構造）。
             [Path(nameof(IntensiveSupportEpisode), nameof(IntensiveSupportEpisode.StartDate))] =
                 DateOrNotApplicable(intensiveSupportEpisodeStartDate),
         };

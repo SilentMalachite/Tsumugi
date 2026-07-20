@@ -428,7 +428,7 @@
       "section": "intensive-support",
       "position": 1,
       "officialName": "支援開始日",
-      "requiredWhen": "modelPresent(IntensiveSupportEpisode.StartDate)",
+      "requiredWhen": "rowPresent(service-performance.intensive-support)",
       "sourceDocumentId": "service-performance-examples-r6-04-pdf",
       "sourcePage": 12,
       "requiredWhenSource": "service-performance-examples-r6-04-pdf physical page 12 service-performance intensive-support row 1"

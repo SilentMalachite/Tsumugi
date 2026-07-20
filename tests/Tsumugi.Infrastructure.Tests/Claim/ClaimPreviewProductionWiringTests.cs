@@ -427,6 +427,69 @@ public sealed class ClaimPreviewProductionWiringTests
             issue.Destination == ClaimInputDestination.DailyRecord);
     }
 
+    [Fact]
+    public async Task
+        Real_embedded_requirement_provider_requires_intensive_support_start_date_when_applied_this_month()
+    {
+        // Phase 3-2 Task 8: 当月にDailyRecord.IntensiveSupportApplied=trueの日がある
+        // （既定のdailyRecordAggregateは既にIntensiveSupportApplied=true）のにIntensiveSupportEpisode.
+        // StartDateが未入力だと、report:service-performance:intensive-support:001の
+        // requiredCondition=rowPresent(service-performance.intensive-support)がfail-closedすることを
+        // 実embedded catalogで検証する。修正前（自己参照modelPresent単体）はこのケースで
+        // 恒久的にNotApplicableへ縮退し、issueが一切立たなかった（Task 4/7 reviewerが指摘した
+        // 最後のsilently inert候補）。
+        var useCase = CreateUseCase(
+            BuildSnapshot(
+                staffingKey: "staff-6-1",
+                intensiveSupportEpisodeStartDateByRecipientOverride: new Dictionary<Guid, DateOnly>()),
+            ClaimInputRequirementProvider.LoadEmbedded());
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeFalse();
+        dto.Details.Should().BeEmpty();
+        dto.Issues.Should().ContainSingle(issue =>
+            issue.Code == ClaimPreparationIssueCode.MissingRequiredField
+            && issue.RecipientId == RecipientId
+            && issue.FieldCode == "IntensiveSupportEpisode.StartDate"
+            && issue.Destination == ClaimInputDestination.DailyRecord);
+    }
+
+    [Fact]
+    public async Task
+        Real_embedded_requirement_provider_does_not_require_intensive_support_start_date_when_not_applied_this_month()
+    {
+        // 対照実験: 当月いずれの日もIntensiveSupportApplied=falseなら、
+        // rowPresent(service-performance.intensive-support)がNotApplicableのままIntensiveSupportEpisode.
+        // StartDateが未入力でもReadyを維持する（必須になるのはIntensiveSupportApplied=trueの日が
+        // ある月だけ、spec §10）。CSV側の自己参照レグ（provider:J611:01:156）もStartDate未入力なら
+        // 同じくNotApplicableのため、Any(...)合流後も両レグともfail-openで一致する。
+        var dailyRecordAggregate = new ClaimDailyRecordAggregate(
+            ServiceStartTime: new TimeOnly(9, 0),
+            ServiceEndTime: new TimeOnly(15, 0),
+            SpecialVisitSupportMinutesTotal: 30,
+            OffsiteSupportApplied: true,
+            MedicalCoordinationType: MedicalCoordinationType.TypeI,
+            TrialUseSupportType: TrialUseSupportType.TypeI,
+            RegionalCollaborationApplied: true,
+            IntensiveSupportApplied: false,
+            EmergencyAdmissionApplied: true,
+            RecipientConfirmation: RecipientConfirmationStatus.Confirmed);
+        var useCase = CreateUseCase(
+            BuildSnapshot(
+                staffingKey: "staff-6-1",
+                dailyRecordAggregateOverride: dailyRecordAggregate,
+                intensiveSupportEpisodeStartDateByRecipientOverride: new Dictionary<Guid, DateOnly>()),
+            ClaimInputRequirementProvider.LoadEmbedded());
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeTrue();
+        dto.Issues.Should().BeEmpty();
+    }
+
     private static CalculateClaimUseCase CreateUseCase(
         ClaimCalculationSnapshot snapshot, IClaimInputRequirementProvider requirementProvider)
         => new(
@@ -461,7 +524,8 @@ public sealed class ClaimPreviewProductionWiringTests
         int? claimInputMunicipalSubsidyAmountYen = 0,
         IReadOnlyList<OfficeCapability>? officeCapabilities = null,
         ClaimDailyRecordAggregate? dailyRecordAggregateOverride = null,
-        int? billedDaysOverride = null)
+        int? billedDaysOverride = null,
+        IReadOnlyDictionary<Guid, DateOnly>? intensiveSupportEpisodeStartDateByRecipientOverride = null)
     {
         var profileId = Guid.NewGuid();
         var profile = new OfficeClaimProfile
@@ -616,7 +680,14 @@ public sealed class ClaimPreviewProductionWiringTests
             new Dictionary<Guid, Certificate> { [RecipientId] = certificate },
             new Dictionary<Guid, ContractedProvider> { [RecipientId] = contractedProvider },
             new Dictionary<Guid, ClaimDailyRecordAggregate> { [RecipientId] = dailyRecordAggregate },
-            new Dictionary<Guid, DateOnly> { [RecipientId] = new DateOnly(2025, 1, 6) },
+            // Phase 3-2 Task 8: 既定はフル入力（2025-01-06）を維持する。
+            // 「対象月にIntensiveSupportApplied=trueの日があるのにStartDateが未入力」を検証する
+            // テストは、空dictionary（RecipientIdのentryなし）を渡す
+            // （IntensiveSupportEpisode.StartDateはDateOnly非nullable値型のdictionaryのため、
+            // 「未入力」はnull値ではなくkey欠落で表現する。ClaimPreparationContextBuilder.
+            // BuildRecipientのTryGetValue参照）。
+            intensiveSupportEpisodeStartDateByRecipientOverride
+                ?? new Dictionary<Guid, DateOnly> { [RecipientId] = new DateOnly(2025, 1, 6) },
             officeCapabilities);
     }
 

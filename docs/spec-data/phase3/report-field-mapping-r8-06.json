@@ -331,8 +331,8 @@
     },
     {
       "fieldId": "report:service-performance:intensive-support:001",
-      "requiredCondition": "modelPresent(IntensiveSupportEpisode.StartDate)",
-      "notes": "Phase 3-1 AC3-8",
+      "requiredCondition": "rowPresent(service-performance.intensive-support)",
+      "notes": "Phase 3-1 AC3-8; Phase 3-2 Task 8 fix: dropped self-referential modelPresent(IntensiveSupportEpisode.StartDate) leg, which made the field permanently fail-open (Applies only once StartDate was already set, NotApplicable otherwise) regardless of whether DailyRecord.IntensiveSupportApplied=true this month (see daily:004/005/016 for the same Task 4 fix pattern; an all(rowPresent(...);modelPresent(...)) wrapper would NOT work here because EvaluateAll returns NotApplicable as soon as any child is NotApplicable, so the self-referential leg would silently re-suppress the rowPresent leg exactly when StartDate is missing). Bare rowPresent(service-performance.intensive-support) Applies only when the recipient has an effective Present DailyRecord this month with IntensiveSupportApplied=true (spec §10); ClaimPreparationReadiness.IsPresent independently checks whether StartDate itself has a value. CSV-side provider:J611:01:156 (field-mapping-r7-10.json) intentionally left untouched (Phase 3-3 CSV scope); its unchanged self-referential condition now differs from this row's string, so ClaimInputRequirementProvider.CreateRequirement Any()-merges the two legs for the same TargetPath, which still yields fail-closed behavior end-to-end.",
       "status": "missing",
       "targetModel": "IntensiveSupportEpisode",
       "targetProperty": "StartDate",

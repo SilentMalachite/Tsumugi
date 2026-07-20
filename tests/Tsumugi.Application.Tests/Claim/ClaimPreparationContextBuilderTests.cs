@@ -117,6 +117,38 @@ public sealed class ClaimPreparationContextBuilderTests
         recipient.RowScopes.Contains("service-performance.daily").Should().Be(expectRowScope);
     }
 
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public void Build_populates_intensive_support_row_scope_from_daily_record_aggregate(
+        bool intensiveSupportApplied, bool expectRowScope)
+    {
+        // Phase 3-2 Task 8: rowPresent(service-performance.intensive-support)を参照するreadiness rule
+        // （IntensiveSupportEpisode.StartDate）がApplyできるかは、ここでRowScopesへ
+        // "service-performance.intensive-support"を積むかどうかで決まる。当月の実効Present日次記録を
+        // OR縮約したdailyRecordAggregate.IntensiveSupportApplied（ClaimDailyRecordAggregateの
+        // doc-comment参照）がtrueならその月は集中的支援が適用されたとみなす。
+        var aggregate = new ClaimDailyRecordAggregate(
+            ServiceStartTime: null,
+            ServiceEndTime: null,
+            SpecialVisitSupportMinutesTotal: 0,
+            OffsiteSupportApplied: false,
+            MedicalCoordinationType: MedicalCoordinationType.Unspecified,
+            TrialUseSupportType: TrialUseSupportType.Unspecified,
+            RegionalCollaborationApplied: false,
+            IntensiveSupportApplied: intensiveSupportApplied,
+            EmergencyAdmissionApplied: false);
+        var snapshot = Kit.Snapshot(
+            dailyRecordAggregateByRecipient:
+                new Dictionary<Guid, ClaimDailyRecordAggregate> { [Kit.RecipientId] = aggregate });
+
+        var result = ClaimPreparationContextBuilder.Build(
+            snapshot, Kit.Office(), masterVersionAvailable: true);
+
+        var recipient = result.Context.Recipients.Should().ContainSingle().Subject;
+        recipient.RowScopes.Contains("service-performance.intensive-support").Should().Be(expectRowScope);
+    }
+
     [Fact]
     public void Build_reports_missing_office_and_missing_master_version()
     {

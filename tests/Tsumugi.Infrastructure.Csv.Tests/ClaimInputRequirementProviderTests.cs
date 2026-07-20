@@ -73,6 +73,35 @@ public sealed class ClaimInputRequirementProviderTests
         requirement.Destination.Should().Be(ClaimInputDestination.DailyRecord);
     }
 
+    [Fact]
+    public void Provider_combines_intensive_support_start_date_condition_via_any()
+    {
+        // Phase 3-2 Task 8: field-mapping-r7-10.json（provider:J611:01:156、自己参照レグ、
+        // modelPresent(IntensiveSupportEpisode.StartDate)、Phase 3-3 CSVスコープのため未変更）と
+        // report-field-mapping-r8-06.json（report:service-performance:intensive-support:001、
+        // Task 8で書き換えたrowPresent(service-performance.intensive-support)レグ）が同一TargetPath
+        // "IntensiveSupportEpisode.StartDate"へ合流し、条件文字列が異なるため CreateRequirement が
+        // Any(...)へラップする。修正前は両レグが同一文字列（自己参照modelPresent）で完全に一致していた
+        // ため単一のModelPresentへ縮退し、恒久的にfail-openだった
+        // （Task 4/7 reviewerが指摘した最後のsilently inert候補）。rowPresent単独レグへの置換により
+        // 条件文字列が分岐し、Any-merge経由でfail-closedが実効化される
+        // （ClaimPreparationContextBuilder.IntensiveSupportRowScopeのdoc-comment、
+        // ClaimPreviewProductionWiringTestsのend-to-end回帰参照）。
+        var requirements = ClaimInputRequirementProvider.LoadEmbedded().GetRequirements();
+
+        var requirement = requirements.Single(
+            r => r.TargetPath == "IntensiveSupportEpisode.StartDate");
+        requirement.FieldIds.Should().Contain("report:service-performance:intensive-support:001");
+        requirement.FieldIds.Should().Contain("provider:J611:01:156");
+        requirement.Destination.Should().Be(ClaimInputDestination.DailyRecord);
+
+        var any = requirement.Condition.Should().BeOfType<ClaimRequirementCondition.Any>().Subject;
+        any.Conditions.OfType<ClaimRequirementCondition.ModelPresent>().Should().Contain(
+            modelPresent => modelPresent.ModelPath == "IntensiveSupportEpisode.StartDate");
+        any.Conditions.OfType<ClaimRequirementCondition.RowPresent>().Should().Contain(
+            rowPresent => rowPresent.RowScope == "service-performance.intensive-support");
+    }
+
     [Theory]
     [InlineData(
         "report:benefit-claim-detail:header:001", "Certificate.MunicipalityNumber",
