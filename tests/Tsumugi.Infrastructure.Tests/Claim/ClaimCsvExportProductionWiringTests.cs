@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using FluentAssertions;
+using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
 using Tsumugi.Application.Dtos.Claim.Reports;
 using Tsumugi.Application.UseCases.Claim;
@@ -174,7 +175,12 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
     }
 
     private static ExportClaimCsvUseCase CreateUseCase(TsumugiDbContext context) => new(
-        new ClaimBatchRepository(context),
+        // production と同じ経路: 未検証 raw aggregate ではなく検証済み実効 revision から生成する。
+        new VerifiedClaimBatchProvider(
+            new ClaimBatchRepository(context),
+            new ClaimHistoryVerifier(
+                new ClaimFinalizationOperationRegistry(),
+                new ProductionClaimSnapshotValidationCodecRegistry())),
         new ClaimMasterCsvOfficeContextProvider(JsonClaimMasterProvider.LoadEmbedded()),
         new ClaimCsvGenerator(CsvSpecificationLoader.LoadEmbedded()),
         new ClaimCsvExportRepository(context),
@@ -192,15 +198,29 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
         TsumugiDbContext context, Guid officeId, ServiceMonth serviceMonth)
     {
         var head = await LatestBatchIdAsync(context, officeId, serviceMonth);
-        context.Add(ClaimBatch.Cancellation(
+        var cancellation = ClaimBatch.Cancellation(
             Guid.NewGuid(), officeId, serviceMonth, revision: 2, originId: head,
             expectedHeadBatchId: head, expectedHeadRevision: 1,
             "master-v1", "r7-10", "report-v1", "snapshot-app-v1", "operation-app-v1",
             Guid.NewGuid(), ClaimBatch.CurrentOperationPayloadSchemaVersion, new string('b', 64),
-            "tester", FixedNow));
+            "tester", FixedNow);
+        context.Add(Sign(cancellation, []));
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();
     }
+
+    /// <summary>
+    /// 直接 seed した行に本物の確定操作 payload ハッシュを付ける。<see cref="ClaimHistoryVerifier"/> は
+    /// 出力経路でこのハッシュを再構築して照合するため、プレースホルダのままでは
+    /// 「改竄された履歴」として正しく拒否される。
+    /// </summary>
+    private static ClaimBatch Sign(ClaimBatch batch, IReadOnlyList<ClaimDetail> details) => batch with
+    {
+        OperationPayloadSha256 = new ClaimHistoryVerifier(
+                new ClaimFinalizationOperationRegistry(),
+                new ProductionClaimSnapshotValidationCodecRegistry())
+            .ComputeOperationPayloadSha256(new ClaimBatchAggregate(batch, details)),
+    };
 
     private static async Task<(Guid OfficeId, ServiceMonth ServiceMonth)> SeedFinalizedBatchAsync(
         TsumugiDbContext context,
@@ -220,13 +240,15 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
         var snapshot = BuildSnapshot(serviceMonth, kanaName, withContract);
         var detail = ClaimDetail.Create(
             Guid.NewGuid(), batch.Id, snapshot.RecipientId, "claim-snapshot-v2",
-            "master-v1", "r7-10", "report-v1", "snapshot-app-v1",
-            "{}",
+            // detail の版は header と一致していなければ履歴として成立しない（ClaimHistoryVerifier）。
+            "master-v1", csvSpecificationVersion, "report-v1", "snapshot-app-v1",
+            // codec v2 が受け付ける最小の canonical envelope（"{}" では検証を通らない）。
+            """{"schemaVersion":"claim-snapshot-v2","validationCodecId":"claim-snapshot-codec-v2"}""",
             Encoding.UTF8.GetString(ClaimFinalizationSnapshotWriter.Write(snapshot)),
             totalUnits: 3000, totalCostYen: 30000, benefitYen: 27000, burdenYen: 3000,
             "tester", FixedNow);
 
-        context.Add(batch);
+        context.Add(Sign(batch, [detail]));
         context.Add(detail);
         await context.SaveChangesAsync();
         context.ChangeTracker.Clear();

@@ -28,7 +28,7 @@ namespace Tsumugi.Application.UseCases.Claim;
 /// </para>
 /// </remarks>
 public sealed class ExportClaimCsvUseCase(
-    IClaimBatchRepository batchRepository,
+    VerifiedClaimBatchProvider verifiedBatchProvider,
     IClaimCsvOfficeContextProvider officeContextProvider,
     IClaimCsvGenerator generator,
     IClaimCsvExportRepository exportRepository,
@@ -43,20 +43,11 @@ public sealed class ExportClaimCsvUseCase(
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(actor);
 
-        var aggregates = await batchRepository.ListHistoryAggregatesAsync(officeId, serviceMonth, ct);
-        // head は Cancel を含む最大 Revision（Domain の ClaimBatchPolicy.Head と同じ規則）。
-        // Cancel を除いてから最大を採ると、取消済みの請求を過去 revision から復活させてしまう。
-        var head = aggregates
-            .OrderByDescending(aggregate => aggregate.Header.Revision)
-            .FirstOrDefault()
+        // 実効 revision の解決（Cancel を含む最大 Revision）と履歴・envelope・payload hash・版・
+        // 合計の検証は VerifiedClaimBatchProvider が行う。ここで raw aggregate を直接読むと
+        // 改竄・破損した履歴から請求データを作ってしまう。
+        var latest = await verifiedBatchProvider.FindEffectiveAsync(officeId, serviceMonth, ct)
             ?? throw new ClaimBatchNotFinalizedException(officeId, serviceMonth.ToString());
-
-        if (head.Header.Kind == RecordKind.Cancel || head.Details.Count == 0)
-        {
-            throw new ClaimBatchNotFinalizedException(officeId, serviceMonth.ToString());
-        }
-
-        var latest = head;
 
         var dto = BuildDto(latest.Header, latest.Details, serviceMonth, processingMonth);
         // 確定時に記録した CSV 仕様版と、生成に使う仕様版が一致しないと、同じ確定請求から

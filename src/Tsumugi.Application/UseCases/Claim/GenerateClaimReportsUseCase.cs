@@ -10,14 +10,18 @@ namespace Tsumugi.Application.UseCases.Claim;
 
 /// <summary>
 /// 3帳票（サービス提供実績記録票／請求書／請求明細書）のconsumer側orchestration（spec §9）。
-/// <see cref="IClaimBatchRepository"/>だけを参照し、確定済みrevisionのv2 finalization snapshot
-/// （<see cref="ClaimFinalizationSnapshotReader"/>）をparseして各帳票DTOへ写像し、
+/// <see cref="VerifiedClaimBatchProvider"/>から検証済みの実効revisionを受け取り、v2 finalization
+/// snapshot（<see cref="ClaimFinalizationSnapshotReader"/>）をparseして各帳票DTOへ写像し、
 /// <see cref="IClaimReportGenerator"/>へ委譲する。Office/Recipient/Certificate/DailyRecordを
 /// 再読込しない（現行のDailyRecord等を参照するとrevision確定時点の帳票と食い違うため、
 /// 確定時点でsnapshotへ焼き込んだ値だけを正本として使う）。
 /// </summary>
+/// <remarks>
+/// <see cref="IClaimBatchRepository"/>を直接持たない。同portは自身のXML docのとおり未検証の
+/// raw aggregateを返すため、帳票が履歴・envelope・payload hash・版・合計の検証を経ずに作られてしまう。
+/// </remarks>
 public sealed class GenerateClaimReportsUseCase(
-    IClaimBatchRepository claimBatchRepository,
+    VerifiedClaimBatchProvider verifiedBatchProvider,
     IClaimReportGenerator generator)
 {
     public async Task<byte[]> GenerateServiceProvisionRecordAsync(
@@ -99,17 +103,15 @@ public sealed class GenerateClaimReportsUseCase(
     }
 
     /// <summary>
-    /// 「最新確定revision」＝ 履歴中<see cref="RecordKind.Cancel"/>を除いたRevision最大値。
-    /// 履歴が空、または全件Cancelの場合はfail-closedで例外にする。
+    /// 「実効revision」＝ 履歴中のRevision最大値（<see cref="RecordKind.Cancel"/>も含めて選ぶ）。
+    /// head がCancel（取消済み）、履歴が空、detailが0件のいずれでもfail-closedで例外にする。
+    /// spec §9「Cancel状態やrevision不在の場合はInvalidOperationException（fail-closed）」に従う。
+    /// Cancelを除外してから最大を採ると、取消済みの請求を過去revisionから復活させてしまう。
     /// </summary>
     private async Task<(ClaimBatch Header, IReadOnlyList<ClaimDetail> Details)> ResolveLatestConfirmedAsync(
         Guid officeId, ServiceMonth serviceMonth, CancellationToken ct)
     {
-        var aggregates = await claimBatchRepository.ListHistoryAggregatesAsync(officeId, serviceMonth, ct);
-        var latest = aggregates
-            .Where(aggregate => aggregate.Header.Kind != RecordKind.Cancel)
-            .OrderByDescending(aggregate => aggregate.Header.Revision)
-            .FirstOrDefault()
+        var latest = await verifiedBatchProvider.FindEffectiveAsync(officeId, serviceMonth, ct)
             ?? throw new InvalidOperationException(
                 $"{officeId}×{serviceMonth} に確定revisionが存在しません。");
 

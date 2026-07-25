@@ -23,16 +23,18 @@ public sealed class GenerateClaimReportsUseCaseTests
     private static readonly Guid SecondRecipientId = Guid.Parse("44444444-4444-4444-4444-444444444444");
 
     [Fact]
-    public void Constructor_depends_only_on_IClaimBatchRepository_and_IClaimReportGenerator()
+    public void Constructor_depends_only_on_VerifiedClaimBatchProvider_and_IClaimReportGenerator()
     {
         // Task 13の必須制約（spec §8）: GenerateClaimReportsUseCaseはIOfficeRepository /
         // IRecipientRepository / ICertificateRepository / IDailyRecordRepositoryを一切参照しない。
-        // コンストラクタ引数の型集合を直接検証することで、将来の実装がこれらを混入させたら
-        // 即座に検知できるようにする。
+        // さらにIClaimBatchRepository（未検証raw aggregateを返すport）も直接持たない。
+        // NOTE(teeth): 引数をIClaimBatchRepositoryへ戻すとここがRED。
         var constructor = typeof(GenerateClaimReportsUseCase).GetConstructors().Should().ContainSingle().Subject;
         var parameterTypes = constructor.GetParameters().Select(p => p.ParameterType).ToArray();
 
-        parameterTypes.Should().BeEquivalentTo([typeof(IClaimBatchRepository), typeof(IClaimReportGenerator)]);
+        parameterTypes.Should().BeEquivalentTo(
+            [typeof(VerifiedClaimBatchProvider), typeof(IClaimReportGenerator)]);
+        parameterTypes.Should().NotContain(typeof(IClaimBatchRepository));
     }
 
     [Fact]
@@ -40,10 +42,10 @@ public sealed class GenerateClaimReportsUseCaseTests
     {
         var snapshot = BuildSnapshot(Kit.RecipientId, Kit.Month);
         var header = Kit.Batch(revision: 1, kind: RecordKind.New);
-        var detail = BuildDetail(header.Id, snapshot);
-        var repository = new Kit.FakeBatchRepository([new ClaimBatchAggregate(header, [detail])]);
+        var detail = BuildDetail(header, snapshot);
         var generator = new FakeClaimReportGenerator();
-        var useCase = new GenerateClaimReportsUseCase(repository, generator);
+        var useCase = new GenerateClaimReportsUseCase(
+            Kit.VerifiedProvider(new ClaimBatchAggregate(header, [detail])), generator);
 
         var bytes = await useCase.GenerateServiceProvisionRecordAsync(
             Kit.OfficeId, Kit.Month, Kit.RecipientId, CancellationToken.None);
@@ -67,9 +69,10 @@ public sealed class GenerateClaimReportsUseCaseTests
     {
         var snapshot = BuildSnapshot(Kit.RecipientId, Kit.Month);
         var header = Kit.Batch(revision: 1, kind: RecordKind.New);
-        var detail = BuildDetail(header.Id, snapshot);
-        var repository = new Kit.FakeBatchRepository([new ClaimBatchAggregate(header, [detail])]);
-        var useCase = new GenerateClaimReportsUseCase(repository, new FakeClaimReportGenerator());
+        var detail = BuildDetail(header, snapshot);
+        var useCase = new GenerateClaimReportsUseCase(
+            Kit.VerifiedProvider(new ClaimBatchAggregate(header, [detail])),
+            new FakeClaimReportGenerator());
 
         await FluentActions.Invoking(() => useCase.GenerateServiceProvisionRecordAsync(
                 Kit.OfficeId, Kit.Month, SecondRecipientId, CancellationToken.None))
@@ -77,50 +80,101 @@ public sealed class GenerateClaimReportsUseCaseTests
     }
 
     [Fact]
-    public async Task GenerateClaimInvoiceAsync_selects_latest_non_cancel_revision()
+    public async Task GenerateClaimInvoiceAsync_refuses_when_the_head_revision_is_cancelled()
     {
-        // revision1(New)→revision2(Correct)→revision3(Cancel)。Cancelは合計0が強制されるため、
-        // dto.TotalUnitがrevision2の値と一致することは「Cancelを飛ばしてrevision2を選んだ」ことの
-        // 直接証拠になる（revision3を誤って選べば0、revision1を誤って選べば1000になり判別できる）。
-        var snapshotR1 = BuildSnapshot(Kit.RecipientId, Kit.Month);
-        var headerR1 = Kit.Batch(revision: 1, kind: RecordKind.New, totalUnits: 1000, totalCostYen: 10_000,
-            totalBenefitYen: 9_000, totalBurdenYen: 1_000);
-        var detailR1 = BuildDetail(headerR1.Id, snapshotR1);
+        // revision1(New)→revision2(Correct)→revision3(Cancel)。取消済みの月に請求書を出さない。
+        // spec §9「Cancel状態やrevision不在の場合はInvalidOperationException（fail-closed）」。
+        // NOTE(teeth): Cancelを除外してから最大revisionを採る実装に戻すと、revision2の請求書が
+        // 出てしまうためここがRED。
+        var headerR1 = Kit.Batch(revision: 1, kind: RecordKind.New);
+        var detailR1 = BuildDetail(headerR1, BuildSnapshot(Kit.RecipientId, Kit.Month));
 
-        var snapshotR2 = BuildSnapshot(Kit.RecipientId, Kit.Month);
         var headerR2 = Kit.Batch(revision: 2, kind: RecordKind.Correct, originId: headerR1.Id,
-            expectedHeadBatchId: headerR1.Id, expectedHeadRevision: 1,
-            totalUnits: 2000, totalCostYen: 20_000, totalBenefitYen: 18_000, totalBurdenYen: 2_000);
-        var detailR2 = BuildDetail(headerR2.Id, snapshotR2);
+            expectedHeadBatchId: headerR1.Id, expectedHeadRevision: 1);
+        var detailR2 = BuildDetail(headerR2, BuildSnapshot(Kit.RecipientId, Kit.Month));
 
         var headerR3 = Kit.Batch(revision: 3, kind: RecordKind.Cancel, originId: headerR1.Id,
             expectedHeadBatchId: headerR2.Id, expectedHeadRevision: 2);
 
-        var repository = new Kit.FakeBatchRepository([
-            new ClaimBatchAggregate(headerR1, [detailR1]),
-            new ClaimBatchAggregate(headerR2, [detailR2]),
-            new ClaimBatchAggregate(headerR3, []),
-        ]);
         var generator = new FakeClaimReportGenerator();
-        var useCase = new GenerateClaimReportsUseCase(repository, generator);
+        var useCase = new GenerateClaimReportsUseCase(
+            Kit.VerifiedProvider(
+                new ClaimBatchAggregate(headerR1, [detailR1]),
+                new ClaimBatchAggregate(headerR2, [detailR2]),
+                new ClaimBatchAggregate(headerR3, [])),
+            generator);
+
+        await FluentActions.Invoking(() => useCase.GenerateClaimInvoiceAsync(
+                Kit.OfficeId, Kit.Month, CancellationToken.None))
+            .Should().ThrowAsync<InvalidOperationException>();
+        generator.LastClaimInvoiceDto.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GenerateClaimInvoiceAsync_selects_the_latest_correction_revision()
+    {
+        // revision1(New, 合計1400)→revision2(Correct, 受給者2名で合計2800)。head=revision2を選んだ
+        // 直接証拠としてdto.TotalUnitが2800になる（revision1を誤って選べば1400で判別できる）。
+        var headerR1 = Kit.Batch(revision: 1, kind: RecordKind.New);
+        var detailR1 = BuildDetail(headerR1, BuildSnapshot(Kit.RecipientId, Kit.Month));
+
+        var headerR2 = Kit.Batch(revision: 2, kind: RecordKind.Correct, originId: headerR1.Id,
+            expectedHeadBatchId: headerR1.Id, expectedHeadRevision: 1,
+            totalUnits: 2800, totalCostYen: 28_000, totalBenefitYen: 25_200, totalBurdenYen: 2_800);
+        var detailR2a = BuildDetail(headerR2, BuildSnapshot(Kit.RecipientId, Kit.Month));
+        var detailR2b = BuildDetail(headerR2, BuildSnapshot(SecondRecipientId, Kit.Month));
+
+        var generator = new FakeClaimReportGenerator();
+        var useCase = new GenerateClaimReportsUseCase(
+            Kit.VerifiedProvider(
+                new ClaimBatchAggregate(headerR1, [detailR1]),
+                new ClaimBatchAggregate(headerR2, [detailR2a, detailR2b])),
+            generator);
 
         var bytes = await useCase.GenerateClaimInvoiceAsync(Kit.OfficeId, Kit.Month, CancellationToken.None);
 
         bytes.Should().Equal(generator.ClaimInvoiceResult);
         generator.LastClaimInvoiceDto.Should().NotBeNull();
         var dto = generator.LastClaimInvoiceDto!;
-        dto.TotalUnit.Should().Be(2000);
-        dto.TotalCostYen.Should().Be(20_000);
-        dto.TotalBenefitYen.Should().Be(18_000);
-        dto.TotalBurdenYen.Should().Be(2_000);
+        dto.TotalUnit.Should().Be(2800);
+        dto.TotalCostYen.Should().Be(28_000);
+        dto.TotalBenefitYen.Should().Be(25_200);
+        dto.TotalBurdenYen.Should().Be(2_800);
         dto.Office.OfficeNumber.Should().Be("1310000001");
+    }
+
+    [Fact]
+    public async Task GenerateClaimInvoiceAsync_rejects_a_history_whose_persisted_snapshot_was_tampered_with()
+    {
+        // 確定操作payloadのSHA-256はsnapshot JSONを含めて再構築されるため、DBのsnapshotを書き換えると
+        // 照合に失敗する。未検証raw aggregateを直接読む実装に戻すとここがRED。
+        var header = Kit.Batch(revision: 1, kind: RecordKind.New);
+        var detail = BuildDetail(header, BuildSnapshot(Kit.RecipientId, Kit.Month));
+        var signed = Kit.Sign(new ClaimBatchAggregate(header, [detail]));
+        var tampered = new ClaimBatchAggregate(
+            signed.Header,
+            [
+                detail with
+                {
+                    CalculationSnapshotJson = detail.CalculationSnapshotJson.Replace(
+                        "山田太郎", "鈴木花子", StringComparison.Ordinal),
+                },
+            ]);
+        var useCase = new GenerateClaimReportsUseCase(
+            new VerifiedClaimBatchProvider(new Kit.FakeBatchRepository([tampered]), Kit.Verifier()),
+            new FakeClaimReportGenerator());
+
+        await FluentActions.Invoking(() => useCase.GenerateClaimInvoiceAsync(
+                Kit.OfficeId, Kit.Month, CancellationToken.None))
+            .Should().ThrowAsync<ClaimFinalizationException>()
+            .Where(exception => exception.Code == ClaimErrorCode.InvalidHistory);
     }
 
     [Fact]
     public async Task GenerateClaimInvoiceAsync_throws_when_no_finalized_revision_exists()
     {
-        var repository = new Kit.FakeBatchRepository([]);
-        var useCase = new GenerateClaimReportsUseCase(repository, new FakeClaimReportGenerator());
+        var useCase = new GenerateClaimReportsUseCase(
+            Kit.VerifiedProvider(), new FakeClaimReportGenerator());
 
         await FluentActions.Invoking(() => useCase.GenerateClaimInvoiceAsync(
                 Kit.OfficeId, Kit.Month, CancellationToken.None))
@@ -130,9 +184,12 @@ public sealed class GenerateClaimReportsUseCaseTests
     [Fact]
     public async Task GenerateClaimInvoiceAsync_throws_when_all_revisions_are_cancelled()
     {
+        // revision 1 は New でなければならない（ClaimBatchPolicy）ため、Cancel だけの履歴は
+        // 「実効請求なし」ではなく「壊れた履歴」として落ちる。
         var headerR1 = Kit.Batch(revision: 1, kind: RecordKind.Cancel);
-        var repository = new Kit.FakeBatchRepository([new ClaimBatchAggregate(headerR1, [])]);
-        var useCase = new GenerateClaimReportsUseCase(repository, new FakeClaimReportGenerator());
+        var useCase = new GenerateClaimReportsUseCase(
+            Kit.VerifiedProvider(new ClaimBatchAggregate(headerR1, [])),
+            new FakeClaimReportGenerator());
 
         await FluentActions.Invoking(() => useCase.GenerateClaimInvoiceAsync(
                 Kit.OfficeId, Kit.Month, CancellationToken.None))
@@ -142,9 +199,12 @@ public sealed class GenerateClaimReportsUseCaseTests
     [Fact]
     public async Task GenerateClaimInvoiceAsync_throws_when_latest_revision_has_no_details()
     {
-        var header = Kit.Batch(revision: 1, kind: RecordKind.New);
-        var repository = new Kit.FakeBatchRepository([new ClaimBatchAggregate(header, [])]);
-        var useCase = new GenerateClaimReportsUseCase(repository, new FakeClaimReportGenerator());
+        // detail 0 件の New は合計 0 でなければ履歴として成立しない。
+        var header = Kit.Batch(revision: 1, kind: RecordKind.New,
+            totalUnits: 0, totalCostYen: 0, totalBenefitYen: 0, totalBurdenYen: 0);
+        var useCase = new GenerateClaimReportsUseCase(
+            Kit.VerifiedProvider(new ClaimBatchAggregate(header, [])),
+            new FakeClaimReportGenerator());
 
         await FluentActions.Invoking(() => useCase.GenerateClaimInvoiceAsync(
                 Kit.OfficeId, Kit.Month, CancellationToken.None))
@@ -154,20 +214,22 @@ public sealed class GenerateClaimReportsUseCaseTests
     [Fact]
     public async Task GenerateClaimStatementAsync_aggregates_all_recipients_in_latest_revision()
     {
-        // headerの集計値(999...)は各detailの合計(1400+1400=2800等)とは意図的に異なる値にしてあり、
-        // dtoがheader値をそのまま素通ししたこと（Σdetailを再計算していないこと）を検証する。
+        // header の集計値は Σdetail と一致していなければ履歴として成立しない
+        // （ClaimHistoryVerifier が Σdetail＝header を検証するため、両者が食い違うDBは検証で落ちる）。
+        // 「snapshot 内部の TotalUnits(14_000) ではなく detail 行の値(1400) を使っている」ことは
+        // SubtotalUnit の検証で担保する。
         var snapshot1 = BuildSnapshot(Kit.RecipientId, Kit.Month, kanjiName: "山田太郎", serviceCode: "610000");
         var snapshot2 = BuildSnapshot(SecondRecipientId, Kit.Month, kanjiName: "鈴木花子", serviceCode: "620000");
         var header = Kit.Batch(
             revision: 1, kind: RecordKind.New,
-            totalUnits: 9990, totalCostYen: 99_900, totalBenefitYen: 89_910, totalBurdenYen: 9_990);
-        var detail1 = BuildDetail(header.Id, snapshot1, totalUnits: 1400, totalCostYen: 14_000,
+            totalUnits: 2800, totalCostYen: 28_000, totalBenefitYen: 25_200, totalBurdenYen: 2_800);
+        var detail1 = BuildDetail(header, snapshot1, totalUnits: 1400, totalCostYen: 14_000,
             benefitYen: 12_600, burdenYen: 1_400);
-        var detail2 = BuildDetail(header.Id, snapshot2, totalUnits: 1400, totalCostYen: 14_000,
+        var detail2 = BuildDetail(header, snapshot2, totalUnits: 1400, totalCostYen: 14_000,
             benefitYen: 12_600, burdenYen: 1_400);
-        var repository = new Kit.FakeBatchRepository([new ClaimBatchAggregate(header, [detail1, detail2])]);
         var generator = new FakeClaimReportGenerator();
-        var useCase = new GenerateClaimReportsUseCase(repository, generator);
+        var useCase = new GenerateClaimReportsUseCase(
+            Kit.VerifiedProvider(new ClaimBatchAggregate(header, [detail1, detail2])), generator);
 
         var bytes = await useCase.GenerateClaimStatementAsync(Kit.OfficeId, Kit.Month, CancellationToken.None);
 
@@ -179,11 +241,11 @@ public sealed class GenerateClaimReportsUseCaseTests
         dto.Recipients.Single(r => r.Recipient.KanjiName == "山田太郎").Lines.Should().ContainSingle()
             .Which.ServiceCode.Should().Be("610000");
         dto.Recipients.Single(r => r.Recipient.KanjiName == "山田太郎").SubtotalUnit.Should().Be(1400);
-        // header値の素通し（Σdetailの再計算ではない）ことの確認。
-        dto.TotalUnit.Should().Be(9990);
-        dto.TotalCostYen.Should().Be(99_900);
-        dto.TotalBenefitYen.Should().Be(89_910);
-        dto.TotalBurdenYen.Should().Be(9_990);
+        // header値の素通し（snapshot内部のTotalUnits=14_000ではない）ことの確認。
+        dto.TotalUnit.Should().Be(2800);
+        dto.TotalCostYen.Should().Be(28_000);
+        dto.TotalBenefitYen.Should().Be(25_200);
+        dto.TotalBurdenYen.Should().Be(2_800);
     }
 
     private static ClaimFinalizationSnapshot BuildSnapshot(
@@ -232,8 +294,12 @@ public sealed class GenerateClaimReportsUseCaseTests
             BenefitYen: 12_600,
             BurdenYen: 1_400);
 
+    /// <summary>
+    /// header と版・作成者・batchId が整合した detail を作る（<see cref="ClaimHistoryVerifier"/> は
+    /// header と detail の版一致まで検証するため、独立した版文字列では履歴として成立しない）。
+    /// </summary>
     private static ClaimDetail BuildDetail(
-        Guid claimBatchId,
+        ClaimBatch header,
         ClaimFinalizationSnapshot snapshot,
         int totalUnits = 1400,
         int totalCostYen = 14_000,
@@ -241,20 +307,20 @@ public sealed class GenerateClaimReportsUseCaseTests
         int burdenYen = 1_400)
         => ClaimDetail.Create(
             Guid.NewGuid(),
-            claimBatchId,
+            header.Id,
             snapshot.RecipientId,
             snapshotSchemaVersion: ClaimSnapshotValidationCodecV2.SchemaVersionValue,
-            claimMasterVersion: snapshot.ClaimMasterVersion,
-            csvSpecificationVersion: snapshot.CsvSpecificationVersion,
-            reportSpecificationVersion: snapshot.ReportSpecificationVersion,
-            snapshotApplicationVersion: "snapshot-app-v1",
-            inputSnapshotJson: "{}",
+            claimMasterVersion: header.ClaimMasterVersion,
+            csvSpecificationVersion: header.CsvSpecificationVersion,
+            reportSpecificationVersion: header.ReportSpecificationVersion,
+            snapshotApplicationVersion: header.SnapshotApplicationVersion,
+            inputSnapshotJson: Kit.MinimalEnvelopeJson,
             calculationSnapshotJson: Encoding.UTF8.GetString(ClaimFinalizationSnapshotWriter.Write(snapshot)),
             totalUnits: totalUnits,
             totalCostYen: totalCostYen,
             benefitYen: benefitYen,
             burdenYen: burdenYen,
-            createdBy: "tester",
+            createdBy: header.CreatedBy,
             createdAt: Kit.Now);
 
     /// <summary>

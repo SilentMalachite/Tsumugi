@@ -177,10 +177,12 @@ public sealed class ClaimPreparationViewModelTests
         var queryClaim = new QueryClaimUseCase(batchStore);
         var listOffices = new ListOfficesUseCase(officeRepository);
         var listRecipients = new ListRecipientsUseCase(new Kit.FakeRecipientRepository(Kit.Recipient()));
-        var generateClaimReports = new GenerateClaimReportsUseCase(batchStore, new Kit.NoOpClaimReportGenerator());
+        var verifiedBatches = ClaimVerifiedBatchTestFactory.Provider(batchStore);
+        var generateClaimReports = new GenerateClaimReportsUseCase(
+            verifiedBatches, new Kit.NoOpClaimReportGenerator());
         var fileSaveService = new Kit.NoOpFileSaveService();
         var exportClaimCsv = new ExportClaimCsvUseCase(
-            batchStore,
+            verifiedBatches,
             new Kit.FixedClaimCsvOfficeContextProvider(),
             new Kit.NoOpClaimCsvGenerator(),
             new Kit.NoOpClaimCsvExportRepository(),

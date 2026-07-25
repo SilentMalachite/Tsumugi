@@ -1,3 +1,4 @@
+using System.Text;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
 using Tsumugi.Application.Dtos.Claim.Reports;
@@ -477,8 +478,12 @@ internal static class ClaimPreparationViewModelTestKit
                 CsvSpecificationVersion = detail.CsvSpecificationVersion,
                 ReportSpecificationVersion = detail.ReportSpecificationVersion,
                 SnapshotApplicationVersion = detail.SnapshotApplicationVersion,
-                InputSnapshotJson = "{}",
-                CalculationSnapshotJson = "{}",
+                // 実store（ClaimFinalizationStore）と同じく、検証済みenvelopeのcanonical bytesを保存する。
+                // "{}" のような素のJSONはsnapshot codecの検証を通らない。
+                InputSnapshotJson = Encoding.UTF8.GetString(
+                    detail.InputSnapshotEnvelope.GetCanonicalUtf8Bytes()),
+                CalculationSnapshotJson = Encoding.UTF8.GetString(
+                    detail.CalculationSnapshotEnvelope.GetCanonicalUtf8Bytes()),
                 TotalUnits = detail.TotalUnits,
                 TotalCostYen = detail.TotalCostYen,
                 BenefitYen = detail.BenefitYen,

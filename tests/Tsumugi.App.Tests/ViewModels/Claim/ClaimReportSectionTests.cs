@@ -127,7 +127,8 @@ public sealed class ClaimReportSectionTests
         var repository = new FakeBatchRepository([new ClaimBatchAggregate(header, [detail])]);
         generator = new FakeClaimReportGenerator();
         fileSaveService = new FakeFileSaveService();
-        var useCase = new GenerateClaimReportsUseCase(repository, generator);
+        var useCase = new GenerateClaimReportsUseCase(
+            ClaimVerifiedBatchTestFactory.Provider(repository), generator);
 
         return new ClaimReportSection(useCase, fileSaveService)
         {
@@ -208,7 +209,7 @@ public sealed class ClaimReportSectionTests
             csvSpecificationVersion: snapshot.CsvSpecificationVersion,
             reportSpecificationVersion: snapshot.ReportSpecificationVersion,
             snapshotApplicationVersion: "snapshot-app-v1",
-            inputSnapshotJson: "{}",
+            inputSnapshotJson: ClaimVerifiedBatchTestFactory.MinimalEnvelopeJson,
             calculationSnapshotJson: Encoding.UTF8.GetString(ClaimFinalizationSnapshotWriter.Write(snapshot)),
             totalUnits: 1400,
             totalCostYen: 14_000,

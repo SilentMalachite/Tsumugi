@@ -522,6 +522,70 @@ internal static class ClaimPreparationTestKit
         }
     }
 
+    /// <summary>
+    /// codec v2 が受け付ける最小の canonical envelope。<see cref="ClaimHistoryVerifier"/> は
+    /// detail の両 JSON を codec に通すため、"{}" のような素の JSON では検証を通らない。
+    /// </summary>
+    internal const string MinimalEnvelopeJson =
+        """{"schemaVersion":"claim-snapshot-v2","validationCodecId":"claim-snapshot-codec-v2"}""";
+
+    /// <summary>検証経路のテスト用に、canonical に書ける最小の v2 finalization snapshot。</summary>
+    internal static ClaimFinalizationSnapshot FinalizationSnapshot(
+        Guid? recipientId = null,
+        int totalUnits = 1400,
+        int totalCostYen = 14_000,
+        int benefitYen = 12_600,
+        int burdenYen = 1_400)
+        => new(
+            recipientId ?? RecipientId,
+            Month,
+            "master-v1",
+            "csv-spec-v1",
+            "report-spec-v1",
+            new ClaimFinalizationOfficeSnapshot(
+                "1310000001", "テスト事業所", RegionGrade.Grade2,
+                "100-0001", "東京都千代田区1-1", "03-0000-0000", "施設長 テスト"),
+            new ClaimFinalizationRecipientSnapshot("テスト利用者", "テストリヨウシャ"),
+            new ClaimFinalizationCertificateSnapshot("certificate-no-1", "131016", null, 37_200, null, null),
+            new ClaimFinalizationClaimInputSnapshot(null, null, null, null, null, null, null),
+            [
+                new ClaimFinalizationDailyRecordSnapshot(
+                    new DateOnly(Month.Year, Month.Month, 1),
+                    Attendance.Present, true, TransportKind.Round, null,
+                    new TimeOnly(9, 0), new TimeOnly(16, 0), null, false,
+                    null, null, false, false, false, true),
+            ],
+            null,
+            [new ClaimFinalizationClaimLineSnapshot(global::Tsumugi.Application.Dtos.Claim.Reports.ClaimDetailLineKind.Basic, "610000", 700, 2, totalCostYen)],
+            BilledDays: 2,
+            TotalUnits: totalUnits,
+            TotalCostYen: totalCostYen,
+            BenefitYen: benefitYen,
+            BurdenYen: burdenYen);
+
+    internal static ClaimHistoryVerifier Verifier() => new(
+        new ClaimFinalizationOperationRegistry(),
+        new ProductionClaimSnapshotValidationCodecRegistry());
+
+    /// <summary>
+    /// 与えた履歴に本物の確定操作 payload ハッシュを付けて（＝整合した履歴にして）
+    /// <see cref="VerifiedClaimBatchProvider"/> を組む。ハッシュは秘密鍵を用いない完全性検査なので、
+    /// テストが「改竄されていない履歴」を用意する唯一の方法がこれになる。
+    /// </summary>
+    internal static VerifiedClaimBatchProvider VerifiedProvider(params ClaimBatchAggregate[] history)
+    {
+        var verifier = Verifier();
+        return new VerifiedClaimBatchProvider(new FakeBatchRepository([.. history.Select(Sign)]), verifier);
+    }
+
+    /// <summary>header の <c>OperationPayloadSha256</c> を実際の canonical payload ハッシュに置き換える。</summary>
+    internal static ClaimBatchAggregate Sign(ClaimBatchAggregate aggregate) => new(
+        aggregate.Header with
+        {
+            OperationPayloadSha256 = Verifier().ComputeOperationPayloadSha256(aggregate),
+        },
+        aggregate.Details);
+
     internal sealed class FakeBatchRepository(IReadOnlyList<ClaimBatchAggregate> aggregates)
         : IClaimBatchRepository
     {

@@ -138,7 +138,7 @@ public sealed class ClaimCsvExportSectionTests
         generator = new RecordingGenerator();
         fileSave = new RecordingFileSaveService();
         var useCase = new ExportClaimCsvUseCase(
-            new StubBatchRepository(generator),
+            ClaimVerifiedBatchTestFactory.Provider(new StubBatchRepository(generator)),
             new StubOfficeContextProvider(),
             generator,
             new NoopExportRepository(),
@@ -177,7 +177,8 @@ public sealed class ClaimCsvExportSectionTests
             var detail = ClaimDetail.Create(
                 Guid.NewGuid(), header.Id, Guid.NewGuid(), "claim-snapshot-v2",
                 "master-v1", "r7-10", "report-v1", "snapshot-app-v1",
-                "{}", ClaimCsvSnapshotStub.Json(serviceMonth),
+                ClaimVerifiedBatchTestFactory.MinimalEnvelopeJson,
+                ClaimCsvSnapshotStub.Json(serviceMonth),
                 0, 0, 0, 0, "tester", DateTimeOffset.UnixEpoch);
             return Task.FromResult<IReadOnlyList<ClaimBatchAggregate>>(
                 [new ClaimBatchAggregate(header, [detail])]);

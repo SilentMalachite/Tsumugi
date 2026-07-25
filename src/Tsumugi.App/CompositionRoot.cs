@@ -100,8 +100,8 @@ public static class CompositionRoot
         services.AddScoped<QueryClaimUseCase>();
 
         // Phase 3-2: 3帳票（実績記録票／請求書／請求明細書）。GeneratorはQuestPDF描画のみのstateless実装
-        // なのでSingletonで共有し、consumer側orchestrationのUseCaseはIClaimBatchRepository経由のため
-        // Scoped（他のUseCaseと同様）。
+        // なのでSingletonで共有し、consumer側orchestrationのUseCaseはVerifiedClaimBatchProvider経由
+        // のためScoped（他のUseCaseと同様）。
         services.AddSingleton<IClaimReportGenerator>(
             sp => new ClaimReportGenerator(sp.GetRequiredService<TimeProvider>()));
         services.AddScoped<GenerateClaimReportsUseCase>();

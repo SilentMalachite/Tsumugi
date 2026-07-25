@@ -187,7 +187,7 @@ Codex（読み取り専用レビュー）から CRITICAL 1 / HIGH 9 / MEDIUM 1�
 
 | 重大度 | 指摘 | 判断 |
 |---|---|---|
-| HIGH | 未検証 raw aggregate を直接読み、snapshot の hash・canonical 性を検証していない | **妥当だがスコープ外**。Phase 3-2 の `GenerateClaimReportsUseCase` が同じ経路であり、検証済み aggregate を返す Application port の新設は Phase 3-2 領域の変更。open-questions へ起票し、3帳票と共通の課題として扱う |
+| HIGH | 未検証 raw aggregate を直接読み、snapshot の hash・canonical 性を検証していない | **2026-07-25 修正済み（ADR 0035）**。検証実装を Application の `ClaimHistoryVerifier`（write 経路も委譲する唯一の実装）へ移設し、CSV と3帳票の双方を `VerifiedClaimBatchProvider` → `VerifiedClaimBatch` 経由に統一。帳票側が Cancel を除外して最大 revision を採っていた spec 違反（取消済み請求の復活）も同時に修正 |
 | HIGH | `provider:J121:04:009` を `BilledDays` で代替し、加算のみ算定した日を落とす | **2026-07-25 修正済み（ADR 0034）**。事業所編の項目説明で指摘が確定し、あわせて `provider:J121:02:010`「利用日数」は逆に「欠席時対応加算は除く」と判明（2項目は別定義）。算定器が cap 後の欠席時対応加算算定日数を返し、snapshot の `ServiceUsageDays` を `J121:04:009` に用いる |
 | HIGH | 既定ファイル名が国保連の命名規則（英字開始・8文字以内・`.CSV`）に不適合 | **リポジトリ内の登録済み一次資料で確認できない**。ハード制約3（推測で埋めない）に従い、Codex が引用した外部PDFの記述だけを根拠に実装しない。open-questions へ HIGH 優先で起票し、一次資料を `sources.json` へ登録してから対応する |
 

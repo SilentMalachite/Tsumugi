@@ -54,6 +54,10 @@ public static class DependencyInjection
         services.AddSingleton<IClaimSnapshotValidationCodecRegistry,
             ProductionClaimSnapshotValidationCodecRegistry>();
         services.AddSingleton<IClaimFinalizationStore, ClaimFinalizationStore>();
+        // 確定請求の検証（履歴/envelope/payload hash/版/合計）と実効revision解決。
+        // 成果物（CSV・3帳票）の生成経路はここを必ず通す。
+        services.AddSingleton<ClaimHistoryVerifier>();
+        services.AddScoped<VerifiedClaimBatchProvider>();
         services.AddSingleton<IClaimCalculationSnapshotReader, ClaimCalculationSnapshotReader>();
         services.AddSingleton<IClaimBillingTokenProvider, OfficeClaimBillingTokenProvider>();
         return services;

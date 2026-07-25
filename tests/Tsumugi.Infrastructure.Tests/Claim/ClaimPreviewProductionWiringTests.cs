@@ -613,7 +613,11 @@ public sealed class ClaimPreviewProductionWiringTests
         QuestPdfLicenseConfigurator.Initialize();
         await using var reportContext = fixture.NewContext();
         var generateUseCase = new GenerateClaimReportsUseCase(
-            new ClaimBatchRepository(reportContext),
+            new VerifiedClaimBatchProvider(
+                new ClaimBatchRepository(reportContext),
+                new ClaimHistoryVerifier(
+                    new ClaimFinalizationOperationRegistry(),
+                    new ProductionClaimSnapshotValidationCodecRegistry())),
             new ClaimReportGenerator(TimeProvider.System));
 
         var invoiceBytes = await generateUseCase.GenerateClaimInvoiceAsync(
