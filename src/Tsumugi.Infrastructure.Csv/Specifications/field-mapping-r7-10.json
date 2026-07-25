@@ -1056,43 +1056,47 @@
     },
     {
       "fieldId": "provider:J121:04:030",
+      "crossFieldGroup": "exceptional-usage",
       "requiredCondition": "modelPresent(ClaimInput.ExceptionalUsageStartMonth)",
       "notes": "Phase 3-1 AC3-8; provider-r7-10 p33 item30 and p37 note4",
       "status": "missing",
       "targetModel": "ClaimInput",
       "targetProperty": "ExceptionalUsageStartMonth",
       "migrationRequired": true,
-      "uiSurface": "ClaimPreparationView"
+      "uiSurface": "ClaimInputView"
     },
     {
       "fieldId": "provider:J121:04:031",
+      "crossFieldGroup": "exceptional-usage",
       "requiredCondition": "modelPresent(ClaimInput.ExceptionalUsageEndMonth)",
       "notes": "Phase 3-1 AC3-8; provider-r7-10 p33 item31 and p37 note4",
       "status": "missing",
       "targetModel": "ClaimInput",
       "targetProperty": "ExceptionalUsageEndMonth",
       "migrationRequired": true,
-      "uiSurface": "ClaimPreparationView"
+      "uiSurface": "ClaimInputView"
     },
     {
       "fieldId": "provider:J121:04:032",
+      "crossFieldGroup": "exceptional-usage",
       "requiredCondition": "modelNonZero(ClaimInput.ExceptionalUsageDays)",
       "notes": "Phase 3-1 AC3-8; provider-r7-10 p33 item32 and p37 note4",
       "status": "missing",
       "targetModel": "ClaimInput",
       "targetProperty": "ExceptionalUsageDays",
       "migrationRequired": true,
-      "uiSurface": "ClaimPreparationView"
+      "uiSurface": "ClaimInputView"
     },
     {
       "fieldId": "provider:J121:04:033",
+      "crossFieldGroup": "exceptional-usage",
       "requiredCondition": "modelNonZero(ClaimInput.StandardUsageDayTotal)",
       "notes": "Phase 3-1 AC3-8; provider-r7-10 p33 item33 and p37 note4",
       "status": "missing",
       "targetModel": "ClaimInput",
       "targetProperty": "StandardUsageDayTotal",
       "migrationRequired": true,
-      "uiSurface": "ClaimPreparationView"
+      "uiSurface": "ClaimInputView"
     },
     {
       "fieldId": "provider:J121:05:001",

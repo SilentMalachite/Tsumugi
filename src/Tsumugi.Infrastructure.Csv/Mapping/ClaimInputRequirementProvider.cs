@@ -45,10 +45,24 @@ public sealed class ClaimInputRequirementProvider : IClaimInputRequirementProvid
         if (duplicateFieldId is not null)
             throw new InvalidDataException("Claim requirement fieldId is duplicated.");
 
+        // 「組のいずれかが入力されたら組の全項目を必須にする」宣言（crossFieldGroup）は、
+        // 組内の全条件の Any-merge として各要件へ配る。公式の requiredWhen 自体は書き換えない。
+        var conditionsByCrossFieldGroup = copiedSources
+            .Where(source => !string.IsNullOrEmpty(source.CrossFieldGroup))
+            .GroupBy(source => source.CrossFieldGroup!, StringComparer.Ordinal)
+            .ToDictionary(
+                group => group.Key,
+                group => group
+                    .Select(source => source.Condition)
+                    .Distinct(StringComparer.Ordinal)
+                    .OrderBy(condition => condition, StringComparer.Ordinal)
+                    .ToArray(),
+                StringComparer.Ordinal);
+
         var requirements = copiedSources
             .GroupBy(source => source.TargetPath, StringComparer.Ordinal)
             .OrderBy(group => group.Key, StringComparer.Ordinal)
-            .Select(CreateRequirement)
+            .Select(group => CreateRequirement(group, conditionsByCrossFieldGroup))
             .ToArray();
         return new ClaimInputRequirementProvider(requirements);
     }
@@ -56,7 +70,8 @@ public sealed class ClaimInputRequirementProvider : IClaimInputRequirementProvid
     public IReadOnlyList<ClaimInputRequirement> GetRequirements() => _requirements;
 
     private static ClaimInputRequirement CreateRequirement(
-        IGrouping<string, ClaimInputRequirementSource> group)
+        IGrouping<string, ClaimInputRequirementSource> group,
+        Dictionary<string, string[]> conditionsByCrossFieldGroup)
     {
         if (string.IsNullOrWhiteSpace(group.Key)
             || group.Key.Split('.', StringSplitOptions.RemoveEmptyEntries).Length != 2)
@@ -69,12 +84,18 @@ public sealed class ClaimInputRequirementProvider : IClaimInputRequirementProvid
         if (destinations.Length != 1)
             throw new InvalidDataException("Claim requirement target has conflicting destination values.");
 
-        var conditions = group
-            .Select(source => source.Condition)
-            .Distinct(StringComparer.Ordinal)
-            .OrderBy(condition => condition, StringComparer.Ordinal)
-            .Select(ParseCondition)
-            .ToArray();
+        var crossFieldGroup = group
+            .Select(source => source.CrossFieldGroup)
+            .FirstOrDefault(name => !string.IsNullOrEmpty(name));
+        var conditionTexts = crossFieldGroup is not null
+            && conditionsByCrossFieldGroup.TryGetValue(crossFieldGroup, out var shared)
+                ? shared
+                : group
+                    .Select(source => source.Condition)
+                    .Distinct(StringComparer.Ordinal)
+                    .OrderBy(condition => condition, StringComparer.Ordinal)
+                    .ToArray();
+        var conditions = conditionTexts.Select(ParseCondition).ToArray();
         var condition = conditions.Length == 1
             ? conditions[0]
             : new ClaimRequirementCondition.Any(conditions);
@@ -95,7 +116,8 @@ public sealed class ClaimInputRequirementProvider : IClaimInputRequirementProvid
             mapping.FieldId,
             $"{mapping.TargetModel}.{mapping.TargetProperty}",
             mapping.RequiredCondition,
-            mapping.UiSurface ?? string.Empty);
+            mapping.UiSurface ?? string.Empty,
+            mapping.CrossFieldGroup);
     }
 
     private static IEnumerable<ClaimInputRequirementSource> ReadMissingReportMappings(
@@ -115,7 +137,8 @@ public sealed class ClaimInputRequirementProvider : IClaimInputRequirementProvid
                 RequireString(mapping, "fieldId"),
                 $"{RequireString(mapping, "targetModel")}.{RequireString(mapping, "targetProperty")}",
                 RequireString(mapping, "requiredCondition"),
-                RequireString(mapping, "uiSurface"));
+                RequireString(mapping, "uiSurface"),
+                CrossFieldGroup: null);
         }
     }
 
@@ -239,4 +262,5 @@ internal sealed record ClaimInputRequirementSource(
     string FieldId,
     string TargetPath,
     string Condition,
-    string Destination);
+    string Destination,
+    string? CrossFieldGroup = null);

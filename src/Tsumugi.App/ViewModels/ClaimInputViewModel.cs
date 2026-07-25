@@ -76,6 +76,15 @@ public sealed partial class ClaimInputViewModel(
     [ObservableProperty] private int? _upperLimitManagedAmountYen;
     [ObservableProperty] private int? _municipalSubsidyAmountYen;
 
+    // 例外利用日の 4 項目（provider:J121:04:030-033）。いずれか 1 つでも入力すると
+    // 残り 3 つも必須になる（field-mapping の crossFieldGroup "exceptional-usage"）。
+    [ObservableProperty] private int? _exceptionalUsageStartYear;
+    [ObservableProperty] private int? _exceptionalUsageStartMonth;
+    [ObservableProperty] private int? _exceptionalUsageEndYear;
+    [ObservableProperty] private int? _exceptionalUsageEndMonth;
+    [ObservableProperty] private int? _exceptionalUsageDays;
+    [ObservableProperty] private int? _standardUsageDayTotal;
+
     [ObservableProperty] private Guid? _averageWageCurrentHeadId;
     [ObservableProperty] private Guid? _averageWageEffectiveHeadId;
     [ObservableProperty] private DateOnly _averageWagePeriodStart;
@@ -310,10 +319,14 @@ public sealed partial class ClaimInputViewModel(
                 UpperLimitManagementResult = UpperLimitManagementResult,
                 UpperLimitManagedAmountYen = UpperLimitManagedAmountYen,
                 MunicipalSubsidyAmountYen = MunicipalSubsidyAmountYen,
-                ExceptionalUsageStartMonth = preserve?.ExceptionalUsageStartMonth,
-                ExceptionalUsageEndMonth = preserve?.ExceptionalUsageEndMonth,
-                ExceptionalUsageDays = preserve?.ExceptionalUsageDays,
-                StandardUsageDayTotal = preserve?.StandardUsageDayTotal,
+                ExceptionalUsageStartMonth = ToServiceMonth(
+                    ExceptionalUsageStartYear, ExceptionalUsageStartMonth)
+                    ?? preserve?.ExceptionalUsageStartMonth,
+                ExceptionalUsageEndMonth = ToServiceMonth(
+                    ExceptionalUsageEndYear, ExceptionalUsageEndMonth)
+                    ?? preserve?.ExceptionalUsageEndMonth,
+                ExceptionalUsageDays = ExceptionalUsageDays ?? preserve?.ExceptionalUsageDays,
+                StandardUsageDayTotal = StandardUsageDayTotal ?? preserve?.StandardUsageDayTotal,
             }, Environment.UserName, default));
     }
 
@@ -339,6 +352,7 @@ public sealed partial class ClaimInputViewModel(
         UpperLimitManagementResult = null;
         UpperLimitManagedAmountYen = null;
         MunicipalSubsidyAmountYen = null;
+        ClearExceptionalUsage();
         ErrorMessage = null;
     }
 
@@ -673,8 +687,30 @@ public sealed partial class ClaimInputViewModel(
         UpperLimitManagementResult = value?.UpperLimitManagementResult;
         UpperLimitManagedAmountYen = value?.UpperLimitManagedAmountYen;
         MunicipalSubsidyAmountYen = value?.MunicipalSubsidyAmountYen;
+        ExceptionalUsageStartYear = value?.ExceptionalUsageStartMonth?.Year;
+        ExceptionalUsageStartMonth = value?.ExceptionalUsageStartMonth?.Month;
+        ExceptionalUsageEndYear = value?.ExceptionalUsageEndMonth?.Year;
+        ExceptionalUsageEndMonth = value?.ExceptionalUsageEndMonth?.Month;
+        ExceptionalUsageDays = value?.ExceptionalUsageDays;
+        StandardUsageDayTotal = value?.StandardUsageDayTotal;
         _claimInputReentry = false;
     }
+
+    private void ClearExceptionalUsage()
+    {
+        ExceptionalUsageStartYear = null;
+        ExceptionalUsageStartMonth = null;
+        ExceptionalUsageEndYear = null;
+        ExceptionalUsageEndMonth = null;
+        ExceptionalUsageDays = null;
+        StandardUsageDayTotal = null;
+    }
+
+    /// <summary>年・月がどちらも入っているときだけ年月として扱う（片方だけの入力は未入力扱い）。</summary>
+    private static ServiceMonth? ToServiceMonth(int? year, int? month) =>
+        year is { } y and >= 1900 and <= 2200 && month is { } m and >= 1 and <= 12
+            ? new ServiceMonth(y, m)
+            : null;
 
     private void ApplyAverageWageValues(AverageWageAnnualEvidenceQueryRevisionDto? value)
     {

@@ -117,11 +117,18 @@ public sealed class ViewInputWiringTests
         xml.Should().Contain("{Binding AddStatementLineCommand}")
             .And.Contain("{Binding RemoveStatementLineCommand}")
             .And.Contain("{Binding SelectedStatementLine}");
-        xml.Should().NotContain("ExceptionalUsageStartMonth")
-            .And.NotContain("ExceptionalUsageEndMonth")
-            .And.NotContain("ExceptionalUsageDays")
-            .And.NotContain("StandardUsageDayTotal")
-            .And.NotContain("IntensiveSupportEpisode")
+        // Phase 3-3: 例外利用日の 4 項目（provider:J121:04:030-033）は本画面で入力できる
+        // （field-mapping の crossFieldGroup "exceptional-usage" / uiSurface=ClaimInputView）。
+        // Phase 3-2 までは「孤立 4 フィールド」として未提供であり、ここは NotContain だった。
+        foreach (var binding in new[]
+        {
+            "ExceptionalUsageStartYear", "ExceptionalUsageStartMonth",
+            "ExceptionalUsageEndYear", "ExceptionalUsageEndMonth",
+            "ExceptionalUsageDays", "StandardUsageDayTotal",
+        })
+            xml.Should().Contain($"{{Binding {binding}");
+
+        xml.Should().NotContain("IntensiveSupportEpisode")
             .And.NotContain("Phase3-2")
             .And.NotContain("Phase3-3");
     }

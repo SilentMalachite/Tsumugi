@@ -288,6 +288,14 @@ public sealed record CsvSpecificationCatalog
             || mapping.UiSurface is not null;
         var hasDependencies = mapping.SourceContracts is not null
             || mapping.SourceFieldIds is not null;
+        // crossFieldGroup は入力補完（missing）だけが持てる追加宣言。
+        if (mapping.CrossFieldGroup is not null
+            && !string.Equals(mapping.Status, "missing", StringComparison.Ordinal))
+        {
+            throw new InvalidDataException(
+                $"fieldId '{field.FieldId}' declares a crossFieldGroup outside the 'missing' status.");
+        }
+
         var validStatus = mapping.Status switch
         {
             "generated" => !string.IsNullOrWhiteSpace(mapping.GeneratorRule)
