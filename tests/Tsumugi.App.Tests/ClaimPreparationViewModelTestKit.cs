@@ -336,6 +336,30 @@ internal static class ClaimPreparationViewModelTestKit
         public byte[] GenerateClaimStatement(ClaimStatementDto dto) => [];
     }
 
+    /// <summary>Phase 3-3: このテストキットの対象はPreview/Close/Cancel/Historyの配線であり、
+    /// CSVの実バイト列生成は検証範囲外（<c>ClaimCsvExportSectionTests</c>と
+    /// <c>ClaimCsvExportProductionWiringTests</c>で別途検証済み）。</summary>
+    internal sealed class NoOpClaimCsvGenerator : IClaimCsvGenerator
+    {
+        public byte[] Generate(Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvDto dto) => [];
+    }
+
+    /// <summary>Phase 3-3: 制度マスタ由来の地域区分・単価は別テストの対象のため固定値を返す。</summary>
+    internal sealed class FixedClaimCsvOfficeContextProvider : IClaimCsvOfficeContextProvider
+    {
+        public ClaimCsvOfficeContext Resolve(
+            Tsumugi.Domain.Enums.RegionGrade regionGrade, ServiceMonth serviceMonth) => new("06", 10_000);
+    }
+
+    /// <summary>Phase 3-3: 出力履歴の永続化は Infrastructure 側テストの対象のためno-op。</summary>
+    internal sealed class NoOpClaimCsvExportRepository : IClaimCsvExportRepository
+    {
+        public Task AppendAsync(ClaimCsvExport csvExport, CancellationToken ct) => Task.CompletedTask;
+
+        public Task<IReadOnlyList<ClaimCsvExport>> ListByBatchAsync(Guid claimBatchId, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<ClaimCsvExport>>([]);
+    }
+
     /// <summary>Task 14: 帳票の保存ダイアログはこのテストキットの対象外のためno-op。</summary>
     internal sealed class NoOpFileSaveService : Tsumugi.App.Services.IFileSaveService
     {

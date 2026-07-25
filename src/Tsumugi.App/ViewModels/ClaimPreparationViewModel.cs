@@ -27,6 +27,7 @@ public sealed partial class ClaimPreparationViewModel(
     QueryClaimUseCase queryClaim,
     ListRecipientsUseCase listRecipients,
     GenerateClaimReportsUseCase generateClaimReports,
+    ExportClaimCsvUseCase exportClaimCsv,
     Tsumugi.App.Services.IFileSaveService fileSaveService) : ViewModelBase
 {
     private const string ContextRequiredMessage = "事業所と対象月を選択してください。";
@@ -63,6 +64,11 @@ public sealed partial class ClaimPreparationViewModel(
     /// <summary>「帳票出力」セクション（Task 14）。確定済revisionの有無と受給者一覧は
     /// <see cref="RefreshReportSectionAsync"/>で本ViewModelから都度反映する。</summary>
     public ClaimReportSection ReportSection { get; } = new(generateClaimReports, fileSaveService);
+
+    /// <summary>「国保連CSV出力」セクション（Phase 3-3）。確定済revisionの有無と対象を
+    /// <see cref="RefreshReportSectionAsync"/>で本ViewModelから都度反映する。
+    /// 処理対象年月はセクション側の独立入力（AC3-7）。</summary>
+    public ClaimCsvExportSection CsvExportSection { get; } = new(exportClaimCsv, fileSaveService);
 
     public async Task InitializeAsync(CancellationToken ct = default)
     {
@@ -179,6 +185,7 @@ public sealed partial class ClaimPreparationViewModel(
         ErrorMessage = null;
         CancelCommand.NotifyCanExecuteChanged();
         ReportSection.HasFinalizedRevision = false;
+        CsvExportSection.HasFinalizedRevision = false;
         ReportSection.Recipients.Clear();
         ReportSection.SelectedRecipient = null;
     }
@@ -207,6 +214,11 @@ public sealed partial class ClaimPreparationViewModel(
 
         var hasFinalizedRevision = CanCancel();
         ReportSection.HasFinalizedRevision = hasFinalizedRevision;
+
+        CsvExportSection.OfficeId = context.OfficeId;
+        CsvExportSection.ServiceMonth = context.ServiceMonth;
+        CsvExportSection.Actor = Environment.UserName;
+        CsvExportSection.HasFinalizedRevision = hasFinalizedRevision;
         var latest = hasFinalizedRevision ? History[^1] : null;
 
         ReportSection.Recipients.Clear();

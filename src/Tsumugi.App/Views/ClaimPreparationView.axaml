@@ -134,6 +134,38 @@
                                IsVisible="{Binding ReportSection.LastSavedFileName, Converter={x:Static ObjectConverters.IsNotNull}}" />
                 </StackPanel>
             </Border>
+
+            <Border IsVisible="{Binding CsvExportSection.HasFinalizedRevision}"
+                    Margin="0,8,0,0" Padding="12" BorderThickness="1" BorderBrush="Gray">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="国保連請求CSV出力" FontWeight="Bold" />
+                    <TextBlock Text="処理対象年月はサービス提供年月とは別に指定します。"
+                               TextWrapping="Wrap" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="処理対象 年" />
+                            <NumericUpDown Value="{Binding CsvExportSection.ProcessingYear}"
+                                           Minimum="1900" Maximum="2200" Increment="1"
+                                           FormatString="0" Width="120" />
+                        </StackPanel>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="処理対象 月" />
+                            <NumericUpDown Value="{Binding CsvExportSection.ProcessingMonth}"
+                                           Minimum="1" Maximum="12" Increment="1"
+                                           FormatString="0" Width="100" />
+                        </StackPanel>
+                        <Button Content="請求CSVを保存" VerticalAlignment="Bottom"
+                                Command="{Binding CsvExportSection.GenerateCsvCommand}" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding CsvExportSection.ErrorMessage}" Foreground="Red"
+                               IsVisible="{Binding CsvExportSection.ErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
+                               TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding CsvExportSection.LastSavedFileName, StringFormat='最後に保存: {0}'}"
+                               IsVisible="{Binding CsvExportSection.LastSavedFileName, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                </StackPanel>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

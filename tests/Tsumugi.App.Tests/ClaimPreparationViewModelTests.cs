@@ -179,10 +179,16 @@ public sealed class ClaimPreparationViewModelTests
         var listRecipients = new ListRecipientsUseCase(new Kit.FakeRecipientRepository(Kit.Recipient()));
         var generateClaimReports = new GenerateClaimReportsUseCase(batchStore, new Kit.NoOpClaimReportGenerator());
         var fileSaveService = new Kit.NoOpFileSaveService();
+        var exportClaimCsv = new ExportClaimCsvUseCase(
+            batchStore,
+            new Kit.FixedClaimCsvOfficeContextProvider(),
+            new Kit.NoOpClaimCsvGenerator(),
+            new Kit.NoOpClaimCsvExportRepository(),
+            TimeProvider.System);
 
         var sut = new ClaimPreparationViewModel(
             listOffices, calculateClaim, closeClaim, cancelClaim, queryClaim,
-            listRecipients, generateClaimReports, fileSaveService)
+            listRecipients, generateClaimReports, exportClaimCsv, fileSaveService)
         {
             OfficeId = Kit.OfficeId,
             Year = Kit.Month.Year,
