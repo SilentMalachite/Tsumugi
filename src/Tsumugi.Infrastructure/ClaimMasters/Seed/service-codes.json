@@ -9849,7 +9849,7 @@
         {
           "documentId": "r8-calculation-note",
           "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
-          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
           "evidenceRole": "authoritative",
           "supports": [
             "unit-rule-rounding"
@@ -9938,7 +9938,7 @@
         {
           "documentId": "r8-calculation-note",
           "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
-          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
           "evidenceRole": "authoritative",
           "supports": [
             "unit-rule-rounding"
@@ -10027,7 +10027,7 @@
         {
           "documentId": "r8-calculation-note",
           "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
-          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
           "evidenceRole": "authoritative",
           "supports": [
             "unit-rule-rounding"
@@ -10116,7 +10116,7 @@
         {
           "documentId": "r8-calculation-note",
           "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
-          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
           "evidenceRole": "authoritative",
           "supports": [
             "unit-rule-rounding"
@@ -10205,7 +10205,7 @@
         {
           "documentId": "r8-calculation-note",
           "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
-          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
           "evidenceRole": "authoritative",
           "supports": [
             "unit-rule-rounding"
@@ -10294,7 +10294,7 @@
         {
           "documentId": "r8-calculation-note",
           "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
-          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
           "evidenceRole": "authoritative",
           "supports": [
             "unit-rule-rounding"

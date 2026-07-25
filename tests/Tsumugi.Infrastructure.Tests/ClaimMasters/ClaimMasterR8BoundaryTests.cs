@@ -241,12 +241,66 @@ public sealed class ClaimMasterR8BoundaryTests
         // 「b-addition.r6-06.treatment-improvement.unified.<区分>」と同形）で、世代タグ
         // 「r8-06」はtreatment-improvementの前に置かれる（addition行の
         // 「addition.treatment-improvement.r8.<区分>」とは並び順が異なる）。
+        // Fix Round 1 M-5: 述語が additionKey を参照しない「r8-06のservice-code行が1本でも
+        // あれば通る」チェックだった（6回同じ主張を繰り返すだけで1対1対応を検証していなかった）。
+        // suffixを切り出して個別のキーの存在を主張する。
+        const string additionPrefix = "addition.treatment-improvement.r8.";
         var juneServiceCodeKeys = june.ServiceCodes
             .Select(row => row.Key).ToHashSet(StringComparer.Ordinal);
         foreach (var additionKey in juneTreatmentImprovement)
+        {
+            additionKey.Should().StartWith(additionPrefix,
+                $"加算行のkey命名規約（ADR 0045）から外れている: {additionKey}");
+            var suffix = additionKey[additionPrefix.Length..];
+            var expectedServiceCodeKey = $"b-addition.r8-06.treatment-improvement.{suffix}";
             juneServiceCodeKeys.Should().Contain(
-                key => key.Contains("r8-06.treatment-improvement", StringComparison.Ordinal),
-                $"加算行 {additionKey} に対応するサービスコード行が必要");
+                expectedServiceCodeKey,
+                $"加算行 {additionKey} に対応するサービスコード行 {expectedServiceCodeKey} が必要");
+        }
+    }
+
+    /// <summary>
+    /// Fix Round 1 I-2: R8処遇改善6行の率(percentage)をproduction seedから解決した実データで
+    /// pinする。ADR 0045の決定表がこの期待値の唯一の出典。既存のClaimMaster検証群は
+    /// additions.jsonとservice-codes.json間の構造一致（<c>ValidateAdjustmentComponent</c>）は
+    /// 検証するが、値そのものが105/1000か999/1000かは問わない。<c>ClaimCalculatorGoldenCaseTests</c>
+    /// はDomain層のテストで、依存方向規律によりInfrastructureのseedを読めないため、production seed
+    /// 上の率を直接pinできるのはこのテスト（Infrastructure.Tests）だけである。
+    /// </summary>
+    [Fact]
+    public void R8_treatment_improvement_percentages_match_adr_0045()
+    {
+        var june = Provider.ResolveCalculationMasters(June2026);
+
+        // ADR 0045決定表（唯一の出典）: (Ⅰ)イ0.105/(Ⅰ)ロ0.109/(Ⅱ)イ0.103/(Ⅱ)ロ0.107/(Ⅲ)0.088/(Ⅳ)0.074。
+        var expectedPercentages = new Dictionary<string, decimal>(StringComparer.Ordinal)
+        {
+            ["addition.treatment-improvement.r8.i-i"] = 0.105m,
+            ["addition.treatment-improvement.r8.i-ro"] = 0.109m,
+            ["addition.treatment-improvement.r8.ii-i"] = 0.103m,
+            ["addition.treatment-improvement.r8.ii-ro"] = 0.107m,
+            ["addition.treatment-improvement.r8.iii"] = 0.088m,
+            ["addition.treatment-improvement.r8.iv"] = 0.074m,
+        };
+
+        var actualPercentages = june.UnitAdjustments
+            .Where(row => expectedPercentages.ContainsKey(row.Key))
+            .ToDictionary(
+                row => row.Key,
+                row => row.Amount switch
+                {
+                    PercentageOfTargetAmount percentage => percentage.Percentage,
+                    _ => throw new InvalidOperationException(
+                        $"{row.Key} はpercentage-of-target形式ではない"),
+                },
+                StringComparer.Ordinal);
+
+        actualPercentages.Keys.Should().BeEquivalentTo(
+            expectedPercentages.Keys,
+            "ADR 0045の6区分すべてがseedされていなければならない");
+        foreach (var (key, expected) in expectedPercentages)
+            actualPercentages[key].Should().Be(
+                expected, $"{key} の率はADR 0045決定表の値と一致しなければならない");
     }
 
     private static OfficeClaimProfile ReformTargetProfile(AverageWageBandOption option)

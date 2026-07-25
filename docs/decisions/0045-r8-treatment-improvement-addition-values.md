@@ -164,12 +164,12 @@ field-idは `treatment-improvement`（ADR 0021の既存field-idを継続使用�
 
 ### 確定できなかった区分
 
-| 区分 | 未投入の理由 |
-| --- | --- |
-| 処遇改善(Ⅴ)（14区分。選択番号6・サブ区分⑴〜⒁） | 経過措置（旧制度からの移行者向け）で、率が14通りに枝分かれし、`r8-capability-correction`でのみ選択肢自体の存在が確認できる（base xlsxには欠落）など、対応表の一意性確認に本タスクのスコープを超える追加調査を要する。ADR 0028決定8と同じ整理でスコープ外とする。 |
-| 障害者支援施設variant（465138・465140・465141・465176） | 通常事業所と異なる率（施設向け別建て）を持ち、`OfficeClaimProfile`側に「指定障害者支援施設か」の構造化入力が必要（ADR 0021が既に要求）。本タスクは通常の就労継続支援B型事業所向け6区分に限定し、施設variantは別スライスとする。 |
+| 区分 | 未投入の理由 | 現在の挙動（Fix Round 1 I-4） |
+| --- | --- | --- |
+| 処遇改善(Ⅴ)（14区分。選択番号6・サブ区分⑴〜⒁） | 経過措置（旧制度からの移行者向け）で、率が14通りに枝分かれし、`r8-capability-correction`でのみ選択肢自体の存在が確認できる（base xlsxには欠落）など、対応表の一意性確認に本タスクのスコープを超える追加調査を要する。ADR 0028決定8と同じ整理でスコープ外とする。 | 選択番号6（Ⅴ）に対応するマスタ行が存在しないため、体制届で option 6 を選択した事業所は**警告なしに処遇改善加算が0円になる**（fail-closeではなく無音の未算定）。 |
+| 障害者支援施設variant（465138・465140・465141・465176） | 通常事業所と異なる率（施設向け別建て。例: (Ⅰ)イは1000分の116、通常事業所の105とは異なる）を持ち、`OfficeClaimProfile`側に「指定障害者支援施設か」の構造化入力が必要（ADR 0021が既に要求）。本タスクは通常の就労継続支援B型事業所向け6区分に限定し、施設variantは別スライスとする。 | 「指定障害者支援施設か」を区別する構造化入力自体が存在しないため、指定障害者支援施設が本ADRの通常事業所向け条件（例: option 2＝`capability-treatment-improvement-r8-i-i`）に一致してしまい、**465120@0.105（本来は465138@0.116）で請求が成立し得る**。これは誤った値での**過少請求**であり、エラーは出ない。 |
 
-いずれも部分完了として扱い、投入した6区分だけで「2026-06以降は改定対象外の事業所でも請求が成立しない」という本タスクの主目的（全事業所に効く穴を塞ぐこと）は達成される。
+いずれも部分完了として扱い、投入した6区分だけで「2026-06以降は改定対象外の事業所でも請求が成立しない」という本タスクの主目的（全事業所に効く穴を塞ぐこと）は達成される。一方、上表の「現在の挙動」列が示す2つの経路（無音の未算定・無音の過少請求）はいずれもR6期から続く構造的な既存ギャップであり、本タスクが新設したものではないが、R8では施設との率差が0.105対0.116（R6は0.093対0.104）へ広がった。「宣言された体制届optionに対応する有効なマスタ行が当月に存在しない場合にreadiness警告を出す」という恒久対応と、処遇改善(Ⅴ)・施設variant自体の投入は、いずれも`docs/open-questions.md`へ別項目として起票した（実装はいずれも本タスクの範囲外）。
 
 ### ADR 0028決定7からの引き取り
 
@@ -195,7 +195,20 @@ R8のR8-only additions source inventory（153 targets）を全て一括投入す
 - `465120`・`465121`・`465122`・`465123`はR6・R8の両方で有効期間が重ならない別の`ClaimConditionDefinition`・`UnitAdjustmentMasterRow`・`ServiceCodeMasterRow`から参照される（同一サービスコード値を異なる世代のマスタ行が指す）。これはADR 0021が既に示していた設計（同一コードの版またぎ再利用）であり、本ADRが初めて実データで固定する。
 - `tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimAdditionSeedScopeTests.cs`の`Unified_treatment_improvement_rows_apply_only_between_2024_06_and_2026_05`は、2026-06の`465120`等除外主張を削除した（コード再利用が判明したため、削除しないと実データに対して恒久的に失敗する）。新設した`R8_treatment_improvement_rows_apply_only_from_2026_06`が、正しい継続/新設の組合せ（新設は465174・465175だけ）を固定する。
 - `tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimMasterR8BoundaryTests.cs`の`Treatment_improvement_additions_lapse_at_june_2026_until_their_r8_values_land`を`Treatment_improvement_additions_switch_generations_at_june_2026`へ置き換えた。「R6行が消える」ことと「R8行が現れる」ことの両方を機械的に固定する。
-- 処遇改善(Ⅴ)・障害者支援施設variantの投入は`docs/open-questions.md`に起票し、別スライスとして扱う。
+- 処遇改善(Ⅴ)・障害者支援施設variantの投入は`docs/open-questions.md`へ**未チェック項目として**起票し、別スライスとして扱う（Fix Round 1 I-3。当初は既存項目を部分クローズしただけで新規`[ ]`項目が無く、未解決作業が一覧から消えていた）。
+- 「宣言された体制届optionに対応する有効なマスタ行が当月に存在しない場合にreadiness警告を出す」という恒久対応も、別の未チェック項目として`docs/open-questions.md`へ起票した（Fix Round 1 I-4。実装は本タスクの範囲外）。
+- `tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimMasterR8BoundaryTests.cs`へ`R8_treatment_improvement_percentages_match_adr_0045`を追加し、本ADRが投入した6区分の率をproduction seedから解決した実データでpinした（Fix Round 1 I-2。追加前は`percentage`を1桁変えてもClaimMaster全テストが緑のままだった）。
+
+## Fix Round 1（コーディネーターレビュー対応・2026-07-26）
+
+opusレビューでImportant 4件・Minor 2件の指摘を受けた。**コード再利用（465120等の継続使用）の判断自体とページ特定の統制は正当と評価された**（ADR 0021の既存記録との独立一致、「改正前」欄と既存seedの一致という2点が確証バイアス対策として機能した）。指摘は主にその周辺の検証強度の不足だった。
+
+- **I-1**: `R8_treatment_improvement_rows_apply_only_from_2026_06`が同一ファイル内のリテラル配列同士（`R8TreatmentImprovementCodes.Except(UnifiedTreatmentImprovementCodes)`）を比較しており、seedを一切読まない恒真式になっていた。production seedから解決した実データ（`AdditionRows`）どうしの比較へ差し替え、2026-06のコード集合を期待6コードとの完全一致（上限も固定）で検証するようにした。
+- **I-2**: 投入した6区分の率に機械検証が1つも無かった（`percentage`を1桁変えてもClaimMaster全テストが緑のまま）。`ClaimMasterR8BoundaryTests.R8_treatment_improvement_percentages_match_adr_0045`を新設し、production seedから解決した率を本ADRの決定表とpinした。
+- **I-3**: `docs/open-questions.md`の既存項目を部分クローズしただけで、処遇改善(Ⅴ)・施設variant用の新規`[ ]`項目が無かった。2件の未チェック項目を新規に起票した（対象・確定に必要な資料・現在の挙動・解除条件を明記）。
+- **I-4**: 「確定できなかった区分」表が未投入の理由だけを書き、その場合の実際の実行時挙動（無音の未算定・無音の過少請求）を書いていなかった。「現在の挙動」列を追加した。
+- **M-5**: `ClaimMasterR8BoundaryTests`のサービスコード行対応確認ループが`additionKey`を参照せず、実質的に「r8-06のservice-code行が1本でもあれば通る」チェックを6回繰り返すだけだった。suffixを切り出して個別のキー一致を確認する形へ修正した。
+- **M-6**: `r8-calculation-note`のlocatorだけ物理／印字頁の区別が無かった。他のR8 locatorと同じ形式（`物理8〜9頁（印字頁番号も8・9で物理頁と一致）`）へ揃えた。
 
 ## 再検証手順
 
