@@ -117,6 +117,12 @@ public sealed record RecipientClaimAdditionLine(
 /// <param name="AdditionLines">
 /// 加算明細行（ADR 0028）。<see cref="TotalUnits"/>は基本報酬＋本明細行の合算値。
 /// </param>
+/// <param name="AbsenceSupportBilledDays">
+/// 欠席時対応加算を実際に算定した日数（マスタの月次上限で cap した後の回数）。
+/// 請求明細書の「サービス利用日数」は、本体報酬を算定しない日に加算のみを算定した場合も
+/// 1 日として数え、欠席時対応加算もその対象になるため（事業所編 明細書 集計欄の項目説明）、
+/// <see cref="BilledDays"/>（本体報酬算定日数）とは別に持つ必要がある。
+/// </param>
 public sealed record RecipientClaimResult(
     Guid RecipientId,
     string ServiceCode,
@@ -125,7 +131,8 @@ public sealed record RecipientClaimResult(
     int TotalCostYen,
     int BenefitYen,
     int BurdenYen,
-    IReadOnlyList<RecipientClaimAdditionLine> AdditionLines);
+    IReadOnlyList<RecipientClaimAdditionLine> AdditionLines,
+    int AbsenceSupportBilledDays = 0);
 
 public sealed record ClaimCalculationResult(
     IReadOnlyList<RecipientClaimResult> Details,
@@ -216,7 +223,8 @@ public static class ClaimCalculator
 
         // ADR 0025: 月次給付単位数は整数合算（丸めなし）。
         var baseUnits = checked(resolved.UnitsPerDay * source.BilledDays);
-        var additionLines = BuildAdditionLines(resolved, additions, countBindings, source, baseUnits);
+        var additionLines = BuildAdditionLines(
+            resolved, additions, countBindings, source, baseUnits, out var absenceSupportBilledDays);
         var totalUnits = additionLines.Aggregate(baseUnits, (sum, line) => checked(sum + line.Units));
 
         // ADR 0025: 総費用額＝給付単位数×地域単価の円未満切捨て。
@@ -254,7 +262,8 @@ public static class ClaimCalculator
             totalCostYen,
             benefitYen,
             burdenYen,
-            additionLines);
+            additionLines,
+            absenceSupportBilledDays);
     }
 
     /// <summary>
@@ -271,8 +280,10 @@ public static class ClaimCalculator
         IReadOnlyList<ResolvedUnitAddition> additions,
         IReadOnlyDictionary<string, ClaimCountMetric>? countBindings,
         RecipientClaimSource source,
-        int baseUnits)
+        int baseUnits,
+        out int absenceSupportBilledDays)
     {
+        absenceSupportBilledDays = 0;
         var lines = new List<RecipientClaimAdditionLine>();
         var targetComponents = new List<(IReadOnlyList<string> Selectors, int Units)>
         {
@@ -288,7 +299,7 @@ public static class ClaimCalculator
                 FixedUnitsAmount fixedAmount =>
                     FixedUnits(fixedAmount, addition, source),
                 UnitsPerCountAmount perCount =>
-                    UnitsPerCount(perCount, addition, countBindings, source),
+                    UnitsPerCount(perCount, addition, countBindings, source, ref absenceSupportBilledDays),
                 _ => throw new ClaimCalculationException(ClaimCalculationErrorCode.UnsupportedAdditionRule),
             };
             if (units == 0) continue;
@@ -341,7 +352,8 @@ public static class ClaimCalculator
         UnitsPerCountAmount amount,
         ResolvedUnitAddition addition,
         IReadOnlyDictionary<string, ClaimCountMetric>? countBindings,
-        RecipientClaimSource source)
+        RecipientClaimSource source,
+        ref int absenceSupportBilledDays)
     {
         if (amount.UnitsPerCount <= 0 || amount.MonthlyCountCap is < 1)
             throw new ClaimCalculationException(ClaimCalculationErrorCode.InvalidInput);
@@ -366,6 +378,11 @@ public static class ClaimCalculator
         };
         if (amount.MonthlyCountCap is { } cap)
             count = Math.Min(count, cap);
+
+        // 欠席時対応加算は cap 後の回数がそのまま「加算のみを算定した日数」になる
+        // （1 日 1 回・実効DailyRecordのAttendance=AbsenceSupport日から数えるため）。
+        if (metric == ClaimCountMetric.AbsenceSupport)
+            absenceSupportBilledDays = count;
 
         return checked(amount.UnitsPerCount * count);
     }

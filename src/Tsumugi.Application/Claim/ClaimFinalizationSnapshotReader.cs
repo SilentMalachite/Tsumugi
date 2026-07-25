@@ -65,6 +65,9 @@ public static class ClaimFinalizationSnapshotReader
             // Phase 3-3 で追加。これより前に確定した snapshot は本プロパティを持たないため任意扱いにし、
             // 契約情報を要する CSV 項目は生成側で fail-close させる（黙って空欄で出さない）。
             ContractedProvider: ParseContractedProvider(root),
+            // Phase 3-3 で追加。これより前に確定した snapshot は持たないため任意扱いにし、
+            // サービス利用日数を要する項目は生成側で fail-close させる。
+            ServiceUsageDays: OptionalInt(root, "serviceUsageDays"),
             DailyRecords: ParseDailyRecords(RequireArray(root, "dailyRecords")),
             IntensiveSupportEpisode: ParseIntensiveSupportEpisode(RequireProperty(root, "intensiveSupportEpisode")),
             ClaimLines: ParseClaimLines(RequireArray(root, "claimLines")),

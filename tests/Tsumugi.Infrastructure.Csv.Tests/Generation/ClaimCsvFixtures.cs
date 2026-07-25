@@ -61,6 +61,8 @@ internal static class ClaimCsvFixtures
             Day(new DateOnly(2026, 7, 7)),
         ],
         BilledDays: 5,
+        // 欠席時対応加算のみの日を 1 日含む（サービス利用日数 = 本体5日 + 加算のみ1日）。
+        ServiceUsageDays: 6,
         TotalUnits: 3_000,
         TotalCostYen: 30_000,
         BenefitYen: 27_000,

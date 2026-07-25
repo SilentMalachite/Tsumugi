@@ -33,7 +33,15 @@ public sealed record ClaimFinalizationSnapshot(
     /// 確定時点の「サービス事業者記入欄」（自事業所との契約）。Phase 3-3 で追加したため、
     /// これより前に確定した snapshot では null になる。canonical JSON 上の位置は Writer が決める。
     /// </summary>
-    ClaimFinalizationContractedProviderSnapshot? ContractedProvider = null);
+    ClaimFinalizationContractedProviderSnapshot? ContractedProvider = null,
+    /// <summary>
+    /// 請求明細書 集計欄の「サービス利用日数」（<c>provider:J121:04:009</c>）。事業所編の項目説明は
+    /// 「本体報酬を算定しない日において、各種加算のみを算定した場合も 1 日とカウントする。
+    /// 上限額管理加算、欠席時対応加算等も 1 日とカウントする」と定めるため、
+    /// <see cref="BilledDays"/>（本体報酬算定日数）とは別の値になる。
+    /// Phase 3-3 で追加したため、これより前に確定した snapshot では null になる。
+    /// </summary>
+    int? ServiceUsageDays = null);
 
 public sealed record ClaimFinalizationOfficeSnapshot(
     string OfficeNumber,

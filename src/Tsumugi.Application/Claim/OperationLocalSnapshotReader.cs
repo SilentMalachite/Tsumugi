@@ -106,6 +106,10 @@ public sealed class OperationLocalSnapshotReader(
             calculationResult.TotalCostYen,
             calculationResult.BenefitYen,
             calculationResult.BurdenYen,
+            // サービス利用日数（provider:J121:04:009）＝本体報酬算定日数＋加算のみを算定した日数。
+            // 事業所編の項目説明により欠席時対応加算のみの日も 1 日として数える。
+            // 上限額管理加算のみの日は本アプリが日付を持たないため 0 として扱う
+            // （docs/open-questions.md の未確定事項）。
             ownContract is null
                 ? null
                 : new ClaimFinalizationContractedProviderSnapshot(
@@ -113,7 +117,8 @@ public sealed class OperationLocalSnapshotReader(
                     ownContract.ContractDate,
                     ownContract.TerminationDate,
                     ownContract.CertificateEntryNumber,
-                    ownContract.FirstServiceDate));
+                    ownContract.FirstServiceDate),
+            calculationResult.BilledDays + calculationResult.AbsenceSupportBilledDays);
     }
 
     private static ClaimFinalizationOfficeSnapshot BuildOfficeSnapshot(Office office)

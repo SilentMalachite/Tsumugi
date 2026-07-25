@@ -252,8 +252,12 @@ internal sealed class ClaimCsvFieldResolver
                     && row.IsWithin(scope.Row.RowKey)));
         }
 
-        // 算定日数は確定時に snapshot へ焼き込んだ値（BilledDays）を正本にする。
-        // 現行の日次記録から再集計すると、確定時点の帳票・CSV と食い違いうる。
+        // 日数は確定時に snapshot へ焼き込んだ値を正本にする。現行の日次記録から再集計すると、
+        // 確定時点の帳票・CSV と食い違いうる。
+        // 公式の定義は 2 つの項目で異なる（事業所編）:
+        //   provider:J121:02:010「利用日数」        … 欠席時対応加算のみの日を<b>除く</b>（③利用日数の設定方法）
+        //   provider:J121:04:009「サービス利用日数」 … 欠席時対応加算のみの日も<b>1 日として数える</b>（項目説明）
+        // 前者は BilledDays（本体報酬算定日数）、後者は ServiceUsageDays を用いる。
         if (selector.StartsWith("contract(", StringComparison.Ordinal)
             || string.Equals(selector, "DailyRecord.ServiceDate", StringComparison.Ordinal))
         {
@@ -263,7 +267,17 @@ internal sealed class ClaimCsvFieldResolver
                 throw Unresolvable(scope.FieldId, $"count window '{window}' is outside the finalized snapshot");
             }
 
-            return ClaimCsvValue.FromNumber(scope.RequireRecipient(selector).BilledDays);
+            var recipient = scope.RequireRecipient(selector);
+            if (!selector.StartsWith("contract(", StringComparison.Ordinal))
+            {
+                return ClaimCsvValue.FromNumber(recipient.BilledDays);
+            }
+
+            return recipient.ServiceUsageDays is { } serviceUsageDays
+                ? ClaimCsvValue.FromNumber(serviceUsageDays)
+                : throw Unresolvable(
+                    scope.FieldId,
+                    "the finalized snapshot does not carry the official service usage day count");
         }
 
         // official180DayWindow（施設外支援 累計）は就労系留意事項通知（1(1)①）により

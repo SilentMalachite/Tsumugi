@@ -272,7 +272,9 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
                 TerminationDate: null,
                 CertificateEntryNumber: 1,
                 FirstServiceDate: new DateOnly(2026, 4, 1))
-            : null);
+            : null,
+        // サービス利用日数（provider:J121:04:009）は本体報酬算定日数＋加算のみ算定日数。
+        ServiceUsageDays: withContract ? 5 : null);
 
     private static ClaimFinalizationDailyRecordSnapshot Day(ServiceMonth month, int day) => new(
         new DateOnly(month.Year, month.Month, day),

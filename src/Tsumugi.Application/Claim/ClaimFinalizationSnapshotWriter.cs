@@ -35,6 +35,7 @@ public static class ClaimFinalizationSnapshotWriter
             WriteCertificate(writer, snapshot.Certificate);
             WriteClaimInput(writer, snapshot.ClaimInput);
             WriteContractedProvider(writer, snapshot.ContractedProvider);
+            WriteNumberOrNull(writer, "serviceUsageDays", snapshot.ServiceUsageDays);
             WriteDailyRecords(writer, snapshot.DailyRecords);
             WriteIntensiveSupportEpisode(writer, snapshot.IntensiveSupportEpisode);
             WriteClaimLines(writer, snapshot.ClaimLines);

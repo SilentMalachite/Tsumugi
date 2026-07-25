@@ -52,6 +52,45 @@ public sealed class ClaimCsvAmountAndCountTests
         act.Should().NotThrow();
     }
 
+    // NOTE(teeth): 「利用日数」と「サービス利用日数」は公式に別定義（事業所編）。
+    //   provider:J121:02:010 利用日数        … 欠席時対応加算のみの日を除く（③利用日数の設定方法）
+    //   provider:J121:04:009 サービス利用日数 … 欠席時対応加算のみの日も 1 日として数える（項目説明）
+    // 両方に同じ値（BilledDays）を出す実装へ戻すと、欠席時対応加算を算定した月の
+    // サービス利用日数が過少になる。
+    [Fact]
+    public void The_two_day_counts_follow_their_own_official_definitions()
+    {
+        var dto = ClaimCsvFixtures.Normal();
+        var recipient = dto.Recipients[0];
+
+        var contractInfo = Tokens(dto, "J121", "02");
+        var aggregate = Tokens(dto, "J121", "04");
+
+        contractInfo[TokenIndexOf("provider:J121:02:010")]
+            .Should().Be(recipient.BilledDays.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        aggregate[TokenIndexOf("provider:J121:04:009")]
+            .Should().Be(recipient.ServiceUsageDays!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        // 欠席時対応加算のみの日がある月は両者が一致しない。
+        aggregate[TokenIndexOf("provider:J121:04:009")]
+            .Should().NotBe(contractInfo[TokenIndexOf("provider:J121:02:010")]);
+    }
+
+    // NOTE(teeth): 確定 snapshot がサービス利用日数を持たない（Phase 3-3 より前の確定分）ときは、
+    // 本体報酬算定日数で代用せず fail-close する。
+    [Fact]
+    public void A_snapshot_without_the_official_service_usage_day_count_fails_closed()
+    {
+        var dto = ClaimCsvFixtures.Normal() with
+        {
+            Recipients = [ClaimCsvFixtures.Recipient("1234567890") with { ServiceUsageDays = null }],
+        };
+
+        var act = () => new ClaimCsvGenerator(Catalog).Generate(dto);
+
+        act.Should().Throw<Tsumugi.Application.Claim.ClaimCsvExportFailedException>()
+            .Which.FieldId.Should().Be("provider:J121:04:009");
+    }
+
     // NOTE(teeth): 送迎加算の実績は片道換算（ADR 0028 決定5）。往復は 1 日でも 2 回。
     // 日数で数えると往復日が過少になる。
     [Theory]

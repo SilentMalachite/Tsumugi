@@ -34,6 +34,15 @@ public sealed record ClaimCsvOfficeDto(
     int UnitPriceMilliYen);
 
 /// <param name="SortKey">受給者の安定ソートキー（受給者証番号）。決定論の要。</param>
+/// <param name="BilledDays">
+/// 本体報酬を算定した日数。明細書 契約情報レコードの「利用日数」（<c>provider:J121:02:010</c>）は
+/// 事業所編③により<b>欠席時対応加算のみの日を除く</b>ため、この値を用いる。
+/// </param>
+/// <param name="ServiceUsageDays">
+/// 明細書 集計欄の「サービス利用日数」（<c>provider:J121:04:009</c>）。事業所編の項目説明により
+/// <b>欠席時対応加算のみの日も 1 日として数える</b>ため <paramref name="BilledDays"/> とは別の値。
+/// 確定 snapshot が持たない場合（Phase 3-3 より前の確定分）は null で、生成側が fail-close する。
+/// </param>
 /// <param name="UpperLimitManagementResultCode">上限管理結果の公式コード値（1/2/3）。</param>
 public sealed record ClaimCsvRecipientDto(
     string SortKey,
@@ -55,6 +64,7 @@ public sealed record ClaimCsvRecipientDto(
     IReadOnlyList<ClaimCsvServiceLineDto> ServiceLines,
     IReadOnlyList<ClaimCsvDailyRecordDto> DailyRecords,
     int BilledDays,
+    int? ServiceUsageDays,
     int TotalUnits,
     int TotalCostYen,
     int BenefitYen,

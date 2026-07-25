@@ -153,6 +153,7 @@ public sealed class ExportClaimCsvUseCase(
             .OrderBy(record => record.ServiceDate)
             .Select(MapDailyRecord)],
         BilledDays: snapshot.BilledDays,
+        ServiceUsageDays: snapshot.ServiceUsageDays,
         TotalUnits: detail.TotalUnits,
         TotalCostYen: detail.TotalCostYen,
         BenefitYen: detail.BenefitYen,
