@@ -1,0 +1,3489 @@
+{
+  "schemaVersion": 1,
+  "extractorVersion": 1,
+  "sourceDocumentId": "provider-r7-10",
+  "sourceSha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+  "records": [
+    {
+      "recordId": "provider:J111:01",
+      "sourcePages": [
+        17
+      ],
+      "items": [
+        {
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "officialAttribute": "英数",
+          "byteLength": 4,
+          "officialNote": "交換情報識別番号を設定する。",
+          "remark": "※Ｂ"
+        },
+        {
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "officialAttribute": "コード値",
+          "byteLength": 2,
+          "officialNote": "01を設定する（基本情報レコード）",
+          "remark": ""
+        },
+        {
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "サービスを提供した年月（西暦年月YYYYMMを設定する）",
+          "remark": "※Ｙ"
+        },
+        {
+          "position": 4,
+          "officialName": "市町村番号",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "受給者証に記載された市町村番号（ﾁｪｯｸﾃﾞｼﾞｯﾄ1桁含む）",
+          "remark": "※Ｃ※１"
+        },
+        {
+          "position": 5,
+          "officialName": "事業所番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "サービスを提供した事業所番号",
+          "remark": "※Ｃ"
+        },
+        {
+          "position": 6,
+          "officialName": "請求金額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "請求金額を設定する。請求金額＝合計給付費請求額＋合計特別対策費請求額＋合計自治体助成額。",
+          "remark": ""
+        },
+        {
+          "position": 7,
+          "officialName": "件数",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "小計件数",
+          "remark": "※４"
+        },
+        {
+          "position": 8,
+          "officialName": "単位数",
+          "officialAttribute": "数値",
+          "byteLength": 9,
+          "officialNote": "小計単位数",
+          "remark": "※４"
+        },
+        {
+          "position": 9,
+          "officialName": "費用合計",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "小計費用合計",
+          "remark": "※４"
+        },
+        {
+          "position": 10,
+          "officialName": "給付費請求額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "小計給付費請求額",
+          "remark": "※４"
+        },
+        {
+          "position": 11,
+          "officialName": "特別対策費請求額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "小計特別対策費請求額",
+          "remark": "※２※７※８"
+        },
+        {
+          "position": 12,
+          "officialName": "利用者負担額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "小計利用者負担額",
+          "remark": "※４※５"
+        },
+        {
+          "position": 13,
+          "officialName": "自治体助成額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "小計自治体助成額",
+          "remark": "※２"
+        },
+        {
+          "position": 14,
+          "officialName": "件数",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "小計件数",
+          "remark": "※２"
+        },
+        {
+          "position": 15,
+          "officialName": "費用合計",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "小計費用合計",
+          "remark": "※２"
+        },
+        {
+          "position": 16,
+          "officialName": "給付費請求額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "小計給付費請求額",
+          "remark": "※２"
+        },
+        {
+          "position": 17,
+          "officialName": "件数",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "合計件数",
+          "remark": "※３"
+        },
+        {
+          "position": 18,
+          "officialName": "単位数",
+          "officialAttribute": "数値",
+          "byteLength": 9,
+          "officialNote": "合計単位数",
+          "remark": "※４"
+        },
+        {
+          "position": 19,
+          "officialName": "費用合計",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "合計費用合計",
+          "remark": "※３"
+        },
+        {
+          "position": 20,
+          "officialName": "給付費請求額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "合計給付費請求額",
+          "remark": "※３"
+        },
+        {
+          "position": 21,
+          "officialName": "特別対策費請求額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "合計特別対策費請求額",
+          "remark": "※２※７※８"
+        },
+        {
+          "position": 22,
+          "officialName": "利用者負担額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "合計利用者負担額",
+          "remark": "※４※５"
+        },
+        {
+          "position": 23,
+          "officialName": "自治体助成額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "合計自治体助成額",
+          "remark": "※２"
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J111:02",
+      "sourcePages": [
+        18
+      ],
+      "items": [
+        {
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "officialAttribute": "英数",
+          "byteLength": 4,
+          "officialNote": "当情報の内容を識別するための番号",
+          "remark": "※B"
+        },
+        {
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "officialAttribute": "コード値",
+          "byteLength": 2,
+          "officialNote": "02を設定する（明細情報レコード）",
+          "remark": ""
+        },
+        {
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "サービスを提供した年月（西暦年月YYYYMMを設定する）",
+          "remark": "※Y"
+        },
+        {
+          "position": 4,
+          "officialName": "市町村番号",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "受給者証に記載された市町村番号（ﾁｪｯｸﾃﾞｼﾞｯﾄ1桁含む）",
+          "remark": "※C※３"
+        },
+        {
+          "position": 5,
+          "officialName": "事業所番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "サービスを提供した事業所番号",
+          "remark": "※C"
+        },
+        {
+          "position": 6,
+          "officialName": "給付種別",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "請求書における給付種別を表す。1:介護給付費・訓練等給付費、地域相談支援給付費、特例介護給付費・特例訓練等給付費2:特定障害者特別給付費、高額障害福祉サービス費3:処遇改善助成金",
+          "remark": "※６※９"
+        },
+        {
+          "position": 7,
+          "officialName": "サービス種類コード",
+          "officialAttribute": "英数",
+          "byteLength": 2,
+          "officialNote": "サービス種類コード",
+          "remark": "※C"
+        },
+        {
+          "position": 8,
+          "officialName": "件数",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "サービス種類毎の明細書の件数",
+          "remark": "※４"
+        },
+        {
+          "position": 9,
+          "officialName": "単位数",
+          "officialAttribute": "数値",
+          "byteLength": 9,
+          "officialNote": "サービス種類毎の単位数",
+          "remark": ""
+        },
+        {
+          "position": 10,
+          "officialName": "費用合計",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "サービス種類毎の費用の額",
+          "remark": "※４"
+        },
+        {
+          "position": 11,
+          "officialName": "給付費請求額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "サービス種類毎の給付費請求額",
+          "remark": "※４"
+        },
+        {
+          "position": 12,
+          "officialName": "特別対策費請求額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "サービス種類毎の特別対策費請求額",
+          "remark": "※８※１０"
+        },
+        {
+          "position": 13,
+          "officialName": "利用者負担額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "サービス種類毎の利用者負担額。自治体助成がある場合、明細書の決定利用者負担額から自治体助成額を控除した額を設定する。",
+          "remark": "※５"
+        },
+        {
+          "position": 14,
+          "officialName": "自治体助成額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "サービス種類毎の自治体助成額",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J121:01",
+      "sourcePages": [
+        20,
+        21
+      ],
+      "items": [
+        {
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "officialAttribute": "英数",
+          "byteLength": 4,
+          "officialNote": "当情報の内容を識別するための番号",
+          "remark": "※B"
+        },
+        {
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "officialAttribute": "コード値",
+          "byteLength": 2,
+          "officialNote": "01を設定する（基本情報レコード）",
+          "remark": ""
+        },
+        {
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "サービスを提供した年月（西暦年月YYYYMMを設定する）",
+          "remark": "※Y"
+        },
+        {
+          "position": 4,
+          "officialName": "市町村番号",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "受給者証に記載された市町村番号（ﾁｪｯｸﾃﾞｼﾞｯﾄ1桁含む）",
+          "remark": "※C"
+        },
+        {
+          "position": 5,
+          "officialName": "事業所番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "サービスを提供した事業所番号",
+          "remark": "※C"
+        },
+        {
+          "position": 6,
+          "officialName": "受給者証番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "受給者証に記載されている受給者証番号",
+          "remark": "※C"
+        },
+        {
+          "position": 7,
+          "officialName": "助成自治体番号",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "助成自治体がある場合、市町村番号を設定",
+          "remark": "※C"
+        },
+        {
+          "position": 8,
+          "officialName": "支給決定者氏名カナ",
+          "officialAttribute": "英数",
+          "byteLength": 25,
+          "officialNote": "支給決定者カナ氏名",
+          "remark": ""
+        },
+        {
+          "position": 9,
+          "officialName": "支給決定児童氏名カナ",
+          "officialAttribute": "英数",
+          "byteLength": 25,
+          "officialNote": "支給決定児童カナ氏名",
+          "remark": ""
+        },
+        {
+          "position": 10,
+          "officialName": "地域区分コード",
+          "officialAttribute": "コード値",
+          "byteLength": 2,
+          "officialNote": "地域区分コードを設定",
+          "remark": "※C"
+        },
+        {
+          "position": 11,
+          "officialName": "就労継続支援A型事業者負担減免措置実施",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:無し2:有り",
+          "remark": ""
+        },
+        {
+          "position": 12,
+          "officialName": "利用者負担上限月額①",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "所得区分に応じた利用者負担上限月額を設定",
+          "remark": ""
+        },
+        {
+          "position": 13,
+          "officialName": "就労継続支援A型減免対象者",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:無し2:有り",
+          "remark": ""
+        },
+        {
+          "position": 14,
+          "officialName": "障害支援区分コード",
+          "officialAttribute": "英数",
+          "byteLength": 2,
+          "officialNote": "月の末日における障害支援区分コードを設定",
+          "remark": "※C※５"
+        },
+        {
+          "position": 15,
+          "officialName": "指定事業所番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "上限額管理事業所の事業所番号を設定",
+          "remark": "※C※２"
+        },
+        {
+          "position": 16,
+          "officialName": "管理結果",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "上限額管理結果票の管理結果を設定",
+          "remark": "※１※２"
+        },
+        {
+          "position": 17,
+          "officialName": "管理結果額",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "上限額管理結果票の管理結果額を設定",
+          "remark": "※２"
+        },
+        {
+          "position": 18,
+          "officialName": "指定事業所番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "連絡調整を行った日中介護事業所の事業所番号を設定",
+          "remark": ""
+        },
+        {
+          "position": 19,
+          "officialName": "当該事業所への通所日数",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "日中介護事業所への通所日数を設定",
+          "remark": ""
+        },
+        {
+          "position": 20,
+          "officialName": "給付単位数",
+          "officialAttribute": "数値",
+          "byteLength": 9,
+          "officialNote": "単位数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 21,
+          "officialName": "総費用額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "サービスの総費用額の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 22,
+          "officialName": "上限月額調整（①②の内少ない数）",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "上限月額調整（①②の内少ない数）の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 23,
+          "officialName": "事業者減免額",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "A型事業者減免額を設定",
+          "remark": ""
+        },
+        {
+          "position": 24,
+          "officialName": "減免後利用者負担額",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "A型減免後の利用者負担額を設定",
+          "remark": ""
+        },
+        {
+          "position": 25,
+          "officialName": "調整後利用者負担額",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "調整後利用者負担額を設定",
+          "remark": ""
+        },
+        {
+          "position": 26,
+          "officialName": "上限額管理後利用者負担額",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "上限額管理後利用者負担額",
+          "remark": "※２"
+        },
+        {
+          "position": 27,
+          "officialName": "決定利用者負担額",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "算定した結果の利用者負担額を設定する（自治体助成分請求額を控除する前の利用者負担額である）。",
+          "remark": ""
+        },
+        {
+          "position": 28,
+          "officialName": "給付費",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "給付費の請求額を設定",
+          "remark": ""
+        },
+        {
+          "position": 29,
+          "officialName": "高額障害福祉サービス費",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "高額障害福祉サービス費を設定",
+          "remark": ""
+        },
+        {
+          "position": 30,
+          "officialName": "特別対策費",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "サービス提供年月が平成24年4月以降は、新体系定着支援に係る請求額を設定サービス提供年月が平成21年10月以降は、事業運営安定化および、移行時運営安定化に係る請求額を設定サービス提供年月が平成21年9月以前は、特別対策費である激変緩和加算に係る請求額を設定",
+          "remark": "※３※４"
+        },
+        {
+          "position": 31,
+          "officialName": "自治体助成分請求額",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "利用者負担額のうち自治体が助成する額を設定",
+          "remark": ""
+        },
+        {
+          "position": 32,
+          "officialName": "算定日額",
+          "officialAttribute": "数値",
+          "byteLength": 4,
+          "officialNote": "算定する日額を設定",
+          "remark": ""
+        },
+        {
+          "position": 33,
+          "officialName": "日数",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "算定する日数を設定",
+          "remark": ""
+        },
+        {
+          "position": 34,
+          "officialName": "給付費請求額",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "給付費請求額を設定",
+          "remark": ""
+        },
+        {
+          "position": 35,
+          "officialName": "実費算定額",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "実費算定額を設定",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J121:02",
+      "sourcePages": [
+        22
+      ],
+      "items": [
+        {
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "officialAttribute": "英数",
+          "byteLength": 4,
+          "officialNote": "当情報の内容を識別するための番号",
+          "remark": "※B"
+        },
+        {
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "officialAttribute": "コード値",
+          "byteLength": 2,
+          "officialNote": "02を設定する（日数情報レコード）",
+          "remark": ""
+        },
+        {
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "サービスを提供した年月（西暦年月YYYYMMを設定する）",
+          "remark": "※Y"
+        },
+        {
+          "position": 4,
+          "officialName": "市町村番号",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "受給者証に記載された市町村番号（ﾁｪｯｸﾃﾞｼﾞｯﾄ1桁含む）",
+          "remark": "※C"
+        },
+        {
+          "position": 5,
+          "officialName": "事業所番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "サービスを提供した事業所番号",
+          "remark": "※C"
+        },
+        {
+          "position": 6,
+          "officialName": "受給者証番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "受給者証に記載されている受給者証番号",
+          "remark": "※C"
+        },
+        {
+          "position": 7,
+          "officialName": "サービス種類コード",
+          "officialAttribute": "英数",
+          "byteLength": 2,
+          "officialNote": "サービス種類コード2桁を設定",
+          "remark": "※C"
+        },
+        {
+          "position": 8,
+          "officialName": "開始年月日",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "サービス種類毎の開始年月日（入所年月日等）（西暦年月日YYYYMMDDを設定する）",
+          "remark": "※Ｙ"
+        },
+        {
+          "position": 9,
+          "officialName": "終了年月日",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "サービス種類毎の終了年月日（退所年月日等）（西暦年月日YYYYMMDDを設定する）",
+          "remark": "※Ｙ"
+        },
+        {
+          "position": 10,
+          "officialName": "利用日数",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "サービス種類毎に利用日数を設定。",
+          "remark": ""
+        },
+        {
+          "position": 11,
+          "officialName": "入院日数",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "サービス種類毎に入院日数を設定。",
+          "remark": "※１"
+        },
+        {
+          "position": 12,
+          "officialName": "外泊日数",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "サービス種類毎に外泊日数を設定。",
+          "remark": "※１"
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J121:03",
+      "sourcePages": [
+        31
+      ],
+      "items": [
+        {
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "officialAttribute": "英数",
+          "byteLength": 4,
+          "officialNote": "当情報の内容を識別するための番号",
+          "remark": "※B"
+        },
+        {
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "officialAttribute": "コード値",
+          "byteLength": 2,
+          "officialNote": "03を設定する（明細情報レコード）",
+          "remark": ""
+        },
+        {
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "サービスを提供した年月（西暦年月YYYYMMを設定する）",
+          "remark": "※Y"
+        },
+        {
+          "position": 4,
+          "officialName": "市町村番号",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "受給者証に記載された市町村番号（ﾁｪｯｸﾃﾞｼﾞｯﾄ1桁含む）",
+          "remark": "※C"
+        },
+        {
+          "position": 5,
+          "officialName": "事業所番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "サービスを提供した事業所番号",
+          "remark": "※C"
+        },
+        {
+          "position": 6,
+          "officialName": "受給者証番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "受給者証に記載されている受給者証番号",
+          "remark": "※C"
+        },
+        {
+          "position": 7,
+          "officialName": "サービスコード",
+          "officialAttribute": "英数",
+          "byteLength": 6,
+          "officialNote": "サービスコード6桁",
+          "remark": "※C"
+        },
+        {
+          "position": 8,
+          "officialName": "単位数",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "サービスコードごとの単位数",
+          "remark": "※２"
+        },
+        {
+          "position": 9,
+          "officialName": "回数",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "サービスコードごとの回数",
+          "remark": ""
+        },
+        {
+          "position": 10,
+          "officialName": "サービス単位数",
+          "officialAttribute": "数値",
+          "byteLength": 9,
+          "officialNote": "サービスコードごとの算定額",
+          "remark": "※２"
+        },
+        {
+          "position": 11,
+          "officialName": "摘要",
+          "officialAttribute": "漢字",
+          "byteLength": 100,
+          "officialNote": "サービスコードごとの摘要",
+          "remark": "※１"
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J121:04",
+      "sourcePages": [
+        32,
+        33
+      ],
+      "items": [
+        {
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "officialAttribute": "英数",
+          "byteLength": 4,
+          "officialNote": "当情報の内容を識別するための番号",
+          "remark": "※B"
+        },
+        {
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "officialAttribute": "コード値",
+          "byteLength": 2,
+          "officialNote": "04を設定する（集計情報レコード）",
+          "remark": ""
+        },
+        {
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "サービスを提供した年月（西暦年月YYYYMMを設定する）",
+          "remark": "※Y"
+        },
+        {
+          "position": 4,
+          "officialName": "市町村番号",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "受給者証に記載された市町村番号（ﾁｪｯｸﾃﾞｼﾞｯﾄ1桁含む）",
+          "remark": "※C"
+        },
+        {
+          "position": 5,
+          "officialName": "事業所番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "サービスを提供した事業所番号",
+          "remark": "※C"
+        },
+        {
+          "position": 6,
+          "officialName": "受給者証番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "受給者証に記載されている受給者証番号",
+          "remark": "※C"
+        },
+        {
+          "position": 7,
+          "officialName": "サービス種類コード",
+          "officialAttribute": "英数",
+          "byteLength": 2,
+          "officialNote": "サービス種類コード2桁を設定",
+          "remark": "※C"
+        },
+        {
+          "position": 8,
+          "officialName": "集計欄分類番号",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "同一のサービス種類コードで複数の集計情報を作成する為の集計欄分類番号を設定",
+          "remark": "※１"
+        },
+        {
+          "position": 9,
+          "officialName": "サービス利用日数",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "サービス利用日数を設定本体報酬を算定しない日において、各種加算のみを算定した場合も1日とカウントする。上限額管理加算、欠席時対応加算等も1日とカウントする。",
+          "remark": ""
+        },
+        {
+          "position": 10,
+          "officialName": "給付単位数",
+          "officialAttribute": "数値",
+          "byteLength": 9,
+          "officialNote": "サービス種類コードごと集計欄分類番号ごとの単位数を設定",
+          "remark": ""
+        },
+        {
+          "position": 11,
+          "officialName": "単位数単価",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "整数部2桁、小数部3桁の半角数字（小数部が3桁を超える場合、小数第4位を四捨五入）。8.5円の場合、08500（または8500）を設定",
+          "remark": "※Ｙ"
+        },
+        {
+          "position": 12,
+          "officialName": "給付率",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "0を設定（サービス提供年月が平成24年3月以前：給付率を設定）",
+          "remark": ""
+        },
+        {
+          "position": 13,
+          "officialName": "総費用額",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "サービスの総費用額を設定",
+          "remark": ""
+        },
+        {
+          "position": 14,
+          "officialName": "１割相当額（サービス提供年月が平成24年3月以前：給付率に基づく請求額）",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "総費用額の1割に相当する額を設定。（サービス提供年月が平成24年3月以前：総費用額×給付率／100）",
+          "remark": ""
+        },
+        {
+          "position": 15,
+          "officialName": "利用者負担額②（サービス提供年月が平成24年3月以前：給付率に基づく利用者負担額②）",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "１割相当額を設定。（サービス提供年月が平成24年3月以前：総費用額－給付率に基づく請求額）",
+          "remark": "※６"
+        },
+        {
+          "position": 16,
+          "officialName": "上限月額調整（①②の内少ない数）",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "利用者負担上限月額と利用者負担額②のうち少ないほうを設定",
+          "remark": ""
+        },
+        {
+          "position": 17,
+          "officialName": "事業者減免額",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "A型事業者減免額を設定",
+          "remark": ""
+        },
+        {
+          "position": 18,
+          "officialName": "減免後利用者負担額",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "A型減免後の利用者負担額を設定",
+          "remark": ""
+        },
+        {
+          "position": 19,
+          "officialName": "調整後利用者負担額",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "調整後利用者負担額を設定",
+          "remark": ""
+        },
+        {
+          "position": 20,
+          "officialName": "上限額管理後利用者負担額",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "上限額管理後利用者負担額を設定",
+          "remark": "※５"
+        },
+        {
+          "position": 21,
+          "officialName": "決定利用者負担額",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "算定した結果の利用者負担額を設定する（自治体助成分請求額を控除する前の利用者負担額である）。",
+          "remark": ""
+        },
+        {
+          "position": 22,
+          "officialName": "給付費",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "給付費の請求額を設定",
+          "remark": ""
+        },
+        {
+          "position": 23,
+          "officialName": "高額障害福祉サービス費",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "高額障害福祉サービス費の請求額を設定",
+          "remark": ""
+        },
+        {
+          "position": 24,
+          "officialName": "特別対策費",
+          "officialAttribute": "数値",
+          "byteLength": 10,
+          "officialNote": "サービス提供年月が平成24年4月以降は、新体系定着支援に係る請求額を設定サービス提供年月が平成21年10月以降は、事業運営安定化および、移行時運営安定化に係る請求額を設定サービス提供年月が平成21年9月以前は、特別対策費である激変緩和加算に係る請求額を設定",
+          "remark": "※８※９"
+        },
+        {
+          "position": 25,
+          "officialName": "自治体助成分請求額",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "利用者負担額のうち自治体が助成する額を設定",
+          "remark": "※２"
+        },
+        {
+          "position": 26,
+          "officialName": "算定日額",
+          "officialAttribute": "数値",
+          "byteLength": 4,
+          "officialNote": "サービス種類ごとに算定する日額を設定",
+          "remark": "※３"
+        },
+        {
+          "position": 27,
+          "officialName": "日数",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "サービス種類ごとに算定する日数を設定",
+          "remark": "※３"
+        },
+        {
+          "position": 28,
+          "officialName": "給付費請求額",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "サービス種類ごとに給付費請求額を設定",
+          "remark": "※３"
+        },
+        {
+          "position": 29,
+          "officialName": "実費算定額",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "サービス種類ごとに実費算定額を設定",
+          "remark": "※３"
+        },
+        {
+          "position": 30,
+          "officialName": "対象期間（開始）",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "利用日数の特例開始年月（西暦年月YYYYMMを設定する）",
+          "remark": "※４"
+        },
+        {
+          "position": 31,
+          "officialName": "対象期間（終了）",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "利用日数の特例終了年月（西暦年月YYYYMMを設定する）",
+          "remark": "※４"
+        },
+        {
+          "position": 32,
+          "officialName": "当月の利用日数",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "当月の利用日数",
+          "remark": "※４"
+        },
+        {
+          "position": 33,
+          "officialName": "原則日数の総和",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "対象期間における原則日数の総和を設定する。",
+          "remark": "※４"
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J121:05",
+      "sourcePages": [
+        38
+      ],
+      "items": [
+        {
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "officialAttribute": "英数",
+          "byteLength": 4,
+          "officialNote": "当情報の内容を識別するための番号",
+          "remark": "※B"
+        },
+        {
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "officialAttribute": "コード値",
+          "byteLength": 2,
+          "officialNote": "05を設定する（契約情報レコード）",
+          "remark": ""
+        },
+        {
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "サービスを提供した年月（西暦年月YYYYMMを設定する）",
+          "remark": "※Y"
+        },
+        {
+          "position": 4,
+          "officialName": "市町村番号",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "受給者証に記載された市町村番号（ﾁｪｯｸﾃﾞｼﾞｯﾄ1桁含む）",
+          "remark": "※C"
+        },
+        {
+          "position": 5,
+          "officialName": "事業所番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "サービスを提供した事業所番号",
+          "remark": "※C"
+        },
+        {
+          "position": 6,
+          "officialName": "受給者証番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "受給者証に記載されている受給者証番号",
+          "remark": "※C"
+        },
+        {
+          "position": 7,
+          "officialName": "決定サービスコード",
+          "officialAttribute": "英数",
+          "byteLength": 6,
+          "officialNote": "決定サービスコード6桁を設定",
+          "remark": "※C"
+        },
+        {
+          "position": 8,
+          "officialName": "契約支給量",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "整数部上3桁、小数部下2桁を設定。100.5時間→1005012日→01200（または1200）5回→00500（または500）",
+          "remark": "※１"
+        },
+        {
+          "position": 9,
+          "officialName": "契約開始年月日",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "契約を開始した年月日（西暦年月日YYYYMMDDを設定する）",
+          "remark": "※２※Ｙ"
+        },
+        {
+          "position": 10,
+          "officialName": "契約終了年月日",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "契約を終了した年月日（西暦年月日YYYYMMDDを設定する）",
+          "remark": "※２※Ｙ"
+        },
+        {
+          "position": 11,
+          "officialName": "事業者記入欄番号",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "受給者証の事業者記入欄番号を設定する。",
+          "remark": "※３"
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J611:01",
+      "sourcePages": [
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69
+      ],
+      "items": [
+        {
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "officialAttribute": "英数",
+          "byteLength": 4,
+          "officialNote": "当情報の内容を識別するための番号",
+          "remark": "※B"
+        },
+        {
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "officialAttribute": "コード値",
+          "byteLength": 2,
+          "officialNote": "01を設定する（基本情報レコード）",
+          "remark": ""
+        },
+        {
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "サービスを提供した年月（西暦年月YYYYMMを設定する）",
+          "remark": "※Y"
+        },
+        {
+          "position": 4,
+          "officialName": "市町村番号",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "受給者証に記載された市町村番号（ﾁｪｯｸﾃﾞｼﾞｯﾄ1桁含む）",
+          "remark": "※C"
+        },
+        {
+          "position": 5,
+          "officialName": "事業所番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "サービスを提供した事業所番号",
+          "remark": "※C"
+        },
+        {
+          "position": 6,
+          "officialName": "受給者証番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "受給者証に記載されている受給者証番号",
+          "remark": "※C"
+        },
+        {
+          "position": 7,
+          "officialName": "様式種別番号",
+          "officialAttribute": "コード値",
+          "byteLength": 4,
+          "officialNote": "様式番号2桁、枝番2桁を設定",
+          "remark": "※１"
+        },
+        {
+          "position": 8,
+          "officialName": "補足給付適用の有無",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:無し2:有り",
+          "remark": ""
+        },
+        {
+          "position": 9,
+          "officialName": "補足給付額（円／日）",
+          "officialAttribute": "数値",
+          "byteLength": 4,
+          "officialNote": "補足給付適用の有無が有りの場合に、一日単位の補足給付額を設定",
+          "remark": ""
+        },
+        {
+          "position": 10,
+          "officialName": "食費の単価朝食（円／日）",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "補足給付適用の有無が有りの場合に、朝食の単価を設定（契約が毎食毎の場合）",
+          "remark": ""
+        },
+        {
+          "position": 11,
+          "officialName": "食費の単価昼食（円／日）",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "補足給付適用の有無が有りの場合に、昼食の単価を設定（契約が毎食毎の場合）",
+          "remark": ""
+        },
+        {
+          "position": 12,
+          "officialName": "食費の単価夕食（円／日）",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "補足給付適用の有無が有りの場合に、夕食の単価を設定（契約が毎食毎の場合）",
+          "remark": ""
+        },
+        {
+          "position": 13,
+          "officialName": "食費の単価一日（円／日）",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "補足給付適用の有無が有りの場合に、一日単位の単価を設定（契約が１日単位の場合）",
+          "remark": ""
+        },
+        {
+          "position": 14,
+          "officialName": "光熱水費の単価一日（円／日）",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "補足給付適用の有無が有りの場合に、日単位の光熱水費単価を設定（契約が一日単位の場合）",
+          "remark": ""
+        },
+        {
+          "position": 15,
+          "officialName": "光熱水費の単価一月（円／月）",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "補足給付適用の有無が有りの場合に、一月単位の光熱水費単価を設定（契約が一月単位の場合）",
+          "remark": ""
+        },
+        {
+          "position": 16,
+          "officialName": "内訳１００％",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "居宅介護（身体介護）において、初任者研修課程修了者等による実績時間数（時間）を整数部3桁＋小数部2桁で設定。例：99.5時間→09950（または9950）",
+          "remark": "※２※９"
+        },
+        {
+          "position": 17,
+          "officialName": "内訳７０％",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "居宅介護（身体介護）において、基礎研修課程修了者等による実績時間数（時間）を整数部3桁＋小数部2桁で設定。例：99.5時間→09950（または9950）",
+          "remark": "※３※１０"
+        },
+        {
+          "position": 18,
+          "officialName": "内訳重訪",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "居宅介護（身体介護）において、重度訪問介護研修修了者による時間数（時間）を整数部3桁＋小数部2桁で設定。例：99.5時間→09950（または9950）",
+          "remark": ""
+        },
+        {
+          "position": 19,
+          "officialName": "合計算定時間数計",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "居宅介護（身体介護）、行動援護、重度訪問介護、共同生活援助（受託居宅介護サービス費）、生活介護において、算定時間数（時間）の合計を整数部3桁＋小数部2桁で設定。例：99.5時間→09950（または9950）",
+          "remark": "※１４"
+        },
+        {
+          "position": 20,
+          "officialName": "内訳１００％",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "居宅介護（通院介護（伴う））において、初任者研修課程修了者等の実績時間数を設定。同行援護（伴う）において、初任者研修課程修了者等、または初任者研修課程修了者等（通訳）の実績時間数を設定。実績時間数（時間）は整数部3桁＋小数部2桁で設定。例：99.5時間→09950（または9950）",
+          "remark": "※２※１１"
+        },
+        {
+          "position": 21,
+          "officialName": "内訳７０％",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "居宅介護（通院介護（伴う））、同行援護（伴う）において、基礎研修課程修了者等による実績時間数（時間）を整数部3桁＋小数部2桁で設定。例：99.5時間→09950（または9950）",
+          "remark": "※３※１１"
+        },
+        {
+          "position": 22,
+          "officialName": "内訳重訪",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "居宅介護（通院介護（伴う））において、重度訪問介護研修修了者による時間数（時間）を整数部3桁＋小数部2桁で設定。例：99.5時間→09950（または9950）",
+          "remark": ""
+        },
+        {
+          "position": 23,
+          "officialName": "合計算定時間数計",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "居宅介護（通院介護（伴う））、同行援護（伴う）において、算定時間数（時間）の合計を整数部3桁＋小数部2桁で設定。例：99.5時間→09950（または9950）",
+          "remark": "※１１"
+        },
+        {
+          "position": 24,
+          "officialName": "内訳１００％",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "居宅介護（家事援助）において、初任者研修課程修了者等の実績時間数を設定。同行援護において、初任者研修課程修了者等、または初任者研修課程修了者等（通訳）の実績時間数を設定。実績時間数（時間）は整数部3桁＋小数部2桁で設定。例：99.25時間→09925（または9925）",
+          "remark": "※２"
+        },
+        {
+          "position": 25,
+          "officialName": "内訳９０％",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "居宅介護（家事援助）において、基礎研修課程修了者等、または重度訪問介護研修修了者の実績時間数を設定。同行援護において、基礎研修課程修了者等、基礎研修課程修了者等（通訳）、または盲ろう者向け通訳・介助員の実績時間数を設定。実績時間数（時間）は整数部3桁＋小数部2桁で設定。例：99.25時間→09925（または9925）",
+          "remark": "※３"
+        },
+        {
+          "position": 26,
+          "officialName": "合計算定時間数計",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "居宅介護（家事援助）、同行援護において、算定時間数（時間）の合計を整数部3桁＋小数部2桁で設定。例：99.25時間→09925（または9925）",
+          "remark": ""
+        },
+        {
+          "position": 27,
+          "officialName": "内訳１００％",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "居宅介護（通院介護（伴ず））において、初任者研修課程修了者等の実績時間数を設定。同行援護（伴ず）において、初任者研修課程修了者等、または初任者研修課程修了者等（通訳）の実績時間数を設定。実績時間数（時間）は整数部3桁＋小数部2桁で設定。例：99.5時間→09950（または9950）",
+          "remark": "※２※１１"
+        },
+        {
+          "position": 28,
+          "officialName": "内訳９０％",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "居宅介護（通院介護（伴ず））において、基礎研修課程修了者等、または重度訪問介護研修修了者の実績時間数を設定。同行援護（伴ず）において、基礎研修課程修了者等、基礎研修課程修了者等（通訳）、または盲ろう者向け通訳・介助員の実績時間数を設定。実績時間数（時間）は整数部3桁＋小数部2桁で設定。例：99.5時間→09950（または9950）",
+          "remark": "※３※１１"
+        },
+        {
+          "position": 29,
+          "officialName": "合計算定時間数計",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "居宅介護（通院介護（伴ず））、同行援護（伴ず）において、算定時間数（時間）の合計を整数部3桁＋小数部2桁で設定。例：99.5時間→09950（または9950）",
+          "remark": "※１１"
+        },
+        {
+          "position": 30,
+          "officialName": "内訳１００％",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "居宅介護（通院等乗降介助）において、初任者研修課程修了者等による実績回数を設定",
+          "remark": "※２"
+        },
+        {
+          "position": 31,
+          "officialName": "内訳９０％",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "居宅介護（通院等乗降介助）において、基礎研修課程修了者等、または重度訪問介護研修修了者による実績回数を設定",
+          "remark": "※３"
+        },
+        {
+          "position": 32,
+          "officialName": "合計算定回数計",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "居宅介護（通院等乗降介助）において、算定回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 33,
+          "officialName": "算定移動介護分",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "移動介護の時間数（時間）を整数部2桁＋小数部1桁で設定（例：10.5時間→105）。移動介護の時間数（時間）が100時間を超える場合は999を設定（例：100時間→999）。",
+          "remark": "※４"
+        },
+        {
+          "position": 34,
+          "officialName": "実績送迎加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "片道単位の送迎回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 35,
+          "officialName": "実績家庭連携加算（回）（サービス提供回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "家庭連携加算のサービス提供回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 36,
+          "officialName": "実績家庭連携加算（回）（算定回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "家庭連携加算の算定回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 37,
+          "officialName": "合計算定日数（日）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "算定日数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 38,
+          "officialName": "夜間支援体制加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "共同生活援助、宿泊型自立訓練において、夜間支援等体制加算の算定回数を設定。",
+          "remark": "※５"
+        },
+        {
+          "position": 39,
+          "officialName": "日中支援加算（回）（サービス提供回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "日中支援加算のサービス提供回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 40,
+          "officialName": "日中支援加算（回）（算定回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "日中支援加算の算定回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 41,
+          "officialName": "通所型（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "通所型の回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 42,
+          "officialName": "訪問型１時間未満（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "訪問型1時間未満の回数を設定ただし、訪問型（視覚）は合計しない",
+          "remark": ""
+        },
+        {
+          "position": 43,
+          "officialName": "訪問型１時間以上（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "訪問型1時間以上の回数を設定ただし、訪問型（視覚）は合計しない",
+          "remark": ""
+        },
+        {
+          "position": 44,
+          "officialName": "短期滞在加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "短期滞在加算の回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 45,
+          "officialName": "食事提供加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "食事提供加算の提供回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 46,
+          "officialName": "入院・外泊時加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "加算を算定する回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 47,
+          "officialName": "入院時支援特別加算（回）（サービス提供回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "入院時支援特別加算のサービス提供回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 48,
+          "officialName": "入院時支援特別加算（回）（算定回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "入院時支援特別加算の算定回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 49,
+          "officialName": "自立生活支援加算（Ⅱ）（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "自立生活支援加算（Ⅱ）の回数の合計を設定",
+          "remark": "※１５"
+        },
+        {
+          "position": 50,
+          "officialName": "自活訓練加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "自活訓練加算の回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 51,
+          "officialName": "訪問支援特別加算（回）（サービス提供回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "訪問支援特別加算のサービス提供回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 52,
+          "officialName": "訪問支援特別加算（回）（算定回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "訪問支援特別加算の算定回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 53,
+          "officialName": "施設外支援当月（日）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "就労移行支援において、当月の移行準備支援体制加算を行った日数を設定就労継続支援において、当月の施設外支援を行った日数を設定",
+          "remark": "※６"
+        },
+        {
+          "position": 54,
+          "officialName": "施設外支援累計（日／１８０日）",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "就労移行支援において、移行準備支援体制加算の累計日数を設定就労継続支援において、施設外支援の累計日数を設定",
+          "remark": "※７"
+        },
+        {
+          "position": 55,
+          "officialName": "帰宅時支援加算（回）（サービス提供回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "帰宅時支援加算のサービス提供回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 56,
+          "officialName": "帰宅時支援加算（回）（算定回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "帰宅時支援加算の算定回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 57,
+          "officialName": "朝食（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "補足給付適用の有無が有りの場合に、朝食の合計回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 58,
+          "officialName": "昼食（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "補足給付適用の有無が有りの場合に、昼食の合計回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 59,
+          "officialName": "夕食（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "補足給付適用の有無が有りの場合に、夕食の合計回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 60,
+          "officialName": "光熱水費（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "補足給付適用の有無が有りの場合に、光熱水費を徴収する日数を設定",
+          "remark": ""
+        },
+        {
+          "position": 61,
+          "officialName": "各小計食事（円）",
+          "officialAttribute": "数値",
+          "byteLength": 7,
+          "officialNote": "補足給付適用の有無が有りの場合に、単価と算定回数から食費の合計を計算し設定する。",
+          "remark": ""
+        },
+        {
+          "position": 62,
+          "officialName": "各小計光熱水費（円）",
+          "officialAttribute": "数値",
+          "byteLength": 7,
+          "officialNote": "補足給付適用の有無が有りの場合に、単価と算定回数から光熱水費の合計を計算し設定する。1月単位の契約の場合は1月の額を設定する。",
+          "remark": ""
+        },
+        {
+          "position": 63,
+          "officialName": "実費合計額（円）",
+          "officialAttribute": "数値",
+          "byteLength": 8,
+          "officialNote": "補足給付適用の有無が有りの場合に、食費、光熱水費の小計を合計し設定する。",
+          "remark": ""
+        },
+        {
+          "position": 64,
+          "officialName": "利用開始日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "利用開始日（YYYYMMDD）を設定。",
+          "remark": "※Y"
+        },
+        {
+          "position": 65,
+          "officialName": "３０日目（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "30日目（YYYYMMDD）を設定",
+          "remark": "※Y"
+        },
+        {
+          "position": 66,
+          "officialName": "当月算定日数（日）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "入所時特別支援加算を算定した日数を設定",
+          "remark": ""
+        },
+        {
+          "position": 67,
+          "officialName": "入所中算定日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "入所中算定日（YYYYMMDD）を設定",
+          "remark": "※Y"
+        },
+        {
+          "position": 68,
+          "officialName": "退所日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "退所日（YYYYMMDD）を設定",
+          "remark": "※Y"
+        },
+        {
+          "position": 69,
+          "officialName": "退所後算定日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "退所後算定日（YYYYMMDD）を設定",
+          "remark": "※Y"
+        },
+        {
+          "position": 70,
+          "officialName": "利用開始日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "利用開始日（YYYYMMDD）を設定",
+          "remark": "※Y"
+        },
+        {
+          "position": 71,
+          "officialName": "３０日目（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "３０日目（YYYYMMDD）を設定",
+          "remark": "※Y"
+        },
+        {
+          "position": 72,
+          "officialName": "当月算定日数（日）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "日数を設定",
+          "remark": ""
+        },
+        {
+          "position": 73,
+          "officialName": "入所中算定日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "施設入所支援、宿泊型自立訓練において、地域移行加算の入所中算定日（YYYYMMDD）を設定共同生活援助において、自立生活支援加算の入居中算定日（YYYYMMDD）を設定",
+          "remark": "※Y"
+        },
+        {
+          "position": 74,
+          "officialName": "退所日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "施設入所支援、宿泊型自立訓練において、退所日（YYYYMMDD）を設定共同生活援助において、退居日（YYYYMMDD）を設定地域移行支援において、退院・退所日（YYYYMMDD）を設定",
+          "remark": "※Y"
+        },
+        {
+          "position": 75,
+          "officialName": "退所後算定日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "施設入所支援、宿泊型自立訓練において、地域移行加算の退所後算定日（YYYYMMDD）を設定共同生活援助において、自立生活支援加算（Ⅱ）の退居後算定日（YYYYMMDD）を設定",
+          "remark": "※Y※１５"
+        },
+        {
+          "position": 76,
+          "officialName": "実績単位数（単位）",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "当月の実績単位数を設定",
+          "remark": ""
+        },
+        {
+          "position": 77,
+          "officialName": "実績割合（％）",
+          "officialAttribute": "数値",
+          "byteLength": 4,
+          "officialNote": "当月の実績割合を整数部3桁＋小数部1桁で設定。例：99.5％→0995（または995）",
+          "remark": ""
+        },
+        {
+          "position": 78,
+          "officialName": "支給決定量（単位）",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "受給者証の支給決定量を設定",
+          "remark": ""
+        },
+        {
+          "position": 79,
+          "officialName": "報酬請求額（円）",
+          "officialAttribute": "数値",
+          "byteLength": 7,
+          "officialNote": "当月の報酬請求額を設定",
+          "remark": ""
+        },
+        {
+          "position": 80,
+          "officialName": "利用者負担上限月額（円）",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "受給者証の利用者負担上限月額を設定",
+          "remark": ""
+        },
+        {
+          "position": 81,
+          "officialName": "利用者負担額（円）",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "当月の利用者負担額を設定",
+          "remark": ""
+        },
+        {
+          "position": 82,
+          "officialName": "共同生活援助合計日数",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "共同生活援助の合計日数を設定",
+          "remark": "※８"
+        },
+        {
+          "position": 83,
+          "officialName": "短期入所合計日数",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "短期入所の合計日数を設定",
+          "remark": ""
+        },
+        {
+          "position": 84,
+          "officialName": "その他サービス合計時間数",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "その他サービスの合計時間数（時間）を整数部3桁＋小数部2桁で設定。例：99.5時間→09950（または9950）",
+          "remark": ""
+        },
+        {
+          "position": 85,
+          "officialName": "当該月の日数",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "当該月の日数を設定",
+          "remark": ""
+        },
+        {
+          "position": 86,
+          "officialName": "サービス担当者会議開催日",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "サービス担当者会議開催日（YYYYMMDD）を設定",
+          "remark": "※Y"
+        },
+        {
+          "position": 87,
+          "officialName": "第１時間帯早朝",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第1時間帯の早朝時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 88,
+          "officialName": "第１時間帯日中",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第1時間帯の日中時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 89,
+          "officialName": "第１時間帯夜間",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第1時間帯の夜間時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 90,
+          "officialName": "第１時間帯深夜",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第1時間帯の深夜時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 91,
+          "officialName": "第２時間帯早朝",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第2時間帯の早朝時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 92,
+          "officialName": "第２時間帯日中",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第2時間帯の日中時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 93,
+          "officialName": "第２時間帯夜間",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第2時間帯の夜間時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 94,
+          "officialName": "第２時間帯深夜",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第2時間帯の深夜時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 95,
+          "officialName": "第３時間帯早朝",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第3時間帯の早朝時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 96,
+          "officialName": "第３時間帯日中",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第3時間帯の日中時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 97,
+          "officialName": "第３時間帯夜間",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第3時間帯の夜間時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 98,
+          "officialName": "第３時間帯深夜",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第3時間帯の深夜時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 99,
+          "officialName": "第４時間帯早朝",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第4時間帯の早朝時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 100,
+          "officialName": "第４時間帯日中",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第4時間帯の日中時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 101,
+          "officialName": "第４時間帯夜間",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第4時間帯の夜間時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 102,
+          "officialName": "第４時間帯深夜",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第4時間帯の深夜時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 103,
+          "officialName": "第５時間帯早朝",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第5時間帯の早朝時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 104,
+          "officialName": "第５時間帯日中",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第5時間帯の日中時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 105,
+          "officialName": "第５時間帯夜間",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第5時間帯の夜間時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 106,
+          "officialName": "第５時間帯深夜",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第5時間帯の深夜時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 107,
+          "officialName": "第６時間帯早朝",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第6時間帯の早朝時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 108,
+          "officialName": "第６時間帯日中",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第6時間帯の日中時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 109,
+          "officialName": "第６時間帯夜間",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第6時間帯の夜間時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 110,
+          "officialName": "第６時間帯深夜",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "第6時間帯の深夜時間数を設定",
+          "remark": ""
+        },
+        {
+          "position": 111,
+          "officialName": "施設種類",
+          "officialAttribute": "英数",
+          "byteLength": 2,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 112,
+          "officialName": "緊急時対応加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "緊急時対応加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 113,
+          "officialName": "初回加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "初回加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 114,
+          "officialName": "福祉専門職員等連携加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "福祉専門職員等連携加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 115,
+          "officialName": "行動障害支援連携加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "行動障害支援連携加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 116,
+          "officialName": "行動障害支援指導連携加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "行動障害支援指導連携加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 117,
+          "officialName": "医療連携体制加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "医療連携体制加算の算定回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 118,
+          "officialName": "緊急短期入所受入加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "緊急短期入所受入加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 119,
+          "officialName": "単独型加算(一定の条件を満たす場合）（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "単独型加算(一定の条件を満たす場合）の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 120,
+          "officialName": "重度障害者支援加算(一定の条件を満たす場合）（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "重度障害者支援加算(一定の条件を満たす場合）の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 121,
+          "officialName": "家族支援加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 122,
+          "officialName": "同行支援（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "自立生活援助において、同行支援加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 123,
+          "officialName": "特別地域加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "特別地域加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 124,
+          "officialName": "低所得者利用加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "低所得者利用加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 125,
+          "officialName": "体験利用支援加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "体験利用支援加算の算定回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 126,
+          "officialName": "定員超過特例加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "定員超過特例加算の算定回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 127,
+          "officialName": "通勤訓練加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "通勤訓練加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 128,
+          "officialName": "地域移行加算(回)",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "地域移行加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 129,
+          "officialName": "地域移行促進加算(回)",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "地域移行促進加算の回数の合計を設定",
+          "remark": "※１６"
+        },
+        {
+          "position": 130,
+          "officialName": "住居外利用（日）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "住居外利用の日数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 131,
+          "officialName": "内訳生活援助",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 132,
+          "officialName": "内訳９０％",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "同行援護（伴う）において、基礎研修課程修了者等（通訳）、または盲ろう者向け通訳・介助員による実績時間数（時間）を整数部3桁＋小数部2桁で設定。例：99.5時間→09950（または9950）",
+          "remark": "※１１"
+        },
+        {
+          "position": 133,
+          "officialName": "内訳生活援助",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 134,
+          "officialName": "内訳生活援助",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 135,
+          "officialName": "内訳生活援助",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 136,
+          "officialName": "内訳生活援助",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 137,
+          "officialName": "共同生活援助合計単位数",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "共同生活援助の合計単位数を設定",
+          "remark": ""
+        },
+        {
+          "position": 138,
+          "officialName": "短期入所合計単位数",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "短期入所の合計単位数を設定",
+          "remark": ""
+        },
+        {
+          "position": 139,
+          "officialName": "その他サービス合計単位数",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "その他サービスの合計単位数を設定",
+          "remark": ""
+        },
+        {
+          "position": 140,
+          "officialName": "移行日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 141,
+          "officialName": "移行後算定日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 142,
+          "officialName": "移行日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 143,
+          "officialName": "算定日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 144,
+          "officialName": "緊急時支援加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "緊急時支援加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 145,
+          "officialName": "支援計画会議実施加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "支援計画会議実施加算の回数の合計を設定",
+          "remark": "※１２"
+        },
+        {
+          "position": 146,
+          "officialName": "定着支援連携促進加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "定着支援連携促進加算の回数の合計を設定",
+          "remark": "※１３"
+        },
+        {
+          "position": 147,
+          "officialName": "移動介護緊急時支援加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "移動介護緊急時支援加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 148,
+          "officialName": "日常生活支援情報提供加算（回）（サービス提供回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "日常生活支援情報提供加算のサービス提供回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 149,
+          "officialName": "日常生活支援情報提供加算（回）（算定回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "日常生活支援情報提供加算の算定回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 150,
+          "officialName": "地域居住支援体制強化推進加算（回）（サービス提供回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "地域居住支援体制強化推進加算のサービス提供回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 151,
+          "officialName": "地域居住支援体制強化推進加算（回）（算定回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "地域居住支援体制強化推進加算の算定回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 152,
+          "officialName": "地域協働加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "地域協働加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 153,
+          "officialName": "支援レポート共有日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "支援レポートを作成し、関係者間で共有した日（YYYYMMDD）を設定",
+          "remark": "※Y"
+        },
+        {
+          "position": 154,
+          "officialName": "入院開始日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "地域移行支援において、退院・退所月加算の入院開始日（YYYYMMDD）を設定",
+          "remark": "※Y"
+        },
+        {
+          "position": 155,
+          "officialName": "移行支援住居入居日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "移行支援住居に入居した日（YYYYMMDD）を設定",
+          "remark": "※Y"
+        },
+        {
+          "position": 156,
+          "officialName": "集中的支援加算支援開始日（年月日）",
+          "officialAttribute": "コード値",
+          "byteLength": 8,
+          "officialNote": "集中的支援加算の算定対象となる支援を開始した日（YYYYMMDD）を設定",
+          "remark": "※Y"
+        },
+        {
+          "position": 157,
+          "officialName": "有資格者支援加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "有資格者支援加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 158,
+          "officialName": "通院支援加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "通院支援加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 159,
+          "officialName": "入浴支援加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "入浴支援加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 160,
+          "officialName": "喀痰吸引等実施加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "喀痰吸引等実施加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 161,
+          "officialName": "専門的支援加算（支援実施時）（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 162,
+          "officialName": "通所自立支援加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 163,
+          "officialName": "子育てサポート加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 164,
+          "officialName": "訪問支援員特別加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 165,
+          "officialName": "多職種連携支援加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 166,
+          "officialName": "強度行動障害児支援加算（支援実施時）（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 167,
+          "officialName": "集中的支援加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "集中的支援加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 168,
+          "officialName": "緊急時受入加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "緊急時受入加算の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 169,
+          "officialName": "自立生活支援加算（Ⅰ）（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "自立生活支援加算（Ⅰ）の回数の合計を設定",
+          "remark": ""
+        },
+        {
+          "position": 170,
+          "officialName": "延長支援加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 171,
+          "officialName": "要支援児童加算（Ⅱ）（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 172,
+          "officialName": "自立サポート加算（回）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "設定しない",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "recordId": "provider:J611:02",
+      "sourcePages": [
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78
+      ],
+      "items": [
+        {
+          "position": 1,
+          "officialName": "交換情報識別番号",
+          "officialAttribute": "英数",
+          "byteLength": 4,
+          "officialNote": "当情報の内容を識別するための番号",
+          "remark": "※B"
+        },
+        {
+          "position": 2,
+          "officialName": "レコード種別コード",
+          "officialAttribute": "コード値",
+          "byteLength": 2,
+          "officialNote": "02を設定する（明細情報レコード）",
+          "remark": ""
+        },
+        {
+          "position": 3,
+          "officialName": "サービス提供年月",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "サービスを提供した年月（西暦年月YYYYMMを設定する）",
+          "remark": "※Y"
+        },
+        {
+          "position": 4,
+          "officialName": "市町村番号",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "受給者証に記載された市町村番号（ﾁｪｯｸﾃﾞｼﾞｯﾄ1桁含む）",
+          "remark": "※C"
+        },
+        {
+          "position": 5,
+          "officialName": "事業所番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "サービスを提供した事業所番号",
+          "remark": "※C"
+        },
+        {
+          "position": 6,
+          "officialName": "受給者証番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "受給者証に記載されている受給者証番号",
+          "remark": "※C"
+        },
+        {
+          "position": 7,
+          "officialName": "様式種別番号",
+          "officialAttribute": "コード値",
+          "byteLength": 4,
+          "officialNote": "様式番号2桁、枝番2桁を設定様式３－１の場合、0301を設定",
+          "remark": "※１"
+        },
+        {
+          "position": 8,
+          "officialName": "提供通番",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "居宅介護、重度訪問介護、同行援護、行動援護、共同生活援助（受託居宅介護サービス費）において、複数の明細情報レコード（サービス提供時間）が一連のサービス提供であることを識別するための番号。",
+          "remark": "※２"
+        },
+        {
+          "position": 9,
+          "officialName": "日付",
+          "officialAttribute": "コード値",
+          "byteLength": 2,
+          "officialNote": "日を設定（短期入所の場合、サービス提供を行った全ての日を設定する）",
+          "remark": ""
+        },
+        {
+          "position": 10,
+          "officialName": "サービス提供回数",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "サービス提供回数を設定",
+          "remark": "※３"
+        },
+        {
+          "position": 11,
+          "officialName": "サービス内容",
+          "officialAttribute": "英数",
+          "byteLength": 6,
+          "officialNote": "居宅介護、同行援護、および重度包括のサービス種別を判定する為に、決定コード6桁を設定",
+          "remark": "※６"
+        },
+        {
+          "position": 12,
+          "officialName": "ヘルパー資格",
+          "officialAttribute": "コード値",
+          "byteLength": 2,
+          "officialNote": "資格要件対象のサービスのみ設定居宅介護（11:初任者等12:基礎等13:重訪）同行援護（11:初任者等12:基礎等15:初任者等（通訳）16:基礎等（通訳）17:通訳）行動援護（21:初任者等22:減算）",
+          "remark": "※７※１０※１９※２０"
+        },
+        {
+          "position": 13,
+          "officialName": "運転フラグ",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "運転を表す場合1を設定。",
+          "remark": ""
+        },
+        {
+          "position": 14,
+          "officialName": "開始時間",
+          "officialAttribute": "数値",
+          "byteLength": 4,
+          "officialNote": "開始時間を数字4桁で設定例）10:00→1000",
+          "remark": ""
+        },
+        {
+          "position": 15,
+          "officialName": "終了時間",
+          "officialAttribute": "数値",
+          "byteLength": 4,
+          "officialNote": "終了時間を数字4桁で設定例）11:00→1100",
+          "remark": ""
+        },
+        {
+          "position": 16,
+          "officialName": "算定時間数",
+          "officialAttribute": "数値",
+          "byteLength": 4,
+          "officialNote": "居宅介護、重度訪問介護、行動援護、重度包括、同行援護、共同生活援助（受託居宅介護サービス費）、生活介護において、算定時間数（時間）を設定（整数部2桁＋小数部2桁を設定、例：10.5時間→1050）",
+          "remark": "※３０"
+        },
+        {
+          "position": 17,
+          "officialName": "乗降（回数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "乗降介助の回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 18,
+          "officialName": "移動",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "重度訪問介護の移動に係る算定時間数（時間）を整数部1桁＋小数部1桁で設定（例：3時間→30）。",
+          "remark": "※１１"
+        },
+        {
+          "position": 19,
+          "officialName": "派遣人数",
+          "officialAttribute": "数値",
+          "byteLength": 1,
+          "officialNote": "通常は‘1’を設定。同一時間に2人ヘルパーでサービス提供を行った場合‘2’を設定。",
+          "remark": ""
+        },
+        {
+          "position": 20,
+          "officialName": "前月からの継続サービス",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "居宅介護、同行援護において、前月から継続したサービス提供を行った場合、1を設定する。",
+          "remark": ""
+        },
+        {
+          "position": 21,
+          "officialName": "送迎加算往",
+          "officialAttribute": "数値",
+          "byteLength": 1,
+          "officialNote": "送迎（往路）を行った回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 22,
+          "officialName": "送迎加算復",
+          "officialAttribute": "数値",
+          "byteLength": 1,
+          "officialNote": "送迎（復路）を行った回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 23,
+          "officialName": "家庭連携加算（サービス提供時間数）",
+          "officialAttribute": "数値",
+          "byteLength": 4,
+          "officialNote": "実際に支援に要した時間数（時間）を設定（整数部2桁＋小数部2桁を設定、例：1.5時間→0150（または150））",
+          "remark": ""
+        },
+        {
+          "position": 24,
+          "officialName": "家庭連携加算（算定時間数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "算定する時間数（時間）を設定（整数）",
+          "remark": ""
+        },
+        {
+          "position": 25,
+          "officialName": "自活訓練加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "加算を算定する場合1を設定",
+          "remark": ""
+        },
+        {
+          "position": 26,
+          "officialName": "短期滞在加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "加算を算定する場合1を設定",
+          "remark": ""
+        },
+        {
+          "position": 27,
+          "officialName": "訪問支援特別加算（サービス提供時間数）",
+          "officialAttribute": "数値",
+          "byteLength": 4,
+          "officialNote": "実際にサービス提供した時間数（時間）を整数部2桁＋小数部2桁で設定、例：1.5時間→0150（または150）",
+          "remark": ""
+        },
+        {
+          "position": 28,
+          "officialName": "訪問支援特別加算（算定時間数）",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "算定する時間数（時間）を設定（整数）",
+          "remark": ""
+        },
+        {
+          "position": 29,
+          "officialName": "施設外支援",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "就労移行支援において、移行準備支援体制加算を算定する場合、1を設定就労継続支援において、施設外支援を行った場合、1を設定",
+          "remark": "※１２"
+        },
+        {
+          "position": 30,
+          "officialName": "退所時特別支援加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "退所時特別支援加算を行った場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 31,
+          "officialName": "地域移行加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "入所中において、地域移行加算を算定する場合、1を設定",
+          "remark": "※２３"
+        },
+        {
+          "position": 32,
+          "officialName": "食事提供加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "加算対象となる低所得者に対して食事を提供した場合１を設定",
+          "remark": ""
+        },
+        {
+          "position": 33,
+          "officialName": "入院・外泊時加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "入院・外泊時加算（Ⅰ）を算定する場合、1を設定入院・外泊時加算（Ⅱ）を算定する場合、2を設定",
+          "remark": "※１３"
+        },
+        {
+          "position": 34,
+          "officialName": "提供形態",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:通所型2:訪問型3:訪問型（視覚）",
+          "remark": "※２１"
+        },
+        {
+          "position": 35,
+          "officialName": "備考",
+          "officialAttribute": "漢字",
+          "byteLength": 100,
+          "officialNote": "備考欄に記載が必要な場合、設定",
+          "remark": "※４"
+        },
+        {
+          "position": 36,
+          "officialName": "サービス提供の状況",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "様式種別番号ごとに定められたサービス提供の状況を表すコード1桁を設定",
+          "remark": "※８"
+        },
+        {
+          "position": 37,
+          "officialName": "夜間支援体制加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "共同生活援助において、以下の内容を設定。夜間支援等体制加算（Ⅰ）を算定する場合、1を設定夜間支援等体制加算（Ⅱ）を算定する場合、2を設定夜間支援等体制加算（Ⅲ）を算定する場合、3を設定夜間支援等体制加算（Ⅰ）及び（Ⅳ）を算定する場合、4を設定夜間支援等体制加算（Ⅰ）及び（Ⅴ）を算定する場合、5を設定夜間支援等体制加算（Ⅰ）及び（Ⅵ）を算定する場合、6を設定宿泊型自立訓練において、以下の内容を設定。夜間支援等体制加算（Ⅰ）を算定する場合、1を設定夜間支援等体制加算（Ⅱ）を算定する場合、2を設定夜間支援等体制加算（Ⅲ）を算定する場合、3を設定",
+          "remark": "※１４"
+        },
+        {
+          "position": 38,
+          "officialName": "入院時支援特別加算（サービス提供回数）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "入院時支援特別加算の算定要件を満たす支援を行った場合1を設定。報酬上算定できる回数にかかわらず、要件を満たす場合は設定する。",
+          "remark": ""
+        },
+        {
+          "position": 39,
+          "officialName": "入院時支援特別加算（算定回数）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "入院時支援特別加算の報酬上算定できる回数を設定する。",
+          "remark": ""
+        },
+        {
+          "position": 40,
+          "officialName": "帰宅時支援加算（サービス提供回数）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "帰宅時支援加算の算定要件を満たす支援を行った場合1を設定。報酬上算定できる回数にかかわらず、要件を満たす場合は設定する。",
+          "remark": ""
+        },
+        {
+          "position": 41,
+          "officialName": "帰宅時支援加算（算定回数）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "帰宅時支援加算の報酬上算定できる回数を設定する。",
+          "remark": ""
+        },
+        {
+          "position": 42,
+          "officialName": "自立生活支援加算（Ⅱ）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "入居中において、自立生活支援加算（Ⅱ）を算定する場合、1を設定",
+          "remark": "※２４"
+        },
+        {
+          "position": 43,
+          "officialName": "日中支援加算（サービス提供回数）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "宿泊型自立訓練において、日中支援加算の算定要件を満たす支援を行った場合、1を設定。報酬上算定できる回数にかかわらず、要件を満たす場合は設定する。共同生活援助において、日中支援加算（Ⅰ）の算定要件を満たす支援を行った場合、1を設定。日中支援加算（Ⅱ）の算定要件を満たす支援を行った場合、2を設定。報酬上算定できる回数にかかわらず、要件を満たす場合は設定する。",
+          "remark": "※１５"
+        },
+        {
+          "position": 44,
+          "officialName": "日中支援加算（算定回数）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "宿泊型自立訓練において、日中支援加算の報酬上算定できる回数を設定する。共同生活援助において、日中支援加算（Ⅰ）を報酬上算定する場合、1を設定する。日中支援加算（Ⅱ）を報酬上算定する場合、2を設定する。",
+          "remark": "※１６"
+        },
+        {
+          "position": 45,
+          "officialName": "算定日数",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "短期入所において、算定対象日に1を設定。地域移行支援において、本体報酬及び集中支援加算の対象となる支援を実施した日に1を設定。自立生活援助において、居宅への訪問による支援を実施した日に1を設定。テレビ電話等を活用して支援を実施した日に2を設定。就労定着支援において、本体報酬の対象となる支援を実施した日に1を設定。",
+          "remark": "※１７※３２"
+        },
+        {
+          "position": 46,
+          "officialName": "自立訓練訪問型時間数",
+          "officialAttribute": "数値",
+          "byteLength": 4,
+          "officialNote": "訪問型自立訓練を提供した場合（提供形態が2:訪問型もしくは、3:訪問型（視覚）の場合）、その時間数（時間）を設定する。整数部2桁小数部2桁で設定する（様式には本項目は無いがインタフェースには設定する）。",
+          "remark": ""
+        },
+        {
+          "position": 47,
+          "officialName": "朝食",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "補足給付適用の有無が有りの場合で、利用契約に従って朝食を提供した場合1を設定。",
+          "remark": "※５"
+        },
+        {
+          "position": 48,
+          "officialName": "昼食",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "補足給付適用の有無が有りの場合で、利用契約に従って昼食を提供した場合1を設定。",
+          "remark": "※５"
+        },
+        {
+          "position": 49,
+          "officialName": "夕食",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "補足給付適用の有無が有りの場合で、利用契約に従って夕食を提供した場合1を設定。",
+          "remark": "※５"
+        },
+        {
+          "position": 50,
+          "officialName": "光熱水費",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "補足給付適用の有無が有りの場合で、利用契約に従って、光熱水費を徴収する日に1を設定。",
+          "remark": ""
+        },
+        {
+          "position": 51,
+          "officialName": "適用単価",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "適用単価を設定",
+          "remark": "※２２"
+        },
+        {
+          "position": 52,
+          "officialName": "基本単位数",
+          "officialAttribute": "数値",
+          "byteLength": 4,
+          "officialNote": "基本単位数を設定",
+          "remark": ""
+        },
+        {
+          "position": 53,
+          "officialName": "加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:早朝3:夜間4:深夜5:早朝・喀痰吸引等6:喀痰吸引等7:夜間・喀痰吸引等8:深夜・喀痰吸引等",
+          "remark": "※９"
+        },
+        {
+          "position": 54,
+          "officialName": "加算後単位数",
+          "officialAttribute": "数値",
+          "byteLength": 4,
+          "officialNote": "加算後単位数を設定",
+          "remark": ""
+        },
+        {
+          "position": 55,
+          "officialName": "単位数",
+          "officialAttribute": "数値",
+          "byteLength": 4,
+          "officialNote": "単位数を設定",
+          "remark": ""
+        },
+        {
+          "position": 56,
+          "officialName": "1日計",
+          "officialAttribute": "数値",
+          "byteLength": 5,
+          "officialNote": "1日計を設定同一日に複数サービスを提供する場合には、最終行に設定する。最終行とは「サービス開始時間」の昇順に並び替えた場合の最終行である。ただし、サービス提供時間を設定しない入所系サービス（短期入所、共同生活援助）の提供があった場合には、入所系サービスが最終行となる。",
+          "remark": "※１８"
+        },
+        {
+          "position": 57,
+          "officialName": "１時間（１３時間）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:早朝2:日中3:夜間4:深夜",
+          "remark": ""
+        },
+        {
+          "position": 58,
+          "officialName": "２時間（１４時間）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:早朝2:日中3:夜間4:深夜",
+          "remark": ""
+        },
+        {
+          "position": 59,
+          "officialName": "３時間（１５時間）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:早朝2:日中3:夜間4:深夜",
+          "remark": ""
+        },
+        {
+          "position": 60,
+          "officialName": "４時間（１６時間）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:早朝2:日中3:夜間4:深夜",
+          "remark": ""
+        },
+        {
+          "position": 61,
+          "officialName": "５時間（１７時間）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:早朝2:日中3:夜間4:深夜",
+          "remark": ""
+        },
+        {
+          "position": 62,
+          "officialName": "６時間（１８時間）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:早朝2:日中3:夜間4:深夜",
+          "remark": ""
+        },
+        {
+          "position": 63,
+          "officialName": "７時間（１９時間）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:早朝2:日中3:夜間4:深夜",
+          "remark": ""
+        },
+        {
+          "position": 64,
+          "officialName": "８時間（２０時間）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:早朝2:日中3:夜間4:深夜",
+          "remark": ""
+        },
+        {
+          "position": 65,
+          "officialName": "９時間（２１時間）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:早朝2:日中3:夜間4:深夜",
+          "remark": ""
+        },
+        {
+          "position": 66,
+          "officialName": "１０時間（２２時間）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:早朝2:日中3:夜間4:深夜",
+          "remark": ""
+        },
+        {
+          "position": 67,
+          "officialName": "１１時間（２３時間）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:早朝2:日中3:夜間4:深夜",
+          "remark": ""
+        },
+        {
+          "position": 68,
+          "officialName": "１２時間（２４時間）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "1:早朝2:日中3:夜間4:深夜",
+          "remark": ""
+        },
+        {
+          "position": 69,
+          "officialName": "緊急時対応加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "居宅介護、行動援護、重度訪問介護、同行援護において、緊急時対応加算を算定する場合、1を設定重度包括において、緊急時対応加算（地域生活支援拠点等）を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 70,
+          "officialName": "初回加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "初回加算を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 71,
+          "officialName": "福祉専門職員等連携加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "福祉専門職員等連携加算を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 72,
+          "officialName": "行動障害支援連携加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "行動障害支援連携加算を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 73,
+          "officialName": "行動障害支援指導連携加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "行動障害支援指導連携加算を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 74,
+          "officialName": "医療連携体制加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "重度包括（サービス内容が短期入所の場合）、短期入所において、以下の内容を設定。医療連携体制加算（Ⅰ）を算定する場合、1を設定医療連携体制加算（Ⅱ）を算定する場合、2を設定医療連携体制加算（Ⅲ）を算定する場合、3を設定医療連携体制加算（Ⅳ）を算定する場合、4を設定医療連携体制加算（Ⅴ）を算定する場合、5を設定医療連携体制加算（Ⅵ）を算定する場合、6を設定医療連携体制加算（Ⅷ）を算定する場合、8を設定重度包括（サービス内容が共同生活援助の場合）、共同生活援助、宿泊型自立訓練、自立訓練（生活訓練）、就労移行支援、就労継続支援、就労選択支援において、以下の内容を設定。医療連携体制加算（Ⅰ）を算定する場合、1を設定医療連携体制加算（Ⅱ）を算定する場合、2を設定医療連携体制加算（Ⅲ）を算定する場合、3を設定医療連携体制加算（Ⅳ）を算定する場合、4を設定医療連携体制加算（Ⅵ）を算定する場合、6を設定",
+          "remark": "※２５"
+        },
+        {
+          "position": 75,
+          "officialName": "緊急短期入所受入加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "緊急短期入所受入加算を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 76,
+          "officialName": "単独型加算(一定の条件を満たす場合）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "日中活動を利用した日（入所日及び退所日を除く）であって、短期入所事業所（単独型）による支援が１８時間を超える場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 77,
+          "officialName": "重度障害者支援加算(一定の条件を満たす場合）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "強度行動障害を有する者に対し、強度行動障害支援者養成研修（基礎研修）修了者が支援を行った場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 78,
+          "officialName": "家族支援加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 79,
+          "officialName": "利用人数",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "共同生活援助における受託居宅介護サービスの利用人数",
+          "remark": ""
+        },
+        {
+          "position": 80,
+          "officialName": "同行支援",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "重度訪問介護において、熟練ヘルパーが新任ヘルパーに同行してサービス提供を行った場合（障害支援区分６の利用者に支援した場合）、1を設定熟練ヘルパーが同行してサービス提供を行った場合（重度障害者等包括支援の対象者に支援した場合）、2を設定自立生活援助において、同行支援加算の対象となる支援を実施した場合、1を設定",
+          "remark": "※２６"
+        },
+        {
+          "position": 81,
+          "officialName": "特別地域加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "特別地域加算の対象となる支援を実施した場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 82,
+          "officialName": "低所得者利用加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "低所得者利用加算を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 83,
+          "officialName": "体験利用支援加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "障害福祉サービスの体験利用支援加算（Ⅰ）を算定する場合、1を設定障害福祉サービスの体験利用支援加算（Ⅱ）を算定する場合、2を設定",
+          "remark": ""
+        },
+        {
+          "position": 84,
+          "officialName": "定員超過特例加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "該当受給者の緊急受入により利用定員を超過し、定員超過特例加算を算定する場合、1を設定同一日、同一事業所内の他の利用者の緊急受入により、定員超過特例加算を算定する場合、2を設定",
+          "remark": ""
+        },
+        {
+          "position": 85,
+          "officialName": "通勤訓練加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "通勤訓練加算を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 86,
+          "officialName": "地域移行促進加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "地域移行促進加算（Ⅰ）を算定する場合、1を設定地域移行促進加算（Ⅱ）を算定する場合、2を設定",
+          "remark": "※２７※３１"
+        },
+        {
+          "position": 87,
+          "officialName": "住居外利用",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "共同生活援助における日中サービス支援型の事業所において、該当受給者が日中を当該共同生活住居以外で過ごした場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 88,
+          "officialName": "緊急時支援加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "重度包括において、緊急時支援加算（Ⅰ）（地域生活支援拠点等）を算定する場合、1を設定自立生活援助において、以下の内容を設定。緊急時支援加算（Ⅰ）を算定する場合、1を設定緊急時支援加算（Ⅱ）を算定する場合、2を設定",
+          "remark": ""
+        },
+        {
+          "position": 89,
+          "officialName": "支援計画会議実施加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "就労移行支援において、以下の内容を設定。地域連携会議実施加算（Ⅰ）を算定する場合、1を設定地域連携会議実施加算（Ⅱ）を算定する場合、2を設定",
+          "remark": "※２７※２８"
+        },
+        {
+          "position": 90,
+          "officialName": "定着支援連携促進加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "就労定着支援において、以下の内容を設定。地域連携会議実施加算（Ⅰ）を算定する場合、1を設定地域連携会議実施加算（Ⅱ）を算定する場合、2を設定",
+          "remark": "※２７※２９"
+        },
+        {
+          "position": 91,
+          "officialName": "移動介護緊急時支援加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "移動介護緊急時支援加算を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 92,
+          "officialName": "日常生活支援情報提供加算（サービス提供回数）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "日常生活支援情報提供加算の算定要件を満たす支援を行った場合1を設定報酬上算定できる回数にかかわらず、要件を満たす場合は設定",
+          "remark": ""
+        },
+        {
+          "position": 93,
+          "officialName": "日常生活支援情報提供加算（算定回数）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "日常生活支援情報提供加算の報酬上算定できる回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 94,
+          "officialName": "地域居住支援体制強化推進加算（サービス提供回数）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "地域居住支援体制強化推進加算の算定要件を満たす支援を行った場合1を設定報酬上算定できる回数にかかわらず、要件を満たす場合は設定",
+          "remark": ""
+        },
+        {
+          "position": 95,
+          "officialName": "地域居住支援体制強化推進加算（算定回数）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "地域居住支援体制強化推進加算の報酬上算定できる回数を設定",
+          "remark": ""
+        },
+        {
+          "position": 96,
+          "officialName": "地域協働加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "地域協働加算を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 97,
+          "officialName": "有資格者支援加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "有資格者支援加算を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 98,
+          "officialName": "通院支援加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "通院支援加算を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 99,
+          "officialName": "入浴支援加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "入浴支援加算を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 100,
+          "officialName": "喀痰吸引等実施加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "喀痰吸引等実施加算を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 101,
+          "officialName": "専門的支援加算（支援実施時）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 102,
+          "officialName": "通所自立支援加算",
+          "officialAttribute": "数値",
+          "byteLength": 2,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 103,
+          "officialName": "子育てサポート加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 104,
+          "officialName": "訪問支援員特別加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 105,
+          "officialName": "多職種連携支援加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 106,
+          "officialName": "強度行動障害児支援加算（支援実施時）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 107,
+          "officialName": "集中的支援加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "事業所訪問型としての類型での加算を算定する場合、1を設定居住支援活用型としての類型での加算を算定する場合、2を設定同日に両方の類型での加算を算定する場合、3を設定",
+          "remark": ""
+        },
+        {
+          "position": 108,
+          "officialName": "緊急時受入加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "緊急時受入加算を算定する場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 109,
+          "officialName": "退居後支援",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "退居後（外部サービス利用型）共同生活援助サービスを提供した場合、1を設定",
+          "remark": ""
+        },
+        {
+          "position": 110,
+          "officialName": "自立生活支援加算（Ⅰ）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "自立生活支援加算（Ⅰ）の算定要件を満たす支援を行った場合、1を設定自立生活支援加算（Ⅰ）（居住支援法人と共同し、協議会等への課題報告を行った場合）の算定要件を満たす支援を行った場合、2を設定",
+          "remark": ""
+        },
+        {
+          "position": 111,
+          "officialName": "延長支援加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 112,
+          "officialName": "要支援児童加算（Ⅱ）",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 113,
+          "officialName": "自立サポート加算",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "設定しない",
+          "remark": ""
+        }
+      ]
+    }
+  ]
+}

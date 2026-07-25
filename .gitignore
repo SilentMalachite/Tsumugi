@@ -17,3 +17,7 @@ coverage.opencover.xml
 .DS_Store
 Thumbs.db
 graphify-out/
+
+# Python bytecode (build/ のスクリプト実行時に生成される)
+__pycache__/
+*.pyc
