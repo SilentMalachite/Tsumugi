@@ -29,6 +29,7 @@ public sealed class DailyRecordConfiguration : IEntityTypeConfiguration<DailyRec
         builder.Property(r => r.ServiceStartTime);
         builder.Property(r => r.ServiceEndTime);
         builder.Property(r => r.SpecialVisitSupportMinutes);
+        builder.Property(r => r.SpecialVisitSupportBilledHours);
         builder.Property(r => r.OffsiteSupportApplied);
         builder.Property(r => r.MedicalCoordinationType).HasConversion<int>().IsRequired();
         builder.Property(r => r.TrialUseSupportType).HasConversion<int>().IsRequired();

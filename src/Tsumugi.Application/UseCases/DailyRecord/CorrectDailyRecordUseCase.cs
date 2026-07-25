@@ -23,7 +23,8 @@ public sealed class CorrectDailyRecordUseCase(
             intensiveSupportApplied: null,
             emergencyAdmissionApplied: null,
             recipientConfirmation: RecipientConfirmationStatus.Unspecified,
-            actor, ct);
+            actor, ct,
+            specialVisitSupportBilledHours: null);
 
     public async Task<DailyRecordDto> ExecuteAsync(
         Guid originId, Attendance attendance, TransportKind transport, bool mealProvided,
@@ -38,7 +39,10 @@ public sealed class CorrectDailyRecordUseCase(
         bool? intensiveSupportApplied,
         bool? emergencyAdmissionApplied,
         RecipientConfirmationStatus recipientConfirmation,
-        string actor, CancellationToken ct)
+        string actor, CancellationToken ct,
+        // Phase 3-3（グループB個別入力）。actor/ct が既存シグネチャの末尾に固定されているため、
+        // 既存の位置引数呼び出しを壊さない唯一の追加位置がここ（省略可能パラメータ）になる。
+        int? specialVisitSupportBilledHours = null)
     {
         var origin = await repo.FindByIdAsync(originId, ct)
             ?? throw new InvalidOperationException("訂正元レコードが見つかりません。");
@@ -61,7 +65,8 @@ public sealed class CorrectDailyRecordUseCase(
             serviceStartTime, serviceEndTime, specialVisitSupportMinutes,
             offsiteSupportApplied, medicalCoordinationType, trialUseSupportType,
             regionalCollaborationApplied, intensiveSupportApplied,
-            emergencyAdmissionApplied, recipientConfirmation);
+            emergencyAdmissionApplied, recipientConfirmation,
+            specialVisitSupportBilledHours);
         await repo.AddAsync(entity, ct);
         await uow.SaveChangesAsync(ct);
         return RecordDailyRecordUseCase.Map(entity);

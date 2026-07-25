@@ -16,7 +16,8 @@ public sealed class ClaimInputConfiguration : IEntityTypeConfiguration<ClaimInpu
             "\"Kind\" <> 3 OR (\"UpperLimitManagementResult\" IS NULL AND \"UpperLimitManagedAmountYen\" IS NULL " +
             "AND \"MunicipalSubsidyAmountYen\" IS NULL AND \"ExceptionalUsageStartMonthKey\" IS NULL " +
             "AND \"ExceptionalUsageEndMonthKey\" IS NULL AND \"ExceptionalUsageDays\" IS NULL " +
-            "AND \"StandardUsageDayTotal\" IS NULL)",
+            "AND \"StandardUsageDayTotal\" IS NULL AND \"SpecialVisitSupportBilledCount\" IS NULL " +
+            "AND \"OffsiteSupportCumulativeDays\" IS NULL)",
             table => table.HasCheckConstraint(
                 "CK_ClaimInputs_UpperLimitManagementResult_ClosedSet",
                 "\"UpperLimitManagementResult\" IS NULL OR \"UpperLimitManagementResult\" IN (1, 2, 3)"));

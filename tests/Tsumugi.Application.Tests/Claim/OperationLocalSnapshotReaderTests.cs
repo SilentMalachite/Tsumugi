@@ -76,6 +76,30 @@ public sealed class OperationLocalSnapshotReaderTests
         snapshot.ReportSpecificationVersion.Should().Be("r1-10");
     }
 
+    /// <summary>
+    /// グループB個別入力（訪問支援特別加算の算定回数・施設外支援の累計日数・訪問支援特別加算の
+    /// 算定時間数）が確定時点の値としてそのまま snapshot へ焼き込まれること（Phase 3-3）。
+    /// いずれも日次実績や他項目から導出しない。
+    /// </summary>
+    [Fact]
+    public async Task ReadAsync_captures_group_b_explicit_addition_inputs()
+    {
+        var sut = CreateSut(
+            SampleOffice(), SampleRecipient(), SampleCertificate(),
+            [SampleDailyRecord()], [SampleEpisode()], [SampleClaimInput()]);
+
+        var snapshot = await sut.ReadAsync(
+            OfficeId, RecipientId, Month, SampleCalculationResult(),
+            "r6-2026-04", "r7-10", "r1-10", CancellationToken.None);
+
+        snapshot.ClaimInput.SpecialVisitSupportBilledCount.Should().Be(2);
+        snapshot.ClaimInput.OffsiteSupportCumulativeDays.Should().Be(12);
+        // 算定時間数（時間）はサービス提供時間（分・45）とは別項目で、そこから導出されない。
+        var record = snapshot.DailyRecords.Should().ContainSingle().Subject;
+        record.SpecialVisitSupportBilledHours.Should().Be(3);
+        record.SpecialVisitSupportMinutes.Should().Be(45);
+    }
+
     [Fact]
     public async Task ReadAsync_throws_when_office_missing()
     {
@@ -248,7 +272,8 @@ public sealed class OperationLocalSnapshotReaderTests
         regionalCollaborationApplied: true,
         intensiveSupportApplied: true,
         emergencyAdmissionApplied: true,
-        recipientConfirmation: RecipientConfirmationStatus.Confirmed);
+        recipientConfirmation: RecipientConfirmationStatus.Confirmed,
+        specialVisitSupportBilledHours: 3);
 
     private static IntensiveSupportEpisode SampleEpisode()
     {
@@ -283,6 +308,8 @@ public sealed class OperationLocalSnapshotReaderTests
             UpperLimitManagementResult = UpperLimitManagementResult.Result1,
             UpperLimitManagedAmountYen = 1000,
             MunicipalSubsidyAmountYen = 500,
+            SpecialVisitSupportBilledCount = 2,
+            OffsiteSupportCumulativeDays = 12,
             CreatedAt = Now,
             CreatedBy = "seed",
             ConcurrencyToken = Guid.NewGuid(),

@@ -49,7 +49,12 @@ public sealed record ClaimInputQueryRevisionDto(
     int? ExceptionalUsageDays,
     int? StandardUsageDayTotal,
     DateTimeOffset CreatedAt,
-    string CreatedBy);
+    string CreatedBy,
+    // Phase 3-3（グループB個別入力）。既存の位置引数呼び出しを壊さないため、同一ファイルの
+    // AverageWageAnnualEvidenceQueryRevisionDto.ComputedAverageWageMonthYen /
+    // OfficeClaimProfileQueryRevisionDto.CapacityHeadcount と同じ作法で監査列の後ろへ追記する。
+    int? SpecialVisitSupportBilledCount,
+    int? OffsiteSupportCumulativeDays);
 
 /// <param name="ComputedAverageWageMonthYen">
 /// ADR 0023の正式式（<c>AverageWageFormula</c>）で当該revisionの確認済み実績から算出した

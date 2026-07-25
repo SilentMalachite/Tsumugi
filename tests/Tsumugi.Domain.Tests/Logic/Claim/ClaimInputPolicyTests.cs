@@ -116,6 +116,28 @@ public sealed class ClaimInputPolicyTests
                 "standard usage day total",
                 new[] { root, cancellation with { StandardUsageDayTotal = root.StandardUsageDayTotal } }
             },
+            {
+                "special visit support billed count",
+                new[]
+                {
+                    root,
+                    cancellation with
+                    {
+                        SpecialVisitSupportBilledCount = root.SpecialVisitSupportBilledCount,
+                    },
+                }
+            },
+            {
+                "offsite support cumulative days",
+                new[]
+                {
+                    root,
+                    cancellation with
+                    {
+                        OffsiteSupportCumulativeDays = root.OffsiteSupportCumulativeDays,
+                    },
+                }
+            },
         };
     }
 
@@ -128,6 +150,50 @@ public sealed class ClaimInputPolicyTests
         FluentActions.Invoking(() => ClaimInputPolicy.ValidateHistory(history))
             .Should().Throw<InvalidOperationException>()
             .WithMessage("ClaimInputのCancelは請求入力値を持てません。");
+    }
+
+    public static TheoryData<string, ClaimInput> NegativeGroupBAdditionInputs()
+    {
+        var root = New();
+
+        return new()
+        {
+            { "special visit support billed count", root with { SpecialVisitSupportBilledCount = -1 } },
+            { "offsite support cumulative days", root with { OffsiteSupportCumulativeDays = -1 } },
+        };
+    }
+
+    [Theory]
+    [MemberData(nameof(NegativeGroupBAdditionInputs))]
+    public void Negative_group_b_addition_inputs_are_rejected(string _, ClaimInput input)
+    {
+        FluentActions.Invoking(() => ClaimInputPolicy.ValidateHistory([input]))
+            .Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void Group_b_addition_inputs_round_trip_through_with_and_stay_effective()
+    {
+        // provider:J611:01:052（訪問支援特別加算・算定回数）と provider:J611:01:054（施設外支援・累計日数）は
+        // 上限をコードに持たないため、0 と大きな値の双方をそのまま保持できる。
+        var root = New() with
+        {
+            SpecialVisitSupportBilledCount = 0,
+            OffsiteSupportCumulativeDays = 0,
+        };
+        var correction = Correct(root) with
+        {
+            SpecialVisitSupportBilledCount = 2,
+            OffsiteSupportCumulativeDays = 181,
+        };
+
+        var effective = ClaimInputPolicy.Effective([root, correction]);
+
+        effective.Should().Be(correction);
+        effective!.SpecialVisitSupportBilledCount.Should().Be(2);
+        effective.OffsiteSupportCumulativeDays.Should().Be(181);
+        root.SpecialVisitSupportBilledCount.Should().Be(0);
+        root.OffsiteSupportCumulativeDays.Should().Be(0);
     }
 
     [Fact]
@@ -157,6 +223,8 @@ public sealed class ClaimInputPolicyTests
         ExceptionalUsageEndMonth = null,
         ExceptionalUsageDays = 0,
         StandardUsageDayTotal = 0,
+        SpecialVisitSupportBilledCount = 0,
+        OffsiteSupportCumulativeDays = 0,
         CreatedAt = DateTimeOffset.UnixEpoch,
         CreatedBy = "tester",
         ConcurrencyToken = Guid.Parse("00000000-0000-0000-0000-000000000104"),
@@ -187,6 +255,8 @@ public sealed class ClaimInputPolicyTests
         ExceptionalUsageEndMonth = null,
         ExceptionalUsageDays = null,
         StandardUsageDayTotal = null,
+        SpecialVisitSupportBilledCount = null,
+        OffsiteSupportCumulativeDays = null,
         CreatedAt = head.CreatedAt.AddMinutes(1),
         ConcurrencyToken = Guid.NewGuid(),
     };

@@ -85,6 +85,13 @@ public sealed partial class ClaimInputViewModel(
     [ObservableProperty] private int? _exceptionalUsageDays;
     [ObservableProperty] private int? _standardUsageDayTotal;
 
+    // 訪問支援特別加算の算定回数（回・月合計）と施設外支援の累計日数（日）。
+    // どちらも日次実績から導出できない月次の個別入力（provider:J611:01:052 / provider:J611:01:054）。
+    // 施設外支援の累計に当月分を含めるかは公式資料から一意に確定できないため、運用者が明細書の
+    // 「累計」欄に設定する値をそのまま受ける（アプリ側で導出・補正しない）。
+    [ObservableProperty] private int? _specialVisitSupportBilledCount;
+    [ObservableProperty] private int? _offsiteSupportCumulativeDays;
+
     [ObservableProperty] private Guid? _averageWageCurrentHeadId;
     [ObservableProperty] private Guid? _averageWageEffectiveHeadId;
     [ObservableProperty] private DateOnly _averageWagePeriodStart;
@@ -311,8 +318,9 @@ public sealed partial class ClaimInputViewModel(
         }
 
         var kind = ClaimInputCurrentHeadId is null ? RecordKind.New : RecordKind.Correct;
-        // 例外利用日の4項目は画面の値をそのまま送る。読み込み時に ApplyClaimInputValues が
-        // 実効revisionの値を各プロパティへ反映しているため、直近値の引き継ぎは既に済んでいる。
+        // 例外利用日の4項目・訪問支援特別加算の算定回数・施設外支援の累計日数は画面の値をそのまま送る。
+        // 読み込み時に ApplyClaimInputValues が実効revisionの値を各プロパティへ反映しているため、
+        // 直近値の引き継ぎは既に済んでいる。
         // ここで「空ならDTOの旧値へフォールバック」すると、一度入力した値を画面から消せなくなる。
         await SaveAndReloadAsync(() => _setClaimInput.ExecuteAsync(
             new SetClaimInputRequest(OfficeId, RecipientId, CurrentServiceMonth(), kind,
@@ -327,6 +335,8 @@ public sealed partial class ClaimInputViewModel(
                     ExceptionalUsageEndYear, ExceptionalUsageEndMonth),
                 ExceptionalUsageDays = ExceptionalUsageDays,
                 StandardUsageDayTotal = StandardUsageDayTotal,
+                SpecialVisitSupportBilledCount = SpecialVisitSupportBilledCount,
+                OffsiteSupportCumulativeDays = OffsiteSupportCumulativeDays,
             }, Environment.UserName, default));
     }
 
@@ -353,6 +363,9 @@ public sealed partial class ClaimInputViewModel(
         UpperLimitManagedAmountYen = null;
         MunicipalSubsidyAmountYen = null;
         ClearExceptionalUsage();
+        // 再入力は当該月の請求入力をすべて白紙に戻す操作なので、月次の個別入力2項目も落とす。
+        SpecialVisitSupportBilledCount = null;
+        OffsiteSupportCumulativeDays = null;
         ErrorMessage = null;
     }
 
@@ -693,6 +706,8 @@ public sealed partial class ClaimInputViewModel(
         ExceptionalUsageEndMonth = value?.ExceptionalUsageEndMonth?.Month;
         ExceptionalUsageDays = value?.ExceptionalUsageDays;
         StandardUsageDayTotal = value?.StandardUsageDayTotal;
+        SpecialVisitSupportBilledCount = value?.SpecialVisitSupportBilledCount;
+        OffsiteSupportCumulativeDays = value?.OffsiteSupportCumulativeDays;
         _claimInputReentry = false;
     }
 

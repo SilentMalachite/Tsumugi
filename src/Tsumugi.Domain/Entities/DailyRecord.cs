@@ -18,7 +18,25 @@ public sealed record DailyRecord : Entity
     public string? Note { get; init; }
     public TimeOnly? ServiceStartTime { get; init; }
     public TimeOnly? ServiceEndTime { get; init; }
+
+    /// <summary>
+    /// 訪問支援特別加算で<b>実際にサービス提供した時間・単位は「分」</b>。
+    /// 公式項目 <c>provider:J611:02:027</c>「訪問支援特別加算（サービス提供時間数）」に対応する実績値であり、
+    /// <see cref="SpecialVisitSupportBilledHours"/>（算定時間数・単位は「時間」）とは別項目。
+    /// </summary>
     public int? SpecialVisitSupportMinutes { get; init; }
+
+    /// <summary>
+    /// 訪問支援特別加算の<b>算定時間数・単位は「時間」（整数）</b>。
+    /// 公式項目 <c>provider:J611:02:028</c>「訪問支援特別加算（算定時間数）」＝
+    /// 「算定する時間数（時間）を設定（整数）」。
+    /// 実際にサービス提供した時間を分で保持する <see cref="SpecialVisitSupportMinutes"/>
+    /// （<c>provider:J611:02:027</c>「サービス提供時間数」）とは<b>別項目</b>で、そこからは導出できない。
+    /// 根拠は留意事項通知 2(6)⑨「所要時間については、実際に要した時間により算定されるのではなく、
+    /// 計画に基づいて行われるべき指定サービス等に要する時間に基づき算定される」。
+    /// </summary>
+    public int? SpecialVisitSupportBilledHours { get; init; }
+
     public bool? OffsiteSupportApplied { get; init; }
     public MedicalCoordinationType MedicalCoordinationType { get; init; }
     public TrialUseSupportType TrialUseSupportType { get; init; }
@@ -43,7 +61,8 @@ public sealed record DailyRecord : Entity
             regionalCollaborationApplied: null,
             intensiveSupportApplied: null,
             emergencyAdmissionApplied: null,
-            recipientConfirmation: RecipientConfirmationStatus.Unspecified);
+            recipientConfirmation: RecipientConfirmationStatus.Unspecified,
+            specialVisitSupportBilledHours: null);
 
     public static DailyRecord NewRecord(
         Guid id, Guid recipientId, DateOnly serviceDate,
@@ -58,11 +77,13 @@ public sealed record DailyRecord : Entity
         bool? regionalCollaborationApplied = null,
         bool? intensiveSupportApplied = null,
         bool? emergencyAdmissionApplied = null,
-        RecipientConfirmationStatus recipientConfirmation = RecipientConfirmationStatus.Unspecified)
+        RecipientConfirmationStatus recipientConfirmation = RecipientConfirmationStatus.Unspecified,
+        int? specialVisitSupportBilledHours = null)
     {
         ValidateClaimInputs(
             serviceStartTime, serviceEndTime, specialVisitSupportMinutes,
-            medicalCoordinationType, trialUseSupportType, recipientConfirmation);
+            medicalCoordinationType, trialUseSupportType, recipientConfirmation,
+            specialVisitSupportBilledHours);
 
         return new()
         {
@@ -78,6 +99,7 @@ public sealed record DailyRecord : Entity
             ServiceStartTime = serviceStartTime,
             ServiceEndTime = serviceEndTime,
             SpecialVisitSupportMinutes = specialVisitSupportMinutes,
+            SpecialVisitSupportBilledHours = specialVisitSupportBilledHours,
             OffsiteSupportApplied = offsiteSupportApplied,
             MedicalCoordinationType = medicalCoordinationType,
             TrialUseSupportType = trialUseSupportType,
@@ -108,7 +130,8 @@ public sealed record DailyRecord : Entity
             regionalCollaborationApplied: null,
             intensiveSupportApplied: null,
             emergencyAdmissionApplied: null,
-            recipientConfirmation: RecipientConfirmationStatus.Unspecified);
+            recipientConfirmation: RecipientConfirmationStatus.Unspecified,
+            specialVisitSupportBilledHours: null);
 
     public static DailyRecord Correction(
         Guid id, Guid recipientId, DateOnly serviceDate, Guid originId,
@@ -123,11 +146,13 @@ public sealed record DailyRecord : Entity
         bool? regionalCollaborationApplied = null,
         bool? intensiveSupportApplied = null,
         bool? emergencyAdmissionApplied = null,
-        RecipientConfirmationStatus recipientConfirmation = RecipientConfirmationStatus.Unspecified)
+        RecipientConfirmationStatus recipientConfirmation = RecipientConfirmationStatus.Unspecified,
+        int? specialVisitSupportBilledHours = null)
     {
         ValidateClaimInputs(
             serviceStartTime, serviceEndTime, specialVisitSupportMinutes,
-            medicalCoordinationType, trialUseSupportType, recipientConfirmation);
+            medicalCoordinationType, trialUseSupportType, recipientConfirmation,
+            specialVisitSupportBilledHours);
 
         return new()
         {
@@ -143,6 +168,7 @@ public sealed record DailyRecord : Entity
             ServiceStartTime = serviceStartTime,
             ServiceEndTime = serviceEndTime,
             SpecialVisitSupportMinutes = specialVisitSupportMinutes,
+            SpecialVisitSupportBilledHours = specialVisitSupportBilledHours,
             OffsiteSupportApplied = offsiteSupportApplied,
             MedicalCoordinationType = medicalCoordinationType,
             TrialUseSupportType = trialUseSupportType,
@@ -172,6 +198,8 @@ public sealed record DailyRecord : Entity
             ServiceStartTime = null,
             ServiceEndTime = null,
             SpecialVisitSupportMinutes = null,
+            // 取消レコードは請求入力値を持たない（訪問支援特別加算の算定時間数も含めて null に落とす）。
+            SpecialVisitSupportBilledHours = null,
             OffsiteSupportApplied = null,
             MedicalCoordinationType = MedicalCoordinationType.Unspecified,
             TrialUseSupportType = TrialUseSupportType.Unspecified,
@@ -190,7 +218,8 @@ public sealed record DailyRecord : Entity
         int? specialVisitSupportMinutes,
         MedicalCoordinationType medicalCoordinationType,
         TrialUseSupportType trialUseSupportType,
-        RecipientConfirmationStatus recipientConfirmation)
+        RecipientConfirmationStatus recipientConfirmation,
+        int? specialVisitSupportBilledHours)
     {
         if (serviceStartTime is not null &&
             serviceEndTime is not null &&
@@ -204,6 +233,14 @@ public sealed record DailyRecord : Entity
             throw new ArgumentOutOfRangeException(
                 nameof(specialVisitSupportMinutes),
                 "訪問支援特別加算の時間数は0以上である必要があります。");
+        }
+
+        // 上限（1月あたりの算定回数・時間数の制度上の限度）は公式の実値をコードに持ち込まないため検証しない（CLAUDE.md §ハード制約3）。
+        if (specialVisitSupportBilledHours < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(specialVisitSupportBilledHours),
+                "訪問支援特別加算の算定時間数は0以上である必要があります。");
         }
 
         EnsureDefined(medicalCoordinationType, nameof(medicalCoordinationType));

@@ -44,6 +44,15 @@ public sealed record ClaimCsvOfficeDto(
 /// 確定 snapshot が持たない場合（Phase 3-3 より前の確定分）は null で、生成側が fail-close する。
 /// </param>
 /// <param name="UpperLimitManagementResultCode">上限管理結果の公式コード値（1/2/3）。</param>
+/// <param name="SpecialVisitSupportBilledCount">
+/// 訪問支援特別加算の算定回数（当月合計・単位は「回」）。日次のサービス提供時間からは導出できない
+/// 個別入力で、確定 snapshot が持たない場合（Phase 3-3 より前の確定分）は null。
+/// </param>
+/// <param name="OffsiteSupportCumulativeDays">
+/// 施設外支援の累計日数（単位は「日」）。当月分を含むかは公式資料から一意に確定できないため、
+/// 運用者が明細書の「累計」欄に設定した値をそのまま渡す（アプリで導出しない）。
+/// 確定 snapshot が持たない場合（Phase 3-3 より前の確定分）は null。
+/// </param>
 public sealed record ClaimCsvRecipientDto(
     string SortKey,
     string CertificateNumber,
@@ -68,7 +77,11 @@ public sealed record ClaimCsvRecipientDto(
     int TotalUnits,
     int TotalCostYen,
     int BenefitYen,
-    int BurdenYen);
+    int BurdenYen,
+    // Phase 3-3（グループB個別入力）。既存プロパティの順序を変えるとゴールデンCSVが壊れるため、
+    // 末尾に省略可能パラメータとして追記する。
+    int? SpecialVisitSupportBilledCount = null,
+    int? OffsiteSupportCumulativeDays = null);
 
 /// <summary>
 /// 明細書「契約情報」レコード（<c>provider:J121:05</c>）に必要な契約内容。
@@ -93,6 +106,11 @@ public sealed record ClaimCsvServiceLineDto(string ServiceCode, int Unit, int Co
 /// <param name="TransportCode">送迎の内部区分値（<c>TransportKind</c> の数値）。</param>
 /// <param name="MedicalCoordinationCode">医療連携体制加算の内部区分値。未設定は null。</param>
 /// <param name="TrialUseSupportCode">体験利用支援加算の内部区分値。未設定は null。</param>
+/// <param name="SpecialVisitSupportBilledHours">
+/// 訪問支援特別加算の算定時間数（単位は「時間」・整数）。実際のサービス提供時間を分で持つ
+/// <paramref name="SpecialVisitSupportMinutes"/> とは別項目で、そこからは導出できない。
+/// 確定 snapshot が持たない場合（Phase 3-3 より前の確定分）は null。
+/// </param>
 public sealed record ClaimCsvDailyRecordDto(
     DateOnly ServiceDate,
     int AttendanceCode,
@@ -106,7 +124,10 @@ public sealed record ClaimCsvDailyRecordDto(
     int? TrialUseSupportCode,
     bool RegionalCollaborationApplied,
     bool IntensiveSupportApplied,
-    bool EmergencyAdmissionApplied);
+    bool EmergencyAdmissionApplied,
+    // Phase 3-3（グループB個別入力）。既存プロパティの順序を変えるとゴールデンCSVが壊れるため、
+    // 末尾に省略可能パラメータとして追記する。
+    int? SpecialVisitSupportBilledHours = null);
 
 public sealed record ClaimCsvTotalsDto(
     int TotalUnits,

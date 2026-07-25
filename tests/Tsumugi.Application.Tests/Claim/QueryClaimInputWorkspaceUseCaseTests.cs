@@ -96,6 +96,9 @@ public sealed class QueryClaimInputWorkspaceUseCaseTests
         result.ClaimInputChain.Revisions[0].Should().BeEquivalentTo(
             claimNew, options => options.ExcludingMissingMembers());
         result.ClaimInputChain.Revisions[2].UpperLimitManagedAmountYen.Should().Be(2_000);
+        // グループB個別入力（Phase 3-3）も読み出しDTOへ写像される。
+        result.ClaimInputChain.Revisions[0].SpecialVisitSupportBilledCount.Should().Be(2);
+        result.ClaimInputChain.Revisions[0].OffsiteSupportCumulativeDays.Should().Be(12);
 
         result.AverageWageAnnualEvidenceChain.Should().NotBeNull();
         result.AverageWageAnnualEvidenceChain!.Revisions.Should().ContainSingle()
@@ -427,6 +430,8 @@ public sealed class QueryClaimInputWorkspaceUseCaseTests
             ExceptionalUsageEndMonth = kind == RecordKind.Cancel ? null : Month,
             ExceptionalUsageDays = kind == RecordKind.Cancel ? null : 10,
             StandardUsageDayTotal = kind == RecordKind.Cancel ? null : 22,
+            SpecialVisitSupportBilledCount = kind == RecordKind.Cancel ? null : 2,
+            OffsiteSupportCumulativeDays = kind == RecordKind.Cancel ? null : 12,
             CreatedAt = Now.AddMinutes(revision),
             CreatedBy = $"operator-{revision}",
             ConcurrencyToken = Guid.NewGuid(),

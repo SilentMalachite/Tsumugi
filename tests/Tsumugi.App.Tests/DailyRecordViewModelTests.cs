@@ -311,7 +311,8 @@ public sealed class DailyRecordViewModelTests
             Attendance.Present, TransportKind.Round, true, "note", "u", DateTimeOffset.UnixEpoch,
             new TimeOnly(9, 0), new TimeOnly(15, 30), 0, false,
             MedicalCoordinationType.Unspecified, TrialUseSupportType.Unspecified,
-            false, null, false, RecipientConfirmationStatus.Unspecified));
+            false, null, false, RecipientConfirmationStatus.Unspecified,
+            specialVisitSupportBilledHours: 0));
         var vm = NewVm();
         vm.SetRecipient(rid);
         vm.SetMonth(2026, 6);
@@ -322,6 +323,7 @@ public sealed class DailyRecordViewModelTests
         vm.EditorServiceStartTime.Should().Be(new TimeOnly(9, 0));
         vm.EditorServiceEndTime.Should().Be(new TimeOnly(15, 30));
         vm.EditorSpecialVisitSupportMinutes.Should().Be(0);
+        vm.EditorSpecialVisitSupportBilledHours.Should().Be(0);
         vm.EditorOffsiteSupportApplied.Should().BeFalse();
         vm.EditorMedicalCoordinationType.Should().Be(MedicalCoordinationType.Unspecified);
         vm.EditorTrialUseSupportType.Should().Be(TrialUseSupportType.Unspecified);
@@ -339,6 +341,7 @@ public sealed class DailyRecordViewModelTests
         var correction = _repo.Added[^1];
         correction.Kind.Should().Be(RecordKind.Correct);
         correction.SpecialVisitSupportMinutes.Should().Be(0);
+        correction.SpecialVisitSupportBilledHours.Should().Be(0);
         correction.OffsiteSupportApplied.Should().BeFalse();
         correction.RegionalCollaborationApplied.Should().BeFalse();
         correction.IntensiveSupportApplied.Should().BeNull();
@@ -352,7 +355,7 @@ public sealed class DailyRecordViewModelTests
     }
 
     [Fact]
-    public async Task SaveSelectedDailyRecord_creates_new_with_all_ten_claim_values()
+    public async Task SaveSelectedDailyRecord_creates_new_with_all_eleven_claim_values()
     {
         var vm = NewVm();
         vm.SetRecipient(Guid.NewGuid());
@@ -366,6 +369,7 @@ public sealed class DailyRecordViewModelTests
         vm.EditorServiceStartTime = new TimeOnly(8, 45);
         vm.EditorServiceEndTime = new TimeOnly(14, 0);
         vm.EditorSpecialVisitSupportMinutes = 30;
+        vm.EditorSpecialVisitSupportBilledHours = 2;
         vm.EditorOffsiteSupportApplied = true;
         vm.EditorMedicalCoordinationType = MedicalCoordinationType.TypeII;
         vm.EditorTrialUseSupportType = TrialUseSupportType.TypeI;
@@ -380,6 +384,8 @@ public sealed class DailyRecordViewModelTests
         stored.ServiceStartTime.Should().Be(new TimeOnly(8, 45));
         stored.ServiceEndTime.Should().Be(new TimeOnly(14, 0));
         stored.SpecialVisitSupportMinutes.Should().Be(30);
+        // 分（サービス提供時間数）と時間（算定時間数）は別項目。片方の値がもう片方に混ざらないこと。
+        stored.SpecialVisitSupportBilledHours.Should().Be(2);
         stored.OffsiteSupportApplied.Should().BeTrue();
         stored.MedicalCoordinationType.Should().Be(MedicalCoordinationType.TypeII);
         stored.TrialUseSupportType.Should().Be(TrialUseSupportType.TypeI);
@@ -387,6 +393,36 @@ public sealed class DailyRecordViewModelTests
         stored.IntensiveSupportApplied.Should().BeFalse();
         stored.EmergencyAdmissionApplied.Should().BeNull();
         stored.RecipientConfirmation.Should().Be(RecipientConfirmationStatus.Confirmed);
+    }
+
+    // 訪問支援特別加算は「サービス提供時間数（分）」と「算定時間数（時間）」の2項目で、後者は
+    // 日次実績から導出できない。既定 null／新規・訂正の両経路で渡ること／片方だけ配線されていない
+    // ことを固定する（新規だけ配線され訂正で落ちる、が最も気付きにくい壊れ方）。
+    [Fact]
+    public async Task SpecialVisitSupportBilledHours_defaults_to_null_and_is_passed_on_new_and_correction()
+    {
+        var vm = NewVm();
+        vm.SetRecipient(Guid.NewGuid());
+        vm.SetMonth(2026, 6);
+        await vm.LoadAsync();
+        vm.SelectedCell = vm.Cells[0];
+
+        vm.EditorSpecialVisitSupportBilledHours.Should().BeNull();
+        vm.EditorSpecialVisitSupportMinutes = 90;
+        await vm.SaveSelectedDailyRecordCommand.ExecuteAsync(null);
+
+        var created = _repo.Added.Should().ContainSingle().Subject;
+        created.Kind.Should().Be(RecordKind.New);
+        created.SpecialVisitSupportMinutes.Should().Be(90);
+        created.SpecialVisitSupportBilledHours.Should().BeNull();
+
+        vm.EditorSpecialVisitSupportBilledHours = 2;
+        await vm.SaveSelectedDailyRecordCommand.ExecuteAsync(null);
+
+        var corrected = _repo.Added[^1];
+        corrected.Kind.Should().Be(RecordKind.Correct);
+        corrected.SpecialVisitSupportMinutes.Should().Be(90);
+        corrected.SpecialVisitSupportBilledHours.Should().Be(2);
     }
 
     [Fact]
@@ -398,7 +434,8 @@ public sealed class DailyRecordViewModelTests
             TransportKind.Inbound, true, "preserve", "u", DateTimeOffset.UnixEpoch,
             new TimeOnly(10, 0), new TimeOnly(16, 0), 15, false,
             MedicalCoordinationType.TypeIII, TrialUseSupportType.TypeII,
-            true, false, null, RecipientConfirmationStatus.Confirmed));
+            true, false, null, RecipientConfirmationStatus.Confirmed,
+            specialVisitSupportBilledHours: 3));
         var vm = NewVm();
         vm.SetRecipient(rid);
         vm.SetMonth(2026, 6);
@@ -413,6 +450,9 @@ public sealed class DailyRecordViewModelTests
         correction.ServiceStartTime.Should().Be(new TimeOnly(10, 0));
         correction.ServiceEndTime.Should().Be(new TimeOnly(16, 0));
         correction.SpecialVisitSupportMinutes.Should().Be(15);
+        // 出欠ボタン由来の訂正でも算定時間数（時間）を取りこぼさないこと。DailyCellViewModel が
+        // 実効値を保持していないと、出欠を押しただけで既存の算定時間数が null に落ちる。
+        correction.SpecialVisitSupportBilledHours.Should().Be(3);
         correction.OffsiteSupportApplied.Should().BeFalse();
         correction.MedicalCoordinationType.Should().Be(MedicalCoordinationType.TypeIII);
         correction.TrialUseSupportType.Should().Be(TrialUseSupportType.TypeII);

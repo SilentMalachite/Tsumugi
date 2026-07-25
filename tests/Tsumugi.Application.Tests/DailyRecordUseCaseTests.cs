@@ -61,6 +61,93 @@ public sealed class DailyRecordUseCaseTests
         dto.RecipientConfirmation.Should().Be(RecipientConfirmationStatus.Confirmed);
     }
 
+    /// <summary>
+    /// 訪問支援特別加算の算定時間数（時間）は、サービス提供時間数（分）とは別項目でそこからは
+    /// 導出できないため、日次の個別入力として保存・復元されること（Phase 3-3）。
+    /// </summary>
+    [Fact]
+    public async Task Record_persists_special_visit_support_billed_hours_independently_of_minutes()
+    {
+        var sut = new RecordDailyRecordUseCase(_repo, _uow, _clock);
+
+        var dto = await sut.ExecuteAsync(
+            Guid.NewGuid(), new DateOnly(2026, 6, 1),
+            Attendance.Present, TransportKind.None, mealProvided: false, note: null,
+            serviceStartTime: new TimeOnly(9, 0),
+            serviceEndTime: new TimeOnly(15, 0),
+            specialVisitSupportMinutes: 45,
+            offsiteSupportApplied: false,
+            medicalCoordinationType: MedicalCoordinationType.Unspecified,
+            trialUseSupportType: TrialUseSupportType.Unspecified,
+            regionalCollaborationApplied: null,
+            intensiveSupportApplied: null,
+            emergencyAdmissionApplied: null,
+            recipientConfirmation: RecipientConfirmationStatus.Unspecified,
+            actor: "u", ct: default,
+            specialVisitSupportBilledHours: 3);
+
+        dto.SpecialVisitSupportMinutes.Should().Be(45);
+        dto.SpecialVisitSupportBilledHours.Should().Be(3);
+        _repo.Added.Should().ContainSingle()
+            .Which.SpecialVisitSupportBilledHours.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task Record_leaves_special_visit_support_billed_hours_null_when_not_submitted()
+    {
+        var sut = new RecordDailyRecordUseCase(_repo, _uow, _clock);
+
+        var dto = await sut.ExecuteAsync(Guid.NewGuid(), new DateOnly(2026, 6, 1),
+            Attendance.Present, TransportKind.Round, true, "通常", "u", default);
+
+        dto.SpecialVisitSupportBilledHours.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Correct_persists_submitted_special_visit_support_billed_hours()
+    {
+        var rid = Guid.NewGuid();
+        var origin = DailyRecord.NewRecord(Guid.NewGuid(), rid, new DateOnly(2026, 6, 1),
+            Attendance.Present, TransportKind.None, mealProvided: false,
+            note: null, createdBy: "u", createdAt: DateTimeOffset.UnixEpoch,
+            specialVisitSupportBilledHours: 3);
+        _repo.Added.Add(origin);
+
+        var sut = new CorrectDailyRecordUseCase(_repo, _uow, _clock);
+        var dto = await sut.ExecuteAsync(
+            origin.Id, Attendance.Present, TransportKind.None, mealProvided: false, note: null,
+            serviceStartTime: null,
+            serviceEndTime: null,
+            specialVisitSupportMinutes: null,
+            offsiteSupportApplied: null,
+            medicalCoordinationType: MedicalCoordinationType.Unspecified,
+            trialUseSupportType: TrialUseSupportType.Unspecified,
+            regionalCollaborationApplied: null,
+            intensiveSupportApplied: null,
+            emergencyAdmissionApplied: null,
+            recipientConfirmation: RecipientConfirmationStatus.Unspecified,
+            actor: "u", ct: default,
+            specialVisitSupportBilledHours: 5);
+
+        dto.SpecialVisitSupportBilledHours.Should().Be(5);
+    }
+
+    [Fact]
+    public async Task Cancel_clears_special_visit_support_billed_hours()
+    {
+        var rid = Guid.NewGuid();
+        var origin = DailyRecord.NewRecord(Guid.NewGuid(), rid, new DateOnly(2026, 6, 1),
+            Attendance.Present, TransportKind.None, mealProvided: false,
+            note: null, createdBy: "u", createdAt: DateTimeOffset.UnixEpoch,
+            specialVisitSupportBilledHours: 3);
+        _repo.Added.Add(origin);
+
+        var sut = new CancelDailyRecordUseCase(_repo, _uow, _clock);
+        var dto = await sut.ExecuteAsync(origin.Id, "u", default);
+
+        dto.SpecialVisitSupportBilledHours.Should().BeNull();
+    }
+
     [Fact]
     public async Task Record_rejects_empty_recipient_id()
     {

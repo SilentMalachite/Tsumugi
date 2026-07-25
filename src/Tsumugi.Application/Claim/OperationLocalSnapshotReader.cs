@@ -155,7 +155,9 @@ public sealed class OperationLocalSnapshotReader(
             claimInput?.ExceptionalUsageStartMonth,
             claimInput?.ExceptionalUsageEndMonth,
             claimInput?.ExceptionalUsageDays,
-            claimInput?.StandardUsageDayTotal);
+            claimInput?.StandardUsageDayTotal,
+            claimInput?.SpecialVisitSupportBilledCount,
+            claimInput?.OffsiteSupportCumulativeDays);
 
     private static ClaimFinalizationDailyRecordSnapshot BuildDailyRecordSnapshot(DailyRecord record)
         => new(
@@ -177,7 +179,8 @@ public sealed class OperationLocalSnapshotReader(
             record.RegionalCollaborationApplied ?? false,
             record.IntensiveSupportApplied ?? false,
             record.EmergencyAdmissionApplied ?? false,
-            record.RecipientConfirmation == RecipientConfirmationStatus.Confirmed);
+            record.RecipientConfirmation == RecipientConfirmationStatus.Confirmed,
+            record.SpecialVisitSupportBilledHours);
 
     /// <summary>
     /// <see cref="RecipientClaimResult"/>から基本報酬1行＋加算明細行群を構築する。基本報酬の

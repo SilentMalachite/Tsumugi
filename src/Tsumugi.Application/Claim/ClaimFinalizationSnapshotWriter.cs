@@ -97,6 +97,11 @@ public static class ClaimFinalizationSnapshotWriter
         WriteMonthOrNull(writer, "exceptionalUsageEndMonth", claimInput.ExceptionalUsageEndMonth);
         WriteNumberOrNull(writer, "exceptionalUsageDays", claimInput.ExceptionalUsageDays);
         WriteNumberOrNull(writer, "standardUsageDayTotal", claimInput.StandardUsageDayTotal);
+        // Phase 3-3 で追加（既存キーの順序は変えず末尾へ追記する）。
+        WriteNumberOrNull(
+            writer, "specialVisitSupportBilledCount", claimInput.SpecialVisitSupportBilledCount);
+        WriteNumberOrNull(
+            writer, "offsiteSupportCumulativeDays", claimInput.OffsiteSupportCumulativeDays);
         writer.WriteEndObject();
     }
 
@@ -140,6 +145,9 @@ public static class ClaimFinalizationSnapshotWriter
             writer.WriteBoolean("intensiveSupportApplied", record.IntensiveSupportApplied);
             writer.WriteBoolean("emergencyAdmissionApplied", record.EmergencyAdmissionApplied);
             writer.WriteBoolean("recipientConfirmation", record.RecipientConfirmation);
+            // Phase 3-3 で追加（既存キーの順序は変えず末尾へ追記する）。
+            WriteNumberOrNull(
+                writer, "specialVisitSupportBilledHours", record.SpecialVisitSupportBilledHours);
             writer.WriteEndObject();
         }
 

@@ -69,6 +69,13 @@ public static class ClaimRecipientSnapshotWriter
                     writer, "exceptionalUsageEndMonth", claimInput.ExceptionalUsageEndMonth);
                 WriteNumberOrNull(writer, "exceptionalUsageDays", claimInput.ExceptionalUsageDays);
                 WriteNumberOrNull(writer, "standardUsageDayTotal", claimInput.StandardUsageDayTotal);
+                // 算定に効かない請求入力（例外利用日など）も PreviewHash に含める既存方針に合わせる。
+                // 含めないと、プレビュー後にこれらを書き換えても同じ hash で確定でき、確定 snapshot が
+                // 「プレビューで見た内容」と食い違う。
+                WriteNumberOrNull(
+                    writer, "specialVisitSupportBilledCount", claimInput.SpecialVisitSupportBilledCount);
+                WriteNumberOrNull(
+                    writer, "offsiteSupportCumulativeDays", claimInput.OffsiteSupportCumulativeDays);
                 writer.WriteEndObject();
             }
 

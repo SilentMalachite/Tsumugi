@@ -67,7 +67,9 @@ public static class ClaimFinalizationSnapshotReader
             ContractedProvider: ParseContractedProvider(root),
             // Phase 3-3 で追加。これより前に確定した snapshot は持たないため任意扱いにし、
             // サービス利用日数を要する項目は生成側で fail-close させる。
-            ServiceUsageDays: OptionalInt(root, "serviceUsageDays"),
+            // キー自体が無い旧 snapshot も読めるよう OptionalIntWhenPresent を使う
+            // （OptionalInt はキー不在を parse エラーにするため、上記の「任意扱い」が成立しない）。
+            ServiceUsageDays: OptionalIntWhenPresent(root, "serviceUsageDays"),
             DailyRecords: ParseDailyRecords(RequireArray(root, "dailyRecords")),
             IntensiveSupportEpisode: ParseIntensiveSupportEpisode(RequireProperty(root, "intensiveSupportEpisode")),
             ClaimLines: ParseClaimLines(RequireArray(root, "claimLines")),
@@ -106,7 +108,11 @@ public static class ClaimFinalizationSnapshotReader
         ExceptionalUsageStartMonth: OptionalServiceMonth(claimInput, "exceptionalUsageStartMonth"),
         ExceptionalUsageEndMonth: OptionalServiceMonth(claimInput, "exceptionalUsageEndMonth"),
         ExceptionalUsageDays: OptionalInt(claimInput, "exceptionalUsageDays"),
-        StandardUsageDayTotal: OptionalInt(claimInput, "standardUsageDayTotal"));
+        StandardUsageDayTotal: OptionalInt(claimInput, "standardUsageDayTotal"),
+        // Phase 3-3 で追加。これより前に確定した snapshot はキー自体を持たないため、
+        // キー不在も null として受ける（後方互換）。要否の判定は CSV 生成側の fail-close に任せる。
+        SpecialVisitSupportBilledCount: OptionalIntWhenPresent(claimInput, "specialVisitSupportBilledCount"),
+        OffsiteSupportCumulativeDays: OptionalIntWhenPresent(claimInput, "offsiteSupportCumulativeDays"));
 
     private static IReadOnlyList<ClaimFinalizationDailyRecordSnapshot> ParseDailyRecords(JsonElement dailyRecords)
         => [.. dailyRecords.EnumerateArray().Select(ParseDailyRecord)];
@@ -126,7 +132,10 @@ public static class ClaimFinalizationSnapshotReader
         RegionalCollaborationApplied: RequireBool(record, "regionalCollaborationApplied"),
         IntensiveSupportApplied: RequireBool(record, "intensiveSupportApplied"),
         EmergencyAdmissionApplied: RequireBool(record, "emergencyAdmissionApplied"),
-        RecipientConfirmation: RequireBool(record, "recipientConfirmation"));
+        RecipientConfirmation: RequireBool(record, "recipientConfirmation"),
+        // Phase 3-3 で追加。これより前に確定した snapshot の日次要素はキー自体を持たないため、
+        // キー不在も null として受ける（後方互換）。
+        SpecialVisitSupportBilledHours: OptionalIntWhenPresent(record, "specialVisitSupportBilledHours"));
 
     private static ClaimFinalizationContractedProviderSnapshot? ParseContractedProvider(JsonElement root)
     {
@@ -244,6 +253,25 @@ public static class ClaimFinalizationSnapshotReader
     {
         var property = RequireProperty(obj, propertyName);
         if (property.ValueKind == JsonValueKind.Null) return null;
+        return property.ValueKind == JsonValueKind.Number && property.TryGetInt32(out var value)
+            ? value
+            : throw new InvalidOperationException($"フィールド '{propertyName}' は整数またはnullでなければなりません。");
+    }
+
+    /// <summary>
+    /// <see cref="OptionalInt"/>と異なり<b>キー自体の不在も null として受ける</b>。
+    /// Phase 3-3 で snapshot schema に後から追加した項目は、これより前に確定した snapshot では
+    /// キーが存在しないため、キー不在を parse エラーにすると過去の確定分が一切読めなくなる。
+    /// 「値が無い」ことの請求上の可否は CSV 生成側の fail-close が判定する（ここでは黙って null）。
+    /// </summary>
+    private static int? OptionalIntWhenPresent(JsonElement obj, string propertyName)
+    {
+        if (!obj.TryGetProperty(propertyName, out var property)
+            || property.ValueKind == JsonValueKind.Null)
+        {
+            return null;
+        }
+
         return property.ValueKind == JsonValueKind.Number && property.TryGetInt32(out var value)
             ? value
             : throw new InvalidOperationException($"フィールド '{propertyName}' は整数またはnullでなければなりません。");

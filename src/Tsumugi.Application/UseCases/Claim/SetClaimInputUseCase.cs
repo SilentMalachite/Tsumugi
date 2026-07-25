@@ -48,6 +48,8 @@ public sealed class SetClaimInputUseCase(
             ExceptionalUsageEndMonth = request.ExceptionalUsageEndMonth,
             ExceptionalUsageDays = request.ExceptionalUsageDays,
             StandardUsageDayTotal = request.StandardUsageDayTotal,
+            SpecialVisitSupportBilledCount = request.SpecialVisitSupportBilledCount,
+            OffsiteSupportCumulativeDays = request.OffsiteSupportCumulativeDays,
             CreatedAt = clock.GetUtcNow(),
             CreatedBy = actor,
             ConcurrencyToken = Guid.NewGuid(),
@@ -74,7 +76,11 @@ public sealed class SetClaimInputUseCase(
             || request.UpperLimitManagedAmountYen is < 0
             || request.MunicipalSubsidyAmountYen is < 0
             || request.ExceptionalUsageDays is < 0
-            || request.StandardUsageDayTotal is < 0)
+            || request.StandardUsageDayTotal is < 0
+            // 制度上の限度（訪問支援特別加算の月内算定回数上限・施設外支援の累計日数上限）は
+            // 公式実値をコードに持ち込まないため検証しない（CLAUDE.md §ハード制約3）。負値だけを弾く。
+            || request.SpecialVisitSupportBilledCount is < 0
+            || request.OffsiteSupportCumulativeDays is < 0)
             throw new ClaimInputSaveException(
                 ClaimInputSaveErrorCode.InvalidValue,
                 ClaimInputFieldCode.Values);

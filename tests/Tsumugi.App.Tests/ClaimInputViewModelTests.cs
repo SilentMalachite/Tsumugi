@@ -50,6 +50,9 @@ public sealed class ClaimInputViewModelTests
         fixture.Sut.UpperLimitManagementResult.Should().Be(UpperLimitManagementResult.Result2);
         fixture.Sut.UpperLimitManagedAmountYen.Should().Be(1_000);
         fixture.Sut.MunicipalSubsidyAmountYen.Should().Be(500);
+        // 月次の個別入力2項目も実効revisionから画面へ反映される（ApplyClaimInputValues の配線）。
+        fixture.Sut.SpecialVisitSupportBilledCount.Should().Be(2);
+        fixture.Sut.OffsiteSupportCumulativeDays.Should().Be(30);
     }
 
     [Fact]
@@ -96,6 +99,47 @@ public sealed class ClaimInputViewModelTests
         saved.ExceptionalUsageEndMonth.Should().Be(Month);
         saved.ExceptionalUsageDays.Should().Be(10);
         saved.StandardUsageDayTotal.Should().Be(22);
+        saved.SpecialVisitSupportBilledCount.Should().Be(2);
+        saved.OffsiteSupportCumulativeDays.Should().Be(30);
+    }
+
+    [Fact]
+    public async Task Special_visit_support_count_and_offsite_cumulative_days_are_editable_and_reach_the_save_payload()
+    {
+        // 上限額管理とは無関係な月次項目なので、上限額管理結果を入れずに単独で保存できること。
+        var fixture = CreateFixture(withActiveClaimInput: false);
+        await fixture.Sut.LoadAsync();
+        fixture.Sut.SpecialVisitSupportBilledCount = 2;
+        fixture.Sut.OffsiteSupportCumulativeDays = 45;
+
+        await fixture.Sut.SaveClaimInputAsync();
+
+        fixture.Sut.ErrorMessage.Should().BeNull();
+        var created = fixture.ClaimInput.Items.Should().ContainSingle().Subject;
+        created.SpecialVisitSupportBilledCount.Should().Be(2);
+        created.OffsiteSupportCumulativeDays.Should().Be(45);
+    }
+
+    // NOTE(teeth): 訪問支援特別加算の算定回数・施設外支援の累計日数はどちらも日次実績から導出できない
+    // 個別入力なので、誤入力の解除は画面からしかできない。保存時に「空ならDTOの旧値へフォールバック」
+    // する実装に戻ると、一度入れた回数・累計日数を二度と消せずCSVに載り続ける。
+    [Fact]
+    public async Task Correcting_claim_input_can_clear_the_special_visit_support_count_and_offsite_cumulative_days()
+    {
+        var fixture = CreateFixture(withActiveClaimInput: true);
+        await fixture.Sut.LoadAsync();
+        fixture.Sut.SpecialVisitSupportBilledCount.Should().Be(2);
+        fixture.Sut.OffsiteSupportCumulativeDays.Should().Be(30);
+
+        fixture.Sut.SpecialVisitSupportBilledCount = null;
+        fixture.Sut.OffsiteSupportCumulativeDays = null;
+
+        await fixture.Sut.SaveClaimInputAsync();
+
+        var saved = fixture.ClaimInput.Items[^1];
+        saved.Kind.Should().Be(RecordKind.Correct);
+        saved.SpecialVisitSupportBilledCount.Should().BeNull();
+        saved.OffsiteSupportCumulativeDays.Should().BeNull();
     }
 
     [Fact]
@@ -207,6 +251,8 @@ public sealed class ClaimInputViewModelTests
         reentered.ExceptionalUsageEndMonth.Should().BeNull();
         reentered.ExceptionalUsageDays.Should().BeNull();
         reentered.StandardUsageDayTotal.Should().BeNull();
+        reentered.SpecialVisitSupportBilledCount.Should().BeNull();
+        reentered.OffsiteSupportCumulativeDays.Should().BeNull();
     }
 
     [Fact]
@@ -227,6 +273,8 @@ public sealed class ClaimInputViewModelTests
         created.ExceptionalUsageEndMonth.Should().BeNull();
         created.ExceptionalUsageDays.Should().BeNull();
         created.StandardUsageDayTotal.Should().BeNull();
+        created.SpecialVisitSupportBilledCount.Should().BeNull();
+        created.OffsiteSupportCumulativeDays.Should().BeNull();
     }
 
     [Fact]
@@ -586,6 +634,8 @@ public sealed class ClaimInputViewModelTests
                 ExceptionalUsageEndMonth = Month,
                 ExceptionalUsageDays = 10,
                 StandardUsageDayTotal = 22,
+                SpecialVisitSupportBilledCount = 2,
+                OffsiteSupportCumulativeDays = 30,
                 CreatedAt = DateTimeOffset.UnixEpoch,
                 CreatedBy = "operator",
                 ConcurrencyToken = Guid.NewGuid(),

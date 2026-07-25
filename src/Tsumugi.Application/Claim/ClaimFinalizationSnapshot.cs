@@ -81,7 +81,18 @@ public sealed record ClaimFinalizationClaimInputSnapshot(
     ServiceMonth? ExceptionalUsageStartMonth,
     ServiceMonth? ExceptionalUsageEndMonth,
     int? ExceptionalUsageDays,
-    int? StandardUsageDayTotal);
+    int? StandardUsageDayTotal,
+    /// <summary>
+    /// 確定時点の訪問支援特別加算 算定回数（当月合計・単位は「回」）。日次実績からは導出できない
+    /// 個別入力。Phase 3-3 で追加したため、これより前に確定した snapshot では null になる。
+    /// </summary>
+    int? SpecialVisitSupportBilledCount = null,
+    /// <summary>
+    /// 確定時点の施設外支援 累計日数（単位は「日」）。当月分を含むか否かは公式資料から一意に確定
+    /// できないため、運用者が明細書の「累計」欄に設定した値をそのまま焼き込む（導出しない）。
+    /// Phase 3-3 で追加したため、これより前に確定した snapshot では null になる。
+    /// </summary>
+    int? OffsiteSupportCumulativeDays = null);
 
 public sealed record ClaimFinalizationDailyRecordSnapshot(
     DateOnly ServiceDate,
@@ -98,7 +109,13 @@ public sealed record ClaimFinalizationDailyRecordSnapshot(
     bool RegionalCollaborationApplied,
     bool IntensiveSupportApplied,
     bool EmergencyAdmissionApplied,
-    bool RecipientConfirmation);
+    bool RecipientConfirmation,
+    /// <summary>
+    /// 確定時点の訪問支援特別加算 算定時間数（単位は「時間」・整数）。実際のサービス提供時間を分で
+    /// 持つ <c>SpecialVisitSupportMinutes</c> とは別項目でそこからは導出できない。
+    /// Phase 3-3 で追加したため、これより前に確定した snapshot では null になる。
+    /// </summary>
+    int? SpecialVisitSupportBilledHours = null);
 
 public sealed record ClaimFinalizationIntensiveSupportEpisodeSnapshot(DateOnly StartDate);
 

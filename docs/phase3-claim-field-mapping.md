@@ -221,9 +221,9 @@
 | provider:J611:01:049 | provider:J611:01 | 49 | 自立生活支援加算（Ⅱ）（回） | numeric | 2 | never | generated | constEmpty(target=provider:J611:01:049;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item49) | provider-r7-10 p.63 |
 | provider:J611:01:050 | provider:J611:01 | 50 | 自活訓練加算（回） | numeric | 2 | never | generated | constEmpty(target=provider:J611:01:050;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item50) | provider-r7-10 p.63 |
 | provider:J611:01:051 | provider:J611:01 | 51 | 訪問支援特別加算（回） （サービス提供回数） | numeric | 2 | modelNonZero(DailyRecord.SpecialVisitSupportMinutes) | generated | count(target=provider:J611:01:051;selector=DailyRecord.SpecialVisitSupportMinutes;measure=serviceOccurrences;source=provider-r7-10:p63:item51) | provider-r7-10 p.63 |
-| provider:J611:01:052 | provider:J611:01 | 52 | 訪問支援特別加算（回） （算定回数） | numeric | 2 | modelNonZero(DailyRecord.SpecialVisitSupportMinutes) | generated | count(target=provider:J611:01:052;selector=DailyRecord.SpecialVisitSupportMinutes;measure=billableOccurrences;source=provider-r7-10:p63:item52) | provider-r7-10 p.63 |
+| provider:J611:01:052 | provider:J611:01 | 52 | 訪問支援特別加算（回） （算定回数） | numeric | 2 | modelNonZero(DailyRecord.SpecialVisitSupportMinutes) | missing | ClaimInput.SpecialVisitSupportBilledCount / ClaimInputView / migration | provider-r7-10 p.63 |
 | provider:J611:01:053 | provider:J611:01 | 53 | 施設外支援 当月（日） | numeric | 2 | modelTrue(DailyRecord.OffsiteSupportApplied) | generated | count(target=provider:J611:01:053;selector=DailyRecord.OffsiteSupportApplied;window=ServiceProvisionMonth;source=provider-r7-10:p63:item53) | provider-r7-10 p.63 |
-| provider:J611:01:054 | provider:J611:01 | 54 | 施設外支援 累計（日／１８０日） | numeric | 3 | modelTrue(DailyRecord.OffsiteSupportApplied) | generated | count(target=provider:J611:01:054;selector=DailyRecord.OffsiteSupportApplied;window=official180DayWindow;source=provider-r7-10:p63:item54) | provider-r7-10 p.63 |
+| provider:J611:01:054 | provider:J611:01 | 54 | 施設外支援 累計（日／１８０日） | numeric | 3 | modelTrue(DailyRecord.OffsiteSupportApplied) | missing | ClaimInput.OffsiteSupportCumulativeDays / ClaimInputView / migration | provider-r7-10 p.63 |
 | provider:J611:01:055 | provider:J611:01 | 55 | 帰宅時支援加算（回） （サービス提供回数） | numeric | 2 | never | generated | constEmpty(target=provider:J611:01:055;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item55) | provider-r7-10 p.63 |
 | provider:J611:01:056 | provider:J611:01 | 56 | 帰宅時支援加算（回） （算定回数） | numeric | 2 | never | generated | constEmpty(target=provider:J611:01:056;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item56) | provider-r7-10 p.63 |
 | provider:J611:01:057 | provider:J611:01 | 57 | 実 費 算 定 の 合 計 / 朝食（回） | numeric | 2 | never | generated | constEmpty(target=provider:J611:01:057;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p63:item57) | provider-r7-10 p.63 |
@@ -368,8 +368,8 @@
 | provider:J611:02:024 | provider:J611:02 | 24 | 家庭連携加算 （算定時間数） | numeric | 2 | never | generated | constEmpty(target=provider:J611:02:024;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item24) | provider-r7-10 p.73 |
 | provider:J611:02:025 | provider:J611:02 | 25 | 自活訓練加算 | code | 1 | never | generated | constEmpty(target=provider:J611:02:025;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item25) | provider-r7-10 p.73 |
 | provider:J611:02:026 | provider:J611:02 | 26 | 短期滞在加算 | code | 1 | never | generated | constEmpty(target=provider:J611:02:026;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item26) | provider-r7-10 p.73 |
-| provider:J611:02:027 | provider:J611:02 | 27 | 訪問支援特別加算 （サービス提供時間数） | numeric | 4 | modelNonZero(DailyRecord.SpecialVisitSupportMinutes) | missing | DailyRecord.SpecialVisitSupportMinutes / DailyRecordView / migration | provider-r7-10 p.73 |
-| provider:J611:02:028 | provider:J611:02 | 28 | 訪問支援特別加算 （算定時間数） | numeric | 2 | modelNonZero(DailyRecord.SpecialVisitSupportMinutes) | missing | DailyRecord.SpecialVisitSupportMinutes / DailyRecordView / migration | provider-r7-10 p.73 |
+| provider:J611:02:027 | provider:J611:02 | 27 | 訪問支援特別加算 （サービス提供時間数） | numeric | 4 | modelNonZero(DailyRecord.SpecialVisitSupportMinutes) | existing | DailyRecord.SpecialVisitSupportMinutes:hundredthsOfHour | provider-r7-10 p.73 |
+| provider:J611:02:028 | provider:J611:02 | 28 | 訪問支援特別加算 （算定時間数） | numeric | 2 | modelNonZero(DailyRecord.SpecialVisitSupportMinutes) | missing | DailyRecord.SpecialVisitSupportBilledHours / DailyRecordView / migration | provider-r7-10 p.73 |
 | provider:J611:02:029 | provider:J611:02 | 29 | 施設外支援 | code | 1 | modelTrue(DailyRecord.OffsiteSupportApplied) | missing | DailyRecord.OffsiteSupportApplied / DailyRecordView / migration | provider-r7-10 p.73 |
 | provider:J611:02:030 | provider:J611:02 | 30 | 退所時特別支援加算 | code | 1 | never | generated | constEmpty(target=provider:J611:02:030;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item30) | provider-r7-10 p.73 |
 | provider:J611:02:031 | provider:J611:02 | 31 | 地域移行加算 | code | 1 | never | generated | constEmpty(target=provider:J611:02:031;reason=official-B-type-or-form1701-column-not-used;source=provider-r7-10:p73:item31) | provider-r7-10 p.73 |
@@ -600,12 +600,13 @@
 | Certificate.MunicipalityNumber | provider:J121:05:004 | CertificateView | required |
 | ContractedProvider.CertificateEntryNumber | provider:J121:05:011 | CertificateView | required |
 | Certificate.MunicipalityNumber | provider:J611:01:004 | CertificateView | required |
+| ClaimInput.SpecialVisitSupportBilledCount | provider:J611:01:052 | ClaimInputView | required |
+| ClaimInput.OffsiteSupportCumulativeDays | provider:J611:01:054 | ClaimInputView | required |
 | IntensiveSupportEpisode.StartDate | provider:J611:01:156 | DailyRecordView | required |
 | Certificate.MunicipalityNumber | provider:J611:02:004 | CertificateView | required |
 | DailyRecord.ServiceStartTime | provider:J611:02:014 | DailyRecordView | required |
 | DailyRecord.ServiceEndTime | provider:J611:02:015 | DailyRecordView | required |
-| DailyRecord.SpecialVisitSupportMinutes | provider:J611:02:027 | DailyRecordView | required |
-| DailyRecord.SpecialVisitSupportMinutes | provider:J611:02:028 | DailyRecordView | required |
+| DailyRecord.SpecialVisitSupportBilledHours | provider:J611:02:028 | DailyRecordView | required |
 | DailyRecord.OffsiteSupportApplied | provider:J611:02:029 | DailyRecordView | required |
 | DailyRecord.MedicalCoordinationType | provider:J611:02:074 | DailyRecordView | required |
 | DailyRecord.TrialUseSupportType | provider:J611:02:083 | DailyRecordView | required |

@@ -12,10 +12,15 @@ public sealed class ClaimInputRequirementProviderTests
         var requirements = ClaimInputRequirementProvider.LoadEmbedded().GetRequirements();
 
         requirements.Select(requirement => requirement.TargetPath).Should()
-            // Phase 3-3 で ContractedProvider.FirstServiceDate（開始年月日の個別入力）を追加した。
-            .HaveCount(27).And.OnlyHaveUniqueItems();
+            // Phase 3-3 で ContractedProvider.FirstServiceDate（開始年月日の個別入力）を追加し、
+            // さらに ADR 0033 で ClaimInput.SpecialVisitSupportBilledCount /
+            // ClaimInput.OffsiteSupportCumulativeDays / DailyRecord.SpecialVisitSupportBilledHours の
+            // 3 経路を追加した（27 → 30）。
+            .HaveCount(30).And.OnlyHaveUniqueItems();
         requirements.SelectMany(requirement => requirement.FieldIds).Should()
-            .HaveCount(52).And.OnlyHaveUniqueItems();
+            // provider:J611:01:052 / :054 が個別入力へ加わり（+2）、provider:J611:02:027 は
+            // 単位変換つき existing になって要件から外れた（-1）ので 52 → 53。
+            .HaveCount(53).And.OnlyHaveUniqueItems();
         requirements.Should().OnlyContain(requirement =>
             requirement.Destination != ClaimInputDestination.Unknown);
     }
@@ -31,11 +36,51 @@ public sealed class ClaimInputRequirementProviderTests
         municipality.Condition.Should().BeOfType<ClaimRequirementCondition.Always>();
         municipality.Destination.Should().Be(ClaimInputDestination.Certificate);
 
+        // 訪問支援特別加算のサービス提供時間（分）を要求するのは、Phase 3-3 / ADR 0033 以降は
+        // 実績記録票の時間数欄（report:service-performance:daily:008）だけ。CSV 側の
+        // provider:J611:02:027 は単位変換つき existing、:028 は算定時間数の専用入力へ分かれた。
         var specialVisit = requirements.Single(requirement =>
             requirement.TargetPath == "DailyRecord.SpecialVisitSupportMinutes");
-        specialVisit.FieldIds.Should().HaveCount(3);
-        specialVisit.Condition.Should().BeOfType<ClaimRequirementCondition.Any>();
+        specialVisit.FieldIds.Should().Equal("report:service-performance:daily:008");
+        specialVisit.Condition.Should().BeOfType<ClaimRequirementCondition.All>();
         specialVisit.Destination.Should().Be(ClaimInputDestination.DailyRecord);
+    }
+
+    // NOTE(teeth): ADR 0033 の 3 経路が readiness 要件として登録され、正しい入力画面へ向くことを
+    // 固定する。いずれも条件が「別プロパティ」を見る非自己参照条件なので、未入力を検知できる
+    // （自己参照条件へ戻すと恒久的に fail-open になる）。
+    [Theory]
+    [InlineData(
+        "provider:J611:01:052", "ClaimInput.SpecialVisitSupportBilledCount",
+        "DailyRecord.SpecialVisitSupportMinutes", ClaimInputDestination.ClaimInput)]
+    [InlineData(
+        "provider:J611:02:028", "DailyRecord.SpecialVisitSupportBilledHours",
+        "DailyRecord.SpecialVisitSupportMinutes", ClaimInputDestination.DailyRecord)]
+    public void Provider_registers_non_derivable_addition_inputs_behind_a_cross_field_condition(
+        string fieldId, string targetPath, string conditionPath, ClaimInputDestination expected)
+    {
+        var requirements = ClaimInputRequirementProvider.LoadEmbedded().GetRequirements();
+
+        var requirement = requirements.Should().ContainSingle(r => r.TargetPath == targetPath).Subject;
+        requirement.FieldIds.Should().Contain(fieldId);
+        requirement.Destination.Should().Be(expected);
+        var nonZero = requirement.Condition.Should()
+            .BeOfType<ClaimRequirementCondition.ModelNonZero>().Subject;
+        nonZero.ModelPath.Should().Be(conditionPath);
+        nonZero.ModelPath.Should().NotBe(targetPath, "a self-referential condition never fails closed");
+    }
+
+    [Fact]
+    public void Provider_registers_the_cumulative_offsite_days_behind_the_offsite_support_flag()
+    {
+        var requirements = ClaimInputRequirementProvider.LoadEmbedded().GetRequirements();
+
+        var requirement = requirements.Should()
+            .ContainSingle(r => r.TargetPath == "ClaimInput.OffsiteSupportCumulativeDays").Subject;
+        requirement.FieldIds.Should().Equal("provider:J611:01:054");
+        requirement.Destination.Should().Be(ClaimInputDestination.ClaimInput);
+        requirement.Condition.Should().BeOfType<ClaimRequirementCondition.ModelTrue>()
+            .Which.ModelPath.Should().Be("DailyRecord.OffsiteSupportApplied");
     }
 
     [Fact]

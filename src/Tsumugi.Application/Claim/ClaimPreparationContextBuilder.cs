@@ -201,6 +201,15 @@ public static class ClaimPreparationContextBuilder
             [Path(nameof(ClaimInput), nameof(ClaimInput.StandardUsageDayTotal))] =
                 NumberOrNotApplicable(input?.StandardUsageDayTotal),
 
+            // ClaimInput のグループB個別入力（Phase 3-3）。訪問支援特別加算の算定回数と施設外支援の
+            // 累計日数はいずれも日次実績から導出できないため、個別入力の値をそのまま供給する。
+            // どの CSV 項目がこの path を要求するか（readiness 要件）はCSV仕様JSON側の宣言が正本で、
+            // ここは値の供給側のみを担う（要件が未宣言のうちは readiness の挙動は変わらない）。
+            [Path(nameof(ClaimInput), nameof(ClaimInput.SpecialVisitSupportBilledCount))] =
+                NumberOrNotApplicable(input?.SpecialVisitSupportBilledCount),
+            [Path(nameof(ClaimInput), nameof(ClaimInput.OffsiteSupportCumulativeDays))] =
+                NumberOrNotApplicable(input?.OffsiteSupportCumulativeDays),
+
             // Certificate.*（Task 9c）。MunicipalityNumberは常時必須（always）、他の2件は
             // 自己参照modelPresent（値がある時だけその値自体が要求を満たす＝実質「入力するなら
             // 空にしない」程度の意味）。
@@ -254,6 +263,12 @@ public static class ClaimPreparationContextBuilder
                 TimeOrNotApplicable(dailyRecordAggregate.ServiceEndTime),
             [Path(nameof(DailyRecord), nameof(DailyRecord.SpecialVisitSupportMinutes))] =
                 ClaimPreparationValue.Number(dailyRecordAggregate.SpecialVisitSupportMinutesTotal),
+            // SpecialVisitSupportBilledHours（Phase 3-3）: 算定時間数（時間）。サービス提供時間（分）の
+            // SpecialVisitSupportMinutes とは別項目。当月SUMを供給するが、未入力（null）は
+            // NotApplicable にする。Number(0) にすると「入力済みの 0」と区別できず、
+            // サービス提供時間数が入っている月でも readiness が通ってしまう（要求条件が自己参照でない）。
+            [Path(nameof(DailyRecord), nameof(DailyRecord.SpecialVisitSupportBilledHours))] =
+                NumberOrNotApplicable(dailyRecordAggregate.SpecialVisitSupportBilledHoursTotal),
             [Path(nameof(DailyRecord), nameof(DailyRecord.OffsiteSupportApplied))] =
                 ClaimPreparationValue.Boolean(dailyRecordAggregate.OffsiteSupportApplied),
             [Path(nameof(DailyRecord), nameof(DailyRecord.MedicalCoordinationType))] =

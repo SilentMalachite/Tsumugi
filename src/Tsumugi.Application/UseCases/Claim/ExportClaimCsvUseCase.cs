@@ -148,7 +148,11 @@ public sealed class ExportClaimCsvUseCase(
         TotalUnits: detail.TotalUnits,
         TotalCostYen: detail.TotalCostYen,
         BenefitYen: detail.BenefitYen,
-        BurdenYen: detail.BurdenYen);
+        BurdenYen: detail.BurdenYen,
+        // グループB個別入力（訪問支援特別加算の算定回数・施設外支援の累計日数）。確定時点の値を
+        // そのまま渡し、必須判定は CSV 仕様側の fail-close に委ねる（推測で埋めない）。
+        SpecialVisitSupportBilledCount: snapshot.ClaimInput.SpecialVisitSupportBilledCount,
+        OffsiteSupportCumulativeDays: snapshot.ClaimInput.OffsiteSupportCumulativeDays);
 
     private static ClaimCsvDailyRecordDto MapDailyRecord(
         ClaimFinalizationDailyRecordSnapshot record) => new(
@@ -164,7 +168,8 @@ public sealed class ExportClaimCsvUseCase(
         TrialUseSupportCode: ParseEnumCode<TrialUseSupportType>(record.TrialUseSupportType),
         RegionalCollaborationApplied: record.RegionalCollaborationApplied,
         IntensiveSupportApplied: record.IntensiveSupportApplied,
-        EmergencyAdmissionApplied: record.EmergencyAdmissionApplied);
+        EmergencyAdmissionApplied: record.EmergencyAdmissionApplied,
+        SpecialVisitSupportBilledHours: record.SpecialVisitSupportBilledHours);
 
     private static int? ParseEnumCode<TEnum>(string? token)
         where TEnum : struct, Enum =>

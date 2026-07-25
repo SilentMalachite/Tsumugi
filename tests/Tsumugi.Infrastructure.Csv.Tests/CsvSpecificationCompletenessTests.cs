@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text.Json;
 using FluentAssertions;
 using Tsumugi.Infrastructure.Csv;
+using Tsumugi.Infrastructure.Csv.Generation;
 
 namespace Tsumugi.Infrastructure.Csv.Tests;
 
@@ -211,9 +212,13 @@ public sealed class CsvSpecificationCompletenessTests
             .Should().BeEquivalentTo(new Dictionary<string, int>
             {
                 // provider:J121:02:008 を導出から個別入力へ移した（Phase 3-3 / ADR 0032）。
-                ["generated"] = 374,
-                ["existing"] = 28,
-                ["missing"] = 31,
+                // さらに provider:J611:01:052（訪問支援特別加算 算定回数）と
+                // provider:J611:01:054（施設外支援 累計）を個別入力へ、
+                // provider:J611:02:027（サービス提供時間数）を単位変換つき existing へ移した
+                // （Phase 3-3 / ADR 0033）。
+                ["generated"] = 372,
+                ["existing"] = 29,
+                ["missing"] = 32,
                 ["explicitInput"] = 10,
             });
         AssertMapping(mappings, "provider:J121:01:008", "existing", "Recipient.KanaName");
@@ -240,7 +245,7 @@ public sealed class CsvSpecificationCompletenessTests
         AssertMapping(mappings, "provider:J611:02:022", "existing", "DailyRecord.Transport");
         AssertMapping(mappings, "provider:J611:02:032", "existing", "DailyRecord.MealProvided");
         AssertMapping(mappings, "provider:J611:01:053", "generated", "OffsiteSupportApplied");
-        AssertMapping(mappings, "provider:J611:01:054", "generated", "OffsiteSupportApplied");
+        AssertMapping(mappings, "provider:J611:01:054", "missing", "OffsiteSupportCumulativeDays");
         AssertMapping(mappings, "provider:J611:01:156", "missing", "StartDate");
 
         foreach (var existing in mappings.Where(item => item.GetProperty("status").GetString() == "existing"))
@@ -357,6 +362,59 @@ public sealed class CsvSpecificationCompletenessTests
             "distinctBy=ServiceDate");
         item.GetProperty("generatorRule").GetString().Should().NotContain("DailyRecord.serviceProvided");
     }
+
+    // NOTE(teeth): Phase 3-3 / ADR 0033 で導出をやめた 3 項目が、正しい個別入力先を指し続けることを
+    // 固定する（provider:J121:02:008 の既存 pin と同型）。generatorRule へ戻すと、算定回数
+    // （留意事項通知 2(6)⑨）・施設外支援の年度累計（就労系留意事項通知 1(1)①）・計画に基づく
+    // 算定時間数を、当月の日次実績から黙って作ってしまう。
+    [Theory]
+    [InlineData("provider:J611:01:052", "ClaimInput", "SpecialVisitSupportBilledCount", "ClaimInputView")]
+    [InlineData("provider:J611:01:054", "ClaimInput", "OffsiteSupportCumulativeDays", "ClaimInputView")]
+    [InlineData("provider:J611:02:028", "DailyRecord", "SpecialVisitSupportBilledHours", "DailyRecordView")]
+    public void Non_derivable_addition_items_declare_their_explicit_input_target(
+        string fieldId, string targetModel, string targetProperty, string uiSurface)
+    {
+        using var mapping = ReadEmbeddedJson("field-mapping-r7-10.json");
+        var item = Mapping(mapping, fieldId);
+
+        item.GetProperty("status").GetString().Should().Be("missing", fieldId);
+        item.GetProperty("targetModel").GetString().Should().Be(targetModel, fieldId);
+        item.GetProperty("targetProperty").GetString().Should().Be(targetProperty, fieldId);
+        item.GetProperty("uiSurface").GetString().Should().Be(uiSurface, fieldId);
+        item.GetProperty("migrationRequired").ValueKind.Should().Be(JsonValueKind.True, fieldId);
+        item.TryGetProperty("generatorRule", out _).Should().BeFalse(fieldId);
+    }
+
+    // NOTE(teeth): 項目28（算定時間数・時間）は項目27（サービス提供時間数・分）とは別項目である。
+    // targetProperty を SpecialVisitSupportMinutes へ戻すと、計画に基づく算定時間の代わりに
+    // 実績の分数を出す退行になる。指していないことも明示的に固定する。
+    [Fact]
+    public void The_billed_hours_item_does_not_target_the_recorded_service_minutes()
+    {
+        using var mapping = ReadEmbeddedJson("field-mapping-r7-10.json");
+
+        Mapping(mapping, "provider:J611:02:028").GetProperty("targetProperty").GetString()
+            .Should().NotBe("SpecialVisitSupportMinutes");
+    }
+
+    // NOTE(teeth): 項目27 は入力欄（分）が既にあるので個別入力ではなく、公式の単位（1/100 時間）への
+    // 変換つき existing として宣言する。modelPath を素の DailyRecord.SpecialVisitSupportMinutes へ
+    // 戻すと、分がそのまま数値として出て単位が狂う。
+    [Fact]
+    public void The_service_hours_item_declares_the_hundredths_of_an_hour_conversion()
+    {
+        using var mapping = ReadEmbeddedJson("field-mapping-r7-10.json");
+        var item = Mapping(mapping, "provider:J611:02:027");
+
+        item.GetProperty("status").GetString().Should().Be("existing");
+        item.GetProperty("modelPath").GetString().Should()
+            .Be(ClaimCsvModelPath.SpecialVisitSupportServiceHoursPath);
+        item.TryGetProperty("targetProperty", out _).Should().BeFalse();
+    }
+
+    private static JsonElement Mapping(JsonDocument mapping, string fieldId) =>
+        mapping.RootElement.GetProperty("mappings").EnumerateArray()
+            .Single(item => item.GetProperty("fieldId").GetString() == fieldId);
 
     [Fact]
     public void Specification_strings_do_not_contain_placeholders()
@@ -549,13 +607,28 @@ public sealed class CsvSpecificationCompletenessTests
             .Distinct()
             .Count();
 
+    /// <summary>
+    /// <c>existing</c> の modelPath は必ず実在するドメインプロパティを指す。単位変換つき経路
+    /// （<c>Entity.Property:unit</c>）も、公式が要求する単位を spec 側で宣言しているだけで、
+    /// 変換元は実プロパティでなければならない（<see cref="ClaimCsvModelPath.KnownUnitSuffixes"/>
+    /// に無い単位を宣言したら RED になる）。
+    /// </summary>
     private static void AssertModelPathExists(string modelPath)
     {
         var parts = modelPath.Split('.', StringSplitOptions.RemoveEmptyEntries);
         parts.Should().HaveCount(2, modelPath);
+        var segments = parts[1].Split(ClaimCsvModelPath.UnitSuffixSeparator);
+        segments.Should().HaveCountLessThanOrEqualTo(2, modelPath);
+        if (segments.Length == 2)
+        {
+            ClaimCsvModelPath.KnownUnitSuffixes.Should().Contain(
+                segments[1], $"{modelPath} declares a known unit conversion");
+        }
+
         var type = typeof(Domain.Entities.Office).Assembly.GetType($"Tsumugi.Domain.Entities.{parts[0]}");
         type.Should().NotBeNull($"{modelPath} declares a real domain entity");
-        type!.GetProperty(parts[1]).Should().NotBeNull($"{modelPath} declares a real domain property");
+        type!.GetProperty(segments[0]).Should()
+            .NotBeNull($"{modelPath} declares a real domain property");
     }
 
     private static void RequireNonBlank(

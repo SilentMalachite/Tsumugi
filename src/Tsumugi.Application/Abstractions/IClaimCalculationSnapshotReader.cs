@@ -13,7 +13,11 @@ namespace Tsumugi.Application.Abstractions;
 /// 純粋な縮約であることに注意）。
 /// <list type="bullet">
 /// <item>真偽値系（<see cref="OffsiteSupportApplied"/> 等）: 当月いずれかの日でtrueならtrue（OR）。</item>
-/// <item><see cref="SpecialVisitSupportMinutesTotal"/>: 当月合計（SUM）。</item>
+/// <item>
+/// <see cref="SpecialVisitSupportMinutesTotal"/> /
+/// <see cref="SpecialVisitSupportBilledHoursTotal"/>: 当月合計（SUM）。
+/// 前者はサービス提供時間（分）、後者は算定時間数（時間）で、別項目・別尺度。
+/// </item>
 /// <item>時刻・区分系（<see cref="ServiceStartTime"/> 等）: 暦日昇順で最初に値が入力された日を代表とする。</item>
 /// </list>
 /// 対象日が1件もない利用者は <see cref="Empty"/>（すべて未入力相当の既定値）。
@@ -28,7 +32,12 @@ public sealed record ClaimDailyRecordAggregate(
     bool RegionalCollaborationApplied,
     bool IntensiveSupportApplied,
     bool EmergencyAdmissionApplied,
-    RecipientConfirmationStatus RecipientConfirmation = RecipientConfirmationStatus.Unspecified)
+    RecipientConfirmationStatus RecipientConfirmation = RecipientConfirmationStatus.Unspecified,
+    // Phase 3-3（グループB個別入力）。既存の位置引数呼び出しを壊さないため末尾へ追記する。
+    // null は「対象日のどこにも算定時間数が入力されていない」を表す。0 との区別が必要なのは、
+    // この項目の要求条件が自己参照でない（サービス提供時間数が非ゼロなら必須）ため、
+    // 未入力を 0 として供給すると readiness が fail-open するから。
+    int? SpecialVisitSupportBilledHoursTotal = null)
 {
     public static ClaimDailyRecordAggregate Empty { get; } = new(
         ServiceStartTime: null,
@@ -40,7 +49,8 @@ public sealed record ClaimDailyRecordAggregate(
         RegionalCollaborationApplied: false,
         IntensiveSupportApplied: false,
         EmergencyAdmissionApplied: false,
-        RecipientConfirmation: RecipientConfirmationStatus.Unspecified);
+        RecipientConfirmation: RecipientConfirmationStatus.Unspecified,
+        SpecialVisitSupportBilledHoursTotal: 0);
 }
 
 /// <summary>

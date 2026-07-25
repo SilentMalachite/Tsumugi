@@ -54,10 +54,17 @@ public static class ClaimInputPolicy
                     || input.ExceptionalUsageStartMonth is not null
                     || input.ExceptionalUsageEndMonth is not null
                     || input.ExceptionalUsageDays is not null
-                    || input.StandardUsageDayTotal is not null))
+                    || input.StandardUsageDayTotal is not null
+                    || input.SpecialVisitSupportBilledCount is not null
+                    || input.OffsiteSupportCumulativeDays is not null))
                 throw Invalid("ClaimInputのCancelは請求入力値を持てません。");
             if (input.UpperLimitManagementResult is { } result && !Enum.IsDefined(result))
                 throw Invalid("未知の上限額管理結果です。");
+            // 制度上の限度（訪問支援特別加算の月内算定回数上限・施設外支援の年度累計日数上限）は公式実値をコードに持ち込まないため検証しない（CLAUDE.md §ハード制約3）。
+            if (input.SpecialVisitSupportBilledCount is < 0)
+                throw Invalid("訪問支援特別加算の算定回数は0以上である必要があります。");
+            if (input.OffsiteSupportCumulativeDays is < 0)
+                throw Invalid("施設外支援の累計日数は0以上である必要があります。");
 
             if (index == 0) continue;
             if (input.Kind == RecordKind.New)

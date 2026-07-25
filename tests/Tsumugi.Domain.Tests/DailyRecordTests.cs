@@ -35,11 +35,13 @@ public sealed class DailyRecordTests
             regionalCollaborationApplied: true,
             intensiveSupportApplied: false,
             emergencyAdmissionApplied: true,
-            recipientConfirmation: RecipientConfirmationStatus.Confirmed);
+            recipientConfirmation: RecipientConfirmationStatus.Confirmed,
+            specialVisitSupportBilledHours: 2);
 
         r.ServiceStartTime.Should().Be(new TimeOnly(9, 0));
         r.ServiceEndTime.Should().Be(new TimeOnly(15, 30));
         r.SpecialVisitSupportMinutes.Should().Be(0);
+        r.SpecialVisitSupportBilledHours.Should().Be(2);
         r.OffsiteSupportApplied.Should().BeFalse();
         r.MedicalCoordinationType.Should().Be(MedicalCoordinationType.TypeVI);
         r.TrialUseSupportType.Should().Be(TrialUseSupportType.TypeII);
@@ -59,6 +61,7 @@ public sealed class DailyRecordTests
         r.ServiceStartTime.Should().BeNull();
         r.ServiceEndTime.Should().BeNull();
         r.SpecialVisitSupportMinutes.Should().BeNull();
+        r.SpecialVisitSupportBilledHours.Should().BeNull();
         r.OffsiteSupportApplied.Should().BeNull();
         r.MedicalCoordinationType.Should().Be(MedicalCoordinationType.Unspecified);
         r.TrialUseSupportType.Should().Be(TrialUseSupportType.Unspecified);
@@ -122,6 +125,45 @@ public sealed class DailyRecordTests
     }
 
     [Fact]
+    public void NewRecord_rejects_negative_special_visit_support_billed_hours()
+    {
+        var act = () => DailyRecord.NewRecord(Guid.NewGuid(), Recipient, Day,
+            Attendance.Present, TransportKind.None, mealProvided: false,
+            note: null, createdBy: "u", createdAt: DateTimeOffset.UnixEpoch,
+            specialVisitSupportBilledHours: -1);
+
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void Correction_rejects_negative_special_visit_support_billed_hours()
+    {
+        var act = () => DailyRecord.Correction(Guid.NewGuid(), Recipient, Day, Guid.NewGuid(),
+            Attendance.Present, TransportKind.None, mealProvided: false,
+            note: null, createdBy: "u", createdAt: DateTimeOffset.UnixEpoch,
+            specialVisitSupportBilledHours: -1);
+
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void Special_visit_support_billed_hours_is_independent_of_provided_minutes()
+    {
+        // provider:J611:02:027（サービス提供時間数・分）と provider:J611:02:028（算定時間数・時間）は別項目。
+        // 両者の間に換算関係を持ち込まないことをここで固定する。
+        var r = DailyRecord.Correction(Guid.NewGuid(), Recipient, Day, Guid.NewGuid(),
+            Attendance.Present, TransportKind.None, mealProvided: false,
+            note: null, createdBy: "u", createdAt: DateTimeOffset.UnixEpoch,
+            specialVisitSupportMinutes: 90,
+            specialVisitSupportBilledHours: 0);
+
+        r.SpecialVisitSupportMinutes.Should().Be(90);
+        r.SpecialVisitSupportBilledHours.Should().Be(0);
+        (r with { SpecialVisitSupportBilledHours = 3 }).SpecialVisitSupportBilledHours.Should().Be(3);
+        r.SpecialVisitSupportBilledHours.Should().Be(0);
+    }
+
+    [Fact]
     public void NewRecord_rejects_unknown_medical_coordination_type()
     {
         var act = () => DailyRecord.NewRecord(Guid.NewGuid(), Recipient, Day,
@@ -173,6 +215,7 @@ public sealed class DailyRecordTests
         r.ServiceStartTime.Should().BeNull();
         r.ServiceEndTime.Should().BeNull();
         r.SpecialVisitSupportMinutes.Should().BeNull();
+        r.SpecialVisitSupportBilledHours.Should().BeNull();
         r.OffsiteSupportApplied.Should().BeNull();
         r.MedicalCoordinationType.Should().Be(MedicalCoordinationType.Unspecified);
         r.TrialUseSupportType.Should().Be(TrialUseSupportType.Unspecified);

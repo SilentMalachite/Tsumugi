@@ -870,7 +870,8 @@ public sealed class ClaimCalculationSnapshotReaderTests : IClassFixture<SqliteFi
                 regionalCollaborationApplied: false,
                 intensiveSupportApplied: false,
                 emergencyAdmissionApplied: false,
-                recipientConfirmation: RecipientConfirmationStatus.Unspecified),
+                recipientConfirmation: RecipientConfirmationStatus.Unspecified,
+                specialVisitSupportBilledHours: 1),
             DailyRecord.NewRecord(
                 Guid.NewGuid(), recipientId, new DateOnly(2027, 2, 2),
                 Attendance.Present, TransportKind.None, false, null, "tester", t0,
@@ -883,11 +884,13 @@ public sealed class ClaimCalculationSnapshotReaderTests : IClassFixture<SqliteFi
                 regionalCollaborationApplied: true,
                 intensiveSupportApplied: false,
                 emergencyAdmissionApplied: true,
-                recipientConfirmation: RecipientConfirmationStatus.Confirmed),
+                recipientConfirmation: RecipientConfirmationStatus.Confirmed,
+                specialVisitSupportBilledHours: 2),
             DailyRecord.NewRecord(
                 Guid.NewGuid(), recipientId, new DateOnly(2027, 2, 3),
                 Attendance.Absent, TransportKind.None, false, null, "tester", t0,
-                intensiveSupportApplied: true),
+                intensiveSupportApplied: true,
+                specialVisitSupportBilledHours: 5),
         };
 
         var episodeId = Guid.NewGuid();
@@ -934,6 +937,8 @@ public sealed class ClaimCalculationSnapshotReaderTests : IClassFixture<SqliteFi
         aggregate.ServiceStartTime.Should().Be(new TimeOnly(9, 0)); // 2/1はnull -> 2/2の値が代表
         aggregate.ServiceEndTime.Should().Be(new TimeOnly(15, 0));
         aggregate.SpecialVisitSupportMinutesTotal.Should().Be(30); // 10 + 20（Absent日は対象外）
+        // 算定時間数（時間）は提供時間数（分）とは別項目・別尺度でSUM縮約する（Phase 3-3）。
+        aggregate.SpecialVisitSupportBilledHoursTotal.Should().Be(3); // 1 + 2（Absent日の5は対象外）
         aggregate.OffsiteSupportApplied.Should().BeTrue();
         aggregate.MedicalCoordinationType.Should().Be(MedicalCoordinationType.TypeII); // 2/1はUnspecified
         aggregate.TrialUseSupportType.Should().Be(TrialUseSupportType.TypeII);

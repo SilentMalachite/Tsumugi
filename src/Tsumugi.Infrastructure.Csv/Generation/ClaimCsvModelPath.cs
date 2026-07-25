@@ -18,6 +18,28 @@ namespace Tsumugi.Infrastructure.Csv.Generation;
 /// </remarks>
 internal static class ClaimCsvModelPath
 {
+    /// <summary>
+    /// <c>modelPath</c> が単位変換を伴うときの区切り（<c>Entity.Property:unit</c>）。公式が要求する単位は
+    /// CSV 仕様側の事実なので、C# のプロパティ名へ埋め込まず spec JSON の modelPath で宣言する
+    /// （CLAUDE.md §ハード制約3）。変換元は必ず実在するドメインプロパティを指すため、
+    /// 「existing はドメインの実プロパティを指す」という不変条件は保たれる。
+    /// </summary>
+    internal const string UnitSuffixSeparator = ":";
+
+    /// <summary>1/100 時間単位（事業所編の「整数部2桁・小数部2桁」書式に対応する尺度）。</summary>
+    internal const string HundredthsOfHourUnit = "hundredthsOfHour";
+
+    /// <summary>単位接尾辞の閉じた語彙。ここに無い接尾辞を spec が宣言したら解決できない。</summary>
+    internal static IReadOnlySet<string> KnownUnitSuffixes { get; } =
+        new HashSet<string>(StringComparer.Ordinal) { HundredthsOfHourUnit };
+
+    /// <summary>
+    /// 訪問支援特別加算の「サービス提供時間数」（事業所編 日ごと明細情報 項目27）を書く経路。
+    /// 実績は分で持つが、公式書式は 1/100 時間なので単位接尾辞つきで宣言する。
+    /// </summary>
+    internal const string SpecialVisitSupportServiceHoursPath =
+        "DailyRecord.SpecialVisitSupportMinutes" + UnitSuffixSeparator + HundredthsOfHourUnit;
+
     /// <summary>modelIn / modelEquals のトークンを数値へ解く際に使う列挙型の対応表。</summary>
     private static readonly Dictionary<string, Type> EnumTypeByPath = new(StringComparer.Ordinal)
     {
@@ -128,6 +150,14 @@ internal static class ClaimCsvModelPath
             "ClaimInput.StandardUsageDayTotal" => ClaimCsvValue.FromOptionalNumber(
                 scope.RequireRecipient(path).StandardUsageDayTotal),
 
+            // グループB個別入力（Phase 3-3 / ADR 0033）。訪問支援特別加算の算定回数は留意事項通知
+            // 2(6)⑨ により実際のサービス提供回数と別概念で、施設外支援の累計は年度累計のため、
+            // どちらも当月分しか持たない確定 snapshot からは導出できない。
+            "ClaimInput.SpecialVisitSupportBilledCount" => ClaimCsvValue.FromOptionalNumber(
+                scope.RequireRecipient(path).SpecialVisitSupportBilledCount),
+            "ClaimInput.OffsiteSupportCumulativeDays" => ClaimCsvValue.FromOptionalNumber(
+                scope.RequireRecipient(path).OffsiteSupportCumulativeDays),
+
             "IntensiveSupportEpisode.StartDate" => ClaimCsvValue.FromOptional(
                 scope.RequireRecipient(path).IntensiveSupportEpisodeStartDate, ClaimCsvValue.FromDate),
 
@@ -154,6 +184,11 @@ internal static class ClaimCsvModelPath
                 scope.RequireDay(path).ServiceEndTime, ClaimCsvValue.FromTime),
             "DailyRecord.SpecialVisitSupportMinutes" => ClaimCsvValue.FromOptionalNumber(
                 scope.RequireDay(path).SpecialVisitSupportMinutes),
+            SpecialVisitSupportServiceHoursPath =>
+                HundredthsOfHour(scope, scope.RequireDay(path).SpecialVisitSupportMinutes),
+            // 算定時間数（時間・整数）。サービス提供時間（分）とは別項目で、そこからは導出できない。
+            "DailyRecord.SpecialVisitSupportBilledHours" => ClaimCsvValue.FromOptionalNumber(
+                scope.RequireDay(path).SpecialVisitSupportBilledHours),
             "DailyRecord.OffsiteSupportApplied" => Flag(scope.RequireDay(path).OffsiteSupportApplied),
             "DailyRecord.MedicalCoordinationType" => ClaimCsvValue.FromOptionalNumber(
                 scope.RequireDay(path).MedicalCoordinationCode),
@@ -224,4 +259,34 @@ internal static class ClaimCsvModelPath
     /// <summary>真偽フラグは「該当する/しない」だけを表し、値そのものは持たない。</summary>
     private static ClaimCsvValue Flag(bool value) =>
         value ? ClaimCsvValue.FromNumber(1) : ClaimCsvValue.Missing;
+
+    /// <summary>1 時間の分数。時間と分の関係は制度に依らない普遍の換算。</summary>
+    private const int MinutesPerHour = 60;
+
+    /// <summary>1 時間を 1/100 時間で表した値（小数部 2 桁の尺度）。</summary>
+    private const int HundredthsPerHour = 100;
+
+    /// <summary>
+    /// 分で持つ実績を 1/100 時間へ<b>厳密に</b>変換する。事業所編「就労継続支援Ｂ型日ごと明細情報」
+    /// 項目27 は「実際にサービス提供した時間数（時間）を整数部 2 桁・小数部 2 桁で設定」
+    /// （例: 1.5 時間 → 0150）と定めるため、出力の尺度は分ではなく 1/100 時間になる。
+    /// </summary>
+    /// <remarks>
+    /// 1/100 時間で表せない分値（3 の倍数でない分。例: 50 分 = 83.33… ）は、公式資料が丸め方向も
+    /// 丸め桁も定めていないため、黙って丸めずに fail-close する。切り上げ・切り捨て・四捨五入の
+    /// どれを採っても加算の算定時間が動くため、推測で埋めない（docs/open-questions.md で追跡）。
+    /// </remarks>
+    private static ClaimCsvValue HundredthsOfHour(ClaimCsvResolutionScope scope, int? minutes)
+    {
+        if (minutes is not { } value) return ClaimCsvValue.Missing;
+
+        var scaled = (long)value * HundredthsPerHour;
+        return scaled % MinutesPerHour == 0
+            ? ClaimCsvValue.FromNumber(scaled / MinutesPerHour)
+            : throw new ClaimCsvGenerationException(
+                scope.FieldId,
+                ClaimCsvGenerationReason.UnresolvableRule,
+                "the recorded minutes have no exact hundredths-of-an-hour value and the official "
+                + "rounding rule for this item is not fixed");
+    }
 }

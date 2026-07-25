@@ -93,6 +93,85 @@ public sealed class ClaimFinalizationSnapshotReaderTests
         parsed.Should().BeEquivalentTo(snapshot);
     }
 
+    [Fact]
+    public void Write_then_parse_roundtrips_group_b_explicit_addition_inputs()
+    {
+        var snapshot = SampleSnapshot() with
+        {
+            ClaimInput = new ClaimFinalizationClaimInputSnapshot(
+                null, null, null, null, null, null, null,
+                SpecialVisitSupportBilledCount: 2,
+                OffsiteSupportCumulativeDays: 12),
+            DailyRecords =
+            [
+                new ClaimFinalizationDailyRecordSnapshot(
+                    new DateOnly(2026, 5, 1), Attendance.Present, true, TransportKind.None, null,
+                    new TimeOnly(9, 0), new TimeOnly(16, 0), 45, false, null, null,
+                    false, false, false, true,
+                    SpecialVisitSupportBilledHours: 3),
+            ],
+        };
+
+        var parsed = ClaimFinalizationSnapshotReader.Parse(
+            ClaimFinalizationSnapshotWriter.Write(snapshot));
+
+        parsed.Should().BeEquivalentTo(snapshot);
+        parsed.ClaimInput.SpecialVisitSupportBilledCount.Should().Be(2);
+        parsed.ClaimInput.OffsiteSupportCumulativeDays.Should().Be(12);
+        parsed.DailyRecords[0].SpecialVisitSupportBilledHours.Should().Be(3);
+    }
+
+    /// <summary>
+    /// Phase 3-3 で追加した項目（<c>contractedProvider</c> / <c>serviceUsageDays</c> /
+    /// グループB個別入力3項目）は、それより前に確定した snapshot では<b>キー自体が存在しない</b>。
+    /// キー不在を parse エラーにすると過去の確定分が一切読めなくなるため、null として復元されること
+    /// （＝要否の判定は CSV 生成側の fail-close に委ねること）を固定する。
+    /// </summary>
+    [Fact]
+    public void Parse_reads_a_pre_phase33_snapshot_that_lacks_the_new_properties_as_null()
+    {
+        var parsed = ClaimFinalizationSnapshotReader.Parse(LegacyCanonicalJson);
+
+        parsed.ContractedProvider.Should().BeNull();
+        parsed.ServiceUsageDays.Should().BeNull();
+        parsed.ClaimInput.SpecialVisitSupportBilledCount.Should().BeNull();
+        parsed.ClaimInput.OffsiteSupportCumulativeDays.Should().BeNull();
+        parsed.DailyRecords.Should().ContainSingle()
+            .Which.SpecialVisitSupportBilledHours.Should().BeNull();
+        // 既存項目は従来どおり読めていること（後方互換の緩和が読み取り全体を壊していない確認）。
+        parsed.BilledDays.Should().Be(20);
+        parsed.ClaimInput.StandardUsageDayTotal.Should().Be(22);
+        parsed.DailyRecords[0].SpecialVisitSupportMinutes.Should().Be(45);
+    }
+
+    /// <summary>Phase 3-3 より前の Writer が出力していたキー集合そのままの canonical JSON。</summary>
+    private static readonly byte[] LegacyCanonicalJson = """
+        {"schemaVersion":"claim-snapshot-v2","validationCodecId":"claim-snapshot-codec-v2",
+        "snapshotKind":"finalization","recipientId":"11111111-2222-3333-4444-555555555555",
+        "serviceMonth":"2026-05","claimMasterVersion":"r6-2026-04","csvSpecificationVersion":"r7-10",
+        "reportSpecificationVersion":"r1-10",
+        "office":{"officeNumber":"0123456789","officeName":"テスト事業所","regionGrade":"None",
+        "postalCode":"1000001","address":"東京都千代田区千代田1-1","phoneNumber":"03-0000-0000",
+        "representativeTitleAndName":"代表取締役 山田太郎"},
+        "recipient":{"kanjiName":"山田太郎","kanaName":"ヤマダタロウ"},
+        "certificate":{"certificateNumber":"9876543210","municipalityNumber":"131016",
+        "subsidyMunicipalityNumber":null,"monthlyCostCap":9300,
+        "upperLimitManagementProviderNumber":null,"upperLimitManagementProviderName":null},
+        "claimInput":{"upperLimitManagementResult":null,"upperLimitManagedAmountYen":null,
+        "municipalSubsidyAmountYen":null,"exceptionalUsageStartMonth":null,
+        "exceptionalUsageEndMonth":null,"exceptionalUsageDays":null,"standardUsageDayTotal":22},
+        "dailyRecords":[{"serviceDate":"2026-05-01","attendance":"Present","mealProvided":true,
+        "transportKind":"None","absenceResponseNote":null,"serviceStartTime":"09:00",
+        "serviceEndTime":"16:00","specialVisitSupportMinutes":45,"offsiteSupportApplied":false,
+        "medicalCoordinationType":null,"trialUseSupportType":null,
+        "regionalCollaborationApplied":false,"intensiveSupportApplied":false,
+        "emergencyAdmissionApplied":false,"recipientConfirmation":true}],
+        "intensiveSupportEpisode":null,
+        "claimLines":[{"kind":"Basic","serviceCode":"B_BASE_W1_C20_S1","unit":600,"count":20,
+        "amountYen":6720}],
+        "billedDays":20,"totalUnits":630,"totalCostYen":7056,"benefitYen":6351,"burdenYen":705}
+        """u8.ToArray();
+
     private static ClaimFinalizationSnapshot SampleSnapshot() => new(
         RecipientId: Guid.Parse("11111111-2222-3333-4444-555555555555"),
         ServiceMonth: new ServiceMonth(2026, 5),

@@ -35,6 +35,10 @@ public sealed partial class DailyRecordViewModel(
     [ObservableProperty] private TimeOnly? _editorServiceStartTime;
     [ObservableProperty] private TimeOnly? _editorServiceEndTime;
     [ObservableProperty] private int? _editorSpecialVisitSupportMinutes;
+    // 訪問支援特別加算の算定時間数（単位は「時間」・整数）。上の
+    // EditorSpecialVisitSupportMinutes（実際のサービス提供時間・単位は「分」）とは別項目で、
+    // そこからは導出できないため画面で個別に入力する（provider:J611:02:028）。
+    [ObservableProperty] private int? _editorSpecialVisitSupportBilledHours;
     [ObservableProperty] private bool? _editorOffsiteSupportApplied;
     [ObservableProperty] private MedicalCoordinationType _editorMedicalCoordinationType;
     [ObservableProperty] private TrialUseSupportType _editorTrialUseSupportType;
@@ -161,6 +165,7 @@ public sealed partial class DailyRecordViewModel(
         EditorServiceStartTime = value?.EffectiveServiceStartTime;
         EditorServiceEndTime = value?.EffectiveServiceEndTime;
         EditorSpecialVisitSupportMinutes = value?.EffectiveSpecialVisitSupportMinutes;
+        EditorSpecialVisitSupportBilledHours = value?.EffectiveSpecialVisitSupportBilledHours;
         EditorOffsiteSupportApplied = value?.EffectiveOffsiteSupportApplied;
         EditorMedicalCoordinationType = value?.EffectiveMedicalCoordinationType
             ?? MedicalCoordinationType.Unspecified;
@@ -233,6 +238,7 @@ public sealed partial class DailyRecordViewModel(
                 cell.EffectiveServiceStartTime = dto.ServiceStartTime;
                 cell.EffectiveServiceEndTime = dto.ServiceEndTime;
                 cell.EffectiveSpecialVisitSupportMinutes = dto.SpecialVisitSupportMinutes;
+                cell.EffectiveSpecialVisitSupportBilledHours = dto.SpecialVisitSupportBilledHours;
                 cell.EffectiveOffsiteSupportApplied = dto.OffsiteSupportApplied;
                 cell.EffectiveMedicalCoordinationType = dto.MedicalCoordinationType;
                 cell.EffectiveTrialUseSupportType = dto.TrialUseSupportType;
@@ -277,7 +283,8 @@ public sealed partial class DailyRecordViewModel(
                     EditorMedicalCoordinationType, EditorTrialUseSupportType,
                     EditorRegionalCollaborationApplied, EditorIntensiveSupportApplied,
                     EditorEmergencyAdmissionApplied, EditorRecipientConfirmation,
-                    Environment.UserName, default);
+                    Environment.UserName, default,
+                    specialVisitSupportBilledHours: EditorSpecialVisitSupportBilledHours);
             }
             else
             {
@@ -288,7 +295,8 @@ public sealed partial class DailyRecordViewModel(
                     EditorMedicalCoordinationType, EditorTrialUseSupportType,
                     EditorRegionalCollaborationApplied, EditorIntensiveSupportApplied,
                     EditorEmergencyAdmissionApplied, EditorRecipientConfirmation,
-                    Environment.UserName, default);
+                    Environment.UserName, default,
+                    specialVisitSupportBilledHours: EditorSpecialVisitSupportBilledHours);
             }
             DailyRecordErrorMessage = null;
             await LoadAsync();
@@ -418,6 +426,7 @@ public sealed partial class DailyRecordViewModel(
         EditorServiceStartTime = null;
         EditorServiceEndTime = null;
         EditorSpecialVisitSupportMinutes = null;
+        EditorSpecialVisitSupportBilledHours = null;
         EditorOffsiteSupportApplied = null;
         EditorMedicalCoordinationType = MedicalCoordinationType.Unspecified;
         EditorTrialUseSupportType = TrialUseSupportType.Unspecified;

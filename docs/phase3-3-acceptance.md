@@ -282,3 +282,31 @@ Tsumugi.Application Line 90.57% / Branch 84.26% / Method 84.28%  (floor 70%)
 - CSV 仕様値・制度実値を C# に持ち込まない spec 駆動の生成器と、その境界を守るアーキテクチャテスト。
 
 **提供しないもの**: 伝送・電子証明書・電子請求受付システム連携（CLAUDE.md §責務境界）、CSV の再取込、公式サンプルとの突合。
+
+## 12. グループB（訪問支援特別加算・施設外支援）の個別入力（2026-07-25 追記 / ADR 0036）
+
+明細情報の 4 項目について、日次実績から導出できるかを一次資料で判定し直した。
+
+| 公式項目 | 判定 | 実装 |
+|---|---|---|
+| `provider:J611:01:051` サービス提供回数 | 導出できる | `generated` 維持 |
+| `provider:J611:01:052` 算定回数 | **導出できない**（留意事項通知 2(6)⑨: 所要時間は実際に要した時間ではなく計画に基づく／1月2回算定は再度5日間以上連続未利用のときのみ） | `missing` → `ClaimInput.SpecialVisitSupportBilledCount`（月次入力） |
+| `provider:J611:01:053` 当月（日） | 導出できる | `generated` 維持 |
+| `provider:J611:01:054` 累計（日／180日） | **導出できない**（就労系留意事項通知 1(1)①: 年度（4/1〜3/31）180日限度の実利用日数合計。当月分しか snapshot に無い） | `missing` → `ClaimInput.OffsiteSupportCumulativeDays`（月次入力） |
+| `provider:J611:02:027` サービス提供時間数 | **単位誤り**（公式は「時間数（時間）を整数部2桁＋小数部2桁、例 1.5時間→0150」なのに分をそのまま出力） | `existing` → `DailyRecord.SpecialVisitSupportMinutes:hundredthsOfHour`（厳密変換・割り切れない分は fail-close） |
+| `provider:J611:02:028` 算定時間数 | **導出できない**（公式は「算定する時間数（時間）を設定（整数）」で、`:027` の分とは別項目） | `missing` の targetProperty を `DailyRecord.SpecialVisitSupportBilledHours` へ修正（日次入力） |
+
+**当初の計画（open-questions）が「mapping 4項目を `generated`→`missing`」としていたのは誤り**で、
+実際に `generated` を外すのは 2 項目（`:052`・`:054`）だった。`:051`・`:053` は導出できる。
+
+- migration: `20260725060135_Phase33GroupBExplicitAdditionInputs`（`ClaimInputs` 2 列・`DailyRecords` 1 列。
+  Cancel payload の check constraint も拡張）
+- status 分布: `generated` 372 / `existing` 29 / `missing` 32 / `explicitInput` 10（総数 443 不変）、generatorRule 372 件
+- readiness: 対象パス 27→30・fieldId 52→53。`DailyRecord.SpecialVisitSupportBilledHours` は
+  **未入力を `null`（NotApplicable）として供給**する（当月 SUM 0 を供給すると要求条件が真でも通る fail-open になる）
+- PreviewHash の入力 snapshot にも月次 2 項目を含める（プレビュー後の書き換えを検知するため）
+- 歯の確認: `ClaimPreviewProductionWiringTests.Real_embedded_requirement_provider_requires_special_visit_billed_count_when_a_visit_day_exists` /
+  `..._requires_cumulative_offsite_days_when_an_offsite_day_exists` /
+  `..._reports_missing_daily_record_field_on_present_day("DailyRecord.SpecialVisitSupportBilledHours")` /
+  `ClaimCsvSpecialVisitAndOffsiteSupportTests`（単位変換と fail-close）
+- 残課題: `:027` の丸め規則（分が 3 の倍数でない場合）は公式規定が見つからず fail-close。open-questions に起票。

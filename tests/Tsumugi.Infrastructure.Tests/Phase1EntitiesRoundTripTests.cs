@@ -96,6 +96,67 @@ public sealed class Phase1EntitiesRoundTripTests : IClassFixture<SqliteFixture>
             r.Attendance.Should().Be(Attendance.Present);
             r.Transport.Should().Be(TransportKind.Round);
             r.MealProvided.Should().BeTrue();
+            r.SpecialVisitSupportBilledHours.Should().BeNull();
+        }
+    }
+
+    [Fact]
+    public async Task DailyRecord_round_trips_special_visit_support_billed_hours_independently_of_minutes()
+    {
+        // provider:J611:02:027（サービス提供時間数・分）と provider:J611:02:028（算定時間数・時間）は
+        // 別列として保存され、互いに換算されない。
+        var rid = Guid.NewGuid();
+        var day = new DateOnly(2026, 6, 2);
+        var newId = Guid.NewGuid();
+        var correctionId = Guid.NewGuid();
+        await using (var ctx = _fixture.NewContext())
+        {
+            ctx.DailyRecords.Add(DailyRecord.NewRecord(newId, rid, day,
+                Attendance.Present, TransportKind.None, false, null, "u", DateTimeOffset.UnixEpoch,
+                specialVisitSupportMinutes: 90,
+                specialVisitSupportBilledHours: 0));
+            ctx.DailyRecords.Add(DailyRecord.Correction(correctionId, rid, day, newId,
+                Attendance.Present, TransportKind.None, false, null, "u", DateTimeOffset.UnixEpoch,
+                specialVisitSupportMinutes: 90,
+                specialVisitSupportBilledHours: 3));
+            await ctx.SaveChangesAsync();
+        }
+
+        await using (var ctx = _fixture.NewContext())
+        {
+            var created = await ctx.DailyRecords.SingleAsync(x => x.Id == newId);
+            var corrected = await ctx.DailyRecords.SingleAsync(x => x.Id == correctionId);
+
+            created.SpecialVisitSupportMinutes.Should().Be(90);
+            created.SpecialVisitSupportBilledHours.Should().Be(0);
+            corrected.SpecialVisitSupportMinutes.Should().Be(90);
+            corrected.SpecialVisitSupportBilledHours.Should().Be(3);
+        }
+    }
+
+    [Fact]
+    public async Task DailyRecord_cancellation_stores_no_special_visit_support_billed_hours()
+    {
+        var rid = Guid.NewGuid();
+        var day = new DateOnly(2026, 6, 3);
+        var newId = Guid.NewGuid();
+        var cancelId = Guid.NewGuid();
+        await using (var ctx = _fixture.NewContext())
+        {
+            ctx.DailyRecords.Add(DailyRecord.NewRecord(newId, rid, day,
+                Attendance.Present, TransportKind.None, false, null, "u", DateTimeOffset.UnixEpoch,
+                specialVisitSupportBilledHours: 4));
+            ctx.DailyRecords.Add(DailyRecord.Cancellation(cancelId, rid, day, newId,
+                "u", DateTimeOffset.UnixEpoch));
+            await ctx.SaveChangesAsync();
+        }
+
+        await using (var ctx = _fixture.NewContext())
+        {
+            (await ctx.DailyRecords.SingleAsync(x => x.Id == newId))
+                .SpecialVisitSupportBilledHours.Should().Be(4);
+            (await ctx.DailyRecords.SingleAsync(x => x.Id == cancelId))
+                .SpecialVisitSupportBilledHours.Should().BeNull();
         }
     }
 }

@@ -92,8 +92,8 @@ internal sealed class ClaimCsvFieldResolver
         var scope = new ClaimCsvResolutionScope(fieldId, _dto, row);
 
         // requiredWhen が自分自身を参照しない限り、条件を先に評価して不要な導出を避ける。
-        // 「算定条件を満たさない加算」の導出規則には現行 snapshot から確定できない意味論
-        // （billableOccurrences / official180DayWindow 等）を含むものがあり、
+        // 「算定条件を満たさない加算」の導出規則には現行 snapshot から確定できない意味論を含むものが
+        // ありうる（Phase 3-3 で個別入力へ移した billableOccurrences / official180DayWindow がその例）。
         // 条件が偽のうちからそれを評価すると誤って fail-close してしまう。
         // 自己参照条件は表示規則なので、ここでは評価せず RenderCell へ委ねる。
         if (!IsSelfReferencing(specification.RequiredWhen, fieldId)
@@ -280,27 +280,37 @@ internal sealed class ClaimCsvFieldResolver
                     "the finalized snapshot does not carry the official service usage day count");
         }
 
+        // NOTE(teeth): 以下 2 つの拒否分岐は、現行 spec のどの規則からも到達しない。
+        // 施設外支援の年度累計（旧 window=official180DayWindow）と訪問支援特別加算の算定回数
+        // （旧 measure=billableOccurrences）は、いずれも当月分しか持たない確定 snapshot から
+        // 導出できないため、Phase 3-3 で generated をやめて個別入力（status=missing、
+        // ClaimInput.OffsiteSupportCumulativeDays / ClaimInput.SpecialVisitSupportBilledCount）
+        // から供給するようにした（ADR 0033）。分岐は「導出不能な意味論を count 規則として
+        // 宣言し直したら赤で落ちる」歯として残す。消すと、日次記録の当月集計を年度累計や
+        // 算定回数として黙って出す退行を検出できなくなる。
+        //
         // official180DayWindow（施設外支援 累計）は就労系留意事項通知（1(1)①）により
         // 「毎年4月1日に始まり翌年3月31日に終わる1年間で 180 日を限度」＝<b>年度累計</b>であり、
-        // 直近180日のローリング窓ではない。確定 snapshot は当月分の日次記録しか持たないため
-        // 年度累計は算出できず、個別入力が必要（docs/open-questions.md）。
+        // 直近180日のローリング窓ではない。当月分の日次記録からは算出できない。
         if (rule.Find("window") is { } dayWindow
             && !string.Equals(dayWindow, "ServiceProvisionMonth", StringComparison.Ordinal))
         {
             throw Unresolvable(
                 scope.FieldId,
-                $"count window '{dayWindow}' needs a fiscal-year cumulative that the snapshot does not carry");
+                $"count window '{dayWindow}' needs a fiscal-year cumulative that the snapshot does not "
+                + "carry; the value is entered per claim month instead");
         }
 
         // billableOccurrences（訪問支援特別加算 算定回数）は留意事項通知 2(6)⑨により、実際の
         // サービス提供回数とは別概念（計画に基づく所要時間で算定し、月2回目は再度5日間以上の
-        // 利用中断を要する）。日次実績から導出できないため個別入力が必要。
+        // 利用中断を要する）。日次実績からは導出できない。
         if (rule.Find("measure") is { } measure
             && !string.Equals(measure, "serviceOccurrences", StringComparison.Ordinal))
         {
             throw Unresolvable(
                 scope.FieldId,
-                $"count measure '{measure}' is a billable count that cannot be derived from daily records");
+                $"count measure '{measure}' is a billable count that cannot be derived from daily "
+                + "records; the value is entered per claim month instead");
         }
 
         var matches = scope.EnumerateDailyRecordScopes()

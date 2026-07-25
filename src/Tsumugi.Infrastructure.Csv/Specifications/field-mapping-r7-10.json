@@ -1547,9 +1547,12 @@
     {
       "fieldId": "provider:J611:01:052",
       "requiredCondition": "modelNonZero(DailyRecord.SpecialVisitSupportMinutes)",
-      "notes": "",
-      "status": "generated",
-      "generatorRule": "count(target=provider:J611:01:052;selector=DailyRecord.SpecialVisitSupportMinutes;measure=billableOccurrences;source=provider-r7-10:p63:item52)"
+      "notes": "Phase 3-3: 算定回数は留意事項通知 2(6)⑨ により実際のサービス提供回数とは別概念（所要時間は計画に基づき算定し、1月に2回算定できるのは再度5日間以上連続して利用がなかった場合のみ）で日次実績から導出できないため、月次の個別入力へ移した（ADR 0033・0036）",
+      "status": "missing",
+      "targetModel": "ClaimInput",
+      "targetProperty": "SpecialVisitSupportBilledCount",
+      "migrationRequired": true,
+      "uiSurface": "ClaimInputView"
     },
     {
       "fieldId": "provider:J611:01:053",
@@ -1561,9 +1564,12 @@
     {
       "fieldId": "provider:J611:01:054",
       "requiredCondition": "modelTrue(DailyRecord.OffsiteSupportApplied)",
-      "notes": "",
-      "status": "generated",
-      "generatorRule": "count(target=provider:J611:01:054;selector=DailyRecord.OffsiteSupportApplied;window=official180DayWindow;source=provider-r7-10:p63:item54)"
+      "notes": "Phase 3-3: 累計は就労系留意事項通知 1(1)① の年度累計（毎年4月1日から翌年3月31日までの実利用日数合計）であり、当月分しか持たない確定 snapshot から算出できないため、月次の個別入力へ移した。当月分を含めるかは公式資料から一意に確定できないので、運用者が明細書の累計欄へ設定する値をそのまま出す（ADR 0033・0036）",
+      "status": "missing",
+      "targetModel": "ClaimInput",
+      "targetProperty": "OffsiteSupportCumulativeDays",
+      "migrationRequired": true,
+      "uiSurface": "ClaimInputView"
     },
     {
       "fieldId": "provider:J611:01:055",
@@ -2601,20 +2607,17 @@
     {
       "fieldId": "provider:J611:02:027",
       "requiredCondition": "modelNonZero(DailyRecord.SpecialVisitSupportMinutes)",
-      "notes": "Phase 3-1 AC3-8",
-      "status": "missing",
-      "targetModel": "DailyRecord",
-      "targetProperty": "SpecialVisitSupportMinutes",
-      "migrationRequired": true,
-      "uiSurface": "DailyRecordView"
+      "notes": "Phase 3-3: 公式書式は「実際にサービス提供した時間数（時間）を整数部2桁・小数部2桁で設定」（例 1.5時間は0150）であり、実績の分をそのまま数値で出すと単位が合わない。入力欄（分）は既にあるので個別入力ではなく既存プロパティの単位変換として扱い、modelPath の :hundredthsOfHour で 1/100 時間単位を宣言する。割り切れない分値は丸めずに fail-close する（公式の丸め規則は docs/open-questions.md で追跡。ADR 0036）",
+      "status": "existing",
+      "modelPath": "DailyRecord.SpecialVisitSupportMinutes:hundredthsOfHour"
     },
     {
       "fieldId": "provider:J611:02:028",
       "requiredCondition": "modelNonZero(DailyRecord.SpecialVisitSupportMinutes)",
-      "notes": "Phase 3-1 AC3-8",
+      "notes": "Phase 3-3: 算定時間数（時間・整数）は項目27のサービス提供時間数（分）とは別項目で、留意事項通知 2(6)⑨ により日次実績から導出できないため、日次の個別入力へ向ける（ADR 0033・0036）",
       "status": "missing",
       "targetModel": "DailyRecord",
-      "targetProperty": "SpecialVisitSupportMinutes",
+      "targetProperty": "SpecialVisitSupportBilledHours",
       "migrationRequired": true,
       "uiSurface": "DailyRecordView"
     },

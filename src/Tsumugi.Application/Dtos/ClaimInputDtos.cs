@@ -18,6 +18,18 @@ public sealed record SetClaimInputRequest(
     public ServiceMonth? ExceptionalUsageEndMonth { get; init; }
     public int? ExceptionalUsageDays { get; init; }
     public int? StandardUsageDayTotal { get; init; }
+
+    /// <summary>
+    /// 訪問支援特別加算の算定回数（当月合計・単位は「回」）。
+    /// 日次実績から導出できない個別入力（<see cref="Domain.Entities.ClaimInput.SpecialVisitSupportBilledCount"/>）。
+    /// </summary>
+    public int? SpecialVisitSupportBilledCount { get; init; }
+
+    /// <summary>
+    /// 施設外支援の累計日数（単位は「日」）。運用者が明細書の「累計」欄に設定する値をそのまま受ける
+    /// （<see cref="Domain.Entities.ClaimInput.OffsiteSupportCumulativeDays"/>）。
+    /// </summary>
+    public int? OffsiteSupportCumulativeDays { get; init; }
 }
 
 public sealed record SetIntensiveSupportEpisodeRequest(

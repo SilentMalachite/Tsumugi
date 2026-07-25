@@ -126,6 +126,27 @@ public sealed class CalculateClaimUseCaseTests
         changed.PreviewHash.Should().NotBe(baseline.PreviewHash);
     }
 
+    // NOTE(teeth): 算定に効かない請求入力（訪問支援特別加算の算定回数・施設外支援の累計日数）も
+    // PreviewHash に含める。含めないと、プレビュー後にこれらを書き換えても同じ hash で確定でき、
+    // 確定 snapshot が「プレビューで見た内容」と食い違う。
+    [Fact]
+    public async Task Execute_changes_preview_hash_when_a_group_b_explicit_addition_input_changes()
+    {
+        var baseline = await CreateUseCase(Kit.Snapshot(inputs: [Kit.Input()])).ExecuteAsync(
+            new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+        var changed = await CreateUseCase(Kit.Snapshot(
+                inputs: [Kit.Input() with { SpecialVisitSupportBilledCount = 2 }]))
+            .ExecuteAsync(new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+        var alsoChanged = await CreateUseCase(Kit.Snapshot(
+                inputs: [Kit.Input() with { OffsiteSupportCumulativeDays = 17 }]))
+            .ExecuteAsync(new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        baseline.PreviewHash.Should().MatchRegex("^[0-9a-f]{64}$");
+        changed.PreviewHash.Should().NotBe(baseline.PreviewHash);
+        alsoChanged.PreviewHash.Should().NotBe(baseline.PreviewHash);
+        alsoChanged.PreviewHash.Should().NotBe(changed.PreviewHash);
+    }
+
     [Fact]
     public async Task Execute_does_not_block_on_zero_activity_recipient_with_nothing_else()
     {

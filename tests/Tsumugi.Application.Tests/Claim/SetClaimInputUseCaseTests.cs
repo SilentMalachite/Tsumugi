@@ -216,6 +216,93 @@ public sealed class SetClaimInputUseCaseTests
     }
 
     [Fact]
+    public async Task Execute_round_trips_group_b_explicit_addition_inputs()
+    {
+        var repo = new FakeClaimInputRepository();
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var officeId = Guid.NewGuid();
+        var recipientId = Guid.NewGuid();
+
+        var created = await sut.ExecuteAsync(
+            ValidRequest(officeId, recipientId, RecordKind.New, null) with
+            {
+                SpecialVisitSupportBilledCount = 2,
+                OffsiteSupportCumulativeDays = 12,
+            },
+            "operator", default);
+
+        var saved = repo.Items.Should().ContainSingle().Subject;
+        saved.Id.Should().Be(created.Id);
+        saved.SpecialVisitSupportBilledCount.Should().Be(2);
+        saved.OffsiteSupportCumulativeDays.Should().Be(12);
+    }
+
+    [Fact]
+    public async Task Execute_keeps_group_b_explicit_addition_inputs_null_when_not_submitted()
+    {
+        var repo = new FakeClaimInputRepository();
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+
+        await sut.ExecuteAsync(
+            ValidRequest(Guid.NewGuid(), Guid.NewGuid(), RecordKind.New, null),
+            "operator", default);
+
+        var saved = repo.Items.Should().ContainSingle().Subject;
+        saved.SpecialVisitSupportBilledCount.Should().BeNull();
+        saved.OffsiteSupportCumulativeDays.Should().BeNull();
+    }
+
+    /// <summary>
+    /// 負値は Domain の <c>ClaimInputPolicy</c> でも弾かれるが、UI 入力は検証エラー
+    /// （<see cref="ClaimInputSaveErrorCode.InvalidValue"/>）として返すのが既存の作法。
+    /// 制度上の上限（月内算定回数・累計日数の限度）はコードに持たないため検証しない。
+    /// </summary>
+    [Theory]
+    [InlineData(-1, null)]
+    [InlineData(null, -1)]
+    public async Task Execute_rejects_negative_group_b_explicit_addition_inputs(
+        int? billedCount, int? cumulativeDays)
+    {
+        var repo = new FakeClaimInputRepository();
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var request = ValidRequest(Guid.NewGuid(), Guid.NewGuid(), RecordKind.New, null) with
+        {
+            SpecialVisitSupportBilledCount = billedCount,
+            OffsiteSupportCumulativeDays = cumulativeDays,
+        };
+
+        var act = () => sut.ExecuteAsync(request, "operator", default);
+
+        var error = (await act.Should().ThrowAsync<ClaimInputSaveException>()).Which;
+        error.Code.Should().Be(ClaimInputSaveErrorCode.InvalidValue);
+        error.FieldCode.Should().Be(ClaimInputFieldCode.Values);
+        error.Message.Should().NotContain("-1");
+        repo.Items.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Execute_rejects_cancel_carrying_group_b_explicit_addition_inputs()
+    {
+        var repo = new FakeClaimInputRepository();
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var officeId = Guid.NewGuid();
+        var recipientId = Guid.NewGuid();
+        var created = await sut.ExecuteAsync(
+            ValidRequest(officeId, recipientId, RecordKind.New, null), "operator", default);
+
+        var act = () => sut.ExecuteAsync(
+            CancelRequest(officeId, recipientId, created.Id) with
+            {
+                SpecialVisitSupportBilledCount = 1,
+            },
+            "operator", default);
+
+        (await act.Should().ThrowAsync<ClaimInputSaveException>())
+            .Which.Code.Should().Be(ClaimInputSaveErrorCode.InvalidValue);
+        repo.Items.Should().ContainSingle();
+    }
+
+    [Fact]
     public async Task Intensive_support_episode_allows_cancelled_history_to_be_reentered()
     {
         var repo = new FakeIntensiveSupportEpisodeRepository();

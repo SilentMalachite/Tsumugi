@@ -56,12 +56,15 @@ public sealed class ViewInputWiringTests
     }
 
     [Fact]
-    public void DailyRecordView_exposes_ten_claim_fields_episode_context_and_keyboard_commands()
+    public void DailyRecordView_exposes_eleven_claim_fields_episode_context_and_keyboard_commands()
     {
         var xml = ReadView("DailyRecordView.axaml");
         foreach (var binding in new[]
         {
             "EditorServiceStartTime", "EditorServiceEndTime", "EditorSpecialVisitSupportMinutes",
+            // 訪問支援特別加算の算定時間数（時間）。サービス提供時間数（分）とは別項目で
+            // 日次実績から導出できないため、画面に入力欄が無いと永久に null のまま保存される。
+            "EditorSpecialVisitSupportBilledHours",
             "EditorOffsiteSupportApplied", "EditorMedicalCoordinationType", "EditorTrialUseSupportType",
             "EditorRegionalCollaborationApplied", "EditorIntensiveSupportApplied",
             "EditorEmergencyAdmissionApplied", "EditorRecipientConfirmation",
@@ -71,6 +74,8 @@ public sealed class ViewInputWiringTests
             xml.Should().Contain($"{{Binding {binding}}}");
 
         xml.Should().Contain("{Binding EpisodeStartDate,");
+        // 単位の取り違えは請求誤りに直結する。両方のラベルが単位を示していることを固定する。
+        xml.Should().Contain("サービス提供時間数（分）").And.Contain("算定時間数（時間");
 
         xml.Should().Contain("Gesture=\"Ctrl+S\"");
         xml.Should().Contain("{Binding SaveSelectedDailyRecordCommand}");
@@ -127,8 +132,15 @@ public sealed class ViewInputWiringTests
             "ExceptionalUsageStartYear", "ExceptionalUsageStartMonth",
             "ExceptionalUsageEndYear", "ExceptionalUsageEndMonth",
             "ExceptionalUsageDays", "StandardUsageDayTotal",
+            // 訪問支援特別加算の算定回数（回）と施設外支援の累計日数（日）。どちらも日次実績から
+            // 導出できない月次の個別入力なので、画面に入力欄が無いと永久に null のまま確定される。
+            "SpecialVisitSupportBilledCount", "OffsiteSupportCumulativeDays",
         })
             xml.Should().Contain($"{{Binding {binding}");
+
+        // 施設外支援の累計は「当月分を含むか」を公式資料から確定できない。UI が断定しないよう、
+        // 明細書の『累計』欄の値をそのまま入れる旨の補助文を必須にする。
+        xml.Should().Contain("明細書の『累計』欄");
 
         xml.Should().NotContain("IntensiveSupportEpisode")
             .And.NotContain("Phase3-2")

@@ -73,6 +73,20 @@
                   <NumericUpDown Value="{Binding StandardUsageDayTotal}" Minimum="0" FormatString="0" />
                 </StackPanel>
               </Expander>
+              <Expander Header="訪問支援特別加算・施設外支援（明細書の該当欄）" IsExpanded="False">
+                <StackPanel Spacing="8" Margin="8">
+                  <TextBlock Text="訪問支援特別加算（回）（算定回数）" />
+                  <NumericUpDown Value="{Binding SpecialVisitSupportBilledCount}"
+                                 Minimum="0" FormatString="0" />
+                  <TextBlock Text="当月に算定した回数の合計を入力してください（日次記録の時間数からは導出しません）。"
+                             TextWrapping="Wrap" />
+                  <TextBlock Text="施設外支援 累計（日）" />
+                  <NumericUpDown Value="{Binding OffsiteSupportCumulativeDays}"
+                                 Minimum="0" FormatString="0" />
+                  <TextBlock Text="明細書の『累計』欄に設定する値を入力してください（当月分の扱いは受給者の記録に従う）。"
+                             TextWrapping="Wrap" />
+                </StackPanel>
+              </Expander>
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Button Content="保存" Command="{Binding SaveClaimInputCommand}" />
                 <Button Content="取消" Command="{Binding CancelClaimInputCommand}" />

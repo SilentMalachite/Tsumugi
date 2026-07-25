@@ -288,7 +288,8 @@ public sealed class ClaimPreparationContextBuilderTests
             RegionalCollaborationApplied: true,
             IntensiveSupportApplied: true,
             EmergencyAdmissionApplied: true,
-            RecipientConfirmation: RecipientConfirmationStatus.Confirmed);
+            RecipientConfirmation: RecipientConfirmationStatus.Confirmed,
+            SpecialVisitSupportBilledHoursTotal: 4);
         var intensiveSupportStartDate = new DateOnly(2025, 1, 6);
 
         var snapshot = Kit.Snapshot(
@@ -311,6 +312,8 @@ public sealed class ClaimPreparationContextBuilderTests
         values["DailyRecord.ServiceStartTime"].StringValue.Should().Be("09:00");
         values["DailyRecord.ServiceEndTime"].StringValue.Should().Be("15:00");
         values["DailyRecord.SpecialVisitSupportMinutes"].NumberValue.Should().Be(30);
+        // 算定時間数（時間）はサービス提供時間（分）とは別項目・別尺度で、合算されない（Phase 3-3）。
+        values["DailyRecord.SpecialVisitSupportBilledHours"].NumberValue.Should().Be(4);
         values["DailyRecord.OffsiteSupportApplied"].BooleanValue.Should().BeTrue();
         values["DailyRecord.MedicalCoordinationType"].StringValue.Should().Be("TypeI");
         values["DailyRecord.TrialUseSupportType"].StringValue.Should().Be("TypeI");
@@ -319,6 +322,40 @@ public sealed class ClaimPreparationContextBuilderTests
         values["DailyRecord.EmergencyAdmissionApplied"].BooleanValue.Should().BeTrue();
         values["DailyRecord.RecipientConfirmation"].StringValue.Should().Be("Confirmed");
         values["IntensiveSupportEpisode.StartDate"].DateValue.Should().Be(intensiveSupportStartDate);
+    }
+
+    /// <summary>
+    /// グループB個別入力（Phase 3-3）の値供給。<c>ClaimInput.SpecialVisitSupportBilledCount</c> /
+    /// <c>ClaimInput.OffsiteSupportCumulativeDays</c> は他のClaimInput.*と同じく、値があればNumber、
+    /// 未入力ならNotApplicableとしてValues辞書に必ずキーを持つ（Unresolvedを作らない）。
+    /// どのCSV項目がこのpathを要求するかはCSV仕様JSON側の宣言が正本で、ここは供給側のみ。
+    /// </summary>
+    [Fact]
+    public void Build_maps_group_b_explicit_addition_claim_inputs_and_falls_back_to_not_applicable()
+    {
+        var withValues = ClaimPreparationContextBuilder.Build(
+            Kit.Snapshot(inputs:
+            [
+                Kit.Input() with
+                {
+                    SpecialVisitSupportBilledCount = 2,
+                    OffsiteSupportCumulativeDays = 12,
+                },
+            ]),
+            Kit.Office(),
+            masterVersionAvailable: true);
+        var withoutValues = ClaimPreparationContextBuilder.Build(
+            Kit.Snapshot(), Kit.Office(), masterVersionAvailable: true);
+
+        var populated = withValues.Context.Recipients.Should().ContainSingle().Subject.Values;
+        populated["ClaimInput.SpecialVisitSupportBilledCount"].NumberValue.Should().Be(2);
+        populated["ClaimInput.OffsiteSupportCumulativeDays"].NumberValue.Should().Be(12);
+
+        var empty = withoutValues.Context.Recipients.Should().ContainSingle().Subject.Values;
+        empty["ClaimInput.SpecialVisitSupportBilledCount"].Kind
+            .Should().Be(ClaimPreparationValueKind.NotApplicable);
+        empty["ClaimInput.OffsiteSupportCumulativeDays"].Kind
+            .Should().Be(ClaimPreparationValueKind.NotApplicable);
     }
 
     [Fact]
@@ -342,6 +379,7 @@ public sealed class ClaimPreparationContextBuilderTests
         values["DailyRecord.ServiceStartTime"].Kind.Should().Be(ClaimPreparationValueKind.NotApplicable);
         values["DailyRecord.ServiceEndTime"].Kind.Should().Be(ClaimPreparationValueKind.NotApplicable);
         values["DailyRecord.SpecialVisitSupportMinutes"].NumberValue.Should().Be(0);
+        values["DailyRecord.SpecialVisitSupportBilledHours"].NumberValue.Should().Be(0);
         values["DailyRecord.OffsiteSupportApplied"].BooleanValue.Should().BeFalse();
         values["DailyRecord.MedicalCoordinationType"].StringValue.Should().Be("Unspecified");
         values["DailyRecord.TrialUseSupportType"].StringValue.Should().Be("Unspecified");

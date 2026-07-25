@@ -24,7 +24,8 @@ public sealed class RecordDailyRecordUseCase(
             intensiveSupportApplied: null,
             emergencyAdmissionApplied: null,
             recipientConfirmation: RecipientConfirmationStatus.Unspecified,
-            actor, ct);
+            actor, ct,
+            specialVisitSupportBilledHours: null);
 
     public async Task<DailyRecordDto> ExecuteAsync(
         Guid recipientId, DateOnly serviceDate,
@@ -39,7 +40,10 @@ public sealed class RecordDailyRecordUseCase(
         bool? intensiveSupportApplied,
         bool? emergencyAdmissionApplied,
         RecipientConfirmationStatus recipientConfirmation,
-        string actor, CancellationToken ct)
+        string actor, CancellationToken ct,
+        // Phase 3-3（グループB個別入力）。actor/ct が既存シグネチャの末尾に固定されているため、
+        // 既存の位置引数呼び出しを壊さない唯一の追加位置がここ（省略可能パラメータ）になる。
+        int? specialVisitSupportBilledHours = null)
     {
         if (recipientId == Guid.Empty)
             throw new ArgumentException("利用者IDが指定されていません。", nameof(recipientId));
@@ -56,7 +60,8 @@ public sealed class RecordDailyRecordUseCase(
             serviceStartTime, serviceEndTime, specialVisitSupportMinutes,
             offsiteSupportApplied, medicalCoordinationType, trialUseSupportType,
             regionalCollaborationApplied, intensiveSupportApplied,
-            emergencyAdmissionApplied, recipientConfirmation);
+            emergencyAdmissionApplied, recipientConfirmation,
+            specialVisitSupportBilledHours);
         await repo.AddAsync(entity, ct);
         await uow.SaveChangesAsync(ct);
         return Map(entity);
@@ -69,6 +74,7 @@ public sealed class RecordDailyRecordUseCase(
             ServiceStartTime = e.ServiceStartTime,
             ServiceEndTime = e.ServiceEndTime,
             SpecialVisitSupportMinutes = e.SpecialVisitSupportMinutes,
+            SpecialVisitSupportBilledHours = e.SpecialVisitSupportBilledHours,
             OffsiteSupportApplied = e.OffsiteSupportApplied,
             MedicalCoordinationType = e.MedicalCoordinationType,
             TrialUseSupportType = e.TrialUseSupportType,

@@ -44,6 +44,71 @@ public sealed class ClaimInputRepositoryTests : IClassFixture<SqliteFixture>
     }
 
     [Fact]
+    public async Task Group_b_addition_inputs_round_trip_through_migrated_columns_and_stay_null_on_cancel()
+    {
+        // provider:J611:01:052（訪問支援特別加算・算定回数）と provider:J611:01:054（施設外支援・累計日数）は
+        // 日次実績から導出できないため個別入力列として保存される。上限は DB にも持たせない。
+        await using var connection = await OpenDatabaseAsync();
+        var officeId = Guid.NewGuid();
+        var recipientId = Guid.NewGuid();
+        var month = new ServiceMonth(2026, 7);
+        var root = ClaimRows.Input(ClaimRows.EarlyRootId, officeId, recipientId, month);
+        var cancellation = ClaimRows.CancelInput(root);
+
+        await using (var context = NewContext(connection))
+        {
+            context.AddRange(ClaimRows.Office(officeId), ClaimRows.Recipient(recipientId));
+            await context.SaveChangesAsync();
+            context.AddRange(root, cancellation);
+            await context.SaveChangesAsync();
+        }
+
+        await using (var verification = NewContext(connection))
+        {
+            var history = await new ClaimInputRepository(verification)
+                .ListHistoryAsync(officeId, recipientId, month, default);
+
+            history.Should().HaveCount(2);
+            history[0].SpecialVisitSupportBilledCount.Should().Be(2);
+            history[0].OffsiteSupportCumulativeDays.Should().Be(181);
+            history[1].Kind.Should().Be(RecordKind.Cancel);
+            history[1].SpecialVisitSupportBilledCount.Should().BeNull();
+            history[1].OffsiteSupportCumulativeDays.Should().BeNull();
+        }
+    }
+
+    [Fact]
+    public async Task Cancel_rows_carrying_group_b_addition_inputs_are_rejected_by_the_database_check()
+    {
+        await using var connection = await OpenDatabaseAsync();
+        var officeId = Guid.NewGuid();
+        var recipientId = Guid.NewGuid();
+        var month = new ServiceMonth(2026, 7);
+        var root = ClaimRows.Input(ClaimRows.EarlyRootId, officeId, recipientId, month);
+        await using var context = NewContext(connection);
+        context.AddRange(ClaimRows.Office(officeId), ClaimRows.Recipient(recipientId));
+        await context.SaveChangesAsync();
+        context.Add(root);
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+
+        foreach (var invalidCancel in new[]
+                 {
+                     ClaimRows.CancelInput(root) with { SpecialVisitSupportBilledCount = 1 },
+                     ClaimRows.CancelInput(root) with { OffsiteSupportCumulativeDays = 1 },
+                 })
+        {
+            context.Add(invalidCancel);
+            var act = () => context.SaveChangesAsync();
+
+            var exception = await act.Should().ThrowAsync<DbUpdateException>();
+            exception.Which.InnerException.Should().BeOfType<SqliteException>()
+                .Which.Message.Should().Contain("CK_ClaimInputs_CancelPayload");
+            context.ChangeTracker.Clear();
+        }
+    }
+
+    [Fact]
     public async Task AddAsync_rejects_null_for_each_claim_input_repository()
     {
         await using var context = _fixture.NewContext();
@@ -89,6 +154,8 @@ public sealed class ClaimInputRepositoryTests : IClassFixture<SqliteFixture>
             ExceptionalUsageEndMonth = null,
             ExceptionalUsageDays = null,
             StandardUsageDayTotal = null,
+            SpecialVisitSupportBilledCount = null,
+            OffsiteSupportCumulativeDays = null,
         };
         context.AddRange(
             lateCancel,
@@ -618,6 +685,8 @@ public sealed class ClaimInputRepositoryTests : IClassFixture<SqliteFixture>
                 ExceptionalUsageEndMonth = new ServiceMonth(2026, 7),
                 ExceptionalUsageDays = 10,
                 StandardUsageDayTotal = 22,
+                SpecialVisitSupportBilledCount = 2,
+                OffsiteSupportCumulativeDays = 181,
                 CreatedAt = DateTimeOffset.UnixEpoch,
                 CreatedBy = "tester",
                 ConcurrencyToken = Guid.NewGuid(),
@@ -640,6 +709,8 @@ public sealed class ClaimInputRepositoryTests : IClassFixture<SqliteFixture>
             ExceptionalUsageEndMonth = null,
             ExceptionalUsageDays = null,
             StandardUsageDayTotal = null,
+            SpecialVisitSupportBilledCount = null,
+            OffsiteSupportCumulativeDays = null,
             CreatedAt = DateTimeOffset.UnixEpoch.AddMinutes(1),
             CreatedBy = "tester",
             ConcurrencyToken = Guid.NewGuid(),

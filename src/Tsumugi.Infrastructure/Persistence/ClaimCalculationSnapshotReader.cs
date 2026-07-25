@@ -227,7 +227,15 @@ public sealed class ClaimCalculationSnapshotReader(
                         .Any(record => record.EmergencyAdmissionApplied == true),
                     RecipientConfirmation: presentDays
                         .Select(record => record.RecipientConfirmation)
-                        .FirstOrDefault(value => value != RecipientConfirmationStatus.Unspecified));
+                        .FirstOrDefault(value => value != RecipientConfirmationStatus.Unspecified),
+                    // 訪問支援特別加算の算定時間数（時間）。サービス提供時間（分）と同じくSUM縮約だが、
+                    // 別項目・別尺度なので合算しない（Phase 3-3）。
+                    // どの日にも入力が無ければ null（＝未入力）。0 を返すと readiness が
+                    // 「入力済みの 0」と区別できず fail-open する。
+                    SpecialVisitSupportBilledHoursTotal: presentDays
+                        .Any(record => record.SpecialVisitSupportBilledHours is not null)
+                        ? presentDays.Sum(record => record.SpecialVisitSupportBilledHours ?? 0)
+                        : null);
         }
         return (billedDaysByRecipient, aggregateByRecipient, additionCountsByRecipient);
     }

@@ -24,6 +24,9 @@ public sealed partial class DailyCellViewModel(
     [ObservableProperty] private TimeOnly? _effectiveServiceStartTime;
     [ObservableProperty] private TimeOnly? _effectiveServiceEndTime;
     [ObservableProperty] private int? _effectiveSpecialVisitSupportMinutes;
+    // 訪問支援特別加算の算定時間数（単位は「時間」）。セル表示には出さないが、出欠ボタン由来の
+    // 訂正が既存の算定時間数を取りこぼさないよう、他の請求入力値と同じく実効値を保持する。
+    [ObservableProperty] private int? _effectiveSpecialVisitSupportBilledHours;
     [ObservableProperty] private bool? _effectiveOffsiteSupportApplied;
     [ObservableProperty] private MedicalCoordinationType _effectiveMedicalCoordinationType;
     [ObservableProperty] private TrialUseSupportType _effectiveTrialUseSupportType;
@@ -48,7 +51,8 @@ public sealed partial class DailyCellViewModel(
                 MedicalCoordinationType.Unspecified, TrialUseSupportType.Unspecified,
                 regionalCollaborationApplied: null, intensiveSupportApplied: null,
                 emergencyAdmissionApplied: null, RecipientConfirmationStatus.Unspecified,
-                actor: Environment.UserName, default);
+                actor: Environment.UserName, default,
+                specialVisitSupportBilledHours: null);
         }
         else
         {
@@ -59,7 +63,8 @@ public sealed partial class DailyCellViewModel(
                 EffectiveMedicalCoordinationType, EffectiveTrialUseSupportType,
                 EffectiveRegionalCollaborationApplied, EffectiveIntensiveSupportApplied,
                 EffectiveEmergencyAdmissionApplied, EffectiveRecipientConfirmation,
-                actor: Environment.UserName, default);
+                actor: Environment.UserName, default,
+                specialVisitSupportBilledHours: EffectiveSpecialVisitSupportBilledHours);
         }
         await reload();
     }
@@ -74,7 +79,8 @@ public sealed partial class DailyCellViewModel(
             MedicalCoordinationType.Unspecified, TrialUseSupportType.Unspecified,
             regionalCollaborationApplied: null, intensiveSupportApplied: null,
             emergencyAdmissionApplied: null, RecipientConfirmationStatus.Unspecified,
-            actor: Environment.UserName, default);
+            actor: Environment.UserName, default,
+            specialVisitSupportBilledHours: null);
         await reload();
     }
 
@@ -89,7 +95,8 @@ public sealed partial class DailyCellViewModel(
             EffectiveMedicalCoordinationType, EffectiveTrialUseSupportType,
             EffectiveRegionalCollaborationApplied, EffectiveIntensiveSupportApplied,
             EffectiveEmergencyAdmissionApplied, EffectiveRecipientConfirmation,
-            actor: Environment.UserName, default);
+            actor: Environment.UserName, default,
+            specialVisitSupportBilledHours: EffectiveSpecialVisitSupportBilledHours);
         await reload();
     }
 

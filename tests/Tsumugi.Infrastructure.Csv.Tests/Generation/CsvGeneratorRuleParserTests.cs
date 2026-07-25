@@ -90,8 +90,9 @@ public sealed class CsvGeneratorRuleParserTests
             .Where(mapping => mapping.GeneratorRule is not null)
             .ToArray();
 
-        // provider:J121:02:008 は Phase 3-3 で導出から個別入力へ移した（ADR 0032）ため 374。
-        rules.Should().HaveCount(374);
+        // Phase 3-3 で導出から個別入力へ移した 3 項目（provider:J121:02:008 / ADR 0032、
+        // provider:J611:01:052・provider:J611:01:054 / ADR 0033）を除いた 372。
+        rules.Should().HaveCount(372);
         foreach (var mapping in rules)
         {
             var rule = CsvGeneratorRuleParser.Parse(mapping.GeneratorRule!);

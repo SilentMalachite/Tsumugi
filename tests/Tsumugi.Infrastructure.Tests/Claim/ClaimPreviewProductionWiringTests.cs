@@ -372,10 +372,62 @@ public sealed class ClaimPreviewProductionWiringTests
             && issue.Destination == ClaimInputDestination.ClaimInput);
     }
 
+    // NOTE(teeth): Phase 3-3 / ADR 0033 で導出をやめた月次2項目（provider:J611:01:052 算定回数 /
+    // :054 施設外支援 累計）が、埋め込みcatalog経由で実際にfail-closedすることを end-to-end で
+    // 固定する。条件はどちらも「別プロパティを見る」非自己参照条件
+    // （modelNonZero(DailyRecord.SpecialVisitSupportMinutes) / modelTrue(DailyRecord.OffsiteSupportApplied)）
+    // なので、当月に訪問支援・施設外支援があれば未入力を検知できる。自己参照条件へ戻したり
+    // generatorRule へ戻したりすると、このテストが緑のまま黙って値を作る退行になるため
+    // 「1項目だけ欠落させて、その1件だけがissueとして残る」形で固定する。
+    [Fact]
+    public async Task
+        Real_embedded_requirement_provider_requires_special_visit_billed_count_when_a_visit_day_exists()
+    {
+        var useCase = CreateUseCase(
+            BuildSnapshot(staffingKey: "staff-6-1", claimInputSpecialVisitSupportBilledCount: null),
+            ClaimInputRequirementProvider.LoadEmbedded());
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeFalse();
+        dto.Details.Should().BeEmpty();
+        dto.Issues.Should().ContainSingle(issue =>
+            issue.Code == ClaimPreparationIssueCode.MissingRequiredField
+            && issue.RecipientId == RecipientId
+            && issue.FieldCode == "ClaimInput.SpecialVisitSupportBilledCount"
+            && issue.Destination == ClaimInputDestination.ClaimInput);
+    }
+
+    [Fact]
+    public async Task
+        Real_embedded_requirement_provider_requires_cumulative_offsite_days_when_an_offsite_day_exists()
+    {
+        var useCase = CreateUseCase(
+            BuildSnapshot(staffingKey: "staff-6-1", claimInputOffsiteSupportCumulativeDays: null),
+            ClaimInputRequirementProvider.LoadEmbedded());
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeFalse();
+        dto.Details.Should().BeEmpty();
+        dto.Issues.Should().ContainSingle(issue =>
+            issue.Code == ClaimPreparationIssueCode.MissingRequiredField
+            && issue.RecipientId == RecipientId
+            && issue.FieldCode == "ClaimInput.OffsiteSupportCumulativeDays"
+            && issue.Destination == ClaimInputDestination.ClaimInput);
+    }
+
+    // NOTE(teeth): provider:J611:02:028（訪問支援特別加算 算定時間数・単位は時間）は
+    // :027（サービス提供時間数・単位は分）とは別項目で、日次実績から導出できない。未入力を
+    // 当月SUM 0 として供給すると条件（modelNonZero(DailyRecord.SpecialVisitSupportMinutes)）が
+    // 真でも通ってしまう fail-open になるため、null（未入力）を NotApplicable として供給している。
     [Theory]
     [InlineData("DailyRecord.ServiceStartTime")]
     [InlineData("DailyRecord.ServiceEndTime")]
     [InlineData("DailyRecord.RecipientConfirmation")]
+    [InlineData("DailyRecord.SpecialVisitSupportBilledHours")]
     public async Task Real_embedded_requirement_provider_reports_missing_daily_record_field_on_present_day(
         string expectedFieldCode)
     {
@@ -396,7 +448,9 @@ public sealed class ClaimPreviewProductionWiringTests
             EmergencyAdmissionApplied: true,
             RecipientConfirmation: expectedFieldCode == "DailyRecord.RecipientConfirmation"
                 ? RecipientConfirmationStatus.Unspecified
-                : RecipientConfirmationStatus.Confirmed);
+                : RecipientConfirmationStatus.Confirmed,
+            SpecialVisitSupportBilledHoursTotal:
+                expectedFieldCode == "DailyRecord.SpecialVisitSupportBilledHours" ? null : 2);
         var useCase = CreateUseCase(
             BuildSnapshot(staffingKey: "staff-6-1", dailyRecordAggregateOverride: dailyRecordAggregate),
             ClaimInputRequirementProvider.LoadEmbedded());
@@ -482,7 +536,10 @@ public sealed class ClaimPreviewProductionWiringTests
             RegionalCollaborationApplied: true,
             IntensiveSupportApplied: false,
             EmergencyAdmissionApplied: true,
-            RecipientConfirmation: RecipientConfirmationStatus.Confirmed);
+            RecipientConfirmation: RecipientConfirmationStatus.Confirmed,
+            // provider:J611:02:028（算定時間数）は訪問支援の分が非ゼロなら必須。未入力（null）だと
+            // NotApplicable になり fail-closed するため、フル入力側では埋める。
+            SpecialVisitSupportBilledHoursTotal: 2);
         var useCase = CreateUseCase(
             BuildSnapshot(
                 staffingKey: "staff-6-1",
@@ -762,6 +819,12 @@ public sealed class ClaimPreviewProductionWiringTests
             UpperLimitManagementResult.Result1,
         int? claimInputUpperLimitManagedAmountYen = 0,
         int? claimInputMunicipalSubsidyAmountYen = 0,
+        // Phase 3-3 / ADR 0033: 訪問支援特別加算の算定回数と施設外支援の年度累計日数は
+        // provider:J611:01:052 / :054 が要求する月次個別入力。既定のフィクスチャは当月に
+        // 訪問支援（SpecialVisitSupportMinutesTotal=30）と施設外支援（OffsiteSupportApplied=true）を
+        // 持つため、この2項目もフル入力の一部として埋める（未入力ならNotReadyになるのは正しい挙動）。
+        int? claimInputSpecialVisitSupportBilledCount = 1,
+        int? claimInputOffsiteSupportCumulativeDays = 20,
         IReadOnlyList<OfficeCapability>? officeCapabilities = null,
         ClaimDailyRecordAggregate? dailyRecordAggregateOverride = null,
         int? billedDaysOverride = null,
@@ -817,6 +880,8 @@ public sealed class ClaimPreviewProductionWiringTests
             UpperLimitManagementResult = claimInputUpperLimitManagementResult,
             UpperLimitManagedAmountYen = claimInputUpperLimitManagedAmountYen,
             MunicipalSubsidyAmountYen = claimInputMunicipalSubsidyAmountYen,
+            SpecialVisitSupportBilledCount = claimInputSpecialVisitSupportBilledCount,
+            OffsiteSupportCumulativeDays = claimInputOffsiteSupportCumulativeDays,
             CreatedAt = Now,
             CreatedBy = "tester",
             ConcurrencyToken = Guid.NewGuid(),
@@ -909,7 +974,9 @@ public sealed class ClaimPreviewProductionWiringTests
             RegionalCollaborationApplied: true,
             IntensiveSupportApplied: true,
             EmergencyAdmissionApplied: true,
-            RecipientConfirmation: RecipientConfirmationStatus.Confirmed);
+            RecipientConfirmation: RecipientConfirmationStatus.Confirmed,
+            // provider:J611:02:028（算定時間数）は訪問支援の分が非ゼロなら必須。
+            SpecialVisitSupportBilledHoursTotal: 2);
 
         return new ClaimCalculationSnapshot(
             [RecipientId],
