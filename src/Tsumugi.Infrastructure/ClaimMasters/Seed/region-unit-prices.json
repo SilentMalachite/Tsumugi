@@ -5,7 +5,7 @@
     {
       "key": "b-region.r6.region-grade-1",
       "effectiveFrom": "2024-04",
-      "effectiveTo": null,
+      "effectiveTo": "2026-05",
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
@@ -27,7 +27,7 @@
     {
       "key": "b-region.r6.region-grade-2",
       "effectiveFrom": "2024-04",
-      "effectiveTo": null,
+      "effectiveTo": "2026-05",
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
@@ -49,7 +49,7 @@
     {
       "key": "b-region.r6.region-grade-3",
       "effectiveFrom": "2024-04",
-      "effectiveTo": null,
+      "effectiveTo": "2026-05",
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
@@ -71,7 +71,7 @@
     {
       "key": "b-region.r6.region-grade-4",
       "effectiveFrom": "2024-04",
-      "effectiveTo": null,
+      "effectiveTo": "2026-05",
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
@@ -93,7 +93,7 @@
     {
       "key": "b-region.r6.region-grade-5",
       "effectiveFrom": "2024-04",
-      "effectiveTo": null,
+      "effectiveTo": "2026-05",
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
@@ -115,7 +115,7 @@
     {
       "key": "b-region.r6.region-grade-6",
       "effectiveFrom": "2024-04",
-      "effectiveTo": null,
+      "effectiveTo": "2026-05",
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
@@ -137,7 +137,7 @@
     {
       "key": "b-region.r6.region-grade-7",
       "effectiveFrom": "2024-04",
-      "effectiveTo": null,
+      "effectiveTo": "2026-05",
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
@@ -159,7 +159,7 @@
     {
       "key": "b-region.r6.region-other",
       "effectiveFrom": "2024-04",
-      "effectiveTo": null,
+      "effectiveTo": "2026-05",
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
