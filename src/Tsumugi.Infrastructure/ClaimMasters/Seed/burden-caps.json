@@ -16,6 +16,16 @@
             "master-values",
             "effective-period"
           ]
+        },
+        {
+          "documentId": "r8-burden-recognition-guide-202606",
+          "sha256": "ad24221afabc3b07e5f28602662d68dd7a44ea905de066375c209be0f101d522",
+          "locator": "r8-burden-recognition-guide-202606 物理12頁（printed page 11）「（４）【負担上限月額について】所得区分及び負担上限月額」表 生活保護 0円",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
         }
       ],
       "values": {
@@ -33,6 +43,16 @@
           "sha256": "3ead1b2d235ff15e6d0c71a129e7ef880e119272a00acd043e635aee8c637469",
           "locator": "r6-disability-support-guide-202404 物理9頁（printed page 17）表 市町村民税非課税世帯 0円",
           "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-burden-recognition-guide-202606",
+          "sha256": "ad24221afabc3b07e5f28602662d68dd7a44ea905de066375c209be0f101d522",
+          "locator": "r8-burden-recognition-guide-202606 物理12頁（printed page 11）「（４）【負担上限月額について】所得区分及び負担上限月額」表 低所得１・２ 0円",
+          "evidenceRole": "cross-check",
           "supports": [
             "master-values",
             "effective-period"
@@ -58,6 +78,16 @@
             "master-values",
             "effective-period"
           ]
+        },
+        {
+          "documentId": "r8-burden-recognition-guide-202606",
+          "sha256": "ad24221afabc3b07e5f28602662d68dd7a44ea905de066375c209be0f101d522",
+          "locator": "r8-burden-recognition-guide-202606 物理12頁（printed page 11）「（４）【負担上限月額について】所得区分及び負担上限月額」表 一般１（居宅で生活する障害者並びに20歳未満の障害者施設入所者及び障害児施設入所者）9,300円",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
         }
       ],
       "values": {
@@ -75,6 +105,16 @@
           "sha256": "3ead1b2d235ff15e6d0c71a129e7ef880e119272a00acd043e635aee8c637469",
           "locator": "r6-disability-support-guide-202404 物理9頁（printed page 17）表 上記以外（20歳以上の入所施設利用者・グループホーム利用者は市町村民税課税世帯なら該当）37,200円",
           "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-burden-recognition-guide-202606",
+          "sha256": "ad24221afabc3b07e5f28602662d68dd7a44ea905de066375c209be0f101d522",
+          "locator": "r8-burden-recognition-guide-202606 物理12頁（printed page 11）「（４）【負担上限月額について】所得区分及び負担上限月額」表 一般２ 37,200円",
+          "evidenceRole": "cross-check",
           "supports": [
             "master-values",
             "effective-period"

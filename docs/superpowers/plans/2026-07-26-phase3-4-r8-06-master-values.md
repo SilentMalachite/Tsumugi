@@ -182,15 +182,16 @@ public sealed class ClaimMasterR8ContinuityTests
         "r8-capability-202606",
     ];
 
+    // spec §3.1 AC3-4-1 の対象はこの2ファイルに限る。basic-rewards / additions /
+    // service-codes のR8継続はADR 0027決定6・ADR 0028決定1が照合済みとして記録し、
+    // ClaimMasterR8BoundaryTests.Exempt_offices_resolve_the_same_code_and_units_across_the_boundary
+    // がruntimeで固定しているため、本テストの対象に含めない。
     // 既存テスト（ClaimCalculatorGoldenCaseTests.GoldenCases）と同じ構築様式に揃える。
     public static TheoryData<string> ValueBearingSeedFiles()
     {
         var data = new TheoryData<string>();
         data.Add("region-unit-prices.json");
         data.Add("burden-caps.json");
-        data.Add("basic-rewards.json");
-        data.Add("additions.json");
-        data.Add("service-codes.json");
         return data;
     }
 
@@ -257,9 +258,9 @@ public sealed class ClaimMasterR8ContinuityTests
 dotnet test --filter "FullyQualifiedName~ClaimMasterR8ContinuityTests"
 ```
 
-期待: **FAIL**。`region-unit-prices.json` の 8 件と `burden-caps.json` の 4 件、`basic-rewards.json` の 135 件、`service-codes.json` の 147 件、`additions.json` の 12 件が `unbacked` に挙がる。この時点でこれが本計画の全作業量の可視化になる。
+期待: **FAIL**。`region-unit-prices.json` の 8 件と `burden-caps.json` の 4 件が `unbacked` に挙がる（合計12件）。
 
-> **注**: `basic-rewards.json` の 135 件は ADR 0027 決定6 が「R8-6月表で同一コード・同一単位数を照合済み」として継続を許可した行であり、Step 6 で `r8-service-codes-2-xlsx` を `evidenceRole: "cross-check"` として `sourceRefs` に追記することで backed になる。値は変えない。
+> **対象を2ファイルに限る理由**（2026-07-26 の着手前スキャンで確定）: spec §3.1 AC3-4-1 の対象は `region-unit-prices` と `burden-caps` である。`basic-rewards` の 135 行・`service-codes` の 147 行・`additions` の固定単位 12 行の R8 継続は、ADR 0027 決定6 と ADR 0028 決定1 が「R8-6月表で同一コード・同一単位数を照合済み」として記録し、`ClaimMasterR8BoundaryTests.Exempt_offices_resolve_the_same_code_and_units_across_the_boundary` が runtime で固定している。これら 294 行へ手書きの locator を追記し直す作業は、既存の証跡を高い転記ミスリスクで複製するだけなので行わない。
 
 - [ ] **Step 3: R8 版の単価告示・負担上限資料の所在を確定する**
 
@@ -346,39 +347,23 @@ pdftotext -raw    -f <first> -l <last> <file.pdf> /tmp/raw.txt
 
 > **この分岐が本タスクの中核判断である。** 事業所は「請求が出せない」ことには気付けるが「単価が古い」ことには気付けない。誤った金額を静かに生成するより、生成を止める方が回復可能である。
 
-- [ ] **Step 6: `basic-rewards.json` の 135 行へ R8 cross-check 出典を追記する**
-
-ADR 0027 決定6 が「R8-6月表でも同一コード・同一単位数を照合済み」として継続を許可している根拠を、データ側にも持たせる。**値（`baseUnits` / `serviceCode`）は一切変えない。** 各 entry の `sourceRefs` へ次を追記する。
-
-```json
-{
-  "documentId": "r8-service-codes-2-xlsx",
-  "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
-  "locator": "workbook-order=38;row=<該当行>（ADR 0027決定6 R8-6月表 同一コード・同一単位数の継続照合）",
-  "evidenceRole": "cross-check",
-  "supports": ["master-values", "effective-period"]
-}
-```
-
-`service-codes.json` の対応する 147 行、`additions.json` の固定単位 12 行にも同様に追記する（ADR 0028 決定1 が同じ照合を済ませている）。
-
-**追記前に、追記対象の各行について実際に `r8-service-codes-2-xlsx` の該当行のコードと合成単位数が R6 と一致することを確認する。** ADR の記述を根拠に機械的に追記するのではなく、照合を再実施して locator を書く。一致しない行が1件でも出たら追記を止め、その行を `effectiveTo: "2026-05"` で閉じて起票する。
-
-- [ ] **Step 7: テストを実行して緑を確認する**
+- [ ] **Step 6: テストを実行して緑を確認する**
 
 ```bash
 dotnet test --filter "FullyQualifiedName~ClaimMasterR8ContinuityTests"
 ```
 
-期待: **PASS**。ただし `additions.json` の処遇改善4行と `service-codes.json` の対応4行は `effectiveTo: "2026-05"` で閉じているため対象外、Task 2 で R8 行が入る。
+期待: **PASS**。`region-unit-prices.json` の 8 件と `burden-caps.json` の 4 件が、R8 出典を持つ（分岐 a/b）か `effectiveTo: "2026-05"` で閉じている（分岐 c）かのいずれかになっている。
 
 ```bash
 dotnet test
 ```
 
-期待: 全緑。`ClaimMasterR8BoundaryTests.Basic_reward_rows_continue_unchanged_across_the_r8_boundary` が緑のままであることを特に確認する（`sourceRefs` の追記は `BasicRewardMasterRow` の値に影響しない）。
+期待: 全緑。特に次を確認する。
+- `ClaimMasterR8BoundaryTests.Basic_reward_rows_continue_unchanged_across_the_r8_boundary` — 本タスクは `basic-rewards.json` を触らないため無変更で緑のまま
+- 分岐 (b)/(c) を取った場合、既存の golden case（2025-04・2026-05 以前）は影響を受けない。2026-06 を使う既存テストが無いことを確認する
 
-- [ ] **Step 8: 歯の確認（意図的違反で赤になること）**
+- [ ] **Step 7: 歯の確認（意図的違反で赤になること）**
 
 `region-unit-prices.json` の1件から R8 出典の `sourceRef` を一時的に削除し、Step 1 のテストが RED になることを確認する。確認後に戻す。
 
@@ -388,7 +373,7 @@ git checkout src/Tsumugi.Infrastructure/ClaimMasters/Seed/region-unit-prices.jso
 dotnet test --filter "FullyQualifiedName~ClaimMasterR8ContinuityTests"   # → PASS を確認
 ```
 
-- [ ] **Step 9: ADR 0044 を書く**
+- [ ] **Step 8: ADR 0044 を書く**
 
 `docs/decisions/0044-r8-region-unit-price-and-burden-cap-continuity.md` を作成する。構成は既存 ADR に合わせ、**結論 → 背景 → 選択肢 → 決定 → 影響**。「暫定→確定」ではなく初手から確定として書く。
 
@@ -401,7 +386,7 @@ dotnet test --filter "FullyQualifiedName~ClaimMasterR8ContinuityTests"   # → P
 - 影響: ADR 0022 が述べる「5-release source chain」は出典連鎖であって seed 実値ではないことの明確化
 - 再検証手順（sources.json の URL 取得 → shasum 照合 → 該当頁の突合）
 
-- [ ] **Step 10: コミット**
+- [ ] **Step 9: コミット**
 
 ```bash
 ./build/ci.sh
@@ -736,6 +721,16 @@ git commit -m "feat(phase3-4/AC3-4-2): R8の福祉・介護職員等処遇改善
 
 ---
 
+> ## ⚠️ Task 3・4・5 は1つのタスク・1コミットとして実行する（2026-07-26 修正）
+>
+> **当初の3分割は実行不能だった。** `ClaimMasterFileValidator.ValidateConditions`（`ClaimMasterFileValidator.cs:2325`）は、**`conditionDefinitions` のキーが `service-codes.json` のどの entry の `conditionSelectors` からも参照されていない場合に例外を投げる**（`byKey.Keys.Except(used).FirstOrDefault()` → `"is unused"`）。これは orphan token の蓄積を防ぐ dead-code ガードであり、健全な不変条件である。
+>
+> したがって seed は**毎コミット内部整合していなければならず**、「トークンだけ先に入れる」中間状態は存在できない。Task 3 単独のコミットは 89 件のテストを赤にする（`Tsumugi.Infrastructure.Tests` 69 ＋ `Tsumugi.App.Tests` 20、すべて同一根本原因）。
+>
+> **検討して不採用にした案**: (a) validator に猶予機構を足す — コミット境界の都合で production の不変条件を緩めるのは本末転倒。(b) Task 5 の一部を前倒しする — 依然として部分状態が残る。
+>
+> **採用**: Task 3 → 4 → 5 の**手順はそのまま順に実施し、コミットは Task 5 の末尾で1回だけ行う**。Task 3 Step 7 と Task 4 Step 9 のコミットは実施しない（それ以外の Step はすべて実施する。特に各 Step の RED 確認と歯の確認は省略しない）。レビュー単位は3タスク分の統合差分になる。
+
 ## Task 3: 新12区分の条件トークン14個（AC3-4-3 の前段）
 
 **Files:**
@@ -902,15 +897,9 @@ dotnet test
 
 期待: 全緑。この時点では `basic-rewards` にまだ R8 行が無いため、`ClaimMasterR8BoundaryTests.Reform_target_r8_numeric_options_fail_explicitly_until_their_rows_land` は**まだ緑**（fail-close のまま）である。これは正しい中間状態。
 
-- [ ] **Step 7: コミット**
+- [ ] ~~**Step 7: コミット**~~ — **実施しない。** 冒頭の注記のとおり、`conditionDefinitions` だけを入れた状態は `ValidateConditions` の未参照ガードに掛かる。そのまま Task 4 へ進む。
 
-```bash
-./build/ci.sh
-git add src/Tsumugi.Infrastructure/ClaimMasters/Seed/service-codes.json \
-        tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimMasterSeedPhase31Tests.cs \
-        docs/decisions/0046-r8-reform-target-payment-bands.md docs/open-questions.md
-git commit -m "feat(phase3-4/AC3-4-3): R8新12区分の条件トークン14個を出典付きで追加する"
-```
+> この時点で `dotnet test` は赤い（未参照トークンによりマスタのロード自体が落ちるため、静的コンストラクタ経由で広範に波及する）。**これは想定内の中間状態**であり、Task 5 の末尾で緑に戻る。Task 4・5 の各 Step の RED 確認は、この赤とは別物であることに注意して読むこと（対象テストが**期待するメッセージで**落ちているかを確認する）。
 
 ---
 
@@ -1117,15 +1106,7 @@ dotnet test
 
 180行のうち1行を削除して Step 1 のテストが RED（`HaveCount(180)` と各区分15行の両方）になることを確認する。1行の `baseUnits` を1増やして ADR 0046 の決定表との齟齬が Task 6 の golden case で検出されることを、Task 6 完了後に確認する。
 
-- [ ] **Step 9: コミット**
-
-```bash
-./build/ci.sh
-git add src/Tsumugi.Infrastructure/ClaimMasters/Seed/basic-rewards.json \
-        tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ \
-        docs/decisions/0046-r8-reform-target-payment-bands.md
-git commit -m "feat(phase3-4/AC3-4-3): R8改定対象の新12区分 基本報酬180行を投入する"
-```
+- [ ] ~~**Step 9: コミット**~~ — **実施しない。** そのまま Task 5 へ進む。`basic-rewards` を入れても、対応する `service-codes` 行が無い限り `conditionDefinitions` の未参照ガードは解けない（`conditionSelectors` を持つのは `service-codes.json` の entry だけ）。緑に戻るのは Task 5 の Step 3 完了後。
 
 ---
 
@@ -1371,11 +1352,16 @@ dotnet test
 
 - [ ] **Step 8: コミット**
 
+**Task 3・4・5 を通した唯一のコミットである。** 冒頭の注記のとおり、seed の内部整合性（`ValidateConditions` の未参照ガード）により、この3タスクは分割してコミットできない。
+
 ```bash
 ./build/ci.sh
 git add src/Tsumugi.Infrastructure/ClaimMasters/Seed/service-codes.json \
-        tests/Tsumugi.Infrastructure.Tests/ClaimMasters/
-git commit -m "feat(phase3-4/AC3-4-3): R8新12区分のサービスコード180行を投入しfail-closeを解除する"
+        src/Tsumugi.Infrastructure/ClaimMasters/Seed/basic-rewards.json \
+        tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ \
+        docs/decisions/0046-r8-reform-target-payment-bands.md \
+        docs/open-questions.md
+git commit -m "feat(phase3-4/AC3-4-3): R8改定対象の新12区分（条件トークン14・基本報酬180行・サービスコード180行）を投入する"
 ```
 
 ---
@@ -1670,7 +1656,11 @@ git commit -m "docs(phase3-4): 受け入れ証跡とADR 0044-0046の同期、ope
 
 **3. Type consistency** — 全テストコードで使う型を「既存 API リファレンス」節に実物から転記した。キー命名は `b-basic.r8.<capacity>.<band>.<staffing>` と `b-service.r8.<capacity>.<band>.<staffing>` で Task 4・5 間を貫通させ、Task 5 Step 4 のテストが両者の一致を機械検証する。
 
-**修正した齟齬**: spec §2.3 は新12区分の option code 対応を「仮説」としていたが、既存テスト `R8_band_edition_partitions_official_options_by_reform_status_from_june_2026` が option 11〜22 = ReformTarget を既に固定していることを確認した。本計画の「既存 API リファレンス」節でこれを明記し、Task 3 の未確定を「各 option code がどの金額境界に対応するか」だけに絞った。
+**修正した齟齬（計画作成時）**: spec §2.3 は新12区分の option code 対応を「仮説」としていたが、既存テスト `R8_band_edition_partitions_official_options_by_reform_status_from_june_2026` が option 11〜22 = ReformTarget を既に固定していることを確認した。本計画の「既存 API リファレンス」節でこれを明記し、Task 3 の未確定を「各 option code がどの金額境界に対応するか」だけに絞った。
+
+**修正した齟齬（2026-07-26 着手前スキャン）**: Task 1 の `ClaimMasterR8ContinuityTests` の対象を5ファイルにしていたが、**spec §3.1 AC3-4-1 の対象は `region-unit-prices` と `burden-caps` の2ファイル**であり、計画側の逸脱だった。広げた対象を緑にするため Task 1 に「`basic-rewards` 135行・`service-codes` 147行・`additions` 12行の計294行へ手書き locator で cross-check 出典を追記する」Step を置いており、これが (a) Task 1 を本来の責務から肥大させ、(b) 本来 Task 4 の依存である `r8-service-codes-2-xlsx` への依存を Task 1 に持ち込んでいた。
+
+利用者の裁定により **spec に合わせて2ファイルへ絞り、294行追記の Step を削除**した（Step 6 を削除し、旧 Step 7〜10 を 6〜9 へ繰り上げ）。294行の R8 継続根拠は ADR 0027 決定6・ADR 0028 決定1 の記録と、runtime で固定している `ClaimMasterR8BoundaryTests.Exempt_offices_resolve_the_same_code_and_units_across_the_boundary` に委ねる。既存の証跡を高い転記ミスリスクで複製しないという判断である。
 
 ---
 

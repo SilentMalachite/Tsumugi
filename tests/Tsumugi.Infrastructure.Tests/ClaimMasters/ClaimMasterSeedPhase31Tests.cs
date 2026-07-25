@@ -25,18 +25,22 @@ public sealed class ClaimMasterSeedPhase31Tests
     }
 
     // ADR 0027 fixes 135 basic-reward rows (service fee I-III: 3 staffing x 5 capacity x
-    // 8 wage bands = 120, plus participation-evaluation IV-VI: 15), a matching 135
-    // service-code rows (one per basic-reward row), and 8 region unit prices. Task 11
-    // (ADR 0028) adds one service-code row per seeded addition row on top of the 135
+    // 8 wage bands = 120, plus participation-evaluation IV-VI: 15) and 8 region unit prices.
+    // ADR 0046 adds 180 R8 reform-target rows (12 new bands x 5 capacity x 3 staffing).
+    // service-codes carries one row per basic-reward row plus one per seeded addition row
     // (see ClaimAdditionSeedScopeTests for the per-code scope). This asserts the seed JSON
     // itself (not the not-yet-wired ResolveCalculationMasters) carries those counts.
     [Fact]
-    public void LoadEmbedded_embeds_the_adr0027_r6_seed_row_counts()
+    public void LoadEmbedded_embeds_the_seeded_basic_reward_and_service_code_counts()
     {
-        CountEmbeddedEntries(".ClaimMasters.Seed.basic-rewards.json").Should().Be(135);
+        const int R6BasicRewardRows = 135;
+        const int R8ReformTargetBasicRewardRows = 180;
+        var basicRewardEntries = CountEmbeddedEntries(".ClaimMasters.Seed.basic-rewards.json");
+        basicRewardEntries.Should().Be(R6BasicRewardRows + R8ReformTargetBasicRewardRows);
+
         var additionEntries = CountEmbeddedEntries(".ClaimMasters.Seed.additions.json");
         CountEmbeddedEntries(".ClaimMasters.Seed.service-codes.json")
-            .Should().Be(135 + additionEntries);
+            .Should().Be(basicRewardEntries + additionEntries);
         CountEmbeddedEntries(".ClaimMasters.Seed.region-unit-prices.json").Should().Be(8);
     }
 
@@ -927,6 +931,158 @@ public sealed class ClaimMasterSeedPhase31Tests
                     "service-codes-2-xlsx",
                     StringComparison.Ordinal))
             .Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// ADR 0046: R8改定対象の新12区分は、transition-rulesが許可するoption 11〜22と
+    /// 1対1で対応するaverage-wage-bandトークンを持つ。R8改定状態のトークンも同時に入る。
+    /// r8-reform-statusは4値の閉じた語彙（not-applicable-before-r8/reform-target/
+    /// reform-exempt/unchanged-below-15000）を持つが、本フェーズでseedするのは
+    /// reform-target 1件のみ。reform-exemptはR6の135行（effectiveFrom: 2024-04）へ
+    /// しか付けられず、それはR6行を書き換えない制約とconditionDefinitionの有効期間が
+    /// 参照元の有効期間を覆っていなければならないというvalidator制約の両方に反するため、
+    /// 本フェーズでは投入しない（ADR 0046「影響」節を参照）。
+    /// </summary>
+    [Fact]
+    public void R8_seeds_twelve_average_wage_bands_and_one_reform_status_condition()
+    {
+        using var document = OpenRepositoryJson(
+            "src/Tsumugi.Infrastructure/ClaimMasters/Seed/service-codes.json");
+
+        var r8Conditions = document.RootElement.GetProperty("conditionDefinitions")
+            .EnumerateArray()
+            .Where(condition => condition.GetProperty("effectiveFrom").GetString() == "2026-06")
+            .ToArray();
+
+        var bands = r8Conditions
+            .Where(condition => condition.GetProperty("kind").GetString() == "average-wage-band")
+            .ToArray();
+        bands.Should().HaveCount(12, "改定対象の新12区分（option 11〜22）に対応する");
+
+        var optionCodes = bands
+            .Select(band => band.GetProperty("value").GetInt32())
+            .OrderBy(code => code)
+            .ToArray();
+        optionCodes.Should().Equal([11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]);
+
+        foreach (var band in bands)
+        {
+            band.GetProperty("operator").GetString().Should().Be("equals");
+            band.GetProperty("effectiveTo").ValueKind.Should().Be(JsonValueKind.Null);
+            band.GetProperty("sourceRefs").GetArrayLength().Should().BeGreaterThan(0);
+        }
+
+        var reformStatus = r8Conditions
+            .Where(condition => condition.GetProperty("kind").GetString() == "r8-reform-status")
+            .ToArray();
+        reformStatus.Should().HaveCount(1, "本フェーズで消費されるのは改定対象トークンのみ");
+        reformStatus[0].GetProperty("key").GetString().Should().Be("r8-reform-status-target");
+        reformStatus[0].GetProperty("value").GetString().Should().Be("reform-target");
+    }
+
+    /// <summary>
+    /// ADR 0046: R8改定対象の新12区分は 12区分 × 定員5 × 人員配置3 = 180行の完全直積を成す。
+    /// R6の135行（9区分 × 15）と同じ構造で、欠けも重複も許さない。
+    /// 抽出漏れ・過剰転記を行数と直積の完全性で機械検出する。
+    /// </summary>
+    [Fact]
+    public void R8_reform_target_basic_rewards_form_a_complete_product()
+    {
+        string[] expectedCapacities =
+            ["cap-20-or-less", "cap-21-40", "cap-41-60", "cap-61-80", "cap-81-plus"];
+        string[] expectedStaffings = ["staff-6-1", "staff-7.5-1", "staff-10-1"];
+
+        using var document = OpenRepositoryJson(
+            "src/Tsumugi.Infrastructure/ClaimMasters/Seed/basic-rewards.json");
+
+        var r8Entries = document.RootElement.GetProperty("entries")
+            .EnumerateArray()
+            .Where(entry => entry.GetProperty("effectiveFrom").GetString() == "2026-06")
+            .Select(entry => entry.GetProperty("values"))
+            .ToArray();
+
+        r8Entries.Should().HaveCount(180, "12区分 × 定員5 × 人員配置3");
+
+        var bands = r8Entries
+            .Select(values => values.GetProperty("paymentBand").GetString()!)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        bands.Should().HaveCount(12);
+
+        r8Entries.Select(values => values.GetProperty("capacityKey").GetString()!)
+            .Distinct(StringComparer.Ordinal).Should().BeEquivalentTo(expectedCapacities);
+        r8Entries.Select(values => values.GetProperty("staffingKey").GetString()!)
+            .Distinct(StringComparer.Ordinal).Should().BeEquivalentTo(expectedStaffings);
+
+        // 完全直積: 各区分がちょうど15行、各(定員,人員配置)組合せがちょうど12行。
+        foreach (var band in bands)
+            r8Entries.Count(values => values.GetProperty("paymentBand").GetString() == band)
+                .Should().Be(15, $"区分 {band} は15組合せすべてを持つ");
+
+        foreach (var capacity in expectedCapacities)
+            foreach (var staffing in expectedStaffings)
+                r8Entries.Count(values =>
+                    values.GetProperty("capacityKey").GetString() == capacity
+                    && values.GetProperty("staffingKey").GetString() == staffing)
+                    .Should().Be(12, $"組合せ {capacity}/{staffing} は12区分すべてを持つ");
+
+        // サービスコードは全行で一意。
+        r8Entries.Select(values => values.GetProperty("serviceCode").GetString()!)
+            .Should().OnlyHaveUniqueItems();
+
+        // 単位数は正の整数。
+        foreach (var values in r8Entries)
+            values.GetProperty("baseUnits").GetInt32().Should().BePositive();
+    }
+
+    /// <summary>
+    /// ADR 0046: R8基本報酬180行とR8基本報酬サービスコード180行は1対1で対応し、
+    /// componentRefsのキーとserviceCodeが両ファイルで一致する。
+    /// </summary>
+    [Fact]
+    public void R8_basic_reward_rows_pair_with_their_service_code_rows()
+    {
+        using var basicRewards = OpenRepositoryJson(
+            "src/Tsumugi.Infrastructure/ClaimMasters/Seed/basic-rewards.json");
+        using var serviceCodes = OpenRepositoryJson(
+            "src/Tsumugi.Infrastructure/ClaimMasters/Seed/service-codes.json");
+
+        var basicByKey = basicRewards.RootElement.GetProperty("entries").EnumerateArray()
+            .Where(entry => entry.GetProperty("effectiveFrom").GetString() == "2026-06")
+            .ToDictionary(
+                entry => entry.GetProperty("key").GetString()!,
+                entry => entry.GetProperty("values").GetProperty("serviceCode").GetString()!,
+                StringComparer.Ordinal);
+
+        basicByKey.Should().HaveCount(180);
+
+        var pairedBasicKeys = new List<string>();
+        foreach (var entry in serviceCodes.RootElement.GetProperty("entries").EnumerateArray())
+        {
+            if (entry.GetProperty("effectiveFrom").GetString() != "2026-06")
+                continue;
+
+            var values = entry.GetProperty("values");
+            var componentRefs = values.GetProperty("componentRefs").EnumerateArray()
+                .Where(reference => reference.GetProperty("masterKind").GetString() == "basic-rewards")
+                .ToArray();
+            if (componentRefs.Length == 0)
+                continue;   // 加算のサービスコード行はここでは対象外
+
+            var basicKey = componentRefs.Single().GetProperty("key").GetString()!;
+            basicByKey.Should().ContainKey(basicKey,
+                "サービスコード行が参照するbasic-rewardsキーは実在しなければならない");
+            values.GetProperty("serviceCode").GetString().Should().Be(basicByKey[basicKey],
+                $"{basicKey} のサービスコードは両ファイルで一致しなければならない");
+            values.GetProperty("unitRule").GetProperty("baseComponentKey").GetString()
+                .Should().Be(basicKey);
+
+            pairedBasicKeys.Add(basicKey);
+        }
+
+        pairedBasicKeys.Should().OnlyHaveUniqueItems();
+        pairedBasicKeys.Should().BeEquivalentTo(basicByKey.Keys,
+            "R8基本報酬180行はすべて対応するサービスコード行を持つ");
     }
 
     private static bool IsProtectedFacilityPrimaryRow(JsonElement row)

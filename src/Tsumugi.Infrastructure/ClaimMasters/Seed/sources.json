@@ -118,8 +118,25 @@
       "supersedes": null,
       "corrects": null,
       "supplements": null,
-      "applicabilityNote": "2026-07-10の独立12回取得でSHA-256と52,785 bytesが一致。B型を含む基準額10円と1〜7級地・その他の割合を直接収載するため、5版共通のマスタ値ソースとする",
+      "applicabilityNote": "2026-07-10の独立12回取得でSHA-256と52,785 bytesが一致。B型を含む基準額10円と1〜7級地・その他の割合を直接収載する。この観測（2026-07-10取得、R8-06施行前）はR8-06以降の適用性それ自体の証拠にはならない点に注意（ADR 0044）。R8-06施行後の再観測は別documentId `mhlw-unit-price-notice-post-r8-observed-946c3d96` として登録している",
       "correctionNote": null
+    },
+    {
+      "documentId": "mhlw-unit-price-notice-post-r8-observed-946c3d96",
+      "title": "こども家庭庁長官及び厚生労働大臣が定める一単位の単価並びに厚生労働大臣が定める一単位の単価（厚生労働省告示第539号・R8-06施行後再観測バイト946c3d96・52,785 bytes）",
+      "publisher": "こども家庭庁・厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2006-09-29",
+      "retrievedAt": "2026-07-26",
+      "url": "https://www.mhlw.go.jp/web/t_doc?dataId=83aa8493&dataType=0&pageNo=1",
+      "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "mhlw-unit-price-notice-observed-946c3d96"
+      ],
+      "applicabilityNote": "mhlw-unit-price-notice-observed-946c3d96と同一URL・同一文書（厚生労働省告示第539号）の、R8-06施行（2026-06-01）後に行った独立した再観測。SHA-256（946c3d969ffd...）・52,785 bytesとも2026-07-10取得値と完全一致した。ページ本文の改正履歴表示は「(令五厚労告一六七・改称)」（令和5年）が最新で、令和8年の改正注記は無い。厚生労働省の公式ページ「報酬算定構造・サービスコード表等 令和8年6月施行分」（mhlw-r8-structure-page-observed-9bc71ce6/-13da3c44）が列挙する改定パッケージ8項目にも本告示（第539号）の改正版は含まれない（R6・R8の実測でこの告示が両施行分の改定パッケージに含まれなかったという事実であり、原理的に含まれ得ないという主張ではない。次の施行境界でも同じ手順でURLを再取得しSHAを比較すること）。retrievedAtがR8-06施行後である点が、地域区分単価entryのR8-06以降の適用を独立に裏づける直接証拠になる（ADR 0044）",
+      "correctionNote": "mhlw-unit-price-notice-observed-946c3d96を補足（同一文書のR8-06施行後の再観測。原観測を置換しない）"
     },
     {
       "documentId": "r6-disability-support-guide-202404",
@@ -797,6 +814,23 @@
       "correctionNote": "r8-grant-decision-administration-202606を補足（同一文書の再配布複製。制度値の根拠は正本で、この文書はphysical page locatorを実際に読んだバイト列としてのみ用いる。正本を置換しない）"
     },
     {
+      "documentId": "r8-burden-recognition-guide-202606",
+      "title": "障害福祉サービス・障害児通所支援等の利用者負担認定の手引き【令和8年6月版】",
+      "publisher": "こども家庭庁・厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-06-05",
+      "retrievedAt": "2026-07-26",
+      "url": "https://www.cfa.go.jp/assets/contents/node/basic_page/field_ref_resources/b27810b0-7802-444c-a95d-22841bdf3eca/f823f8c1/20260605_policies_shougaijishien_shisaku_jimushori_yoryo_55.pdf",
+      "sha256": "ad24221afabc3b07e5f28602662d68dd7a44ea905de066375c209be0f101d522",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-disability-support-guide-202404"
+      ],
+      "applicabilityNote": "こども家庭庁の事務処理要領ページ（https://www.cfa.go.jp/policies/shougaijishien/shisaku/jimushori_yoryo）に掲載。2,351,497 bytes、84 pages。2026-07-26に独立2回取得（初回発見時と本ADR確定時）しSHA-256が完全一致することを確認した。**物理12頁**（footerの印字ページ番号は「11」。物理頁と印字ページ番号は1つずれる）の「（４）【負担上限月額について】所得区分及び負担上限月額」の表を、`pdftotext -layout -f 12 -l 12`と`pdftotext -raw -f 12 -l 12`の独立2方式で抽出し、生活保護0円・低所得１／２0円・一般1（居宅で生活する障害者並びに20歳未満の障害者施設入所者及び障害児施設入所者）9,300円・一般2 37,200円の4値全行が両方式で一致することを確認した（burden-caps.jsonの現行値とも完全一致）。r6-disability-support-guide-202404とは別の文書系統（平成26年以来続く「利用者負担認定の手引き」シリーズの令和8年6月版。発行元はこども家庭庁・厚生労働省の連名）だが、同一の制度値をR8-06向けに独立して裏づけるcross-check資料として用いる",
+      "correctionNote": "r6-disability-support-guide-202404を補足（別系統資料による同一値のR8-06向けcross-check）"
+    },
+    {
       "documentId": "r8-revision-overview",
       "title": "令和8年度障害福祉サービス等報酬改定における改定事項について",
       "publisher": "厚生労働省",
@@ -1301,6 +1335,7 @@
       "effectiveTo": null,
       "sourceDocumentIds": [
         "mhlw-unit-price-notice-observed-946c3d96",
+        "mhlw-unit-price-notice-post-r8-observed-946c3d96",
         "r6-revision-overview",
         "r8-revision-overview",
         "r8-fee-notice",
@@ -1318,6 +1353,7 @@
         "r8-claim-decision-xls",
         "r6-disability-support-guide-202404",
         "r8-grant-decision-administration-202606",
+        "r8-burden-recognition-guide-202606",
         "current-fee-notice-html",
         "protected-facility-administrative-expense-standard-html"
       ]

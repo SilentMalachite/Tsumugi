@@ -992,6 +992,360 @@
         "roundingRuleId": "claim.rounding.units.half-up.v1",
         "billingUnit": "per-month"
       }
+    },
+    {
+      "key": "addition.treatment-improvement.r8.i-i",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 イ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2261",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.105",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 1
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.r8.i-ro",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ロ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2263",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.109",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 2
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.r8.ii-i",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ハ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2265",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.103",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 3
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.r8.ii-ro",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ニ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2267",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.107",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 4
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.r8.iii",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ホ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2269",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.088",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 5
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.r8.iv",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ヘ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2271",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.074",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 6
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
     }
   ]
 }
