@@ -266,16 +266,27 @@ internal sealed class ClaimCsvFieldResolver
             return ClaimCsvValue.FromNumber(scope.RequireRecipient(selector).BilledDays);
         }
 
+        // official180DayWindow（施設外支援 累計）は就労系留意事項通知（1(1)①）により
+        // 「毎年4月1日に始まり翌年3月31日に終わる1年間で 180 日を限度」＝<b>年度累計</b>であり、
+        // 直近180日のローリング窓ではない。確定 snapshot は当月分の日次記録しか持たないため
+        // 年度累計は算出できず、個別入力が必要（docs/open-questions.md）。
         if (rule.Find("window") is { } dayWindow
             && !string.Equals(dayWindow, "ServiceProvisionMonth", StringComparison.Ordinal))
         {
-            throw Unresolvable(scope.FieldId, $"count window '{dayWindow}' is outside the finalized snapshot");
+            throw Unresolvable(
+                scope.FieldId,
+                $"count window '{dayWindow}' needs a fiscal-year cumulative that the snapshot does not carry");
         }
 
+        // billableOccurrences（訪問支援特別加算 算定回数）は留意事項通知 2(6)⑨により、実際の
+        // サービス提供回数とは別概念（計画に基づく所要時間で算定し、月2回目は再度5日間以上の
+        // 利用中断を要する）。日次実績から導出できないため個別入力が必要。
         if (rule.Find("measure") is { } measure
             && !string.Equals(measure, "serviceOccurrences", StringComparison.Ordinal))
         {
-            throw Unresolvable(scope.FieldId, $"count measure '{measure}' is not defined by the specification");
+            throw Unresolvable(
+                scope.FieldId,
+                $"count measure '{measure}' is a billable count that cannot be derived from daily records");
         }
 
         var matches = scope.EnumerateDailyRecordScopes()
