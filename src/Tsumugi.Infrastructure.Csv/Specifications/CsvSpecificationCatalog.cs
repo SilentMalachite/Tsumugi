@@ -11,7 +11,9 @@ public sealed record CsvSpecificationCatalog
         IReadOnlyList<CsvRecordSpecification> commonRecords,
         IReadOnlyList<CsvRecordSpecification> providerRecords,
         IReadOnlyDictionary<string, CsvFieldMapping> mappingByFieldId,
-        IReadOnlyDictionary<string, CsvSourceDocument> sourcesById)
+        IReadOnlyDictionary<string, CsvSourceDocument> sourcesById,
+        IReadOnlyList<CsvSpecEvidenceClaim>? evidenceClaims = null,
+        IReadOnlyList<CsvSpecEvidenceGap>? evidenceGaps = null)
     {
         ArgumentNullException.ThrowIfNull(commonRecords);
         ArgumentNullException.ThrowIfNull(providerRecords);
@@ -24,6 +26,8 @@ public sealed record CsvSpecificationCatalog
         }
 
         Version = version;
+        EvidenceClaims = [.. evidenceClaims ?? []];
+        EvidenceGaps = [.. evidenceGaps ?? []];
         CommonRecords = CopyOrderedRecords(commonRecords);
         ProviderRecords = CopyOrderedRecords(providerRecords);
         MappingByFieldId = CopyDictionary(mappingByFieldId, CopyMapping);
@@ -34,9 +38,16 @@ public sealed record CsvSpecificationCatalog
         ValidateRecords(CommonRecords, "common");
         ValidateRecords(ProviderRecords, "provider");
         ValidateFieldIdsAndMappings();
+        ValidateEvidence();
     }
 
     public string Version { get; }
+
+    /// <summary>本文（規則）由来・他文書依拠の判断に対する行単位の出典（ADR 0038）。</summary>
+    public IReadOnlyList<CsvSpecEvidenceClaim> EvidenceClaims { get; }
+
+    /// <summary>出典が未付与であることを明示している対象（縮めていく一覧）。</summary>
+    public IReadOnlyList<CsvSpecEvidenceGap> EvidenceGaps { get; }
 
     public IReadOnlyList<CsvRecordSpecification> CommonRecords { get; }
 
@@ -105,6 +116,102 @@ public sealed record CsvSpecificationCatalog
                         StringComparer.Ordinal)),
             LiveCheck = source.LiveCheck?.Clone(),
         };
+
+    /// <summary>
+    /// 証跡台帳の検証。<b>各 ref の SHA-256 が <c>sources.json</c> の登録値と一致すること</b>を要求するため、
+    /// 一次資料を差し替えて <c>sources.json</c> を更新すると、その文書に依拠する claim が
+    /// 「根拠を再検証せよ」として fail-close する（どの claim かを例外メッセージが名指しする）。
+    /// </summary>
+    private void ValidateEvidence()
+    {
+        var claimKinds = new[] { "rule", "field", "record" };
+        var evidenceRoles = new[] { "authoritative", "cross-check" };
+        var supports = new[]
+        {
+            "quote-rule", "prohibited-characters", "zero-value-rule", "file-name-rule", "data-kind",
+            "code-table", "field-semantics", "count-rule", "unit-and-format", "derivability",
+            "record-purpose",
+        };
+
+        var duplicate = EvidenceClaims
+            .GroupBy(claim => claim.ClaimId, StringComparer.Ordinal)
+            .FirstOrDefault(group => group.Count() > 1)?.Key;
+        if (duplicate is not null)
+        {
+            throw new InvalidDataException($"Duplicate spec evidence claimId '{duplicate}'.");
+        }
+
+        foreach (var claim in EvidenceClaims)
+        {
+            if (string.IsNullOrWhiteSpace(claim.ClaimId)
+                || string.IsNullOrWhiteSpace(claim.Decision)
+                || !claimKinds.Contains(claim.ClaimKind, StringComparer.Ordinal)
+                || claim.SourceRefs.Count == 0)
+            {
+                throw new InvalidDataException($"Spec evidence claim '{claim.ClaimId}' is incomplete.");
+            }
+
+            RequireClaimTarget(claim);
+
+            foreach (var sourceRef in claim.SourceRefs)
+            {
+                if (!SourcesById.TryGetValue(sourceRef.DocumentId, out var document))
+                {
+                    throw new InvalidDataException(
+                        $"Spec evidence claim '{claim.ClaimId}' cites unregistered document "
+                        + $"'{sourceRef.DocumentId}'.");
+                }
+
+                if (!string.Equals(sourceRef.Sha256, document.Sha256, StringComparison.Ordinal))
+                {
+                    throw new InvalidDataException(
+                        $"Spec evidence claim '{claim.ClaimId}' pins a stale SHA-256 for document "
+                        + $"'{sourceRef.DocumentId}'. Re-verify the citation against the new document "
+                        + "before updating the pinned hash.");
+                }
+
+                if (string.IsNullOrWhiteSpace(sourceRef.Locator)
+                    || !evidenceRoles.Contains(sourceRef.EvidenceRole, StringComparer.Ordinal)
+                    || sourceRef.Supports.Count == 0
+                    || sourceRef.Supports.Any(support => !supports.Contains(support, StringComparer.Ordinal))
+                    || (sourceRef.Quote is not null && string.IsNullOrWhiteSpace(sourceRef.Quote)))
+                {
+                    throw new InvalidDataException(
+                        $"Spec evidence claim '{claim.ClaimId}' has an invalid source reference.");
+                }
+            }
+        }
+
+        foreach (var gap in EvidenceGaps)
+        {
+            if (string.IsNullOrWhiteSpace(gap.ClaimId)
+                || string.IsNullOrWhiteSpace(gap.Reason)
+                || string.IsNullOrWhiteSpace(gap.TrackedIn))
+            {
+                throw new InvalidDataException("Spec evidence gap entries must be fully described.");
+            }
+        }
+    }
+
+    /// <summary>claimId が実在する項目・レコードを指していることを要求する（rule: は横断規則なので対象外）。</summary>
+    private void RequireClaimTarget(CsvSpecEvidenceClaim claim)
+    {
+        switch (claim.ClaimKind)
+        {
+            case "field" when !MappingByFieldId.ContainsKey(claim.ClaimId):
+                throw new InvalidDataException(
+                    $"Spec evidence claim '{claim.ClaimId}' does not match any fieldId.");
+            case "record" when !CommonRecords.Concat(ProviderRecords)
+                .Any(record => string.Equals(record.RecordId, claim.ClaimId, StringComparison.Ordinal)):
+                throw new InvalidDataException(
+                    $"Spec evidence claim '{claim.ClaimId}' does not match any recordId.");
+            case "rule" when !claim.ClaimId.StartsWith("rule:", StringComparison.Ordinal):
+                throw new InvalidDataException(
+                    $"Spec evidence rule claim '{claim.ClaimId}' must use the 'rule:' prefix.");
+            default:
+                break;
+        }
+    }
 
     private void ValidateSources()
     {

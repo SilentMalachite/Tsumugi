@@ -1,0 +1,308 @@
+{
+  "schemaVersion": 1,
+  "specificationVersion": "spec-evidence-r7-10",
+  "claims": [
+    {
+      "claimId": "rule:quoting",
+      "claimKind": "rule",
+      "decision": "引用対象は「カンマ・ダブルコーテーション・スペース(0x20)・漢字（2バイトコード）」。仕様が「漢字」を2バイトコードとして定義しているため、全角カナ・全角記号・全角数字も引用する（CsvCellEncoder.RequiresQuoting）。",
+      "sourceRefs": [
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.6;section=1.2.2(4)",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "quote-rule"
+          ],
+          "quote": "英数属性、数値属性、コード値属性および漢字属性の項目はデータの両側をダブルコーテーションで囲む。ただし、各項目の内容に「カンマ」「ダブルコーテーション」「スペース(0x20)」および漢字（2バイトコード）を含まない場合は、データの両側のダブルコーテーションを省略することができる"
+        }
+      ]
+    },
+    {
+      "claimId": "rule:prohibited-characters",
+      "claimKind": "rule",
+      "decision": "シングルコーテーション(0x27)を含む値は出力しない（CsvEncodingReason.ProhibitedCharacter で fail-close）。",
+      "sourceRefs": [
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.6;section=1.2.2(3)①",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "prohibited-characters"
+          ]
+        }
+      ]
+    },
+    {
+      "claimId": "rule:zero-numeric-value",
+      "claimKind": "rule",
+      "decision": "数値属性の値が0の場合は空欄にせず「0」を出力する。自己参照 requiredWhen は表示専用として扱い、値0を空欄化しない（ClaimCsvFieldResolver）。",
+      "sourceRefs": [
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.6;section=1.2.2(4)",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "zero-value-rule"
+          ],
+          "quote": "数値属性の項目の内容がゼロの場合は、「ゼロ(0x30)」を設定する"
+        }
+      ]
+    },
+    {
+      "claimId": "rule:file-name",
+      "claimKind": "rule",
+      "decision": "ファイル名は「英字で始まる半角英数字8桁以内」＋拡張子「.CSV」。データ種別3桁＋処理対象年月下4桁＋内容SHA-256先頭1桁で組み立てる（ClaimCsvGenerator）。",
+      "sourceRefs": [
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.5;section=1.2.1",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "file-name-rule"
+          ],
+          "quote": "英字で始まる半角英数字8桁以内の任意の文字列に拡張子として「.CSV」を付加したもの"
+        }
+      ]
+    },
+    {
+      "claimId": "rule:data-kind",
+      "claimKind": "rule",
+      "decision": "コントロールレコードのデータ種別は、先頭に格納するデータレコードの交換情報識別番号の上3桁とする（混在ファイルでも先頭を採る）。",
+      "sourceRefs": [
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.44;section=1.6",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "data-kind"
+          ],
+          "quote": "同一ファイル上に複数の交換情報識別番号のデータレコードがある場合には、最初に格納するデータレコードの交換情報識別番号の上3桁を設定する"
+        }
+      ]
+    },
+    {
+      "claimId": "rule:region-classification-codes",
+      "claimKind": "rule",
+      "decision": "地域区分コードは 11:一級地〜17:七級地／23:その他（01〜05は特別区・特甲地・甲地・乙地・丙地）。級地番号のゼロ詰めではない（region-classification-codes-r7-10.json）。",
+      "sourceRefs": [
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.21;section=1.4",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "code-table"
+          ]
+        }
+      ]
+    },
+    {
+      "claimId": "provider:J121:02:008",
+      "claimKind": "field",
+      "decision": "開始年月日は「平成18年4月1日以降における最初にサービス提供した日」。契約支給量の変更で変わらず当月より前になりうるため、契約日以降という制約は置かず下限を2006-04-01とする（ContractedProvider.FirstServiceDate）。",
+      "sourceRefs": [
+        {
+          "documentId": "provider-r7-10",
+          "sha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+          "locator": "p.22;item=8",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "field-semantics"
+          ],
+          "quote": "サービス種類毎の開始年月日（入所年月日等）（西暦年月日YYYYMMDDを設定する）"
+        },
+        {
+          "documentId": "provider-r7-10",
+          "sha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+          "locator": "p.23;section=（４）日数情報レコードの設定方法①;service=就労継続支援Ｂ型(46)",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "field-semantics"
+          ]
+        }
+      ]
+    },
+    {
+      "claimId": "provider:J121:04:009",
+      "claimKind": "field",
+      "decision": "サービス利用日数は加算のみ算定した日も1日に数える（欠席時対応加算等を含む）。確定snapshotの ServiceUsageDays を用いる。",
+      "sourceRefs": [
+        {
+          "documentId": "provider-r7-10",
+          "sha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+          "locator": "p.32;item=9",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "count-rule"
+          ],
+          "quote": "本体報酬を算定しない日において、各種加算のみを算定した場合も1日とカウントする。上限額管理加算、欠席時対応加算等も1日とカウントする。"
+        }
+      ]
+    },
+    {
+      "claimId": "provider:J121:02:010",
+      "claimKind": "field",
+      "decision": "利用日数は欠席時対応加算のみの日を除く。BilledDays（本体報酬算定日数）を用いる。J121:04:009 とは別定義。",
+      "sourceRefs": [
+        {
+          "documentId": "provider-r7-10",
+          "sha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+          "locator": "p.22;item=10",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "field-semantics"
+          ],
+          "quote": "サービス種類毎に利用日数を設定。"
+        },
+        {
+          "documentId": "provider-r7-10",
+          "sha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+          "locator": "p.27;section=（４）日数情報レコードの設定方法③",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "count-rule"
+          ],
+          "quote": "上限額管理加算などの加算（欠席時対応加算は除く）のみを利用した場合も１日とカウントする"
+        }
+      ]
+    },
+    {
+      "claimId": "provider:J121:05",
+      "claimKind": "record",
+      "decision": "J121:05 は契約情報レコードであり経過措置ではない。受給者ごとに1行出力し、契約支給量・契約開始年月日・事業者記入欄番号が未入力なら fail-close する。",
+      "sourceRefs": [
+        {
+          "documentId": "provider-r7-10",
+          "sha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+          "locator": "p.38;item=2",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "record-purpose"
+          ],
+          "quote": "05を設定する（契約情報レコード）"
+        }
+      ]
+    },
+    {
+      "claimId": "provider:J611:02:027",
+      "claimKind": "field",
+      "decision": "サービス提供時間数は1/100時間単位（整数部2桁＋小数部2桁）。実績は分で持つため分→1/100時間へ厳密変換し、割り切れない分値は丸めずに fail-close する。",
+      "sourceRefs": [
+        {
+          "documentId": "provider-r7-10",
+          "sha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+          "locator": "p.73;item=27",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-and-format"
+          ],
+          "quote": "実際にサービス提供した時間数（時間）を整数部2桁＋小数部2桁で設定、例：1.5時間→0150（または150）"
+        }
+      ]
+    },
+    {
+      "claimId": "provider:J611:02:028",
+      "claimKind": "field",
+      "decision": "算定時間数は「時間」の整数で、項目27（分）とは別項目。計画に基づく所要時間で算定されるため日次実績から導出できず、日次の個別入力（DailyRecord.SpecialVisitSupportBilledHours）とする。",
+      "sourceRefs": [
+        {
+          "documentId": "provider-r7-10",
+          "sha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+          "locator": "p.73;item=28",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-and-format"
+          ],
+          "quote": "算定する時間数（時間）を設定（整数）"
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "section=2(6)⑨",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "derivability"
+          ],
+          "quote": "所要時間については、実際に要した時間により算定されるのではなく、計画に基づいて行われるべき指定サービス等に要する時間に基づき算定される"
+        }
+      ]
+    },
+    {
+      "claimId": "provider:J611:01:052",
+      "claimKind": "field",
+      "decision": "算定回数は日次実績から導出できない（計画に基づく所要時間で算定し、1月2回算定は再度5日間以上連続して利用がなかった場合のみ）。月次の個別入力（ClaimInput.SpecialVisitSupportBilledCount）とする。",
+      "sourceRefs": [
+        {
+          "documentId": "provider-r7-10",
+          "sha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+          "locator": "p.63;item=52",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "field-semantics"
+          ],
+          "quote": "訪問支援特別加算の算定回数の合計を設定"
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "section=2(6)⑨",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "derivability"
+          ],
+          "quote": "1月に2回算定する場合は、加算算定後又は利用後、再度5日間以上連続して利用がなかった場合にのみ対象"
+        }
+      ]
+    },
+    {
+      "claimId": "provider:J611:01:054",
+      "claimKind": "field",
+      "decision": "施設外支援の累計は年度（4月1日〜翌年3月31日）の実利用日数合計で、当月分しか持たない確定snapshotから算出できない。当月分を含めるかは公式資料に明記が無いため、運用者が明細書の累計欄へ設定する値をそのまま出す（ClaimInput.OffsiteSupportCumulativeDays）。",
+      "sourceRefs": [
+        {
+          "documentId": "provider-r7-10",
+          "sha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+          "locator": "p.63;item=54",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "field-semantics"
+          ],
+          "quote": "就労継続支援において、施設外支援の累計日数を設定"
+        },
+        {
+          "documentId": "r6-employment-guidance",
+          "sha256": "185fa99281ea97b5724297041f8bcbb50c92f9d3882496d3d9a3227328b17481",
+          "locator": "p.16;section=1(1)①",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "derivability"
+          ],
+          "quote": "毎年4月1日に始まり翌年3月31日をもって終わる1年間に180日間を限度として算定する。この「180日間」とは利用者が実際に利用した日数の合計数"
+        }
+      ]
+    }
+  ],
+  "knownGaps": [
+    {
+      "claimId": "common:outer:*",
+      "reason": "共通編は1頁に3表（コントロール／データ／エンド）が並ぶため項目表の機械抽出が未対応（ADR 0037）。外側レコード19項目の項目名・桁数・属性は書き起こしのままで、行単位の出典も未付与。",
+      "trackedIn": "docs/open-questions.md"
+    },
+    {
+      "claimId": "provider:J121:04:030..033",
+      "reason": "例外利用日4項目を crossFieldGroup で一括必須にした判断（ADR 0030・Phase 3-2 由来）の出典を一次資料で特定していない。",
+      "trackedIn": "docs/open-questions.md"
+    },
+    {
+      "claimId": "mapping:status:missing:phase31",
+      "reason": "Phase 3-1 で status を missing とした項目群（Certificate / ClaimInput / IntensiveSupportEpisode 系）は、当時 fieldId 単位の出典を残していない。項目表の機械抽出（ADR 0037）で項目名・桁数・属性は突合済みだが、「なぜ個別入力にしたか」の判断根拠は未記載。",
+      "trackedIn": "docs/open-questions.md"
+    }
+  ]
+}

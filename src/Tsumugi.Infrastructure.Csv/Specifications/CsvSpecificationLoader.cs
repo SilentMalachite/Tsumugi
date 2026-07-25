@@ -29,15 +29,17 @@ public sealed class CsvSpecificationLoader
         using var provider = OpenEmbedded(assembly, "provider-claim-r7-10.json");
         using var mapping = OpenEmbedded(assembly, "field-mapping-r7-10.json");
         using var sources = OpenEmbedded(assembly, "sources.json");
+        using var evidence = OpenEmbedded(assembly, "spec-evidence-r7-10.json");
 
-        return Load(common, provider, mapping, sources);
+        return Load(common, provider, mapping, sources, evidence);
     }
 
     internal static CsvSpecificationCatalog Load(
         Stream common,
         Stream provider,
         Stream mapping,
-        Stream sources)
+        Stream sources,
+        Stream? evidence = null)
     {
         ArgumentNullException.ThrowIfNull(common);
         ArgumentNullException.ThrowIfNull(provider);
@@ -48,16 +50,27 @@ public sealed class CsvSpecificationLoader
         var providerFile = Deserialize<CsvSpecificationFile>(provider, "provider");
         var mappingFile = Deserialize<CsvMappingFile>(mapping, "mapping");
         var sourceFile = Deserialize<CsvSourceFile>(sources, "sources");
+        var evidenceFile = evidence is null
+            ? null
+            : Deserialize<CsvSpecEvidenceFile>(evidence, "spec-evidence");
 
         ValidateSchemaVersion(commonFile.SchemaVersion, "common");
         ValidateSchemaVersion(providerFile.SchemaVersion, "provider");
         ValidateSchemaVersion(mappingFile.SchemaVersion, "mapping");
         ValidateSchemaVersion(sourceFile.SchemaVersion, "sources");
+        if (evidenceFile is not null)
+        {
+            ValidateSchemaVersion(evidenceFile.SchemaVersion, "spec-evidence");
+        }
         ValidateNestedProperties(mappingFile, sourceFile);
 
         var version = CommonVersion(commonFile.SpecificationVersion);
         RequireVersion(providerFile.SpecificationVersion, $"provider-claim-{version}", "provider");
         RequireVersion(mappingFile.SpecificationVersion, $"field-mapping-{version}", "mapping");
+        if (evidenceFile is not null)
+        {
+            RequireVersion(evidenceFile.SpecificationVersion, $"spec-evidence-{version}", "spec-evidence");
+        }
 
         RejectDuplicateIds(mappingFile.Mappings, item => item.FieldId, "mapping fieldId");
         RejectDuplicateIds(sourceFile.Sources, item => item.SourceDocumentId, "sourceDocumentId");
@@ -74,7 +87,9 @@ public sealed class CsvSpecificationLoader
             commonFile.Records,
             providerFile.Records,
             mappingByFieldId,
-            sourcesById);
+            sourcesById,
+            evidenceFile?.Claims,
+            evidenceFile?.KnownGaps);
     }
 
     private static Stream OpenEmbedded(Assembly assembly, string fileName)
@@ -330,4 +345,10 @@ public sealed class CsvSpecificationLoader
     private sealed record CsvSourceFile(
         int SchemaVersion,
         IReadOnlyList<CsvSourceDocument> Sources);
+
+    private sealed record CsvSpecEvidenceFile(
+        int SchemaVersion,
+        string SpecificationVersion,
+        IReadOnlyList<CsvSpecEvidenceClaim> Claims,
+        IReadOnlyList<CsvSpecEvidenceGap> KnownGaps);
 }

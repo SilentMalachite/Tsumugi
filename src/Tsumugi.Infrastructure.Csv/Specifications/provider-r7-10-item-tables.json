@@ -12,6 +12,7 @@
       "items": [
         {
           "position": 1,
+          "sourcePage": 17,
           "officialName": "交換情報識別番号",
           "officialAttribute": "英数",
           "byteLength": 4,
@@ -20,6 +21,7 @@
         },
         {
           "position": 2,
+          "sourcePage": 17,
           "officialName": "レコード種別コード",
           "officialAttribute": "コード値",
           "byteLength": 2,
@@ -28,6 +30,7 @@
         },
         {
           "position": 3,
+          "sourcePage": 17,
           "officialName": "サービス提供年月",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -36,6 +39,7 @@
         },
         {
           "position": 4,
+          "sourcePage": 17,
           "officialName": "市町村番号",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -44,6 +48,7 @@
         },
         {
           "position": 5,
+          "sourcePage": 17,
           "officialName": "事業所番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -52,6 +57,7 @@
         },
         {
           "position": 6,
+          "sourcePage": 17,
           "officialName": "請求金額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -60,6 +66,7 @@
         },
         {
           "position": 7,
+          "sourcePage": 17,
           "officialName": "件数",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -68,6 +75,7 @@
         },
         {
           "position": 8,
+          "sourcePage": 17,
           "officialName": "単位数",
           "officialAttribute": "数値",
           "byteLength": 9,
@@ -76,6 +84,7 @@
         },
         {
           "position": 9,
+          "sourcePage": 17,
           "officialName": "費用合計",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -84,6 +93,7 @@
         },
         {
           "position": 10,
+          "sourcePage": 17,
           "officialName": "給付費請求額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -92,6 +102,7 @@
         },
         {
           "position": 11,
+          "sourcePage": 17,
           "officialName": "特別対策費請求額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -100,6 +111,7 @@
         },
         {
           "position": 12,
+          "sourcePage": 17,
           "officialName": "利用者負担額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -108,6 +120,7 @@
         },
         {
           "position": 13,
+          "sourcePage": 17,
           "officialName": "自治体助成額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -116,6 +129,7 @@
         },
         {
           "position": 14,
+          "sourcePage": 17,
           "officialName": "件数",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -124,6 +138,7 @@
         },
         {
           "position": 15,
+          "sourcePage": 17,
           "officialName": "費用合計",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -132,6 +147,7 @@
         },
         {
           "position": 16,
+          "sourcePage": 17,
           "officialName": "給付費請求額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -140,6 +156,7 @@
         },
         {
           "position": 17,
+          "sourcePage": 17,
           "officialName": "件数",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -148,6 +165,7 @@
         },
         {
           "position": 18,
+          "sourcePage": 17,
           "officialName": "単位数",
           "officialAttribute": "数値",
           "byteLength": 9,
@@ -156,6 +174,7 @@
         },
         {
           "position": 19,
+          "sourcePage": 17,
           "officialName": "費用合計",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -164,6 +183,7 @@
         },
         {
           "position": 20,
+          "sourcePage": 17,
           "officialName": "給付費請求額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -172,6 +192,7 @@
         },
         {
           "position": 21,
+          "sourcePage": 17,
           "officialName": "特別対策費請求額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -180,6 +201,7 @@
         },
         {
           "position": 22,
+          "sourcePage": 17,
           "officialName": "利用者負担額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -188,6 +210,7 @@
         },
         {
           "position": 23,
+          "sourcePage": 17,
           "officialName": "自治体助成額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -204,6 +227,7 @@
       "items": [
         {
           "position": 1,
+          "sourcePage": 18,
           "officialName": "交換情報識別番号",
           "officialAttribute": "英数",
           "byteLength": 4,
@@ -212,6 +236,7 @@
         },
         {
           "position": 2,
+          "sourcePage": 18,
           "officialName": "レコード種別コード",
           "officialAttribute": "コード値",
           "byteLength": 2,
@@ -220,6 +245,7 @@
         },
         {
           "position": 3,
+          "sourcePage": 18,
           "officialName": "サービス提供年月",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -228,6 +254,7 @@
         },
         {
           "position": 4,
+          "sourcePage": 18,
           "officialName": "市町村番号",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -236,6 +263,7 @@
         },
         {
           "position": 5,
+          "sourcePage": 18,
           "officialName": "事業所番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -244,6 +272,7 @@
         },
         {
           "position": 6,
+          "sourcePage": 18,
           "officialName": "給付種別",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -252,6 +281,7 @@
         },
         {
           "position": 7,
+          "sourcePage": 18,
           "officialName": "サービス種類コード",
           "officialAttribute": "英数",
           "byteLength": 2,
@@ -260,6 +290,7 @@
         },
         {
           "position": 8,
+          "sourcePage": 18,
           "officialName": "件数",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -268,6 +299,7 @@
         },
         {
           "position": 9,
+          "sourcePage": 18,
           "officialName": "単位数",
           "officialAttribute": "数値",
           "byteLength": 9,
@@ -276,6 +308,7 @@
         },
         {
           "position": 10,
+          "sourcePage": 18,
           "officialName": "費用合計",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -284,6 +317,7 @@
         },
         {
           "position": 11,
+          "sourcePage": 18,
           "officialName": "給付費請求額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -292,6 +326,7 @@
         },
         {
           "position": 12,
+          "sourcePage": 18,
           "officialName": "特別対策費請求額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -300,6 +335,7 @@
         },
         {
           "position": 13,
+          "sourcePage": 18,
           "officialName": "利用者負担額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -308,6 +344,7 @@
         },
         {
           "position": 14,
+          "sourcePage": 18,
           "officialName": "自治体助成額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -325,6 +362,7 @@
       "items": [
         {
           "position": 1,
+          "sourcePage": 20,
           "officialName": "交換情報識別番号",
           "officialAttribute": "英数",
           "byteLength": 4,
@@ -333,6 +371,7 @@
         },
         {
           "position": 2,
+          "sourcePage": 20,
           "officialName": "レコード種別コード",
           "officialAttribute": "コード値",
           "byteLength": 2,
@@ -341,6 +380,7 @@
         },
         {
           "position": 3,
+          "sourcePage": 20,
           "officialName": "サービス提供年月",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -349,6 +389,7 @@
         },
         {
           "position": 4,
+          "sourcePage": 20,
           "officialName": "市町村番号",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -357,6 +398,7 @@
         },
         {
           "position": 5,
+          "sourcePage": 20,
           "officialName": "事業所番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -365,6 +407,7 @@
         },
         {
           "position": 6,
+          "sourcePage": 20,
           "officialName": "受給者証番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -373,6 +416,7 @@
         },
         {
           "position": 7,
+          "sourcePage": 20,
           "officialName": "助成自治体番号",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -381,6 +425,7 @@
         },
         {
           "position": 8,
+          "sourcePage": 20,
           "officialName": "支給決定者氏名カナ",
           "officialAttribute": "英数",
           "byteLength": 25,
@@ -389,6 +434,7 @@
         },
         {
           "position": 9,
+          "sourcePage": 20,
           "officialName": "支給決定児童氏名カナ",
           "officialAttribute": "英数",
           "byteLength": 25,
@@ -397,6 +443,7 @@
         },
         {
           "position": 10,
+          "sourcePage": 20,
           "officialName": "地域区分コード",
           "officialAttribute": "コード値",
           "byteLength": 2,
@@ -405,6 +452,7 @@
         },
         {
           "position": 11,
+          "sourcePage": 20,
           "officialName": "就労継続支援A型事業者負担減免措置実施",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -413,6 +461,7 @@
         },
         {
           "position": 12,
+          "sourcePage": 20,
           "officialName": "利用者負担上限月額①",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -421,6 +470,7 @@
         },
         {
           "position": 13,
+          "sourcePage": 20,
           "officialName": "就労継続支援A型減免対象者",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -429,6 +479,7 @@
         },
         {
           "position": 14,
+          "sourcePage": 20,
           "officialName": "障害支援区分コード",
           "officialAttribute": "英数",
           "byteLength": 2,
@@ -437,6 +488,7 @@
         },
         {
           "position": 15,
+          "sourcePage": 20,
           "officialName": "指定事業所番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -445,6 +497,7 @@
         },
         {
           "position": 16,
+          "sourcePage": 20,
           "officialName": "管理結果",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -453,6 +506,7 @@
         },
         {
           "position": 17,
+          "sourcePage": 20,
           "officialName": "管理結果額",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -461,6 +515,7 @@
         },
         {
           "position": 18,
+          "sourcePage": 20,
           "officialName": "指定事業所番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -469,6 +524,7 @@
         },
         {
           "position": 19,
+          "sourcePage": 20,
           "officialName": "当該事業所への通所日数",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -477,6 +533,7 @@
         },
         {
           "position": 20,
+          "sourcePage": 20,
           "officialName": "給付単位数",
           "officialAttribute": "数値",
           "byteLength": 9,
@@ -485,6 +542,7 @@
         },
         {
           "position": 21,
+          "sourcePage": 20,
           "officialName": "総費用額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -493,6 +551,7 @@
         },
         {
           "position": 22,
+          "sourcePage": 20,
           "officialName": "上限月額調整（①②の内少ない数）",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -501,6 +560,7 @@
         },
         {
           "position": 23,
+          "sourcePage": 21,
           "officialName": "事業者減免額",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -509,6 +569,7 @@
         },
         {
           "position": 24,
+          "sourcePage": 21,
           "officialName": "減免後利用者負担額",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -517,6 +578,7 @@
         },
         {
           "position": 25,
+          "sourcePage": 21,
           "officialName": "調整後利用者負担額",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -525,6 +587,7 @@
         },
         {
           "position": 26,
+          "sourcePage": 21,
           "officialName": "上限額管理後利用者負担額",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -533,6 +596,7 @@
         },
         {
           "position": 27,
+          "sourcePage": 21,
           "officialName": "決定利用者負担額",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -541,6 +605,7 @@
         },
         {
           "position": 28,
+          "sourcePage": 21,
           "officialName": "給付費",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -549,6 +614,7 @@
         },
         {
           "position": 29,
+          "sourcePage": 21,
           "officialName": "高額障害福祉サービス費",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -557,6 +623,7 @@
         },
         {
           "position": 30,
+          "sourcePage": 21,
           "officialName": "特別対策費",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -565,6 +632,7 @@
         },
         {
           "position": 31,
+          "sourcePage": 21,
           "officialName": "自治体助成分請求額",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -573,6 +641,7 @@
         },
         {
           "position": 32,
+          "sourcePage": 21,
           "officialName": "算定日額",
           "officialAttribute": "数値",
           "byteLength": 4,
@@ -581,6 +650,7 @@
         },
         {
           "position": 33,
+          "sourcePage": 21,
           "officialName": "日数",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -589,6 +659,7 @@
         },
         {
           "position": 34,
+          "sourcePage": 21,
           "officialName": "給付費請求額",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -597,6 +668,7 @@
         },
         {
           "position": 35,
+          "sourcePage": 21,
           "officialName": "実費算定額",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -613,6 +685,7 @@
       "items": [
         {
           "position": 1,
+          "sourcePage": 22,
           "officialName": "交換情報識別番号",
           "officialAttribute": "英数",
           "byteLength": 4,
@@ -621,6 +694,7 @@
         },
         {
           "position": 2,
+          "sourcePage": 22,
           "officialName": "レコード種別コード",
           "officialAttribute": "コード値",
           "byteLength": 2,
@@ -629,6 +703,7 @@
         },
         {
           "position": 3,
+          "sourcePage": 22,
           "officialName": "サービス提供年月",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -637,6 +712,7 @@
         },
         {
           "position": 4,
+          "sourcePage": 22,
           "officialName": "市町村番号",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -645,6 +721,7 @@
         },
         {
           "position": 5,
+          "sourcePage": 22,
           "officialName": "事業所番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -653,6 +730,7 @@
         },
         {
           "position": 6,
+          "sourcePage": 22,
           "officialName": "受給者証番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -661,6 +739,7 @@
         },
         {
           "position": 7,
+          "sourcePage": 22,
           "officialName": "サービス種類コード",
           "officialAttribute": "英数",
           "byteLength": 2,
@@ -669,6 +748,7 @@
         },
         {
           "position": 8,
+          "sourcePage": 22,
           "officialName": "開始年月日",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -677,6 +757,7 @@
         },
         {
           "position": 9,
+          "sourcePage": 22,
           "officialName": "終了年月日",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -685,6 +766,7 @@
         },
         {
           "position": 10,
+          "sourcePage": 22,
           "officialName": "利用日数",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -693,6 +775,7 @@
         },
         {
           "position": 11,
+          "sourcePage": 22,
           "officialName": "入院日数",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -701,6 +784,7 @@
         },
         {
           "position": 12,
+          "sourcePage": 22,
           "officialName": "外泊日数",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -717,6 +801,7 @@
       "items": [
         {
           "position": 1,
+          "sourcePage": 31,
           "officialName": "交換情報識別番号",
           "officialAttribute": "英数",
           "byteLength": 4,
@@ -725,6 +810,7 @@
         },
         {
           "position": 2,
+          "sourcePage": 31,
           "officialName": "レコード種別コード",
           "officialAttribute": "コード値",
           "byteLength": 2,
@@ -733,6 +819,7 @@
         },
         {
           "position": 3,
+          "sourcePage": 31,
           "officialName": "サービス提供年月",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -741,6 +828,7 @@
         },
         {
           "position": 4,
+          "sourcePage": 31,
           "officialName": "市町村番号",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -749,6 +837,7 @@
         },
         {
           "position": 5,
+          "sourcePage": 31,
           "officialName": "事業所番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -757,6 +846,7 @@
         },
         {
           "position": 6,
+          "sourcePage": 31,
           "officialName": "受給者証番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -765,6 +855,7 @@
         },
         {
           "position": 7,
+          "sourcePage": 31,
           "officialName": "サービスコード",
           "officialAttribute": "英数",
           "byteLength": 6,
@@ -773,6 +864,7 @@
         },
         {
           "position": 8,
+          "sourcePage": 31,
           "officialName": "単位数",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -781,6 +873,7 @@
         },
         {
           "position": 9,
+          "sourcePage": 31,
           "officialName": "回数",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -789,6 +882,7 @@
         },
         {
           "position": 10,
+          "sourcePage": 31,
           "officialName": "サービス単位数",
           "officialAttribute": "数値",
           "byteLength": 9,
@@ -797,6 +891,7 @@
         },
         {
           "position": 11,
+          "sourcePage": 31,
           "officialName": "摘要",
           "officialAttribute": "漢字",
           "byteLength": 100,
@@ -814,6 +909,7 @@
       "items": [
         {
           "position": 1,
+          "sourcePage": 32,
           "officialName": "交換情報識別番号",
           "officialAttribute": "英数",
           "byteLength": 4,
@@ -822,6 +918,7 @@
         },
         {
           "position": 2,
+          "sourcePage": 32,
           "officialName": "レコード種別コード",
           "officialAttribute": "コード値",
           "byteLength": 2,
@@ -830,6 +927,7 @@
         },
         {
           "position": 3,
+          "sourcePage": 32,
           "officialName": "サービス提供年月",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -838,6 +936,7 @@
         },
         {
           "position": 4,
+          "sourcePage": 32,
           "officialName": "市町村番号",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -846,6 +945,7 @@
         },
         {
           "position": 5,
+          "sourcePage": 32,
           "officialName": "事業所番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -854,6 +954,7 @@
         },
         {
           "position": 6,
+          "sourcePage": 32,
           "officialName": "受給者証番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -862,6 +963,7 @@
         },
         {
           "position": 7,
+          "sourcePage": 32,
           "officialName": "サービス種類コード",
           "officialAttribute": "英数",
           "byteLength": 2,
@@ -870,6 +972,7 @@
         },
         {
           "position": 8,
+          "sourcePage": 32,
           "officialName": "集計欄分類番号",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -878,6 +981,7 @@
         },
         {
           "position": 9,
+          "sourcePage": 32,
           "officialName": "サービス利用日数",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -886,6 +990,7 @@
         },
         {
           "position": 10,
+          "sourcePage": 32,
           "officialName": "給付単位数",
           "officialAttribute": "数値",
           "byteLength": 9,
@@ -894,6 +999,7 @@
         },
         {
           "position": 11,
+          "sourcePage": 32,
           "officialName": "単位数単価",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -902,6 +1008,7 @@
         },
         {
           "position": 12,
+          "sourcePage": 32,
           "officialName": "給付率",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -910,6 +1017,7 @@
         },
         {
           "position": 13,
+          "sourcePage": 32,
           "officialName": "総費用額",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -918,6 +1026,7 @@
         },
         {
           "position": 14,
+          "sourcePage": 32,
           "officialName": "１割相当額（サービス提供年月が平成24年3月以前：給付率に基づく請求額）",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -926,6 +1035,7 @@
         },
         {
           "position": 15,
+          "sourcePage": 32,
           "officialName": "利用者負担額②（サービス提供年月が平成24年3月以前：給付率に基づく利用者負担額②）",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -934,6 +1044,7 @@
         },
         {
           "position": 16,
+          "sourcePage": 32,
           "officialName": "上限月額調整（①②の内少ない数）",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -942,6 +1053,7 @@
         },
         {
           "position": 17,
+          "sourcePage": 32,
           "officialName": "事業者減免額",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -950,6 +1062,7 @@
         },
         {
           "position": 18,
+          "sourcePage": 33,
           "officialName": "減免後利用者負担額",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -958,6 +1071,7 @@
         },
         {
           "position": 19,
+          "sourcePage": 33,
           "officialName": "調整後利用者負担額",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -966,6 +1080,7 @@
         },
         {
           "position": 20,
+          "sourcePage": 33,
           "officialName": "上限額管理後利用者負担額",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -974,6 +1089,7 @@
         },
         {
           "position": 21,
+          "sourcePage": 33,
           "officialName": "決定利用者負担額",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -982,6 +1098,7 @@
         },
         {
           "position": 22,
+          "sourcePage": 33,
           "officialName": "給付費",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -990,6 +1107,7 @@
         },
         {
           "position": 23,
+          "sourcePage": 33,
           "officialName": "高額障害福祉サービス費",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -998,6 +1116,7 @@
         },
         {
           "position": 24,
+          "sourcePage": 33,
           "officialName": "特別対策費",
           "officialAttribute": "数値",
           "byteLength": 10,
@@ -1006,6 +1125,7 @@
         },
         {
           "position": 25,
+          "sourcePage": 33,
           "officialName": "自治体助成分請求額",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -1014,6 +1134,7 @@
         },
         {
           "position": 26,
+          "sourcePage": 33,
           "officialName": "算定日額",
           "officialAttribute": "数値",
           "byteLength": 4,
@@ -1022,6 +1143,7 @@
         },
         {
           "position": 27,
+          "sourcePage": 33,
           "officialName": "日数",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1030,6 +1152,7 @@
         },
         {
           "position": 28,
+          "sourcePage": 33,
           "officialName": "給付費請求額",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1038,6 +1161,7 @@
         },
         {
           "position": 29,
+          "sourcePage": 33,
           "officialName": "実費算定額",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -1046,6 +1170,7 @@
         },
         {
           "position": 30,
+          "sourcePage": 33,
           "officialName": "対象期間（開始）",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -1054,6 +1179,7 @@
         },
         {
           "position": 31,
+          "sourcePage": 33,
           "officialName": "対象期間（終了）",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -1062,6 +1188,7 @@
         },
         {
           "position": 32,
+          "sourcePage": 33,
           "officialName": "当月の利用日数",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1070,6 +1197,7 @@
         },
         {
           "position": 33,
+          "sourcePage": 33,
           "officialName": "原則日数の総和",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1086,6 +1214,7 @@
       "items": [
         {
           "position": 1,
+          "sourcePage": 38,
           "officialName": "交換情報識別番号",
           "officialAttribute": "英数",
           "byteLength": 4,
@@ -1094,6 +1223,7 @@
         },
         {
           "position": 2,
+          "sourcePage": 38,
           "officialName": "レコード種別コード",
           "officialAttribute": "コード値",
           "byteLength": 2,
@@ -1102,6 +1232,7 @@
         },
         {
           "position": 3,
+          "sourcePage": 38,
           "officialName": "サービス提供年月",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -1110,6 +1241,7 @@
         },
         {
           "position": 4,
+          "sourcePage": 38,
           "officialName": "市町村番号",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -1118,6 +1250,7 @@
         },
         {
           "position": 5,
+          "sourcePage": 38,
           "officialName": "事業所番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -1126,6 +1259,7 @@
         },
         {
           "position": 6,
+          "sourcePage": 38,
           "officialName": "受給者証番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -1134,6 +1268,7 @@
         },
         {
           "position": 7,
+          "sourcePage": 38,
           "officialName": "決定サービスコード",
           "officialAttribute": "英数",
           "byteLength": 6,
@@ -1142,6 +1277,7 @@
         },
         {
           "position": 8,
+          "sourcePage": 38,
           "officialName": "契約支給量",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1150,6 +1286,7 @@
         },
         {
           "position": 9,
+          "sourcePage": 38,
           "officialName": "契約開始年月日",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -1158,6 +1295,7 @@
         },
         {
           "position": 10,
+          "sourcePage": 38,
           "officialName": "契約終了年月日",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -1166,6 +1304,7 @@
         },
         {
           "position": 11,
+          "sourcePage": 38,
           "officialName": "事業者記入欄番号",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1191,6 +1330,7 @@
       "items": [
         {
           "position": 1,
+          "sourcePage": 60,
           "officialName": "交換情報識別番号",
           "officialAttribute": "英数",
           "byteLength": 4,
@@ -1199,6 +1339,7 @@
         },
         {
           "position": 2,
+          "sourcePage": 60,
           "officialName": "レコード種別コード",
           "officialAttribute": "コード値",
           "byteLength": 2,
@@ -1207,6 +1348,7 @@
         },
         {
           "position": 3,
+          "sourcePage": 60,
           "officialName": "サービス提供年月",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -1215,6 +1357,7 @@
         },
         {
           "position": 4,
+          "sourcePage": 60,
           "officialName": "市町村番号",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -1223,6 +1366,7 @@
         },
         {
           "position": 5,
+          "sourcePage": 60,
           "officialName": "事業所番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -1231,6 +1375,7 @@
         },
         {
           "position": 6,
+          "sourcePage": 60,
           "officialName": "受給者証番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -1239,6 +1384,7 @@
         },
         {
           "position": 7,
+          "sourcePage": 60,
           "officialName": "様式種別番号",
           "officialAttribute": "コード値",
           "byteLength": 4,
@@ -1247,6 +1393,7 @@
         },
         {
           "position": 8,
+          "sourcePage": 60,
           "officialName": "補足給付適用の有無",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -1255,6 +1402,7 @@
         },
         {
           "position": 9,
+          "sourcePage": 60,
           "officialName": "補足給付額（円／日）",
           "officialAttribute": "数値",
           "byteLength": 4,
@@ -1263,6 +1411,7 @@
         },
         {
           "position": 10,
+          "sourcePage": 60,
           "officialName": "食費の単価朝食（円／日）",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1271,6 +1420,7 @@
         },
         {
           "position": 11,
+          "sourcePage": 60,
           "officialName": "食費の単価昼食（円／日）",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1279,6 +1429,7 @@
         },
         {
           "position": 12,
+          "sourcePage": 60,
           "officialName": "食費の単価夕食（円／日）",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1287,6 +1438,7 @@
         },
         {
           "position": 13,
+          "sourcePage": 60,
           "officialName": "食費の単価一日（円／日）",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1295,6 +1447,7 @@
         },
         {
           "position": 14,
+          "sourcePage": 60,
           "officialName": "光熱水費の単価一日（円／日）",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -1303,6 +1456,7 @@
         },
         {
           "position": 15,
+          "sourcePage": 60,
           "officialName": "光熱水費の単価一月（円／月）",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -1311,6 +1465,7 @@
         },
         {
           "position": 16,
+          "sourcePage": 60,
           "officialName": "内訳１００％",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1319,6 +1474,7 @@
         },
         {
           "position": 17,
+          "sourcePage": 60,
           "officialName": "内訳７０％",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1327,6 +1483,7 @@
         },
         {
           "position": 18,
+          "sourcePage": 60,
           "officialName": "内訳重訪",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1335,6 +1492,7 @@
         },
         {
           "position": 19,
+          "sourcePage": 61,
           "officialName": "合計算定時間数計",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1343,6 +1501,7 @@
         },
         {
           "position": 20,
+          "sourcePage": 61,
           "officialName": "内訳１００％",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1351,6 +1510,7 @@
         },
         {
           "position": 21,
+          "sourcePage": 61,
           "officialName": "内訳７０％",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1359,6 +1519,7 @@
         },
         {
           "position": 22,
+          "sourcePage": 61,
           "officialName": "内訳重訪",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1367,6 +1528,7 @@
         },
         {
           "position": 23,
+          "sourcePage": 61,
           "officialName": "合計算定時間数計",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1375,6 +1537,7 @@
         },
         {
           "position": 24,
+          "sourcePage": 61,
           "officialName": "内訳１００％",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1383,6 +1546,7 @@
         },
         {
           "position": 25,
+          "sourcePage": 61,
           "officialName": "内訳９０％",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1391,6 +1555,7 @@
         },
         {
           "position": 26,
+          "sourcePage": 61,
           "officialName": "合計算定時間数計",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1399,6 +1564,7 @@
         },
         {
           "position": 27,
+          "sourcePage": 61,
           "officialName": "内訳１００％",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1407,6 +1573,7 @@
         },
         {
           "position": 28,
+          "sourcePage": 62,
           "officialName": "内訳９０％",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1415,6 +1582,7 @@
         },
         {
           "position": 29,
+          "sourcePage": 62,
           "officialName": "合計算定時間数計",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1423,6 +1591,7 @@
         },
         {
           "position": 30,
+          "sourcePage": 62,
           "officialName": "内訳１００％",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1431,6 +1600,7 @@
         },
         {
           "position": 31,
+          "sourcePage": 62,
           "officialName": "内訳９０％",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1439,6 +1609,7 @@
         },
         {
           "position": 32,
+          "sourcePage": 62,
           "officialName": "合計算定回数計",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1447,6 +1618,7 @@
         },
         {
           "position": 33,
+          "sourcePage": 62,
           "officialName": "算定移動介護分",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1455,6 +1627,7 @@
         },
         {
           "position": 34,
+          "sourcePage": 62,
           "officialName": "実績送迎加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1463,6 +1636,7 @@
         },
         {
           "position": 35,
+          "sourcePage": 62,
           "officialName": "実績家庭連携加算（回）（サービス提供回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1471,6 +1645,7 @@
         },
         {
           "position": 36,
+          "sourcePage": 62,
           "officialName": "実績家庭連携加算（回）（算定回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1479,6 +1654,7 @@
         },
         {
           "position": 37,
+          "sourcePage": 62,
           "officialName": "合計算定日数（日）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1487,6 +1663,7 @@
         },
         {
           "position": 38,
+          "sourcePage": 62,
           "officialName": "夜間支援体制加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1495,6 +1672,7 @@
         },
         {
           "position": 39,
+          "sourcePage": 62,
           "officialName": "日中支援加算（回）（サービス提供回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1503,6 +1681,7 @@
         },
         {
           "position": 40,
+          "sourcePage": 62,
           "officialName": "日中支援加算（回）（算定回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1511,6 +1690,7 @@
         },
         {
           "position": 41,
+          "sourcePage": 62,
           "officialName": "通所型（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1519,6 +1699,7 @@
         },
         {
           "position": 42,
+          "sourcePage": 62,
           "officialName": "訪問型１時間未満（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1527,6 +1708,7 @@
         },
         {
           "position": 43,
+          "sourcePage": 62,
           "officialName": "訪問型１時間以上（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1535,6 +1717,7 @@
         },
         {
           "position": 44,
+          "sourcePage": 62,
           "officialName": "短期滞在加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1543,6 +1726,7 @@
         },
         {
           "position": 45,
+          "sourcePage": 63,
           "officialName": "食事提供加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1551,6 +1735,7 @@
         },
         {
           "position": 46,
+          "sourcePage": 63,
           "officialName": "入院・外泊時加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1559,6 +1744,7 @@
         },
         {
           "position": 47,
+          "sourcePage": 63,
           "officialName": "入院時支援特別加算（回）（サービス提供回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1567,6 +1753,7 @@
         },
         {
           "position": 48,
+          "sourcePage": 63,
           "officialName": "入院時支援特別加算（回）（算定回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1575,6 +1762,7 @@
         },
         {
           "position": 49,
+          "sourcePage": 63,
           "officialName": "自立生活支援加算（Ⅱ）（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1583,6 +1771,7 @@
         },
         {
           "position": 50,
+          "sourcePage": 63,
           "officialName": "自活訓練加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1591,6 +1780,7 @@
         },
         {
           "position": 51,
+          "sourcePage": 63,
           "officialName": "訪問支援特別加算（回）（サービス提供回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1599,6 +1789,7 @@
         },
         {
           "position": 52,
+          "sourcePage": 63,
           "officialName": "訪問支援特別加算（回）（算定回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1607,6 +1798,7 @@
         },
         {
           "position": 53,
+          "sourcePage": 63,
           "officialName": "施設外支援当月（日）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1615,6 +1807,7 @@
         },
         {
           "position": 54,
+          "sourcePage": 63,
           "officialName": "施設外支援累計（日／１８０日）",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1623,6 +1816,7 @@
         },
         {
           "position": 55,
+          "sourcePage": 63,
           "officialName": "帰宅時支援加算（回）（サービス提供回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1631,6 +1825,7 @@
         },
         {
           "position": 56,
+          "sourcePage": 63,
           "officialName": "帰宅時支援加算（回）（算定回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1639,6 +1834,7 @@
         },
         {
           "position": 57,
+          "sourcePage": 63,
           "officialName": "朝食（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1647,6 +1843,7 @@
         },
         {
           "position": 58,
+          "sourcePage": 63,
           "officialName": "昼食（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1655,6 +1852,7 @@
         },
         {
           "position": 59,
+          "sourcePage": 63,
           "officialName": "夕食（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1663,6 +1861,7 @@
         },
         {
           "position": 60,
+          "sourcePage": 63,
           "officialName": "光熱水費（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1671,6 +1870,7 @@
         },
         {
           "position": 61,
+          "sourcePage": 63,
           "officialName": "各小計食事（円）",
           "officialAttribute": "数値",
           "byteLength": 7,
@@ -1679,6 +1879,7 @@
         },
         {
           "position": 62,
+          "sourcePage": 63,
           "officialName": "各小計光熱水費（円）",
           "officialAttribute": "数値",
           "byteLength": 7,
@@ -1687,6 +1888,7 @@
         },
         {
           "position": 63,
+          "sourcePage": 63,
           "officialName": "実費合計額（円）",
           "officialAttribute": "数値",
           "byteLength": 8,
@@ -1695,6 +1897,7 @@
         },
         {
           "position": 64,
+          "sourcePage": 64,
           "officialName": "利用開始日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -1703,6 +1906,7 @@
         },
         {
           "position": 65,
+          "sourcePage": 64,
           "officialName": "３０日目（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -1711,6 +1915,7 @@
         },
         {
           "position": 66,
+          "sourcePage": 64,
           "officialName": "当月算定日数（日）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1719,6 +1924,7 @@
         },
         {
           "position": 67,
+          "sourcePage": 64,
           "officialName": "入所中算定日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -1727,6 +1933,7 @@
         },
         {
           "position": 68,
+          "sourcePage": 64,
           "officialName": "退所日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -1735,6 +1942,7 @@
         },
         {
           "position": 69,
+          "sourcePage": 64,
           "officialName": "退所後算定日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -1743,6 +1951,7 @@
         },
         {
           "position": 70,
+          "sourcePage": 64,
           "officialName": "利用開始日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -1751,6 +1960,7 @@
         },
         {
           "position": 71,
+          "sourcePage": 64,
           "officialName": "３０日目（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -1759,6 +1969,7 @@
         },
         {
           "position": 72,
+          "sourcePage": 64,
           "officialName": "当月算定日数（日）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1767,6 +1978,7 @@
         },
         {
           "position": 73,
+          "sourcePage": 64,
           "officialName": "入所中算定日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -1775,6 +1987,7 @@
         },
         {
           "position": 74,
+          "sourcePage": 64,
           "officialName": "退所日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -1783,6 +1996,7 @@
         },
         {
           "position": 75,
+          "sourcePage": 64,
           "officialName": "退所後算定日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -1791,6 +2005,7 @@
         },
         {
           "position": 76,
+          "sourcePage": 64,
           "officialName": "実績単位数（単位）",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -1799,6 +2014,7 @@
         },
         {
           "position": 77,
+          "sourcePage": 64,
           "officialName": "実績割合（％）",
           "officialAttribute": "数値",
           "byteLength": 4,
@@ -1807,6 +2023,7 @@
         },
         {
           "position": 78,
+          "sourcePage": 64,
           "officialName": "支給決定量（単位）",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -1815,6 +2032,7 @@
         },
         {
           "position": 79,
+          "sourcePage": 65,
           "officialName": "報酬請求額（円）",
           "officialAttribute": "数値",
           "byteLength": 7,
@@ -1823,6 +2041,7 @@
         },
         {
           "position": 80,
+          "sourcePage": 65,
           "officialName": "利用者負担上限月額（円）",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -1831,6 +2050,7 @@
         },
         {
           "position": 81,
+          "sourcePage": 65,
           "officialName": "利用者負担額（円）",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -1839,6 +2059,7 @@
         },
         {
           "position": 82,
+          "sourcePage": 65,
           "officialName": "共同生活援助合計日数",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1847,6 +2068,7 @@
         },
         {
           "position": 83,
+          "sourcePage": 65,
           "officialName": "短期入所合計日数",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1855,6 +2077,7 @@
         },
         {
           "position": 84,
+          "sourcePage": 65,
           "officialName": "その他サービス合計時間数",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -1863,6 +2086,7 @@
         },
         {
           "position": 85,
+          "sourcePage": 65,
           "officialName": "当該月の日数",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -1871,6 +2095,7 @@
         },
         {
           "position": 86,
+          "sourcePage": 65,
           "officialName": "サービス担当者会議開催日",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -1879,6 +2104,7 @@
         },
         {
           "position": 87,
+          "sourcePage": 65,
           "officialName": "第１時間帯早朝",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1887,6 +2113,7 @@
         },
         {
           "position": 88,
+          "sourcePage": 65,
           "officialName": "第１時間帯日中",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1895,6 +2122,7 @@
         },
         {
           "position": 89,
+          "sourcePage": 65,
           "officialName": "第１時間帯夜間",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1903,6 +2131,7 @@
         },
         {
           "position": 90,
+          "sourcePage": 65,
           "officialName": "第１時間帯深夜",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1911,6 +2140,7 @@
         },
         {
           "position": 91,
+          "sourcePage": 65,
           "officialName": "第２時間帯早朝",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1919,6 +2149,7 @@
         },
         {
           "position": 92,
+          "sourcePage": 65,
           "officialName": "第２時間帯日中",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1927,6 +2158,7 @@
         },
         {
           "position": 93,
+          "sourcePage": 65,
           "officialName": "第２時間帯夜間",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1935,6 +2167,7 @@
         },
         {
           "position": 94,
+          "sourcePage": 65,
           "officialName": "第２時間帯深夜",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1943,6 +2176,7 @@
         },
         {
           "position": 95,
+          "sourcePage": 65,
           "officialName": "第３時間帯早朝",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1951,6 +2185,7 @@
         },
         {
           "position": 96,
+          "sourcePage": 65,
           "officialName": "第３時間帯日中",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1959,6 +2194,7 @@
         },
         {
           "position": 97,
+          "sourcePage": 65,
           "officialName": "第３時間帯夜間",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1967,6 +2203,7 @@
         },
         {
           "position": 98,
+          "sourcePage": 65,
           "officialName": "第３時間帯深夜",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1975,6 +2212,7 @@
         },
         {
           "position": 99,
+          "sourcePage": 65,
           "officialName": "第４時間帯早朝",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1983,6 +2221,7 @@
         },
         {
           "position": 100,
+          "sourcePage": 65,
           "officialName": "第４時間帯日中",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1991,6 +2230,7 @@
         },
         {
           "position": 101,
+          "sourcePage": 66,
           "officialName": "第４時間帯夜間",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -1999,6 +2239,7 @@
         },
         {
           "position": 102,
+          "sourcePage": 66,
           "officialName": "第４時間帯深夜",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -2007,6 +2248,7 @@
         },
         {
           "position": 103,
+          "sourcePage": 66,
           "officialName": "第５時間帯早朝",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -2015,6 +2257,7 @@
         },
         {
           "position": 104,
+          "sourcePage": 66,
           "officialName": "第５時間帯日中",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -2023,6 +2266,7 @@
         },
         {
           "position": 105,
+          "sourcePage": 66,
           "officialName": "第５時間帯夜間",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -2031,6 +2275,7 @@
         },
         {
           "position": 106,
+          "sourcePage": 66,
           "officialName": "第５時間帯深夜",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -2039,6 +2284,7 @@
         },
         {
           "position": 107,
+          "sourcePage": 66,
           "officialName": "第６時間帯早朝",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -2047,6 +2293,7 @@
         },
         {
           "position": 108,
+          "sourcePage": 66,
           "officialName": "第６時間帯日中",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -2055,6 +2302,7 @@
         },
         {
           "position": 109,
+          "sourcePage": 66,
           "officialName": "第６時間帯夜間",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -2063,6 +2311,7 @@
         },
         {
           "position": 110,
+          "sourcePage": 66,
           "officialName": "第６時間帯深夜",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -2071,6 +2320,7 @@
         },
         {
           "position": 111,
+          "sourcePage": 66,
           "officialName": "施設種類",
           "officialAttribute": "英数",
           "byteLength": 2,
@@ -2079,6 +2329,7 @@
         },
         {
           "position": 112,
+          "sourcePage": 66,
           "officialName": "緊急時対応加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2087,6 +2338,7 @@
         },
         {
           "position": 113,
+          "sourcePage": 66,
           "officialName": "初回加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2095,6 +2347,7 @@
         },
         {
           "position": 114,
+          "sourcePage": 66,
           "officialName": "福祉専門職員等連携加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2103,6 +2356,7 @@
         },
         {
           "position": 115,
+          "sourcePage": 66,
           "officialName": "行動障害支援連携加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2111,6 +2365,7 @@
         },
         {
           "position": 116,
+          "sourcePage": 66,
           "officialName": "行動障害支援指導連携加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2119,6 +2374,7 @@
         },
         {
           "position": 117,
+          "sourcePage": 66,
           "officialName": "医療連携体制加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2127,6 +2383,7 @@
         },
         {
           "position": 118,
+          "sourcePage": 66,
           "officialName": "緊急短期入所受入加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2135,6 +2392,7 @@
         },
         {
           "position": 119,
+          "sourcePage": 66,
           "officialName": "単独型加算(一定の条件を満たす場合）（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2143,6 +2401,7 @@
         },
         {
           "position": 120,
+          "sourcePage": 66,
           "officialName": "重度障害者支援加算(一定の条件を満たす場合）（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2151,6 +2410,7 @@
         },
         {
           "position": 121,
+          "sourcePage": 67,
           "officialName": "家族支援加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2159,6 +2419,7 @@
         },
         {
           "position": 122,
+          "sourcePage": 67,
           "officialName": "同行支援（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2167,6 +2428,7 @@
         },
         {
           "position": 123,
+          "sourcePage": 67,
           "officialName": "特別地域加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2175,6 +2437,7 @@
         },
         {
           "position": 124,
+          "sourcePage": 67,
           "officialName": "低所得者利用加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2183,6 +2446,7 @@
         },
         {
           "position": 125,
+          "sourcePage": 67,
           "officialName": "体験利用支援加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2191,6 +2455,7 @@
         },
         {
           "position": 126,
+          "sourcePage": 67,
           "officialName": "定員超過特例加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2199,6 +2464,7 @@
         },
         {
           "position": 127,
+          "sourcePage": 67,
           "officialName": "通勤訓練加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2207,6 +2473,7 @@
         },
         {
           "position": 128,
+          "sourcePage": 67,
           "officialName": "地域移行加算(回)",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2215,6 +2482,7 @@
         },
         {
           "position": 129,
+          "sourcePage": 67,
           "officialName": "地域移行促進加算(回)",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2223,6 +2491,7 @@
         },
         {
           "position": 130,
+          "sourcePage": 67,
           "officialName": "住居外利用（日）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2231,6 +2500,7 @@
         },
         {
           "position": 131,
+          "sourcePage": 67,
           "officialName": "内訳生活援助",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -2239,6 +2509,7 @@
         },
         {
           "position": 132,
+          "sourcePage": 67,
           "officialName": "内訳９０％",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -2247,6 +2518,7 @@
         },
         {
           "position": 133,
+          "sourcePage": 67,
           "officialName": "内訳生活援助",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -2255,6 +2527,7 @@
         },
         {
           "position": 134,
+          "sourcePage": 67,
           "officialName": "内訳生活援助",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -2263,6 +2536,7 @@
         },
         {
           "position": 135,
+          "sourcePage": 67,
           "officialName": "内訳生活援助",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -2271,6 +2545,7 @@
         },
         {
           "position": 136,
+          "sourcePage": 67,
           "officialName": "内訳生活援助",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -2279,6 +2554,7 @@
         },
         {
           "position": 137,
+          "sourcePage": 67,
           "officialName": "共同生活援助合計単位数",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -2287,6 +2563,7 @@
         },
         {
           "position": 138,
+          "sourcePage": 67,
           "officialName": "短期入所合計単位数",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -2295,6 +2572,7 @@
         },
         {
           "position": 139,
+          "sourcePage": 67,
           "officialName": "その他サービス合計単位数",
           "officialAttribute": "数値",
           "byteLength": 6,
@@ -2303,6 +2581,7 @@
         },
         {
           "position": 140,
+          "sourcePage": 68,
           "officialName": "移行日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -2311,6 +2590,7 @@
         },
         {
           "position": 141,
+          "sourcePage": 68,
           "officialName": "移行後算定日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -2319,6 +2599,7 @@
         },
         {
           "position": 142,
+          "sourcePage": 68,
           "officialName": "移行日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -2327,6 +2608,7 @@
         },
         {
           "position": 143,
+          "sourcePage": 68,
           "officialName": "算定日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -2335,6 +2617,7 @@
         },
         {
           "position": 144,
+          "sourcePage": 68,
           "officialName": "緊急時支援加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2343,6 +2626,7 @@
         },
         {
           "position": 145,
+          "sourcePage": 68,
           "officialName": "支援計画会議実施加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2351,6 +2635,7 @@
         },
         {
           "position": 146,
+          "sourcePage": 68,
           "officialName": "定着支援連携促進加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2359,6 +2644,7 @@
         },
         {
           "position": 147,
+          "sourcePage": 68,
           "officialName": "移動介護緊急時支援加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2367,6 +2653,7 @@
         },
         {
           "position": 148,
+          "sourcePage": 68,
           "officialName": "日常生活支援情報提供加算（回）（サービス提供回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2375,6 +2662,7 @@
         },
         {
           "position": 149,
+          "sourcePage": 68,
           "officialName": "日常生活支援情報提供加算（回）（算定回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2383,6 +2671,7 @@
         },
         {
           "position": 150,
+          "sourcePage": 68,
           "officialName": "地域居住支援体制強化推進加算（回）（サービス提供回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2391,6 +2680,7 @@
         },
         {
           "position": 151,
+          "sourcePage": 68,
           "officialName": "地域居住支援体制強化推進加算（回）（算定回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2399,6 +2689,7 @@
         },
         {
           "position": 152,
+          "sourcePage": 68,
           "officialName": "地域協働加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2407,6 +2698,7 @@
         },
         {
           "position": 153,
+          "sourcePage": 68,
           "officialName": "支援レポート共有日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -2415,6 +2707,7 @@
         },
         {
           "position": 154,
+          "sourcePage": 68,
           "officialName": "入院開始日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -2423,6 +2716,7 @@
         },
         {
           "position": 155,
+          "sourcePage": 68,
           "officialName": "移行支援住居入居日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -2431,6 +2725,7 @@
         },
         {
           "position": 156,
+          "sourcePage": 68,
           "officialName": "集中的支援加算支援開始日（年月日）",
           "officialAttribute": "コード値",
           "byteLength": 8,
@@ -2439,6 +2734,7 @@
         },
         {
           "position": 157,
+          "sourcePage": 69,
           "officialName": "有資格者支援加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2447,6 +2743,7 @@
         },
         {
           "position": 158,
+          "sourcePage": 69,
           "officialName": "通院支援加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2455,6 +2752,7 @@
         },
         {
           "position": 159,
+          "sourcePage": 69,
           "officialName": "入浴支援加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2463,6 +2761,7 @@
         },
         {
           "position": 160,
+          "sourcePage": 69,
           "officialName": "喀痰吸引等実施加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2471,6 +2770,7 @@
         },
         {
           "position": 161,
+          "sourcePage": 69,
           "officialName": "専門的支援加算（支援実施時）（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2479,6 +2779,7 @@
         },
         {
           "position": 162,
+          "sourcePage": 69,
           "officialName": "通所自立支援加算（回）",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -2487,6 +2788,7 @@
         },
         {
           "position": 163,
+          "sourcePage": 69,
           "officialName": "子育てサポート加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2495,6 +2797,7 @@
         },
         {
           "position": 164,
+          "sourcePage": 69,
           "officialName": "訪問支援員特別加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2503,6 +2806,7 @@
         },
         {
           "position": 165,
+          "sourcePage": 69,
           "officialName": "多職種連携支援加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2511,6 +2815,7 @@
         },
         {
           "position": 166,
+          "sourcePage": 69,
           "officialName": "強度行動障害児支援加算（支援実施時）（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2519,6 +2824,7 @@
         },
         {
           "position": 167,
+          "sourcePage": 69,
           "officialName": "集中的支援加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2527,6 +2833,7 @@
         },
         {
           "position": 168,
+          "sourcePage": 69,
           "officialName": "緊急時受入加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2535,6 +2842,7 @@
         },
         {
           "position": 169,
+          "sourcePage": 69,
           "officialName": "自立生活支援加算（Ⅰ）（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2543,6 +2851,7 @@
         },
         {
           "position": 170,
+          "sourcePage": 69,
           "officialName": "延長支援加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2551,6 +2860,7 @@
         },
         {
           "position": 171,
+          "sourcePage": 69,
           "officialName": "要支援児童加算（Ⅱ）（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2559,6 +2869,7 @@
         },
         {
           "position": 172,
+          "sourcePage": 69,
           "officialName": "自立サポート加算（回）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2581,6 +2892,7 @@
       "items": [
         {
           "position": 1,
+          "sourcePage": 72,
           "officialName": "交換情報識別番号",
           "officialAttribute": "英数",
           "byteLength": 4,
@@ -2589,6 +2901,7 @@
         },
         {
           "position": 2,
+          "sourcePage": 72,
           "officialName": "レコード種別コード",
           "officialAttribute": "コード値",
           "byteLength": 2,
@@ -2597,6 +2910,7 @@
         },
         {
           "position": 3,
+          "sourcePage": 72,
           "officialName": "サービス提供年月",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -2605,6 +2919,7 @@
         },
         {
           "position": 4,
+          "sourcePage": 72,
           "officialName": "市町村番号",
           "officialAttribute": "コード値",
           "byteLength": 6,
@@ -2613,6 +2928,7 @@
         },
         {
           "position": 5,
+          "sourcePage": 72,
           "officialName": "事業所番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -2621,6 +2937,7 @@
         },
         {
           "position": 6,
+          "sourcePage": 72,
           "officialName": "受給者証番号",
           "officialAttribute": "英数",
           "byteLength": 10,
@@ -2629,6 +2946,7 @@
         },
         {
           "position": 7,
+          "sourcePage": 72,
           "officialName": "様式種別番号",
           "officialAttribute": "コード値",
           "byteLength": 4,
@@ -2637,6 +2955,7 @@
         },
         {
           "position": 8,
+          "sourcePage": 72,
           "officialName": "提供通番",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -2645,6 +2964,7 @@
         },
         {
           "position": 9,
+          "sourcePage": 72,
           "officialName": "日付",
           "officialAttribute": "コード値",
           "byteLength": 2,
@@ -2653,6 +2973,7 @@
         },
         {
           "position": 10,
+          "sourcePage": 72,
           "officialName": "サービス提供回数",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2661,6 +2982,7 @@
         },
         {
           "position": 11,
+          "sourcePage": 72,
           "officialName": "サービス内容",
           "officialAttribute": "英数",
           "byteLength": 6,
@@ -2669,6 +2991,7 @@
         },
         {
           "position": 12,
+          "sourcePage": 72,
           "officialName": "ヘルパー資格",
           "officialAttribute": "コード値",
           "byteLength": 2,
@@ -2677,6 +3000,7 @@
         },
         {
           "position": 13,
+          "sourcePage": 72,
           "officialName": "運転フラグ",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2685,6 +3009,7 @@
         },
         {
           "position": 14,
+          "sourcePage": 72,
           "officialName": "開始時間",
           "officialAttribute": "数値",
           "byteLength": 4,
@@ -2693,6 +3018,7 @@
         },
         {
           "position": 15,
+          "sourcePage": 72,
           "officialName": "終了時間",
           "officialAttribute": "数値",
           "byteLength": 4,
@@ -2701,6 +3027,7 @@
         },
         {
           "position": 16,
+          "sourcePage": 72,
           "officialName": "算定時間数",
           "officialAttribute": "数値",
           "byteLength": 4,
@@ -2709,6 +3036,7 @@
         },
         {
           "position": 17,
+          "sourcePage": 72,
           "officialName": "乗降（回数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2717,6 +3045,7 @@
         },
         {
           "position": 18,
+          "sourcePage": 72,
           "officialName": "移動",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2725,6 +3054,7 @@
         },
         {
           "position": 19,
+          "sourcePage": 72,
           "officialName": "派遣人数",
           "officialAttribute": "数値",
           "byteLength": 1,
@@ -2733,6 +3063,7 @@
         },
         {
           "position": 20,
+          "sourcePage": 73,
           "officialName": "前月からの継続サービス",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2741,6 +3072,7 @@
         },
         {
           "position": 21,
+          "sourcePage": 73,
           "officialName": "送迎加算往",
           "officialAttribute": "数値",
           "byteLength": 1,
@@ -2749,6 +3081,7 @@
         },
         {
           "position": 22,
+          "sourcePage": 73,
           "officialName": "送迎加算復",
           "officialAttribute": "数値",
           "byteLength": 1,
@@ -2757,6 +3090,7 @@
         },
         {
           "position": 23,
+          "sourcePage": 73,
           "officialName": "家庭連携加算（サービス提供時間数）",
           "officialAttribute": "数値",
           "byteLength": 4,
@@ -2765,6 +3099,7 @@
         },
         {
           "position": 24,
+          "sourcePage": 73,
           "officialName": "家庭連携加算（算定時間数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2773,6 +3108,7 @@
         },
         {
           "position": 25,
+          "sourcePage": 73,
           "officialName": "自活訓練加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2781,6 +3117,7 @@
         },
         {
           "position": 26,
+          "sourcePage": 73,
           "officialName": "短期滞在加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2789,6 +3126,7 @@
         },
         {
           "position": 27,
+          "sourcePage": 73,
           "officialName": "訪問支援特別加算（サービス提供時間数）",
           "officialAttribute": "数値",
           "byteLength": 4,
@@ -2797,6 +3135,7 @@
         },
         {
           "position": 28,
+          "sourcePage": 73,
           "officialName": "訪問支援特別加算（算定時間数）",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -2805,6 +3144,7 @@
         },
         {
           "position": 29,
+          "sourcePage": 73,
           "officialName": "施設外支援",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2813,6 +3153,7 @@
         },
         {
           "position": 30,
+          "sourcePage": 73,
           "officialName": "退所時特別支援加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2821,6 +3162,7 @@
         },
         {
           "position": 31,
+          "sourcePage": 73,
           "officialName": "地域移行加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2829,6 +3171,7 @@
         },
         {
           "position": 32,
+          "sourcePage": 73,
           "officialName": "食事提供加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2837,6 +3180,7 @@
         },
         {
           "position": 33,
+          "sourcePage": 73,
           "officialName": "入院・外泊時加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2845,6 +3189,7 @@
         },
         {
           "position": 34,
+          "sourcePage": 73,
           "officialName": "提供形態",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2853,6 +3198,7 @@
         },
         {
           "position": 35,
+          "sourcePage": 73,
           "officialName": "備考",
           "officialAttribute": "漢字",
           "byteLength": 100,
@@ -2861,6 +3207,7 @@
         },
         {
           "position": 36,
+          "sourcePage": 73,
           "officialName": "サービス提供の状況",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2869,6 +3216,7 @@
         },
         {
           "position": 37,
+          "sourcePage": 73,
           "officialName": "夜間支援体制加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2877,6 +3225,7 @@
         },
         {
           "position": 38,
+          "sourcePage": 74,
           "officialName": "入院時支援特別加算（サービス提供回数）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2885,6 +3234,7 @@
         },
         {
           "position": 39,
+          "sourcePage": 74,
           "officialName": "入院時支援特別加算（算定回数）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2893,6 +3243,7 @@
         },
         {
           "position": 40,
+          "sourcePage": 74,
           "officialName": "帰宅時支援加算（サービス提供回数）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2901,6 +3252,7 @@
         },
         {
           "position": 41,
+          "sourcePage": 74,
           "officialName": "帰宅時支援加算（算定回数）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2909,6 +3261,7 @@
         },
         {
           "position": 42,
+          "sourcePage": 74,
           "officialName": "自立生活支援加算（Ⅱ）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2917,6 +3270,7 @@
         },
         {
           "position": 43,
+          "sourcePage": 74,
           "officialName": "日中支援加算（サービス提供回数）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2925,6 +3279,7 @@
         },
         {
           "position": 44,
+          "sourcePage": 74,
           "officialName": "日中支援加算（算定回数）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2933,6 +3288,7 @@
         },
         {
           "position": 45,
+          "sourcePage": 74,
           "officialName": "算定日数",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2941,6 +3297,7 @@
         },
         {
           "position": 46,
+          "sourcePage": 74,
           "officialName": "自立訓練訪問型時間数",
           "officialAttribute": "数値",
           "byteLength": 4,
@@ -2949,6 +3306,7 @@
         },
         {
           "position": 47,
+          "sourcePage": 74,
           "officialName": "朝食",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2957,6 +3315,7 @@
         },
         {
           "position": 48,
+          "sourcePage": 74,
           "officialName": "昼食",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2965,6 +3324,7 @@
         },
         {
           "position": 49,
+          "sourcePage": 74,
           "officialName": "夕食",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2973,6 +3333,7 @@
         },
         {
           "position": 50,
+          "sourcePage": 74,
           "officialName": "光熱水費",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -2981,6 +3342,7 @@
         },
         {
           "position": 51,
+          "sourcePage": 75,
           "officialName": "適用単価",
           "officialAttribute": "数値",
           "byteLength": 3,
@@ -2989,6 +3351,7 @@
         },
         {
           "position": 52,
+          "sourcePage": 75,
           "officialName": "基本単位数",
           "officialAttribute": "数値",
           "byteLength": 4,
@@ -2997,6 +3360,7 @@
         },
         {
           "position": 53,
+          "sourcePage": 75,
           "officialName": "加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3005,6 +3369,7 @@
         },
         {
           "position": 54,
+          "sourcePage": 75,
           "officialName": "加算後単位数",
           "officialAttribute": "数値",
           "byteLength": 4,
@@ -3013,6 +3378,7 @@
         },
         {
           "position": 55,
+          "sourcePage": 75,
           "officialName": "単位数",
           "officialAttribute": "数値",
           "byteLength": 4,
@@ -3021,6 +3387,7 @@
         },
         {
           "position": 56,
+          "sourcePage": 75,
           "officialName": "1日計",
           "officialAttribute": "数値",
           "byteLength": 5,
@@ -3029,6 +3396,7 @@
         },
         {
           "position": 57,
+          "sourcePage": 75,
           "officialName": "１時間（１３時間）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3037,6 +3405,7 @@
         },
         {
           "position": 58,
+          "sourcePage": 75,
           "officialName": "２時間（１４時間）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3045,6 +3414,7 @@
         },
         {
           "position": 59,
+          "sourcePage": 75,
           "officialName": "３時間（１５時間）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3053,6 +3423,7 @@
         },
         {
           "position": 60,
+          "sourcePage": 75,
           "officialName": "４時間（１６時間）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3061,6 +3432,7 @@
         },
         {
           "position": 61,
+          "sourcePage": 75,
           "officialName": "５時間（１７時間）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3069,6 +3441,7 @@
         },
         {
           "position": 62,
+          "sourcePage": 75,
           "officialName": "６時間（１８時間）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3077,6 +3450,7 @@
         },
         {
           "position": 63,
+          "sourcePage": 75,
           "officialName": "７時間（１９時間）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3085,6 +3459,7 @@
         },
         {
           "position": 64,
+          "sourcePage": 75,
           "officialName": "８時間（２０時間）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3093,6 +3468,7 @@
         },
         {
           "position": 65,
+          "sourcePage": 75,
           "officialName": "９時間（２１時間）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3101,6 +3477,7 @@
         },
         {
           "position": 66,
+          "sourcePage": 75,
           "officialName": "１０時間（２２時間）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3109,6 +3486,7 @@
         },
         {
           "position": 67,
+          "sourcePage": 75,
           "officialName": "１１時間（２３時間）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3117,6 +3495,7 @@
         },
         {
           "position": 68,
+          "sourcePage": 75,
           "officialName": "１２時間（２４時間）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3125,6 +3504,7 @@
         },
         {
           "position": 69,
+          "sourcePage": 75,
           "officialName": "緊急時対応加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3133,6 +3513,7 @@
         },
         {
           "position": 70,
+          "sourcePage": 76,
           "officialName": "初回加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3141,6 +3522,7 @@
         },
         {
           "position": 71,
+          "sourcePage": 76,
           "officialName": "福祉専門職員等連携加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3149,6 +3531,7 @@
         },
         {
           "position": 72,
+          "sourcePage": 76,
           "officialName": "行動障害支援連携加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3157,6 +3540,7 @@
         },
         {
           "position": 73,
+          "sourcePage": 76,
           "officialName": "行動障害支援指導連携加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3165,6 +3549,7 @@
         },
         {
           "position": 74,
+          "sourcePage": 76,
           "officialName": "医療連携体制加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3173,6 +3558,7 @@
         },
         {
           "position": 75,
+          "sourcePage": 76,
           "officialName": "緊急短期入所受入加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3181,6 +3567,7 @@
         },
         {
           "position": 76,
+          "sourcePage": 76,
           "officialName": "単独型加算(一定の条件を満たす場合）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3189,6 +3576,7 @@
         },
         {
           "position": 77,
+          "sourcePage": 76,
           "officialName": "重度障害者支援加算(一定の条件を満たす場合）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3197,6 +3585,7 @@
         },
         {
           "position": 78,
+          "sourcePage": 76,
           "officialName": "家族支援加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3205,6 +3594,7 @@
         },
         {
           "position": 79,
+          "sourcePage": 76,
           "officialName": "利用人数",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -3213,6 +3603,7 @@
         },
         {
           "position": 80,
+          "sourcePage": 76,
           "officialName": "同行支援",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3221,6 +3612,7 @@
         },
         {
           "position": 81,
+          "sourcePage": 76,
           "officialName": "特別地域加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3229,6 +3621,7 @@
         },
         {
           "position": 82,
+          "sourcePage": 76,
           "officialName": "低所得者利用加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3237,6 +3630,7 @@
         },
         {
           "position": 83,
+          "sourcePage": 77,
           "officialName": "体験利用支援加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3245,6 +3639,7 @@
         },
         {
           "position": 84,
+          "sourcePage": 77,
           "officialName": "定員超過特例加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3253,6 +3648,7 @@
         },
         {
           "position": 85,
+          "sourcePage": 77,
           "officialName": "通勤訓練加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3261,6 +3657,7 @@
         },
         {
           "position": 86,
+          "sourcePage": 77,
           "officialName": "地域移行促進加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3269,6 +3666,7 @@
         },
         {
           "position": 87,
+          "sourcePage": 77,
           "officialName": "住居外利用",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3277,6 +3675,7 @@
         },
         {
           "position": 88,
+          "sourcePage": 77,
           "officialName": "緊急時支援加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3285,6 +3684,7 @@
         },
         {
           "position": 89,
+          "sourcePage": 77,
           "officialName": "支援計画会議実施加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3293,6 +3693,7 @@
         },
         {
           "position": 90,
+          "sourcePage": 77,
           "officialName": "定着支援連携促進加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3301,6 +3702,7 @@
         },
         {
           "position": 91,
+          "sourcePage": 77,
           "officialName": "移動介護緊急時支援加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3309,6 +3711,7 @@
         },
         {
           "position": 92,
+          "sourcePage": 77,
           "officialName": "日常生活支援情報提供加算（サービス提供回数）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3317,6 +3720,7 @@
         },
         {
           "position": 93,
+          "sourcePage": 77,
           "officialName": "日常生活支援情報提供加算（算定回数）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3325,6 +3729,7 @@
         },
         {
           "position": 94,
+          "sourcePage": 77,
           "officialName": "地域居住支援体制強化推進加算（サービス提供回数）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3333,6 +3738,7 @@
         },
         {
           "position": 95,
+          "sourcePage": 77,
           "officialName": "地域居住支援体制強化推進加算（算定回数）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3341,6 +3747,7 @@
         },
         {
           "position": 96,
+          "sourcePage": 77,
           "officialName": "地域協働加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3349,6 +3756,7 @@
         },
         {
           "position": 97,
+          "sourcePage": 77,
           "officialName": "有資格者支援加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3357,6 +3765,7 @@
         },
         {
           "position": 98,
+          "sourcePage": 77,
           "officialName": "通院支援加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3365,6 +3774,7 @@
         },
         {
           "position": 99,
+          "sourcePage": 77,
           "officialName": "入浴支援加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3373,6 +3783,7 @@
         },
         {
           "position": 100,
+          "sourcePage": 77,
           "officialName": "喀痰吸引等実施加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3381,6 +3792,7 @@
         },
         {
           "position": 101,
+          "sourcePage": 77,
           "officialName": "専門的支援加算（支援実施時）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3389,6 +3801,7 @@
         },
         {
           "position": 102,
+          "sourcePage": 78,
           "officialName": "通所自立支援加算",
           "officialAttribute": "数値",
           "byteLength": 2,
@@ -3397,6 +3810,7 @@
         },
         {
           "position": 103,
+          "sourcePage": 78,
           "officialName": "子育てサポート加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3405,6 +3819,7 @@
         },
         {
           "position": 104,
+          "sourcePage": 78,
           "officialName": "訪問支援員特別加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3413,6 +3828,7 @@
         },
         {
           "position": 105,
+          "sourcePage": 78,
           "officialName": "多職種連携支援加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3421,6 +3837,7 @@
         },
         {
           "position": 106,
+          "sourcePage": 78,
           "officialName": "強度行動障害児支援加算（支援実施時）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3429,6 +3846,7 @@
         },
         {
           "position": 107,
+          "sourcePage": 78,
           "officialName": "集中的支援加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3437,6 +3855,7 @@
         },
         {
           "position": 108,
+          "sourcePage": 78,
           "officialName": "緊急時受入加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3445,6 +3864,7 @@
         },
         {
           "position": 109,
+          "sourcePage": 78,
           "officialName": "退居後支援",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3453,6 +3873,7 @@
         },
         {
           "position": 110,
+          "sourcePage": 78,
           "officialName": "自立生活支援加算（Ⅰ）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3461,6 +3882,7 @@
         },
         {
           "position": 111,
+          "sourcePage": 78,
           "officialName": "延長支援加算",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3469,6 +3891,7 @@
         },
         {
           "position": 112,
+          "sourcePage": 78,
           "officialName": "要支援児童加算（Ⅱ）",
           "officialAttribute": "コード値",
           "byteLength": 1,
@@ -3477,6 +3900,7 @@
         },
         {
           "position": 113,
+          "sourcePage": 78,
           "officialName": "自立サポート加算",
           "officialAttribute": "コード値",
           "byteLength": 1,

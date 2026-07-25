@@ -190,6 +190,24 @@
       "verifiedDownloads": 3,
       "supersedes": "r8-grant-decision-administration-202606",
       "changeAssessment": "physical pages 233-235 are text-identical to the retained 2026-06 bytes"
+    },
+    {
+      "sourceDocumentId": "r8-calculation-note",
+      "title": "指定障害福祉サービス等の費用算定基準等の制定に伴う実施上の留意事項について",
+      "version": "令和8年6月版（現行）",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001705650.pdf",
+      "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+      "sizeBytes": 2677112
+    },
+    {
+      "sourceDocumentId": "r6-employment-guidance",
+      "title": "就労移行支援事業、就労継続支援事業（A型、B型）における留意事項について（現行通知）",
+      "version": "令和6年3月29日通知（現行）",
+      "retrievedAt": "2026-07-10",
+      "url": "https://www.mhlw.go.jp/content/001473458.pdf",
+      "sha256": "185fa99281ea97b5724297041f8bcbb50c92f9d3882496d3d9a3227328b17481",
+      "sizeBytes": 428615
     }
   ]
 }

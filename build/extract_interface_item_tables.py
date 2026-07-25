@@ -226,7 +226,7 @@ def parse_byte_length(text: str) -> int | None:
     return to_int(normalize(text))
 
 
-def extract_page(page) -> list[dict] | None:
+def extract_page(page, page_number: int) -> list[dict] | None:
     """1 ページから項目行を抽出する。対象表でなければ None。
 
     項目名欄が「群ラベル｜個別名」に分かれている表（請求書・明細書の集計欄など）では、
@@ -281,6 +281,8 @@ def extract_page(page) -> list[dict] | None:
         items.append(
             {
                 "position": position,
+                # 項目単位の出典頁。generatorRule の source=doc:pNN:itemNN アンカーと突合する。
+                "sourcePage": page_number,
                 # 群ラベル（group）は縦書きセルの読み取りに欠けが残るため成果物へ載せない。
                 # 突合は「個別名が spec の officialName に含まれるか」で行う（下記 docstring 参照）。
                 "officialName": name,
@@ -344,7 +346,7 @@ def extract_record(document, start_page: int, expected_last_position: int) -> tu
     pages: list[int] = []
     highest = 0
     for page_number in range(start_page, document.page_count + 1):
-        page_items = extract_page(document[page_number - 1])
+        page_items = extract_page(document[page_number - 1], page_number)
         if page_items is None:
             if page_number == start_page:
                 raise SystemExit(f"物理 {start_page} 頁に項目表が見つかりません。")

@@ -84,6 +84,13 @@ condition := always | optional | never
 | r8-structure-page-observed-13da3c44 | 2026-06 observed bytes | 2026-07-10 | https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000174644_00022.html | 13da3c44eb9e9485c38fda878bb1fe966407e7331609f87123ba2b2778a32083 | 51888 |
 | r8-grant-decision-administration-202606 | 最終改正令和8年6月 | 2026-07-10 | https://www.mhlw.go.jp/content/12200000/001470632.pdf | d6e1672245370d2d7bb9a4258622ae3e631d0a6144c8e0c9ea51e2018a146f1e | 1998305 |
 | r8-grant-decision-administration-202607 | 最終改正令和8年7月 | 2026-07-10 | https://www.mhlw.go.jp/content/12200000/001721666.pdf | 1a94220c99986f353e4c63c095c156448271ecad1d7bf0d9e197d3b8ca06de65 | 1999016 |
+| r8-calculation-note | 令和8年6月版（現行） | 2026-07-10 | https://www.mhlw.go.jp/content/001705650.pdf | 0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99 | 2677112 |
+| r6-employment-guidance | 令和6年3月29日通知（現行） | 2026-07-10 | https://www.mhlw.go.jp/content/001473458.pdf | 185fa99281ea97b5724297041f8bcbb50c92f9d3882496d3d9a3227328b17481 | 428615 |
+
+> 末尾 2 件（留意事項通知・就労系留意事項通知）は ADR 0038 の証跡台帳（`spec-evidence-r7-10.json`）が
+> 「導出可否の判断」の根拠として参照するため、CSV 仕様側の出典カタログにも登録した
+> （制度マスタ側の `sources.json` にも同一 SHA-256 で登録済み。両者の一致は
+> `SourceRegistryConsistencyTests` が固定する）。
 
 令和8年6月版の取得済みPDF bytesは削除せず、歴史sourceとして保持する。旧URLは2026-07-10のlive確認でHTTP 404となり、404 responseは48,524 bytes、SHA-256 `62487501d53438999737baba39208b6f83de89280b31efcd804a99d193108ed8`だったため、旧sourceをlive reproducibleとは呼ばない。令和8年7月版は3回取得して全bytesが一致し、令和8年6月版をsupersedeする。帳票inventoryの直接sourceは各Excel・記載例PDFのままとし、支給決定事務要領は様式17記載規則の照合sourceとして版境界を分離する。
 

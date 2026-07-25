@@ -290,7 +290,8 @@ public sealed class CsvSpecificationCompletenessTests
         var items = sources.RootElement.GetProperty("sources").EnumerateArray().ToDictionary(
             source => source.GetProperty("sourceDocumentId").GetString()!, StringComparer.Ordinal);
 
-        items.Should().HaveCount(14);
+        // 14 件（ADR 0024 当時）＋ 留意事項通知 2 件（ADR 0038 の証跡台帳が導出可否の根拠に使う）。
+        items.Should().HaveCount(16);
         var historical = items["r8-grant-decision-administration-202606"];
         historical.GetProperty("supersededBy").GetString().Should()
             .Be("r8-grant-decision-administration-202607");
