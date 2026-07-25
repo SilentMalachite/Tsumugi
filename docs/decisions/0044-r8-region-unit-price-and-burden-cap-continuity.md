@@ -1,126 +1,147 @@
 # ADR 0044: 地域区分単価・負担上限額マスタの令和8年6月施行分（R8-06）における適用判断
 
-- 状態: 確定（2026-07-26）
+- 状態: 確定（2026-07-26。Fix Round 1で結論を改訂）
 - 関連: [ADR 0020](0020-claim-master-sources-and-versioning.md) / [ADR 0022](0022-burden-cap-master.md) /
   [ADR 0027](0027-r6-basic-reward-service-code-region-price-values.md) / [ADR 0028](0028-r6-major-addition-values.md)
 
 ## 結論
 
-`region-unit-prices.json`（地域区分単価8件）と `burden-caps.json`（負担上限額4件）は、いずれも**令和8年6月施行分（R8-06）を裏づける一次資料をAC3-4-1が要求する証跡集合から一意に確定できなかった**。両ファイルの全12エントリについて、`effectiveFrom: "2024-04"` を変更せず、`effectiveTo` を `null` から `"2026-05"` へ設定した（値・`sourceRefs` は無変更）。R8エントリは追加しない。
+`region-unit-prices.json`（地域区分単価8件）と `burden-caps.json`（負担上限額4件）は、**いずれもR8-06（2026-06-01施行）以降も値が変わっていないことを一次資料で直接確認した**。両ファイルの全12エントリについて、`effectiveTo` を `null` のまま維持し（一度 `"2026-05"` へ閉じたが本ADRの改訂でR8適用性を確認できたため復元した）、各エントリの `sourceRefs` へR8-06向けの追加出典を `evidenceRole: "cross-check"` で追記した。`values` は一切変更していない。
 
-この結果、`claim-master-r8-06`（2026年6月以降）の請求は、地域区分単価・負担上限額の両方が**未解決でfail-closeする**。これは「値が変わった」ではなく「AC3-4-1の証跡基準でR8を確認できなかった」ことによる意図的な停止である。R6の値をR8へ推測で延長することは行わない。
+制度実値の確認方法は次の2系統である。
 
-一方で、本ADRの調査により、**R8-06の証跡集合に厳密には含まれない一次資料からは、両マスタとも値が変わっていない強い状況証拠が得られている**（後述「決定4」）。これは将来のTask（Task 6等）でR8向け証跡を正式登録すれば、fail-closeを解除できる具体的な道筋があることを意味する。本ADRはこの道筋を再現可能な形で記録する。
+1. **地域区分単価**（厚生労働省告示第539号系統）: 既存出典 `mhlw-unit-price-notice-observed-946c3d96` のURLを、R8-06施行後の2026-07-26に再取得したところ、SHA-256が2026-07-10取得値と完全一致した（52,785 bytes）。ページの改正履歴表示も「令和5年」が最新で、令和8年の改正注記は無い。厚生労働省公式ページ「報酬算定構造・サービスコード表等 令和8年6月施行分」が列挙する改定パッケージにも、この告示の改正版は含まれない。**これは「R8で改正された形跡が無い」ことの間接証拠ではなく、R8施行後に現行条文を直接観測した一次証拠である。**
+2. **負担上限額**（障害者総合支援法施行令・こども家庭庁通知系統）: こども家庭庁が公開する「障害福祉サービス・障害児通所支援等の利用者負担認定の手引き【令和8年6月版】」（2026-06-05公開、新規に `sources.json` へ登録。documentId `r8-burden-recognition-guide-202606`）の物理11頁の表が、現行seedの値（生活保護0円・低所得１／２0円・一般1 9,300円・一般2 37,200円）と完全一致する。**この文書自体がR8-06時点（令和8年6月版）の版であり、R8適用性は版そのものが立証する。**
 
-## 背景
+## 背景（本ADRの最も価値ある知見）
 
-`region-unit-prices.json` と `burden-caps.json` は、`effectiveFrom: "2024-04"` / `effectiveTo: null` のまま2026-06以降も適用され続ける。ADR 0020・0022・0027が確定した既存の出典は次のとおりで、いずれもR8プレフィックスのdocumentIdを持たない。
+`region-unit-prices.json` と `burden-caps.json` は、`effectiveFrom: "2024-04"` / `effectiveTo: null` のまま2026-06以降も適用され続けていたが、`sources.json` にR8プレフィックスの出典が登録されていなかった。CSV生成の仕組みは完成しているため、2026-06以降の請求が**エラーを出さずにR6の値で生成されうる**唯一の経路になっていた（他のマスタギャップはreadiness gateやfail-close guardを経由する）。
 
-- 地域区分単価: `mhlw-unit-price-notice-observed-946c3d96`（厚生労働省告示第539号「こども家庭庁長官及び厚生労働大臣が定める一単位の単価並びに厚生労働大臣が定める一単位の単価」の現行条文観測）＋ `r6-revision-overview`（令和6年度改定概要）
-- 負担上限額: `r6-disability-support-guide-202404`（障害者総合支援法 地域社会における共生の実現に向けて 2024年4月版）
+このギャップを閉じるため、当初 `ClaimMasterR8ContinuityTests`（AC3-4-1）は「2026-06に到達する全entryが、R8-06改定資料束7件（`r8-fee-notice` / `r8-reward-structure` / `r8-service-codes-2-xlsx` / `r8-service-codes-2-pdf` / `r8-b-reward-band-guide` / `r8-calculation-note` / `r8-capability-202606`）のいずれかを出典に持つか、適用期間を閉じているか」を検査するテストとして書かれた（初版）。
 
-CSV生成の仕組み（schema・resolver・readiness・CSV writer）は完成しているため、2026-06以降の請求は**エラーを出さずにこれらR6値で生成されうる**。他のマスタギャップ（例: R8-06改定対象の新12区分基本報酬、R8-06の処遇改善加算率）はreadiness gateや経過措置guardでfail-closeするが、この2ファイルだけはそのガードを経由しない。
+しかし、この7件をすべて取得・SHA-256照合の上で `pdftotext -layout`/`-raw` の2方式抽出したところ、**いずれの文書にも地域区分単価表・負担上限額表は掲載されていなかった**。これは転記ミスや調査不足ではなく、**構造的な理由**による。
 
-`tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimMasterR8ContinuityTests.cs`（本ADRの実装）は、2026-06に到達する全entryが次のいずれかを満たすことを機械検査する。
-
-1. `sourceRefs` に、R8-06施行分の改定資料束（`r8-fee-notice` / `r8-reward-structure` / `r8-service-codes-2-xlsx` / `r8-service-codes-2-pdf` / `r8-b-reward-band-guide` / `r8-calculation-note` / `r8-capability-202606` の7件、以下「R8改定資料束」）のいずれかを1件以上持つ。
-2. `effectiveTo` で2026-06より前に適用期間を閉じている。
-
-この7件は、`sources.json` に既に登録済みの、令和8年6月施行分の改定パッケージを構成する文書群である（`mhlw-r8-structure-page-observed-*` が示す厚生労働省の公式ページ「報酬算定構造・サービスコード表等」の掲載物と一致する。決定3参照）。
-
-## 一次資料の同一性検証（2026-07-26実施）
-
-R8改定資料束7件のうち、AC3-4-1の対象になりうる6件（`r8-service-codes-2-xlsx` は分割2 PDF/Excelの一方を確認すれば十分と判断し、PDF側で代表）と、追加で確認した2件（`r8-revision-overview`・`r8-qa-v1`・`r8-amendment-qa` は範囲外だが念のため確認）を含む計8件を再取得し、SHA-256が `sources.json` の登録値と一致することを確認した。不一致は0件。
-
-| documentId | sha256（先頭12桁） | 照合 | 本ADRでの用途 |
-| --- | --- | --- | --- |
-| r8-fee-notice | f4b7a05e33b5 | 一致 | 地域単価・負担上限の値/表の非存在を確認（改正告示だが対象外） |
-| r8-reward-structure | 8c2638482364 | 一致 | 地域単価・負担上限の値/表の非存在を確認 |
-| r8-service-codes-2-pdf | 0ff507138037 | 一致 | 地域単価・負担上限の値/表の非存在を確認（コード表に地域単価表なし） |
-| r8-b-reward-band-guide | 96b002a6aecf | 一致 | 地域単価・負担上限の値/表の非存在を確認 |
-| r8-calculation-note | 0c4f357f4dfd | 一致 | 地域単価・負担上限の値/表の非存在を確認（級地の例示計算1件のみ、対象サービス種類が異なり照合に使えない） |
-| r8-capability-202606 | 84ff0b3b34c2 | 一致 | 「地域区分」欄が事業所の**自己申告フィールド**として存在することのみ確認（単価表ではない） |
-| r8-revision-overview | 91bb6b34e196 | 一致 | 範囲外（AC3-4-1のR8改定資料束に含まれない）。参考確認のみ |
-| r8-qa-v1 / r8-amendment-qa | e2b95e451418 / 68811f401647 | 一致 | 範囲外。参考確認のみ |
-
-## 抽出方式と2方式の一致確認結果
-
-上記8件を `pdftotext -layout` と `pdftotext -raw` の2方式で独立抽出し、地域単価（`1114`/`1091`/`1086`/`1068`/`1057`/`1034`/`1017`/`級地`/`地域区分`）と負担上限額（`9,300`/`37,200`/`生活保護`/`低所得`/`負担上限`）のキーワードで両方式を検索した。
-
-- 両方式とも、**負担上限額の実額表（0円/0円/9,300円/37,200円）はいずれの文書にも存在しない**。
-- 地域単価について、`r8-calculation-note` のみ「地域区分は１級地」という端数処理の例示（11.20円/単位、居宅介護＝訪問系の例）を含むが、これは就労継続支援の基準額（10円）ではなく訪問系の基準額（8.5円）に基づく別区分の例示であり、本マスタが対象とする `serviceKind: employment-continuation-support` の値（1級地=11.14円）を裏づけない。両方式で同一の該当箇所を確認し、不一致はなかった（＝「値が存在しない」という結論そのものが2方式で一致した）。
-- `r8-capability-202606`（Excelの体制状況一覧表）には「地域区分」という**入力欄ラベル**（事業所が1〜7級地・その他を申告する欄）はあるが、級地ごとの単価表は無い。
-
-この結果、R8改定資料束のいずれにも、地域区分単価表・負担上限額表そのものは掲載されていないことを確認した。これは転記ミスではなく、**これら2つの制度値がR8-06の改定パッケージ（報酬算定構造・サービスコード表等）とは別の法令系統で定められているため**である（決定2参照）。
-
-## 決定
-
-### 1. AC3-4-1の証跡基準では両マスタとも「確定不能」と判定する
-
-`ClaimMasterR8ContinuityTests.R8AuthoritativeDocumentIds`（7件）は、令和8年6月施行分の改定パッケージを構成する文書に限定している。上記の検証により、この7件のいずれにも地域区分単価表・負担上限額表が含まれないことが確定したため、AC3-4-1の証跡基準では**両マスタとも分岐(c)（確定不能）**を採る。
-
-- `region-unit-prices.json` の8エントリ（`b-region.r6.region-grade-1`〜`region-grade-7`・`region-other`）: `effectiveTo` を `null` → `"2026-05"`
-- `burden-caps.json` の4エントリ（`burden-cap.r6.welfare`・`low-income`・`general-1`・`general-2`）: `effectiveTo` を `null` → `"2026-05"`
-- `sourceRefs`・`values` は無変更（R6 entryを書き換えないという制約に従う）。R8 entryは追加しない。
-
-この結果、2026-06以降の請求生成は、`ClaimMasterCsvOfficeContextProvider.UnitPriceMilliYen` が地域区分単価を解決できず `UnitPriceUnresolved` でfail-closeする。同様に負担上限額の解決も2026-06以降は失敗する。
-
-### 2. なぜR8改定資料束に地域単価・負担上限の表が無いのか
-
-厚生労働省の公式ページ「報酬算定構造・サービスコード表等」（令和8年6月施行分。`mhlw-r8-structure-page-observed-9bc71ce6`/`-13da3c44` が観測、2026-07-26に同一URLを再取得しても内容は同じ8項目構成）が列挙する改定パッケージは次の8項目のみである。
+厚生労働省の公式ページ「報酬算定構造・サービスコード表等」（令和8年6月施行分）が列挙する改定パッケージは次の8項目に限られる。
 
 1. 事務連絡
 2. 体制状況一覧表
 3. 実績記録票（変更なし）
 4. 請求書明細書（変更なし）
 5. 決定サービスごとの設定内容（変更なし）
-6. 障害福祉サービス費等の報酬算定構造（`r8-reward-structure`）
-7. 介護給付費等単位数サービスコード（`r8-service-codes-*`）
-8. 請求サービスコードと決定サービスコード対応表（`r8-claim-decision-*`）
+6. 障害福祉サービス費等の報酬算定構造
+7. 介護給付費等単位数サービスコード
+8. 請求サービスコードと決定サービスコード対応表
 
-地域区分単価は、厚生労働省告示第539号（`mhlw-unit-price-notice-observed-946c3d96`。障害福祉サービス全体に共通する一単位の単価を定める独立した告示）で定められ、負担上限額は障害者総合支援法施行令および関連通知（こども家庭庁・厚生労働省が別途発出する利用者負担認定の手引き等）で定められる。**いずれも3年ごとの報酬改定パッケージの一部ではなく、別の法令・通知系統に属する**。ADR 0022も「r8-grant-decision-administration-202606 物理112頁は制度額を別資料参照としており、金額自体の根拠には使わない」と記録しており、本ADRの発見と整合する。
+地域区分単価は、厚生労働省告示第539号（`mhlw-unit-price-notice-observed-946c3d96`。障害福祉サービス全体に共通する一単位の単価を定める独立した告示）で定められ、負担上限額は障害者総合支援法施行令および関連通知（こども家庭庁が発出する利用者負担認定の手引き等）で定められる。**いずれも3年ごとの報酬改定パッケージの一部ではなく、別の法令・通知系統に属するため、報酬改定パッケージの一次資料を探しても原理的に見つからない。** ADR 0022も「r8-grant-decision-administration-202606 物理112頁は制度額を別資料参照としており、金額自体の根拠には使わない」と記録しており、本ADRの発見と整合する。
 
-### 3. 参考: R8改定資料束の外で得られた継続の状況証拠（fail-closeの判断は変えない）
+当初のTask 1実装は、この構造的理由を発見しながらも「R8-06改定資料束の中に無い」ことをもって両マスタを2026-05でfail-closeした（分岐(c)）。**この判断は誤りだった**。存在するはずのない場所を探して「見つからない」ことを理由に停止するのは、証跡基準の設計側の欠陥であり、値の不確実性を意味しない。利用者裁定により、**検査すべき問いを「R8-06改定資料束に載っているか」から「R8-06施行後に、その値が適用され続けることを確認できた出典があるか」へ改め**、地域単価・負担上限額それぞれの実際の法令・通知系統でR8-06時点の適用を直接確認する方針へ改訂した。
 
-AC3-4-1の証跡基準を満たさないため上記の決定1・fail-closeは変えないが、次の2件は将来の解除判断に資する具体的な手がかりである。**いずれもsources.jsonへの正式登録は行っていない**（branch (c)ではR6 entryの`effectiveTo`設定のみを行い、新規sourceRefsを追加しないため）。
+## 一次資料の同一性検証（2026-07-26実施）
 
-**(a) 地域区分単価**: `mhlw-unit-price-notice-observed-946c3d96` のURL（`https://www.mhlw.go.jp/web/t_doc?dataId=83aa8493&dataType=0&pageNo=1`）を2026-07-26に再取得したところ、sha256は `946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b`（52,785 bytes）で、**2026-07-10に登録済みの値とバイト完全一致**した。両取得日とも令和8年6月1日（R8-06施行日）より後である。ページ本文の改正履歴表示は「(令五厚労告一六七・改称)」（令和5年）が最新であり、令和8年の改正注記は無い。ADR 0020は既に「令和8年告示第5号は告示第539号を改正対象としておらず、令和8年度改定ページと令和8年6月施行分ページにも代替の一単位単価表は掲載されていない」と記録しており、本ADRの再取得はこの結論を追認する。ただし、この文書のdocumentId（`mhlw-unit-price-notice-observed-946c3d96`）はAC3-4-1のR8改定資料束7件に含まれないため、機械検査上は「確認済み」と扱えない。
+R8-06改定資料束7件に加え、地域単価・負担上限額それぞれの系統で新たに確認した2件、計9件のSHA-256が `sources.json` の登録値と一致することを確認した。不一致は0件。
 
-**(b) 負担上限額**: こども家庭庁の事務処理要領ページ（`https://www.cfa.go.jp/policies/shougaijishien/shisaku/jimushori_yoryo`）から、r6-disability-support-guide-202404の後継とみられる「障害福祉サービス・障害児通所支援等の利用者負担認定の手引き【令和8年6月版】」（公開日2026-06-05）を発見した。URL: `https://www.cfa.go.jp/assets/contents/node/basic_page/field_ref_resources/b27810b0-7802-444c-a95d-22841bdf3eca/f823f8c1/20260605_policies_shougaijishien_shisaku_jimushori_yoryo_55.pdf`（2026-07-26取得、sha256 `ad24221afabc3b07e5f28602662d68dd7a44ea905de066375c209be0f101d522`、2,351,497 bytes）。本文11頁「（４）【負担上限月額について】」の表は、生活保護＝０円、低所得１・２＝０円、一般１（居宅で生活する障害者並びに20歳未満の障害者施設入所者及び障害児施設入所者）＝9,300円、一般２＝37,200円と、**現行seedと完全一致する値**を掲載する。ただしこの文書もAC3-4-1のR8改定資料束7件に含まれず、こども家庭庁発行でありADR 0020のsources.jsonカタログにも未登録のため、機械検査上は「確認済み」と扱えない。
+| documentId | sha256（先頭12桁） | 照合 | 本ADRでの用途 |
+| --- | --- | --- | --- |
+| r8-fee-notice | f4b7a05e33b5 | 一致 | 報酬改定パッケージに地域単価・負担上限の表が無いことの確認（構造的理由の裏づけ） |
+| r8-reward-structure | 8c2638482364 | 一致 | 同上 |
+| r8-service-codes-2-pdf | 0ff507138037 | 一致 | 同上 |
+| r8-b-reward-band-guide | 96b002a6aecf | 一致 | 同上 |
+| r8-calculation-note | 0c4f357f4dfd | 一致 | 同上（級地の例示計算1件のみ。対象サービス種類が異なり値の裏づけには使えない） |
+| r8-capability-202606 | 84ff0b3b34c2 | 一致 | 同上（「地域区分」欄は事業所の自己申告フィールドで単価表ではない） |
+| **mhlw-unit-price-notice-observed-946c3d96** | 946c3d969ffd | 一致（初回2026-07-10取得値・2026-07-26再取得値の両方と完全一致） | **地域区分単価の直接一次証拠。R8-06施行後の現行条文がR6と同一であることを確認** |
+| **r8-burden-recognition-guide-202606**（新規登録） | ad24221afabc | 一致（2026-07-26に独立2回取得しSHA-256完全一致） | **負担上限額の直接一次証拠。令和8年6月版の表が現行seedと完全一致** |
 
-### 4. 「値の確定不能」と「値の変更」は区別する
+## 抽出方式と2方式の一致確認結果
 
-本ADRの結論は「R8で値が変わった」ではない。(a)(b)の状況証拠はむしろ「変わっていない」ことを強く示唆する。それでもfail-closeを選ぶのは、AC3-4-1が要求する証跡基準（R8-06改定パッケージの一次資料からの一意確定）を、この2つの制度値について満たせないためである。CLAUDE.mdハード制約3は「公式資料から一意に確定できない値は推測で埋めず docs/open-questions.md へ」と定めており、状況証拠だけで機械検査の基準を緩めることは、この制約の精神に反する。
+- R8-06改定資料束7件を `pdftotext -layout` と `pdftotext -raw` の2方式で独立抽出し、地域単価（`1114`/`1091`/`1086`/`1068`/`1057`/`1034`/`1017`/`級地`/`地域区分`）と負担上限額（`9,300`/`37,200`/`生活保護`/`低所得`/`負担上限`）のキーワードで検索した。両方式とも、実額表はいずれの文書にも存在しないという結論で一致した（「値が存在しない」という否定的な結論そのものが2方式で一致）。
+- `mhlw-unit-price-notice-observed-946c3d96` は、2026-07-10取得と2026-07-26取得（R8施行後）の**独立2回の取得**でSHA-256・バイト数（52,785 bytes）が完全一致した。ページ本文を確認したところ、「地域区分」表の「一級地 就労継続支援 千分の千百十四」（＝1114/1000＝11.14円）以下、seedの8行（1級地〜7級地・その他）と完全一致する記載を確認した。
+- `r8-burden-recognition-guide-202606` は、発見時と本ADR確定時の**独立2回の取得**でSHA-256（2,351,497 bytes）が完全一致した。物理11頁「（４）【負担上限月額について】所得区分及び負担上限月額」の表を`pdftotext -layout`で抽出し、生活保護0円・低所得１／２0円・一般1（居宅で生活する障害者並びに20歳未満の障害者施設入所者及び障害児施設入所者）9,300円・一般2 37,200円を確認した。burden-caps.jsonの現行値と完全一致する。
+
+## 決定
+
+### 1. 検査基準の改訂: 「改定資料束にあるか」から「R8-06適用性を直接確認できたか」へ
+
+`ClaimMasterR8ContinuityTests` の許容出典リストを `R8AuthoritativeDocumentIds`（R8-06改定資料束限定）から **`R8AppliedDocumentIds`**（「R8-06に適用されることをプロジェクトとして確認済みの出典」）へ改称・拡張した。各メンバーには、なぜR8適用性を立証するのかを1行コメントで付記する運用にした。
+
+```csharp
+private static readonly string[] R8AppliedDocumentIds =
+[
+    // --- R8-06 報酬改定資料束（basic-rewards / additions / service-codes向け） ---
+    "r8-fee-notice",              // 令和8年6月1日施行の改正告示そのもの
+    "r8-reward-structure",        // 令和8年6月施行分の報酬算定構造
+    "r8-service-codes-2-xlsx",    // 令和8年6月施行分のサービスコード表
+    "r8-service-codes-2-pdf",     // 同上のPDF版（独立2方式照合の一方）
+    "r8-b-reward-band-guide",     // 令和8年6月施行分のB型基本報酬区分見直し資料
+    "r8-calculation-note",        // 令和8年6月1日施行の留意事項通知
+    "r8-capability-202606",       // 令和8年6月版の体制状況一覧表
+
+    // --- 地域区分単価・負担上限額向け（報酬改定資料束とは別の法令・通知系統） ---
+    "mhlw-unit-price-notice-observed-946c3d96", // R8施行後に再取得しSHA-256が完全一致。現行条文が未改正であることを直接観測
+    "r8-burden-recognition-guide-202606",       // 版そのものが令和8年6月版。表の値がseedと完全一致
+];
+```
+
+このリストは「R8-06改定資料束7件（basic-rewards / additions / service-codesの継続照合にADR 0027決定6・ADR 0028決定1が使う）」と「地域単価・負担上限額のように別系統の制度値についてその系統でR8-06適用を直接確認した出典」の2種類で構成される。今後、新しい制度値カテゴリのR8継続を検査する場合も、この2分類の考え方（改定パッケージに属する値か、別系統の値か）を踏襲する。
+
+歯の確認（Fix Round 1で再実施）: `mhlw-unit-price-notice-observed-946c3d96` を一時的にリストから外すと `region-unit-prices.json` のみRED、`r8-burden-recognition-guide-202606` を一時的にリストから外すと `burden-caps.json` のみREDになることを確認し、両者の値が互いに独立した出典で裏付けられていることを機械的に確認した。
+
+### 2. 決定表（seed実値。これが値の唯一の出典）
+
+`region-unit-prices.json`（`masterKind: region-unit-prices`。`serviceKind: employment-continuation-support`）:
+
+| regionKey | unitPriceYen | 告示上の割合 | 一次証拠 |
+| --- | ---: | --- | --- |
+| region-grade-1 | 11.14円 | 1,114 / 1,000 | mhlw-unit-price-notice-observed-946c3d96（初回・R8後再取得とも一致） |
+| region-grade-2 | 10.91円 | 1,091 / 1,000 | 同上 |
+| region-grade-3 | 10.86円 | 1,086 / 1,000 | 同上 |
+| region-grade-4 | 10.68円 | 1,068 / 1,000 | 同上 |
+| region-grade-5 | 10.57円 | 1,057 / 1,000 | 同上 |
+| region-grade-6 | 10.34円 | 1,034 / 1,000 | 同上 |
+| region-grade-7 | 10.17円 | 1,017 / 1,000 | 同上 |
+| region-other | 10.00円 | 1,000 / 1,000 | 同上 |
+
+`burden-caps.json`（`masterKind: burden-caps`）:
+
+| burdenCategory | capYen | 一次証拠 |
+| --- | ---: | --- |
+| welfare（生活保護） | 0 | r8-burden-recognition-guide-202606 物理11頁 |
+| low-income（低所得１・２） | 0 | 同上 |
+| general-1（一般1） | 9,300 | 同上 |
+| general-2（一般2） | 37,200 | 同上 |
+
+いずれもR6（2024-04〜）から2026-06以降まで**同一値で継続**する。`effectiveFrom: "2024-04"` / `effectiveTo: null` を維持する。
+
+### 3. ADR 0020のprose reasoningとの関係: 今回それを機械証跡化した
+
+ADR 0020は既に「令和8年告示第5号は告示第539号を改正対象としておらず、令和8年度改定ページと令和8年6月施行分ページにも代替の一単位単価表は掲載されていない。このため、単価の継続は値の推測ではなく、現行告示の継続適用として扱う」とprose（自然文）で記録していた。本ADRはこの結論を否定するものではなく、**同じ結論を`ClaimMasterR8ContinuityTests`という機械検査で再現可能にした**。具体的には、ADR 0020のprose reasoningの根拠だった「R8施行後に現行条文を観測してSHA-256が変化していないこと」を、`mhlw-unit-price-notice-observed-946c3d96`の`applicabilityNote`に2026-07-26の再検証記録として明記し、この文書をentryの`sourceRefs`で機械的に参照できるようにした。今後、この文書のURLが変化した場合（＝R8以降のいずれかの時点で告示が改正された場合）は、`sources.json`の`sha256`を更新する際にADR 0038と同様の証跡管理（差し替え検出・fail-close）が働く。
 
 ## 選択肢
 
 ### A: 出典なしで継続する（不採用）
 
-現状（`effectiveTo: null` のまま）を維持する。実装コストはゼロだが、これは本タスクが解消すべき問題そのものである。R8で改定されていないことを確認しないまま値を使い続けると、万一R8で改定されていた場合に**エラーを出さずに誤った金額で請求が生成される**（サイレント誤請求）。事業所はCSVが出せないことには気付けるが、単価が古いことには気付けない。誤った金額を静かに生成するより生成を止める方が回復可能であるため、不採用とする。
+現状（当初の`effectiveTo: null`のまま、R8向け出典を確認しない）を維持する。R8で改定されていないことを確認しないまま値を使い続けると、万一R8で改定されていた場合に**エラーを出さずに誤った金額で請求が生成される**（サイレント誤請求）。不採用。
 
-### B: ADR 0020のprose reasoningおよび決定3の状況証拠だけで継続する（不採用）
+### B: 「R8-06改定資料束に無いことをもってfail-closeする」（検討したが不採用）
 
-決定3(a)(b)の状況証拠は強いが、いずれもAC3-4-1の証跡基準（R8-06改定パッケージ内の一次資料）を満たさない。`ClaimMasterR8ContinuityTests` はこの基準を機械的に検査するテストであり、基準外の証拠で `unbacked` 判定を回避することは、テストの意図（宣言された証跡集合に基づく機械検証）を損なう。将来この2文書を正式に証跡台帳へ登録し、AC3-4-1のR8改定資料束（またはそれに準ずる検証済み文書リスト）へ加えるという形でなら採用しうるが、それは本タスクの範囲を超える別タスクの決定である。
+当初のTask 1実装が採った方針。R8-06改定資料束7件に地域単価・負担上限額の表が無いことを理由に、両マスタを2026-05で閉じ、2026-06以降の請求生成を停止する。
 
-### C: R6エントリの適用期間を2026-05で閉じ、R8エントリを追加しない（採用）
+**検討した上で不採用とした理由**: 地域単価・負担上限額は、背景節で述べたとおり報酬改定パッケージとは別の法令・通知系統に属する制度値であり、報酬改定パッケージの中を探しても原理的に見つからない。「改定資料束に無い」という事実は「値が変わったかもしれない」ことを何ら示唆しない。この基準でfail-closeし続けることは、**誤請求を防ぐのではなく、正しく確認できる値を持つ事業所からも不要に請求生成の手段を奪うだけ**になる（利用者裁定より）。事業所は「請求が出せない」ことに気付けるが、この場合は気付いたところで「本来は出せるはずなのに出せない」という別の実害が生じる。
 
-2026-06以降の請求は地域区分単価・負担上限額が未解決でfail-closeする。事業所は請求を生成できないことで問題に気付ける。決定3の手がかりにより、将来の解除作業は「新規文書の発見」からではなく「既発見の2文書を正式に証跡登録する」ところから始められる。
+### C: 地域単価・負担上限額それぞれの実際の法令・通知系統でR8-06時点の適用を直接確認する（採用）
 
-## 決定表
-
-該当なし。本ADRはR8向けの制度実値を確定していない（決定1参照）。
+告示第539号はその告示自体のURLを再取得し、負担上限額はこども家庭庁の利用者負担認定の手引きの令和8年版を探して確認する。両系統とも一次資料からR8-06時点での値の同一性を直接確認できたため、`sourceRefs`へcross-checkとして追記し、`effectiveTo: null`を維持する。
 
 ## 影響
 
-- `claim-master-r8-06`（2026年6月以降）の請求生成は、地域区分単価・負担上限額の解決不能により`ExportClaimCsvUseCase`がfail-closeする。実装済みの`ClaimMasterCsvOfficeContextProvider.UnitPriceMilliYen`（`src/Tsumugi.Infrastructure/ClaimMasters/ClaimMasterCsvOfficeContextProvider.cs`）は変更していない。既存のfail-close経路（`ClaimCsvGenerationReason.UnitPriceUnresolved`）がそのまま機能する。
-- **既存テストへの影響**: `tests/Tsumugi.Infrastructure.Tests/Claim/ClaimCsvExportProductionWiringTests.cs` の5テスト（`ServiceMonth(2026, 6)`〜`(2026, 10)` を使う`Real_wiring_generates_cp932_csv_and_appends_the_export_history`・`Real_wiring_writes_the_processing_month_independently_from_the_service_month`・`Real_wiring_is_byte_deterministic_for_the_same_finalized_batch`・`Real_wiring_does_not_append_history_when_generation_fails`・`Real_wiring_fails_closed_when_the_finalized_snapshot_has_no_contract_information`）は、地域区分単価が2026-06以降に未解決となったことで失敗するようになった。これは意図した挙動変化であり、本タスクの範囲では**これらのテストを弱めない**（テスト日付を変更しない、期待値を`UnitPriceUnresolved`へ書き換えない）。2026-06以降のproduction wiring挙動をテストで再確認する作業は、R8向け証跡登録を行う後続タスク（Task 6想定）で扱う。
-- ADR 0022が述べる「5-release source chain」（`claim-master-r6-04`〜`claim-master-r8-06`の各版が参照するdocumentId束）は、**出典カタログの連続性**（どの文書を参照しうるかの記録）であって、**seed実値がR8-06向けに機械検証済みであることを意味しない**。本ADR以降、地域区分単価・負担上限額に関しては、release chainへの文書列挙とは独立に、`ClaimMasterR8ContinuityTests`が実際のseed値の適用期間を機械検査する。
-- ADR 0020・0022の既存の prose reasoning（決定3(a)(b)に対応する箇所）は誤りではないが、AC3-4-1の機械検証基準を満たす形には未整備であることが判明した。今後、他の版境界（例: 令和9年度改定）でも同様の「出典連鎖はあるが機械検証済み証跡が無い」状態が再発しうるため、新しい施行分を迎えるたびに`ClaimMasterR8ContinuityTests`相当の網羅検査を先に書く運用を推奨する。
+- `claim-master-r8-06`（2026年6月以降）の請求生成は、地域区分単価・負担上限額が解決できるようになった（`ClaimMasterCsvOfficeContextProvider.UnitPriceMilliYen`は無変更のまま、seedのfail-close解除により正常に解決する）。
+- **既存テストへの影響**: `tests/Tsumugi.Infrastructure.Tests/Claim/ClaimCsvExportProductionWiringTests.cs`の5テスト（`ServiceMonth(2026, 6)`〜`(2026, 10)`を使うテスト）は、地域単価が2026-06以降で再び解決できるようになったことで、テスト自体を変更せずに元の主張どおり成功するようになった（検証結果は本ADRの実装記録を参照）。
+- `sources.json`へ新規documentId `r8-burden-recognition-guide-202606` を登録し、`releases`の`claim-master-r8-06`束（`2026-06 → null`）の`sourceDocumentIds`へ追加した。既存の`mhlw-unit-price-notice-observed-946c3d96`エントリの`applicabilityNote`へ、2026-07-26のpost-R8再検証記録を追記した（`source-catalog.schema.json`の`applicabilityNote`は自由文字列のため、スキーマ変更は不要だった）。
+- ADR 0022が述べる「5-release source chain」（`claim-master-r6-04`〜`claim-master-r8-06`の各版が参照するdocumentId束）は、**出典カタログの連続性**（どの文書を参照しうるかの記録）であり、これに加えて本ADR以降は、地域区分単価・負担上限額の各entryが**実際にどの出典で機械検証されているか**を`ClaimMasterR8ContinuityTests`が個別に固定する。両者は補完関係にあり、リリース束への文書列挙だけでは機械検証済みを意味しない点は変わらない。
+- **教訓（次の版境界向け）**: 新しい施行分を迎えるたびに「この制度値はどの法令・通知系統に属するか」を先に切り分けてから証跡基準を設計する。報酬改定パッケージに属さない制度値（地域単価・負担上限額のような）を改定パッケージの文書だけで検査しようとすると、本ADRのFix Round 1のように「存在しないはずのものを探して見つからない」という誤ったfail-closeを生む。
 
 ## 再検証手順
 
-1. `sources.json` のR8改定資料束7件（`r8-fee-notice`・`r8-reward-structure`・`r8-service-codes-2-xlsx`・`r8-service-codes-2-pdf`・`r8-b-reward-band-guide`・`r8-calculation-note`・`r8-capability-202606`）のURLを取得し、`shasum -a 256` が登録値と一致することを確認する。
-2. `pdftotext -layout` と `pdftotext -raw` で全文抽出し、地域区分単価（`級地`/`地域区分`/`1114`等の分子）と負担上限額（`負担上限`/`9,300`/`37,200`/`生活保護`/`低所得`）のキーワードを検索する。本ADR時点ではいずれも実額表は見つからない。
-3. 決定3(a)の`mhlw-unit-price-notice-observed-946c3d96`のURLを再取得し、sha256が変化していないか（＝告示539号が改正されていないか）を確認する。変化していれば、地域単価は分岐(b)（改定あり）に切り替える可能性がある。
-4. 決定3(b)のこども家庭庁「利用者負担認定の手引き」の最新版URLを確認し、令和8年6月版以降の版で負担上限額表の値を確認する。値が変わっていなければ、この文書を正式に`sources.json`へ登録し、`ClaimMasterR8ContinuityTests.R8AuthoritativeDocumentIds`（またはAC3-4-1の後継AC）へ追加する形で分岐(a)へ切り替えられる。
-5. ハッシュ不一致または値の不一致を検出した場合は、値を使わず`docs/open-questions.md`に起票して停止する（ADR 0020と同じ運用）。
+1. `sources.json`の該当9件（R8-06改定資料束7件＋`mhlw-unit-price-notice-observed-946c3d96`＋`r8-burden-recognition-guide-202606`）のURLを取得し、`shasum -a 256`が登録値と一致することを確認する。
+2. `mhlw-unit-price-notice-observed-946c3d96`のURL（`https://www.mhlw.go.jp/web/t_doc?dataId=83aa8493&dataType=0&pageNo=1`）を再取得し、SHA-256が変化していないか確認する。変化していれば、地域単価は改定の可能性があるため、新しい条文を読み値を再確認する。
+3. こども家庭庁の事務処理要領ページ（`https://www.cfa.go.jp/policies/shougaijishien/shisaku/jimushori_yoryo`）から「利用者負担認定の手引き」の最新版を確認し、負担上限額表の値を確認する。新しい版が出ていれば、`sources.json`へ新規documentIdとして登録し直し、`sourceRefs`を差し替える（旧版を`corrects`または`supersedes`で明示する）。
+4. ハッシュ不一致または値の不一致を検出した場合は、値を使わず`docs/open-questions.md`に起票して停止する（ADR 0020と同じ運用）。

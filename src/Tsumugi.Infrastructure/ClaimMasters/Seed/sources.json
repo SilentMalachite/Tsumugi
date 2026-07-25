@@ -118,7 +118,7 @@
       "supersedes": null,
       "corrects": null,
       "supplements": null,
-      "applicabilityNote": "2026-07-10の独立12回取得でSHA-256と52,785 bytesが一致。B型を含む基準額10円と1〜7級地・その他の割合を直接収載するため、5版共通のマスタ値ソースとする",
+      "applicabilityNote": "2026-07-10の独立12回取得でSHA-256と52,785 bytesが一致。B型を含む基準額10円と1〜7級地・その他の割合を直接収載するため、5版共通のマスタ値ソースとする。post-R8再検証（ADR 0044）: R8-06施行（2026-06-01）後の2026-07-26に本URLを再取得したところ、SHA-256（946c3d96...）・52,785 bytesとも初回取得値と完全一致した。ページ本文の改正履歴表示は「(令五厚労告一六七・改称)」（令和5年）が最新で、令和8年の改正注記は無い。厚生労働省の公式ページ「報酬算定構造・サービスコード表等 令和8年6月施行分」（mhlw-r8-structure-page-observed-9bc71ce6/-13da3c44）が列挙する改定パッケージ8項目にも本告示（第539号）の改正版は含まれない。これにより、告示第539号（地域区分単価）はR8-06でも改正されておらず現行条文が継続適用されることを、R8施行後の直接観測として確認した",
       "correctionNote": null
     },
     {
@@ -797,6 +797,23 @@
       "correctionNote": "r8-grant-decision-administration-202606を補足（同一文書の再配布複製。制度値の根拠は正本で、この文書はphysical page locatorを実際に読んだバイト列としてのみ用いる。正本を置換しない）"
     },
     {
+      "documentId": "r8-burden-recognition-guide-202606",
+      "title": "障害福祉サービス・障害児通所支援等の利用者負担認定の手引き【令和8年6月版】",
+      "publisher": "こども家庭庁・厚生労働省",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": "2026-06-05",
+      "retrievedAt": "2026-07-26",
+      "url": "https://www.cfa.go.jp/assets/contents/node/basic_page/field_ref_resources/b27810b0-7802-444c-a95d-22841bdf3eca/f823f8c1/20260605_policies_shougaijishien_shisaku_jimushori_yoryo_55.pdf",
+      "sha256": "ad24221afabc3b07e5f28602662d68dd7a44ea905de066375c209be0f101d522",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r6-disability-support-guide-202404"
+      ],
+      "applicabilityNote": "こども家庭庁の事務処理要領ページ（https://www.cfa.go.jp/policies/shougaijishien/shisaku/jimushori_yoryo）に掲載。2,351,497 bytes。2026-07-26に独立2回取得（初回発見時と本ADR確定時）しSHA-256が完全一致することを確認した。物理11頁「（４）【負担上限月額について】所得区分及び負担上限月額」の表が、burden-caps.jsonの現行値（生活保護0円・低所得１／２0円・一般1〈居宅で生活する障害者並びに20歳未満の障害者施設入所者及び障害児施設入所者〉9,300円・一般2 37,200円）と完全一致することを確認した。r6-disability-support-guide-202404とは別の文書系統（平成26年以来続く「利用者負担認定の手引き」シリーズの令和8年6月版。発行元はこども家庭庁・厚生労働省の連名）だが、同一の制度値をR8-06向けに独立して裏づけるcross-check資料として用いる",
+      "correctionNote": "r6-disability-support-guide-202404を補足（別系統資料による同一値のR8-06向けcross-check）"
+    },
+    {
       "documentId": "r8-revision-overview",
       "title": "令和8年度障害福祉サービス等報酬改定における改定事項について",
       "publisher": "厚生労働省",
@@ -1318,6 +1335,7 @@
         "r8-claim-decision-xls",
         "r6-disability-support-guide-202404",
         "r8-grant-decision-administration-202606",
+        "r8-burden-recognition-guide-202606",
         "current-fee-notice-html",
         "protected-facility-administrative-expense-standard-html"
       ]

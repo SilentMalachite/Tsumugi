@@ -65,6 +65,7 @@ public sealed class JsonClaimMasterProviderTests
         "r6-claim-decision-202406-xls",
         "r8-grant-decision-administration-202606",
         "r8-grant-decision-administration-202606-redistribution-observed-c5070de8",
+        "r8-burden-recognition-guide-202606",
         "r8-revision-overview",
         "r8-fee-notice",
         "r8-calculation-note",
@@ -197,7 +198,7 @@ public sealed class JsonClaimMasterProviderTests
         var sourceIds = root.GetProperty("sources").EnumerateArray()
             .Select(source => source.GetProperty("documentId").GetString())
             .ToArray();
-        sourceIds.Should().HaveCount(67);
+        sourceIds.Should().HaveCount(68);
         sourceIds.Should().Equal(ExpectedSourceIds);
 
         foreach (var source in root.GetProperty("sources").EnumerateArray())
@@ -1160,6 +1161,7 @@ public sealed class JsonClaimMasterProviderTests
         "r8-capability-correction", "r8-reward-structure", "r8-service-codes-2-pdf",
         "r8-service-codes-2-xlsx", "r8-claim-decision-pdf", "r8-claim-decision-xls",
         "r6-disability-support-guide-202404", "r8-grant-decision-administration-202606",
+        "r8-burden-recognition-guide-202606",
         "current-fee-notice-html", "protected-facility-administrative-expense-standard-html",
     ];
 }

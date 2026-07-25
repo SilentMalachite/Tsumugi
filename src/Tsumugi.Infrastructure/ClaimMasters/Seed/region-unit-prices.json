@@ -5,13 +5,23 @@
     {
       "key": "b-region.r6.region-grade-1",
       "effectiveFrom": "2024-04",
-      "effectiveTo": "2026-05",
+      "effectiveTo": null,
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
           "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
           "locator": "mhlw-unit-price-notice 本文一 表 就労継続支援 一級地（1114/1000）",
           "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "mhlw-unit-price-notice-observed-946c3d96",
+          "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
+          "locator": "mhlw-unit-price-notice 2026-07-26再取得（R8-06施行後のpost-R8再検証。SHA-256は2026-07-10取得のauthoritative refと完全一致）。本文一 表 就労継続支援 一級地（1114/1000）に令和8年の改正注記なし（改正履歴表示の最新は令和5年）",
+          "evidenceRole": "cross-check",
           "supports": [
             "master-values",
             "effective-period"
@@ -27,13 +37,23 @@
     {
       "key": "b-region.r6.region-grade-2",
       "effectiveFrom": "2024-04",
-      "effectiveTo": "2026-05",
+      "effectiveTo": null,
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
           "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
           "locator": "mhlw-unit-price-notice 本文一 表 就労継続支援 二級地（1091/1000）",
           "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "mhlw-unit-price-notice-observed-946c3d96",
+          "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
+          "locator": "mhlw-unit-price-notice 2026-07-26再取得（R8-06施行後のpost-R8再検証。SHA-256は2026-07-10取得のauthoritative refと完全一致）。本文一 表 就労継続支援 二級地（1091/1000）に令和8年の改正注記なし（改正履歴表示の最新は令和5年）",
+          "evidenceRole": "cross-check",
           "supports": [
             "master-values",
             "effective-period"
@@ -49,13 +69,23 @@
     {
       "key": "b-region.r6.region-grade-3",
       "effectiveFrom": "2024-04",
-      "effectiveTo": "2026-05",
+      "effectiveTo": null,
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
           "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
           "locator": "mhlw-unit-price-notice 本文一 表 就労継続支援 三級地（1086/1000）",
           "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "mhlw-unit-price-notice-observed-946c3d96",
+          "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
+          "locator": "mhlw-unit-price-notice 2026-07-26再取得（R8-06施行後のpost-R8再検証。SHA-256は2026-07-10取得のauthoritative refと完全一致）。本文一 表 就労継続支援 三級地（1086/1000）に令和8年の改正注記なし（改正履歴表示の最新は令和5年）",
+          "evidenceRole": "cross-check",
           "supports": [
             "master-values",
             "effective-period"
@@ -71,13 +101,23 @@
     {
       "key": "b-region.r6.region-grade-4",
       "effectiveFrom": "2024-04",
-      "effectiveTo": "2026-05",
+      "effectiveTo": null,
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
           "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
           "locator": "mhlw-unit-price-notice 本文一 表 就労継続支援 四級地（1068/1000）",
           "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "mhlw-unit-price-notice-observed-946c3d96",
+          "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
+          "locator": "mhlw-unit-price-notice 2026-07-26再取得（R8-06施行後のpost-R8再検証。SHA-256は2026-07-10取得のauthoritative refと完全一致）。本文一 表 就労継続支援 四級地（1068/1000）に令和8年の改正注記なし（改正履歴表示の最新は令和5年）",
+          "evidenceRole": "cross-check",
           "supports": [
             "master-values",
             "effective-period"
@@ -93,13 +133,23 @@
     {
       "key": "b-region.r6.region-grade-5",
       "effectiveFrom": "2024-04",
-      "effectiveTo": "2026-05",
+      "effectiveTo": null,
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
           "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
           "locator": "mhlw-unit-price-notice 本文一 表 就労継続支援 五級地（1057/1000）",
           "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "mhlw-unit-price-notice-observed-946c3d96",
+          "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
+          "locator": "mhlw-unit-price-notice 2026-07-26再取得（R8-06施行後のpost-R8再検証。SHA-256は2026-07-10取得のauthoritative refと完全一致）。本文一 表 就労継続支援 五級地（1057/1000）に令和8年の改正注記なし（改正履歴表示の最新は令和5年）",
+          "evidenceRole": "cross-check",
           "supports": [
             "master-values",
             "effective-period"
@@ -115,13 +165,23 @@
     {
       "key": "b-region.r6.region-grade-6",
       "effectiveFrom": "2024-04",
-      "effectiveTo": "2026-05",
+      "effectiveTo": null,
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
           "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
           "locator": "mhlw-unit-price-notice 本文一 表 就労継続支援 六級地（1034/1000）",
           "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "mhlw-unit-price-notice-observed-946c3d96",
+          "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
+          "locator": "mhlw-unit-price-notice 2026-07-26再取得（R8-06施行後のpost-R8再検証。SHA-256は2026-07-10取得のauthoritative refと完全一致）。本文一 表 就労継続支援 六級地（1034/1000）に令和8年の改正注記なし（改正履歴表示の最新は令和5年）",
+          "evidenceRole": "cross-check",
           "supports": [
             "master-values",
             "effective-period"
@@ -137,13 +197,23 @@
     {
       "key": "b-region.r6.region-grade-7",
       "effectiveFrom": "2024-04",
-      "effectiveTo": "2026-05",
+      "effectiveTo": null,
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
           "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
           "locator": "mhlw-unit-price-notice 本文一 表 就労継続支援 七級地（1017/1000）",
           "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "mhlw-unit-price-notice-observed-946c3d96",
+          "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
+          "locator": "mhlw-unit-price-notice 2026-07-26再取得（R8-06施行後のpost-R8再検証。SHA-256は2026-07-10取得のauthoritative refと完全一致）。本文一 表 就労継続支援 七級地（1017/1000）に令和8年の改正注記なし（改正履歴表示の最新は令和5年）",
+          "evidenceRole": "cross-check",
           "supports": [
             "master-values",
             "effective-period"
@@ -159,13 +229,23 @@
     {
       "key": "b-region.r6.region-other",
       "effectiveFrom": "2024-04",
-      "effectiveTo": "2026-05",
+      "effectiveTo": null,
       "sourceRefs": [
         {
           "documentId": "mhlw-unit-price-notice-observed-946c3d96",
           "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
           "locator": "mhlw-unit-price-notice 本文一 表 就労継続支援 その他（1000/1000）",
           "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "mhlw-unit-price-notice-observed-946c3d96",
+          "sha256": "946c3d969ffd4128db15106d25ce6d26ff108f5460a7618e3df96352e42c0c1b",
+          "locator": "mhlw-unit-price-notice 2026-07-26再取得（R8-06施行後のpost-R8再検証。SHA-256は2026-07-10取得のauthoritative refと完全一致）。本文一 表 就労継続支援 その他（1000/1000）に令和8年の改正注記なし（改正履歴表示の最新は令和5年）",
+          "evidenceRole": "cross-check",
           "supports": [
             "master-values",
             "effective-period"
