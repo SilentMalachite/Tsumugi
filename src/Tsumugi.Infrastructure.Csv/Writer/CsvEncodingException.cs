@@ -32,6 +32,12 @@ public enum CsvEncodingReason
 
     /// <summary>セル数と spec の項目数が一致しない。</summary>
     FieldCountMismatch = 10,
+
+    /// <summary>制御文字が含まれる。</summary>
+    ControlCharacter = 11,
+
+    /// <summary>spec の dataType が許す文字集合から外れている。</summary>
+    InvalidCharacterForDataType = 12,
 }
 
 /// <summary>

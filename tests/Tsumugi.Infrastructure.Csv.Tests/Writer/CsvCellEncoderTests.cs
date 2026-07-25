@@ -125,6 +125,55 @@ public sealed class CsvCellEncoderTests
             .Which.Reason.Should().Be(CsvEncodingReason.LineBreakInValue);
     }
 
+    // NOTE(teeth): TAB や DEL は行構造を壊さないため素通りしやすいが、取込側で拒否されうる。
+    [Theory]
+    [InlineData("\t")]
+    [InlineData("\u0007")]
+    [InlineData("\u007f")]
+    [InlineData("A\u001bB")]
+    public void EncodeCell_fails_on_a_control_character(string raw)
+    {
+        var spec = Field("provider:J121:01:008");
+
+        var act = () => CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, raw), spec);
+
+        act.Should().Throw<CsvEncodingException>()
+            .Which.Reason.Should().Be(CsvEncodingReason.ControlCharacter);
+    }
+
+    // NOTE(teeth): 数値・年月・日付欄に記号や英字が混じったまま出すと、取込側で弾かれるか
+    // 別の値として解釈される。
+    [Theory]
+    [InlineData("numeric", "12a")]
+    [InlineData("numeric", "1,2")]
+    [InlineData("numeric", "-1")]
+    [InlineData("numeric", "1.5")]
+    [InlineData("yearMonth", "2026-08")]
+    [InlineData("date", "2026/07/01")]
+    [InlineData("numeric", "１２３")]
+    public void EncodeCell_fails_when_a_digit_only_data_type_receives_other_characters(
+        string dataType, string raw)
+    {
+        var spec = Field("provider:J121:04:010", dataType: dataType, maxBytes: 12);
+
+        var act = () => CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, raw), spec);
+
+        act.Should().Throw<CsvEncodingException>()
+            .Which.Reason.Should().Be(CsvEncodingReason.InvalidCharacterForDataType);
+    }
+
+    [Theory]
+    [InlineData("numeric", "0")]
+    [InlineData("numeric", "3000")]
+    [InlineData("yearMonth", "202608")]
+    [InlineData("date", "20260701")]
+    public void EncodeCell_accepts_digits_for_a_digit_only_data_type(string dataType, string raw)
+    {
+        var spec = Field("provider:J121:04:010", dataType: dataType, maxBytes: 12);
+
+        Decode(CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, raw), spec)).Should().Be(raw);
+    }
+
     [Fact]
     public void EncodeCell_fails_when_the_cell_field_id_does_not_match_the_specification()
     {

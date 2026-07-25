@@ -148,6 +148,8 @@ public sealed class ClaimCsvExportSectionTests
 
     private sealed class RecordingGenerator : IClaimCsvGenerator
     {
+        public string SpecificationVersion => "r7-10";
+
         public ClaimCsvDto? LastDto { get; private set; }
         public ClaimCsvExportFailedException? Failure { get; set; }
         public bool NoBatch { get; set; }

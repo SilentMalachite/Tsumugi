@@ -16,6 +16,8 @@ public sealed class ClaimCsvGenerator(CsvSpecificationCatalog catalog) : IClaimC
     private readonly CsvSpecificationCatalog _catalog =
         catalog ?? throw new ArgumentNullException(nameof(catalog));
 
+    public string SpecificationVersion => _catalog.Version;
+
     public byte[] Generate(ClaimCsvDto dto)
     {
         // spec 側の fail-close 例外は Application が catch できる契約例外へ翻訳する

@@ -53,12 +53,6 @@ internal sealed record ClaimCsvRowPlan(
 /// </summary>
 internal static class ClaimCsvRowPlanner
 {
-    /// <summary>
-    /// 経過措置レコード（<c>provider:J121:05</c>）は本スライスのスコープ外のため 0 行にする。
-    /// 対応する <c>ContractedProvider.*</c> は finalization snapshot v2 に含まれない。
-    /// </summary>
-    internal const string TransitionalRecordId = "provider:J121:05";
-
     internal static IReadOnlyList<ClaimCsvRowPlan> Plan(ClaimCsvDto dto, IReadOnlyList<string> orderedRecordIds)
     {
         ArgumentNullException.ThrowIfNull(dto);
@@ -85,6 +79,9 @@ internal static class ClaimCsvRowPlanner
             case "provider:J121:01":
             case "provider:J121:02":
             case "provider:J121:04":
+            // provider:J121:05 は「契約情報」レコード（契約支給量・契約開始年月日・事業者記入欄番号）。
+            // 受給者ごとに 1 行必須であり、省略できない。
+            case "provider:J121:05":
             case "provider:J611:01":
                 for (var index = 0; index < dto.Recipients.Count; index++)
                 {
@@ -111,8 +108,6 @@ internal static class ClaimCsvRowPlanner
                     }
                 }
 
-                break;
-            case TransitionalRecordId:
                 break;
             default:
                 throw new ClaimCsvGenerationException(

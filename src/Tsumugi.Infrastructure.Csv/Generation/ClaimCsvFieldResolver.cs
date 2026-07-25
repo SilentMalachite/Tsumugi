@@ -39,8 +39,29 @@ internal sealed class ClaimCsvFieldResolver
     }
 
     /// <summary>1 セル分の生値（CP932 変換前）を返す。</summary>
-    internal string RenderCell(string fieldId, ClaimCsvRowPlan row) =>
-        Render(Resolve(fieldId, row), _fieldById[fieldId]);
+    /// <remarks>
+    /// 自己参照条件（<c>fieldPresent(self)</c> / <c>fieldNonZero(self)</c>）は「算出値があっても
+    /// 当該欄には出さない」という表示規則であり、値そのものを消す指示ではない。参照式には算出値を
+    /// 渡し、セルだけを空欄にする。これを混同すると、負担額 0 円の利用者で
+    /// <c>provider:J121:04:019</c> が空になり、それを参照する必須項目
+    /// <c>provider:J121:04:021</c> が出力できなくなる。
+    /// </remarks>
+    internal string RenderCell(string fieldId, ClaimCsvRowPlan row)
+    {
+        var specification = _fieldById[fieldId];
+        var value = Resolve(fieldId, row);
+        if (IsSelfReferencing(specification.RequiredWhen, fieldId)
+            && !EvaluateCondition(
+                specification.RequiredWhen, new ClaimCsvResolutionScope(fieldId, _dto, row), value))
+        {
+            return string.Empty;
+        }
+
+        return Render(value, specification);
+    }
+
+    private static bool IsSelfReferencing(string requiredWhen, string fieldId) =>
+        requiredWhen.Contains(fieldId, StringComparison.Ordinal);
 
     private ClaimCsvValue Resolve(string fieldId, ClaimCsvRowPlan row)
     {
@@ -74,8 +95,9 @@ internal sealed class ClaimCsvFieldResolver
         // 「算定条件を満たさない加算」の導出規則には現行 snapshot から確定できない意味論
         // （billableOccurrences / official180DayWindow 等）を含むものがあり、
         // 条件が偽のうちからそれを評価すると誤って fail-close してしまう。
-        var isSelfReferencing = specification.RequiredWhen.Contains(fieldId, StringComparison.Ordinal);
-        if (!isSelfReferencing && !EvaluateCondition(specification.RequiredWhen, scope, ClaimCsvValue.Missing))
+        // 自己参照条件は表示規則なので、ここでは評価せず RenderCell へ委ねる。
+        if (!IsSelfReferencing(specification.RequiredWhen, fieldId)
+            && !EvaluateCondition(specification.RequiredWhen, scope, ClaimCsvValue.Missing))
         {
             return ClaimCsvValue.Missing;
         }
@@ -92,11 +114,6 @@ internal sealed class ClaimCsvFieldResolver
                 ClaimCsvGenerationReason.UnknownMappingStatus,
                 $"mapping status '{mapping.Status}' is not supported"),
         };
-
-        if (isSelfReferencing && !EvaluateCondition(specification.RequiredWhen, scope, raw))
-        {
-            return ClaimCsvValue.Missing;
-        }
 
         // モデル由来（existing / missing）で、spec が許容コードを 1 個だけ持つ項目は「該当する」ことの
         // 表明そのものがコード値になる。許容コードを持たず、条件が同一性判定（modelIn / modelEquals）の
@@ -262,11 +279,17 @@ internal sealed class ClaimCsvFieldResolver
         }
 
         var matches = scope.EnumerateDailyRecordScopes()
-            .Count(dayScope => DayMatchesCountRule(rule, selector, dayScope));
+            .Sum(dayScope => DayCountContribution(rule, selector, dayScope));
         return ClaimCsvValue.FromNumber(matches);
     }
 
-    private static bool DayMatchesCountRule(
+    /// <summary>1 日分がこの count 規則へ寄与する回数。</summary>
+    /// <remarks>
+    /// <c>directions</c> を伴う規則（送迎加算の回数）は<b>片道換算</b>で数える。往復は往路 1・復路 1 の
+    /// 2 回であり、日数ではない（ADR 0028 決定5 / <c>ClaimCalculator</c> の
+    /// <c>TransportOneWayCount</c> と同じ契約）。日数で数えると往復日が過少になる。
+    /// </remarks>
+    private static int DayCountContribution(
         CsvGeneratorRule rule,
         string selector,
         ClaimCsvResolutionScope dayScope)
@@ -275,17 +298,18 @@ internal sealed class ClaimCsvFieldResolver
 
         if (rule.Find("directions") is { } directions)
         {
-            return directions
+            var listed = directions
                 .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                .Any(token =>
-                    ClaimCsvModelPath.TryResolveEnumToken(selector, token, out var expected)
-                    && value is ClaimCsvValue.NumberValue number
-                    && number.Value == expected);
+                .Where(token => ClaimCsvModelPath.TryResolveEnumToken(selector, token, out _))
+                .ToArray();
+            return value is ClaimCsvValue.NumberValue number
+                ? ClaimCsvModelPath.OneWayTripCount(selector, listed, number.Value)
+                : 0;
         }
 
         return rule.Find("value") switch
         {
-            "true" or "present" or null => !value.IsAbsent,
+            "true" or "present" or null => value.IsAbsent ? 0 : 1,
             _ => throw Unresolvable(dayScope.FieldId, $"count value '{rule.Find("value")}' is not supported"),
         };
     }
@@ -309,13 +333,15 @@ internal sealed class ClaimCsvFieldResolver
                 AsNumber(value, fields[index])).Min());
         }
 
-        // 「有効な継続契約における最初のサービス提供日」。確定 snapshot は当月分の日次記録だけを
-        // 持つため、当月内の最小サービス提供日を採る。前月以前へまたがる継続契約の扱いは
-        // docs/open-questions.md の未確定事項。
-        var days = scope.RequireRecipient(rule.Require("selector")).DailyRecords;
-        if (days.Count == 0) return ClaimCsvValue.Missing;
+        // 「有効な継続契約における最初のサービス提供日」。当月の日次記録から推測すると、前月以前から
+        // 継続している契約で誤った開始年月日を出してしまう。確定時点の契約が持つ初回サービス提供日
+        // だけを正本にし、無ければ Missing（必須項目なので encoder が fail-close する）。
+        if (scope.RequireRecipient(rule.Require("selector")).Contract is not { } contract)
+        {
+            return ClaimCsvValue.Missing;
+        }
 
-        var earliest = days.Min(day => day.ServiceDate);
+        var earliest = contract.FirstServiceDate;
         if (rule.Find("lowerBound") is { } lowerBound
             && DateOnly.TryParseExact(lowerBound, "yyyyMMdd", CultureInfo.InvariantCulture, default, out var floor)
             && earliest < floor)

@@ -341,6 +341,8 @@ internal static class ClaimPreparationViewModelTestKit
     /// <c>ClaimCsvExportProductionWiringTests</c>で別途検証済み）。</summary>
     internal sealed class NoOpClaimCsvGenerator : IClaimCsvGenerator
     {
+        public string SpecificationVersion => "csv-v1";
+
         public byte[] Generate(Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvDto dto) => [];
     }
 

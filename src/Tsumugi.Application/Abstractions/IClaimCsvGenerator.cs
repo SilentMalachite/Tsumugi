@@ -9,6 +9,9 @@ namespace Tsumugi.Application.Abstractions;
 /// </summary>
 public interface IClaimCsvGenerator
 {
+    /// <summary>生成に使う CSV 仕様の版。確定済み請求が記録した版との一致確認に使う。</summary>
+    string SpecificationVersion { get; }
+
     /// <summary>CP932 / CRLF の請求CSV全体（外側3レコード＋内側レコード群）を返す。</summary>
     byte[] Generate(ClaimCsvDto dto);
 }

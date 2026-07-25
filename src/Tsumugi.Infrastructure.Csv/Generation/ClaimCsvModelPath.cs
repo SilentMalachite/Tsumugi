@@ -31,10 +31,6 @@ internal static class ClaimCsvModelPath
     internal static IReadOnlySet<string> PathsAbsentFromSnapshot { get; } =
         new HashSet<string>(StringComparer.Ordinal)
         {
-            "ContractedProvider.ContractedSupplyDays",
-            "ContractedProvider.ContractDate",
-            "ContractedProvider.TerminationDate",
-            "ContractedProvider.CertificateEntryNumber",
             "DailyRecord.Note",
             "ClaimCalculation.InitialAdditionStartDate",
             "ClaimCalculation.SpecialMeasuresYen",
@@ -58,6 +54,34 @@ internal static class ClaimCsvModelPath
     /// <summary>受給者単位の値だが、ファイル全体で単一であることが請求の前提になる経路の接頭辞。</summary>
     private static readonly string[] RecipientUniformPrefixes =
         ["Certificate.", "Recipient.", "ClaimInput.", "IntensiveSupportEpisode."];
+
+    /// <summary>
+    /// 送迎の片道回数。往復（<see cref="TransportKind.Round"/>）は往路・復路の 2 回として数える
+    /// （ADR 0028 決定5 / <c>ClaimCalculator.TransportOneWayCount</c> と同じ契約）。
+    /// 数え上げの対象は <paramref name="listedTokens"/> に挙がった向きに限る。
+    /// </summary>
+    internal static int OneWayTripCount(string path, IReadOnlyList<string> listedTokens, long value)
+    {
+        if (!string.Equals(path, "DailyRecord.Transport", StringComparison.Ordinal))
+        {
+            return listedTokens.Any(token =>
+                TryResolveEnumToken(path, token, out var expected) && expected == value) ? 1 : 0;
+        }
+
+        var kind = (TransportKind)value;
+        if (!listedTokens.Any(token =>
+                Enum.TryParse<TransportKind>(token, ignoreCase: false, out var listed) && listed == kind))
+        {
+            return 0;
+        }
+
+        return kind switch
+        {
+            TransportKind.Round => 2,
+            TransportKind.Outbound or TransportKind.Inbound => 1,
+            _ => 0,
+        };
+    }
 
     internal static ClaimCsvValue Resolve(string path, ClaimCsvResolutionScope scope)
     {
@@ -106,6 +130,17 @@ internal static class ClaimCsvModelPath
 
             "IntensiveSupportEpisode.StartDate" => ClaimCsvValue.FromOptional(
                 scope.RequireRecipient(path).IntensiveSupportEpisodeStartDate, ClaimCsvValue.FromDate),
+
+            // 契約情報。確定 snapshot が契約を持たない場合は Missing になり、必須項目は
+            // encoder の MissingRequired で fail-close する（黙って空欄で出さない）。
+            "ContractedProvider.ContractedSupplyDays" => ClaimCsvValue.FromOptionalNumber(
+                scope.RequireRecipient(path).Contract?.ContractedSupplyDays),
+            "ContractedProvider.ContractDate" => ClaimCsvValue.FromOptional(
+                scope.RequireRecipient(path).Contract?.ContractDate, ClaimCsvValue.FromDate),
+            "ContractedProvider.TerminationDate" => ClaimCsvValue.FromOptional(
+                scope.RequireRecipient(path).Contract?.TerminationDate, ClaimCsvValue.FromDate),
+            "ContractedProvider.CertificateEntryNumber" => ClaimCsvValue.FromOptionalNumber(
+                scope.RequireRecipient(path).Contract?.CertificateEntryNumber),
 
             "DailyRecord.ServiceDate" => ClaimCsvValue.FromDate(scope.RequireDay(path).ServiceDate),
             "DailyRecord.Attendance" => ClaimCsvValue.FromNumber(scope.RequireDay(path).AttendanceCode),

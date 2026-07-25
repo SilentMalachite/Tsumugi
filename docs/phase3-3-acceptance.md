@@ -7,6 +7,11 @@
 
 ---
 
+> **状態（2026-07-25 Codex レビュー後）**: AC3-7 の 7 項目は CSV 生成器のレベルで充足しているが、
+> **確定済み請求からの実出力は blocked**。明細書「契約情報」レコード（`provider:J121:05`）と
+> 開始年月日（`provider:J121:02:008`）が要求する契約情報が finalization snapshot v2 に無いため、
+> 実データでは fail-close する。詳細は §9-3。
+
 ## 1. AC3-7 の判定
 
 | # | 受け入れ基準 | 判定 | 証跡（テスト名） |
@@ -118,7 +123,7 @@ DSL の語彙は `CsvGeneratorRuleParserTests.The_embedded_specification_uses_ex
 
 1. **R8.6 サービスコード表の独立 seed は見送り**: CSV writer はサービスコードを確定済み snapshot の `ClaimLines[].ServiceCode` からコピーするだけで、独立カタログを必要としない。一次資料（URL / SHA256 / 取得日）が未入手のため、`service-code-r8-06.json` は作らない（ADR 0031）。
 2. **地域区分コードの「その他」**: `RegionGrade.Grade1..Grade7` は級地番号のゼロ詰め（`01`..`07`）とした。`Other` / `None` の公式コードはリポジトリ内の一次資料から確定できないため fail-close する。
-3. **`provider:J121:02:008`（開始年月日）**: spec の selector は `DailyRecord.ServiceDate` だが、filter「有効な継続契約における最初のサービス提供日」の解釈のうち、前月以前へまたがる継続契約の扱いが確定していない。確定 snapshot は当月分の日次記録しか持たないため、当月内の最小サービス提供日を採る。
+3. **`provider:J121:02:008`（開始年月日）と `provider:J121:05`（契約情報）**: 契約情報が finalization snapshot v2 に無いため、実データでは fail-close する（推測しない）。**解消には snapshot へ契約支給量・契約開始/終了年月日・事業者記入欄番号・初回サービス提供日を追加する必要があり、これは Phase 3-2 の snapshot 契約の変更（版上げ＋既存確定分の再確定）を伴う。**
 4. **`provider:J121:02:009`（終了年月日）**: 契約終了は snapshot v2 に含まれないため常に空欄。任意項目のため spec 上の不整合は生じない。
 5. **`provider:J611:01:052`（`measure=billableOccurrences`）/ `:054`（`window=official180DayWindow`）**: 算定回数・180日窓の意味論が確定できないため、該当データが存在するときだけ fail-close する。該当なしの場合は条件が偽になり空欄で通る。
 6. **`provider:J611:01:070`〜`072`（初期加算）/ `ClaimServiceLine.SummaryNote` / `DailyRecord.Note` / `ContractedProvider.*`**: finalization snapshot v2 に含まれない。いずれも条件付き項目のため空欄が正しい出力になる。`provider:J121:05`（経過措置）は 0 レコードで出力する。
@@ -161,6 +166,33 @@ DSL の語彙は `CsvGeneratorRuleParserTests.The_embedded_specification_uses_ex
 
 ---
 
+## 9-3. Codex レビューの指摘と対応（2026-07-25）
+
+Codex（読み取り専用レビュー）から CRITICAL 1 / HIGH 9 / MEDIUM 1。全件を実コードで検証した。
+
+### 修正した（8件）
+
+| 重大度 | 指摘 | 検証結果 | 対応 |
+|---|---|---|---|
+| **CRITICAL** | `provider:J121:05` を 0 件にしており必須レコードが欠落 | **再現**。J121:05 は「経過措置」ではなく**契約情報**レコード（`契約支給量`/`契約開始年月日`/`事業者記入欄番号` が `always` 必須）。設計spec §3.4 の表のラベルを鵜呑みにしたのが原因 | 受給者ごとに 1 行出力するよう変更。契約情報は DTO（`ClaimCsvContractDto`）で受け、snapshot v2 に無いため実データでは **fail-close**（黙って空欄で出さない） |
+| HIGH | Cancel を除外してから最大 Revision を採るため取消済み請求が復活する | **再現**。Domain の `ClaimBatchPolicy.Head` は Cancel を含む最大 Revision を返す | head を Cancel 込みで解決し、head が Cancel なら `ClaimBatchNotFinalizedException` |
+| HIGH | 確定時の仕様版を無視して実行時 spec で再生成する | **再現** | `IClaimCsvGenerator.SpecificationVersion` を追加し、確定時の版と不一致なら fail-close |
+| HIGH | 数値 0 と「出力対象外」を同一視し、負担 0 円の請求が生成できない | **再現**。`016=0 → 019（fieldNonZero(self)）が空 → 021（always必須）が空 → MissingRequired`。生活保護受給者などで常に落ちる | 自己参照条件を**表示規則**として扱い、参照式には算出値を渡す。0 は `"0"` として出力 |
+| HIGH | 開始年月日を当月の日次記録の最小日で代用している | **再現**。前月以前から継続する契約で誤値 | 確定済み契約の初回サービス提供日だけを正本にし、無ければ fail-close。当月最小日への推測フォールバックを削除 |
+| HIGH | 往復を片道 1 回として数えている | **再現**。ADR 0028 決定5 / `ClaimCalculator.TransportOneWayCount` は `Outbound/Inbound=1、Round=2` | 片道換算の重み付き合計へ。月次値が日次の往+復合計と一致する不変条件をテスト化 |
+| HIGH | 制御文字・dataType の文字種を検証していない | **再現**（NUL と CR/LF しか弾いていない） | 制御文字を拒否し、`numeric`/`yearMonth`/`date` は ASCII 数字のみに限定 |
+| MEDIUM | 保存が非アトミックで失敗時に部分ファイルが残る | **再現**（`File.WriteAllBytesAsync` 直書き） | 同一ディレクトリの一時ファイルへ書き切ってから `File.Replace`/`Move`。失敗・取消時は一時ファイルだけ削除 |
+
+### 修正せず記録した（3件）
+
+| 重大度 | 指摘 | 判断 |
+|---|---|---|
+| HIGH | 未検証 raw aggregate を直接読み、snapshot の hash・canonical 性を検証していない | **妥当だがスコープ外**。Phase 3-2 の `GenerateClaimReportsUseCase` が同じ経路であり、検証済み aggregate を返す Application port の新設は Phase 3-2 領域の変更。open-questions へ起票し、3帳票と共通の課題として扱う |
+| HIGH | `provider:J121:04:009` を `BilledDays` で代替し、加算のみ算定した日を落とす | 指摘の趣旨は妥当。ただし snapshot の `ClaimLines` にサービス日が無く、再計算すると別の推測になる。確定値（`BilledDays`）を使う現状を維持し、open-questions へ起票 |
+| HIGH | 既定ファイル名が国保連の命名規則（英字開始・8文字以内・`.CSV`）に不適合 | **リポジトリ内の登録済み一次資料で確認できない**。ハード制約3（推測で埋めない）に従い、Codex が引用した外部PDFの記述だけを根拠に実装しない。open-questions へ HIGH 優先で起票し、一次資料を `sources.json` へ登録してから対応する |
+
+---
+
 ## 10. `./build/ci.sh` 実行証跡
 
 2026-07-25 実行、**全ゲート緑**。
@@ -172,7 +204,7 @@ DSL の語彙は `CsvGeneratorRuleParserTests.The_embedded_specification_uses_ex
 ==> test + coverage (gate #3, arch=gate#4, offline=gate#5)
 成功!  失敗: 0、合格:   677 - Tsumugi.Domain.Tests.dll
 成功!  失敗: 0、合格:   411 - Tsumugi.Application.Tests.dll
-成功!  失敗: 0、合格:   161 - Tsumugi.Infrastructure.Csv.Tests.dll
+成功!  失敗: 0、合格:   183 - Tsumugi.Infrastructure.Csv.Tests.dll
 成功!  失敗: 0、合格:    30 - Tsumugi.Infrastructure.Reporting.Tests.dll
 成功!  失敗: 0、合格:   254 - Tsumugi.App.Tests.dll
 成功!  失敗: 0、合格:   637 - Tsumugi.Infrastructure.Tests.dll
@@ -182,7 +214,7 @@ Tsumugi.Application Line 90.57% / Branch 84.26% / Method 84.28%  (floor 70%)
 ==> CI OK
 ```
 
-合計 2,170 テスト（うちレビュー後追加 10）（Phase 3-3 で追加した主なテストクラス: `ClaimCsvExportTests` 11 /
+合計 2,192 テスト（Codex レビュー対応で 22 追加）（Phase 3-3 で追加した主なテストクラス: `ClaimCsvExportTests` 11 /
 `ClaimCsvExportRepositoryTests` 6 / `CsvCellEncoderTests` 29 / `CsvGeneratorRuleParserTests` 14 /
 `ClaimCsvGeneratorTests` 10 / `GoldenCsvSnapshotTests` 13 / `ClaimCsvRowScopeTests` 4 / `ExceptionalUsageCrossFieldTests` 5 /
 `Tsumugi.Infrastructure.Csv.Tests.ArchitectureTests` 6 / `ClaimCsvExportProductionWiringTests` 5 /

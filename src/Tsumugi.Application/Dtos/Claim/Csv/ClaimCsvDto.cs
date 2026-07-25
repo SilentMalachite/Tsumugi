@@ -47,6 +47,7 @@ public sealed record ClaimCsvRecipientDto(
     int? ExceptionalUsageDays,
     int? StandardUsageDayTotal,
     DateOnly? IntensiveSupportEpisodeStartDate,
+    ClaimCsvContractDto? Contract,
     IReadOnlyList<ClaimCsvServiceLineDto> ServiceLines,
     IReadOnlyList<ClaimCsvDailyRecordDto> DailyRecords,
     int BilledDays,
@@ -54,6 +55,21 @@ public sealed record ClaimCsvRecipientDto(
     int TotalCostYen,
     int BenefitYen,
     int BurdenYen);
+
+/// <summary>
+/// 明細書「契約情報」レコード（<c>provider:J121:05</c>）に必要な契約内容。
+/// 確定時点の契約事業所情報であり、CSV 生成時に現行エンティティを読み直さない。
+/// </summary>
+/// <param name="FirstServiceDate">
+/// 有効な継続契約における最初のサービス提供日。当月の日次記録からは復元できないため、
+/// 確定時点の値を持ち回る。
+/// </param>
+public sealed record ClaimCsvContractDto(
+    int ContractedSupplyDays,
+    DateOnly ContractDate,
+    DateOnly? TerminationDate,
+    int CertificateEntryNumber,
+    DateOnly FirstServiceDate);
 
 /// <param name="Unit">1回あたり単位数。</param>
 /// <param name="Count">回数。</param>

@@ -99,6 +99,15 @@ public static class CsvCellEncoder
                 "the value contains CR or LF");
         }
 
+        // 制御文字（TAB・BS・DEL 等）は行構造を壊さないが、取込側で拒否されうるため通さない。
+        if (raw.Any(char.IsControl))
+        {
+            throw Fail(
+                specification.FieldId,
+                CsvEncodingReason.ControlCharacter,
+                "the value contains a control character");
+        }
+
         if (raw.Length == 0)
         {
             return string.Equals(specification.RequiredWhen, "always", StringComparison.Ordinal)
@@ -117,6 +126,8 @@ public static class CsvCellEncoder
                 CsvEncodingReason.UnknownCode,
                 $"the value is not one of the {specification.AllowedCodes.Count} allowed codes");
         }
+
+        RequireCharactersAllowedByDataType(specification, raw);
 
         var content = EncodeContent(specification, raw);
         if (content.Length > specification.MaxBytes)
@@ -175,6 +186,28 @@ public static class CsvCellEncoder
         }
 
         return buffer.ToArray();
+    }
+
+    /// <summary>
+    /// spec の <c>dataType</c> が定める文字集合を検証する。数値・年月・日付欄に記号や英字が
+    /// 混じったまま出力すると、取込側で弾かれるか別の値として解釈される。
+    /// </summary>
+    private static void RequireCharactersAllowedByDataType(CsvFieldSpecification specification, string raw)
+    {
+        var digitsOnly = specification.DataType switch
+        {
+            "numeric" or "yearMonth" or "date" => true,
+            _ => false,
+        };
+        if (!digitsOnly) return;
+
+        if (!raw.All(char.IsAsciiDigit))
+        {
+            throw Fail(
+                specification.FieldId,
+                CsvEncodingReason.InvalidCharacterForDataType,
+                $"dataType '{specification.DataType}' allows ASCII digits only");
+        }
     }
 
     private static byte[] EncodeContent(CsvFieldSpecification specification, string value)

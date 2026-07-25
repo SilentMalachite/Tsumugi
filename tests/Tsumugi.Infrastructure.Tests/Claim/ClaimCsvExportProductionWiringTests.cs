@@ -29,60 +29,58 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
 
     public ClaimCsvExportProductionWiringTests(SqliteFixture fixture) => _fixture = fixture;
 
+    // Phase 3-3 コードレビューで判明: 明細書「契約情報」レコード（provider:J121:05）が要求する
+    // 契約支給量・契約開始年月日・事業者記入欄番号、および開始年月日（provider:J121:02:008）は
+    // finalization snapshot v2 に含まれない。当月の日次記録から推測せず fail-close する。
+    // snapshot が契約情報を持つようになれば、ここは生成成功の証跡へ置き換える。
     [Fact]
-    public async Task Real_wiring_generates_cp932_csv_and_appends_the_export_history()
+    public async Task Real_wiring_fails_closed_when_the_finalized_snapshot_has_no_contract_information()
     {
         await using var context = _fixture.NewContext();
         var (officeId, serviceMonth) = await SeedFinalizedBatchAsync(context, month: 7);
 
-        var result = await CreateUseCase(context).ExecuteAsync(
+        var act = async () => await CreateUseCase(context).ExecuteAsync(
             officeId, serviceMonth, new ProcessingMonth(2026, 8), "tester", default);
 
-        result.Bytes.Should().NotBeEmpty();
-        result.Sha256.Should().Be(Convert.ToHexStringLower(SHA256.HashData(result.Bytes)));
-        result.SuggestedFileName.Should().Match("kokuho_1312345678_202608_*.csv");
-
-        var text = CsvCellEncoder.Cp932.GetString(result.Bytes);
-        text.Should().EndWith("\r\n");
-        text.Split("\r\n", StringSplitOptions.RemoveEmptyEntries)[0].Should().StartWith("1,");
+        var exception = (await act.Should().ThrowAsync<ClaimCsvExportFailedException>()).Which;
+        exception.Reason.Should().Be(nameof(CsvEncodingReason.MissingRequired));
+        exception.FieldId.Should().BeOneOf(
+            "provider:J121:02:008", "provider:J121:05:008",
+            "provider:J121:05:009", "provider:J121:05:011");
 
         var history = await new ClaimCsvExportRepository(context)
             .ListByBatchAsync(await LatestBatchIdAsync(context, officeId, serviceMonth), default);
-        history.Should().ContainSingle();
-        history[0].Sha256.Should().Be(result.Sha256);
-        history[0].ProcessingMonth.Should().Be(new ProcessingMonth(2026, 8));
-        history[0].ByteLength.Should().Be(result.Bytes.Length);
+        history.Should().BeEmpty();
     }
 
-    // AC3-7: 独立入力の ProcessingMonth がコントロールレコードへ入り、サービス提供年月とは別に扱われる。
+    // NOTE(teeth): head は Cancel を含む最大 Revision。取消済みの請求から過去 revision を
+    // 復活させて出力してはならない。
     [Fact]
-    public async Task Real_wiring_writes_the_processing_month_independently_from_the_service_month()
+    public async Task Real_wiring_refuses_to_export_when_the_head_revision_is_a_cancellation()
     {
         await using var context = _fixture.NewContext();
-        var (officeId, serviceMonth) = await SeedFinalizedBatchAsync(context, month: 9);
+        var (officeId, serviceMonth) = await SeedFinalizedBatchAsync(context, month: 5);
+        await SeedCancellationAsync(context, officeId, serviceMonth);
 
-        var result = await CreateUseCase(context).ExecuteAsync(
-            officeId, serviceMonth, new ProcessingMonth(2026, 11), "tester", default);
+        var act = async () => await CreateUseCase(context).ExecuteAsync(
+            officeId, serviceMonth, new ProcessingMonth(2026, 8), "tester", default);
 
-        var control = CsvCellEncoder.Cp932.GetString(result.Bytes).Split("\r\n")[0].Split(',');
-        control[9].Should().Be("202611");
-        control.Should().NotContain("202609");
+        await act.Should().ThrowAsync<ClaimBatchNotFinalizedException>();
     }
 
+    // NOTE(teeth): 確定時に記録した CSV 仕様版と生成時の版が食い違ったら出力しない。
     [Fact]
-    public async Task Real_wiring_is_byte_deterministic_for_the_same_finalized_batch()
+    public async Task Real_wiring_refuses_to_export_when_the_finalized_specification_version_differs()
     {
         await using var context = _fixture.NewContext();
-        var (officeId, serviceMonth) = await SeedFinalizedBatchAsync(context, month: 10);
-        var useCase = CreateUseCase(context);
+        var (officeId, serviceMonth) = await SeedFinalizedBatchAsync(
+            context, month: 4, csvSpecificationVersion: "r9-99");
 
-        var first = await useCase.ExecuteAsync(
-            officeId, serviceMonth, new ProcessingMonth(2026, 11), "tester", default);
-        var second = await useCase.ExecuteAsync(
-            officeId, serviceMonth, new ProcessingMonth(2026, 11), "tester", default);
+        var act = async () => await CreateUseCase(context).ExecuteAsync(
+            officeId, serviceMonth, new ProcessingMonth(2026, 8), "tester", default);
 
-        second.Bytes.Should().Equal(first.Bytes);
-        second.Sha256.Should().Be(first.Sha256);
+        (await act.Should().ThrowAsync<ClaimCsvExportFailedException>())
+            .Which.Reason.Should().Be("CsvSpecificationVersionMismatch");
     }
 
     // 出力は「確定済みの実効 ClaimBatch」からしか作れない。
@@ -130,17 +128,32 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
         return aggregates[^1].Header.Id;
     }
 
+    private static async Task SeedCancellationAsync(
+        TsumugiDbContext context, Guid officeId, ServiceMonth serviceMonth)
+    {
+        var head = await LatestBatchIdAsync(context, officeId, serviceMonth);
+        context.Add(ClaimBatch.Cancellation(
+            Guid.NewGuid(), officeId, serviceMonth, revision: 2, originId: head,
+            expectedHeadBatchId: head, expectedHeadRevision: 1,
+            "master-v1", "r7-10", "report-v1", "snapshot-app-v1", "operation-app-v1",
+            Guid.NewGuid(), ClaimBatch.CurrentOperationPayloadSchemaVersion, new string('b', 64),
+            "tester", FixedNow));
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+    }
+
     private static async Task<(Guid OfficeId, ServiceMonth ServiceMonth)> SeedFinalizedBatchAsync(
         TsumugiDbContext context,
         int month,
-        string kanaName = "ﾂﾑｷﾞ ﾀﾛｳ")
+        string kanaName = "ﾂﾑｷﾞ ﾀﾛｳ",
+        string csvSpecificationVersion = "r7-10")
     {
         var officeId = Guid.NewGuid();
         var serviceMonth = new ServiceMonth(2026, month);
         var batch = ClaimBatch.NewRecord(
             Guid.NewGuid(), officeId, serviceMonth,
             totalUnits: 3000, totalCostYen: 30000, totalBenefitYen: 27000, totalBurdenYen: 3000,
-            "master-v1", "r7-10", "report-v1", "snapshot-app-v1", "operation-app-v1",
+            "master-v1", csvSpecificationVersion, "report-v1", "snapshot-app-v1", "operation-app-v1",
             Guid.NewGuid(), ClaimBatch.CurrentOperationPayloadSchemaVersion, new string('a', 64),
             "tester", FixedNow);
         var snapshot = BuildSnapshot(serviceMonth, kanaName);

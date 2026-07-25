@@ -41,6 +41,12 @@ internal static class ClaimCsvFixtures
         ExceptionalUsageDays: null,
         StandardUsageDayTotal: null,
         IntensiveSupportEpisodeStartDate: null,
+        Contract: new ClaimCsvContractDto(
+            ContractedSupplyDays: 22,
+            ContractDate: new DateOnly(2026, 4, 1),
+            TerminationDate: null,
+            CertificateEntryNumber: 1,
+            FirstServiceDate: new DateOnly(2026, 4, 1)),
         ServiceLines:
         [
             new ClaimCsvServiceLineDto("462980", Unit: 566, Count: 5),

@@ -44,18 +44,32 @@ public sealed class ExportClaimCsvUseCase(
         ArgumentException.ThrowIfNullOrWhiteSpace(actor);
 
         var aggregates = await batchRepository.ListHistoryAggregatesAsync(officeId, serviceMonth, ct);
-        var latest = aggregates
-            .Where(aggregate => aggregate.Header.Kind != RecordKind.Cancel)
+        // head は Cancel を含む最大 Revision（Domain の ClaimBatchPolicy.Head と同じ規則）。
+        // Cancel を除いてから最大を採ると、取消済みの請求を過去 revision から復活させてしまう。
+        var head = aggregates
             .OrderByDescending(aggregate => aggregate.Header.Revision)
             .FirstOrDefault()
             ?? throw new ClaimBatchNotFinalizedException(officeId, serviceMonth.ToString());
 
-        if (latest.Details.Count == 0)
+        if (head.Header.Kind == RecordKind.Cancel || head.Details.Count == 0)
         {
             throw new ClaimBatchNotFinalizedException(officeId, serviceMonth.ToString());
         }
 
+        var latest = head;
+
         var dto = BuildDto(latest.Header, latest.Details, serviceMonth, processingMonth);
+        // 確定時に記録した CSV 仕様版と、生成に使う仕様版が一致しないと、同じ確定請求から
+        // 別のバイト列が出る。版が動いたことに気付かないまま出力しない。
+        if (!string.Equals(
+                latest.Header.CsvSpecificationVersion, generator.SpecificationVersion, StringComparison.Ordinal))
+        {
+            throw new ClaimCsvExportFailedException(
+                fieldId: string.Empty,
+                reason: "CsvSpecificationVersionMismatch",
+                detail: "the finalized CSV specification version differs from the one available at export time");
+        }
+
         var bytes = generator.Generate(dto);
 
         var sha256 = Convert.ToHexStringLower(SHA256.HashData(bytes));
@@ -120,6 +134,9 @@ public sealed class ExportClaimCsvUseCase(
         ExceptionalUsageDays: snapshot.ClaimInput.ExceptionalUsageDays,
         StandardUsageDayTotal: snapshot.ClaimInput.StandardUsageDayTotal,
         IntensiveSupportEpisodeStartDate: snapshot.IntensiveSupportEpisode?.StartDate,
+        // 契約情報（provider:J121:05 / 開始年月日）は finalization snapshot v2 に含まれない。
+        // 当月の日次記録から推測せず null を渡し、必須項目として fail-close させる。
+        Contract: null,
         ServiceLines: [.. snapshot.ClaimLines
             .OrderBy(line => line.ServiceCode, StringComparer.Ordinal)
             .Select(line => new ClaimCsvServiceLineDto(line.ServiceCode, line.Unit, line.Count))],
