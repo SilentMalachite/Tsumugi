@@ -50,33 +50,16 @@ public sealed class ExportClaimCsvUseCase(
         var latest = await verifiedBatchProvider.FindEffectiveAsync(officeId, serviceMonth, ct)
             ?? throw new ClaimBatchNotFinalizedException(officeId, serviceMonth.ToString());
 
-        var dto = BuildDto(latest.Header, latest.Details, serviceMonth, processingMonth);
-
         // 出力に使う仕様版は「処理対象年月に適用される版」（施行分は提出時点で決まる）。
         // 該当版が無ければ推測で現行版を使わず fail-close する。
-        string resolvedVersion;
-        try
-        {
-            resolvedVersion = specificationVersions.ResolveForProcessingMonth(processingMonth);
-        }
-        catch (InvalidOperationException exception)
-        {
-            throw new ClaimCsvExportFailedException(
-                fieldId: string.Empty,
-                reason: "CsvSpecificationVersionUnavailable",
-                detail: exception.Message);
-        }
+        var resolvedVersion = ResolveVersion(processingMonth);
 
-        // 確定時に記録した版と、出力に使う版が一致しないと、同じ確定請求から別のバイト列が出る。
-        // 版が動いたことに気付かないまま出力しない（確定し直しを促す）。
-        if (!string.Equals(latest.Header.CsvSpecificationVersion, resolvedVersion, StringComparison.Ordinal))
-        {
-            throw new ClaimCsvExportFailedException(
-                fieldId: string.Empty,
-                reason: "CsvSpecificationVersionMismatch",
-                detail: "the finalized CSV specification version differs from the one that applies to the "
-                    + "processing month");
-        }
+        // 確定時の版と解決版が違っても、ここでは止めない（ADR 0040）。新しい施行分が項目を増やして
+        // いなければ確定済み snapshot のままで出せるため、入口で塞ぐと不要な再確定を強いる。
+        // 新版が snapshot に無いデータを要求する場合は、生成器と encoder が項目単位で fail-close する
+        // （不足項目の一覧は ValidateAsync が返す）。使った版は出力履歴に記録する。
+        var dto = BuildDto(
+            latest.Header, latest.Details, serviceMonth, processingMonth, resolvedVersion);
 
         var document = generator.Generate(dto);
         var bytes = document.Bytes;
@@ -87,23 +70,62 @@ public sealed class ExportClaimCsvUseCase(
                 Guid.CreateVersion7(),
                 latest.Header.Id,
                 processingMonth,
-                // 出力履歴には「実際に使った版」を記録する。
+                // 出力履歴には「実際に使った版」と「確定時の版」の両方を記録する。
                 resolvedVersion,
                 latest.Header.ClaimMasterVersion,
                 sha256,
                 bytes.Length,
                 actor,
-                clock.GetUtcNow()),
+                clock.GetUtcNow(),
+                latest.Header.CsvSpecificationVersion),
             ct);
 
         return new ClaimCsvExportResult(bytes, document.FileName, sha256);
+    }
+
+    /// <summary>
+    /// この確定請求を、処理対象年月に適用される版で出力できるかを調べる。返る一覧が空なら出力できる。
+    /// 出力を試して最初の1件で落とすのではなく、<b>不足している項目を全件</b>返す（ADR 0040）。
+    /// </summary>
+    public async Task<ClaimCsvExportValidationResult> ValidateAsync(
+        Guid officeId,
+        ServiceMonth serviceMonth,
+        ProcessingMonth processingMonth,
+        CancellationToken ct)
+    {
+        var latest = await verifiedBatchProvider.FindEffectiveAsync(officeId, serviceMonth, ct)
+            ?? throw new ClaimBatchNotFinalizedException(officeId, serviceMonth.ToString());
+        var resolvedVersion = ResolveVersion(processingMonth);
+        var dto = BuildDto(
+            latest.Header, latest.Details, serviceMonth, processingMonth, resolvedVersion);
+
+        return new ClaimCsvExportValidationResult(
+            latest.Header.CsvSpecificationVersion,
+            resolvedVersion,
+            generator.CollectIssues(dto));
+    }
+
+    private string ResolveVersion(ProcessingMonth processingMonth)
+    {
+        try
+        {
+            return specificationVersions.ResolveForProcessingMonth(processingMonth);
+        }
+        catch (InvalidOperationException exception)
+        {
+            throw new ClaimCsvExportFailedException(
+                fieldId: string.Empty,
+                reason: "CsvSpecificationVersionUnavailable",
+                detail: exception.Message);
+        }
     }
 
     private ClaimCsvDto BuildDto(
         ClaimBatch header,
         IReadOnlyList<ClaimDetail> details,
         ServiceMonth serviceMonth,
-        ProcessingMonth processingMonth)
+        ProcessingMonth processingMonth,
+        string csvSpecificationVersion)
     {
         var snapshots = details
             .Select(detail => ClaimFinalizationSnapshotReader.Parse( // CultureInfo: 非該当（JSON snapshot parser）
@@ -123,7 +145,7 @@ public sealed class ExportClaimCsvUseCase(
             recipients,
             new ClaimCsvTotalsDto(
                 header.TotalUnits, header.TotalCostYen, header.TotalBenefitYen, header.TotalBurdenYen),
-            new ClaimCsvSpecVersionDto(header.CsvSpecificationVersion, header.ClaimMasterVersion));
+            new ClaimCsvSpecVersionDto(csvSpecificationVersion, header.ClaimMasterVersion));
     }
 
     private static ClaimCsvRecipientDto MapRecipient(

@@ -105,6 +105,9 @@ public sealed class ExportClaimCsvUseCaseGroupBMappingTests
 
     private sealed class CapturingGenerator : IClaimCsvGenerator
     {
+        public IReadOnlyList<global::Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvFieldIssue>
+            CollectIssues(global::Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvDto dto) => [];
+
         public ClaimCsvDto? Captured { get; private set; }
 
         // 確定 header が記録した版と一致させる（不一致は本番同様に fail-close するため）。

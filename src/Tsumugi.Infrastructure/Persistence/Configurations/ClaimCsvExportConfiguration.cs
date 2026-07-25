@@ -18,6 +18,8 @@ public sealed class ClaimCsvExportConfiguration : IEntityTypeConfiguration<Claim
             .HasColumnName("ProcessingMonthKey")
             .IsRequired();
         builder.Property(export => export.CsvSpecificationVersion).IsRequired().HasMaxLength(64);
+        builder.Property(export => export.FinalizedCsvSpecificationVersion)
+            .IsRequired().HasMaxLength(64);
         builder.Property(export => export.ClaimMasterVersion).IsRequired().HasMaxLength(64);
         builder.Property(export => export.Sha256).IsRequired().HasMaxLength(64);
         builder.Property(export => export.ByteLength).IsRequired();

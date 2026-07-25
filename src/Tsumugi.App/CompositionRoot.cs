@@ -110,7 +110,8 @@ public static class CompositionRoot
         // 出力履歴を書くUseCaseはDbContextに依存するためScoped。
         // 版レジストリ（施行分ごとの仕様を並存させ、処理対象年月で選ぶ。ADR 0039）。
         // 確定時に記録する版もここから取るため、確定側と生成側の版識別子が食い違わない。
-        services.AddSingleton(_ => CsvSpecificationRegistry.LoadEmbedded());
+        services.AddSingleton(sp => CsvSpecificationRegistry.LoadEmbedded(
+            sp.GetRequiredService<TimeProvider>()));
         services.AddSingleton<IClaimCsvSpecificationVersions>(
             sp => sp.GetRequiredService<CsvSpecificationRegistry>());
         services.AddSingleton<IClaimCsvGenerator>(

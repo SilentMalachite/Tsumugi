@@ -59,6 +59,67 @@ public sealed class ClaimCsvGenerator : IClaimCsvGenerator
         }
     }
 
+    /// <inheritdoc/>
+    public IReadOnlyList<ClaimCsvFieldIssue> CollectIssues(ClaimCsvDto dto)
+    {
+        ArgumentNullException.ThrowIfNull(dto);
+
+        var issues = new List<ClaimCsvFieldIssue>();
+        CsvSpecificationCatalog catalog;
+        IReadOnlyList<ClaimCsvRowPlan> rows;
+        ClaimCsvFieldResolver resolver;
+        CsvRecordSpecification[] records;
+        try
+        {
+            catalog = ResolveCatalog(dto.ProcessingMonth);
+            records = [.. catalog.ProviderRecords.OrderBy(record => record.Order)];
+            rows = ClaimCsvRowPlanner.Plan(dto, [.. records.Select(record => record.RecordId)]);
+            resolver = new ClaimCsvFieldResolver(dto, catalog, rows);
+        }
+        catch (Exception exception) when (IsSpecFailure(exception))
+        {
+            // 行の組み立て自体が成立しない（レコードが出せない等）場合は項目単位まで辿れない。
+            issues.Add(Translate(exception));
+            return issues;
+        }
+
+        var byRecordId = records.ToDictionary(record => record.RecordId, StringComparer.Ordinal);
+        foreach (var row in rows)
+        {
+            var record = byRecordId[row.RecordId];
+            foreach (var field in record.Fields)
+            {
+                try
+                {
+                    var cell = new CsvCell(field.FieldId, resolver.RenderCell(field.FieldId, row));
+                    _ = CsvCellEncoder.EncodeCell(cell, field);
+                }
+                catch (Exception exception) when (IsSpecFailure(exception))
+                {
+                    issues.Add(Translate(exception));
+                }
+            }
+        }
+
+        return issues;
+    }
+
+    private static bool IsSpecFailure(Exception exception) => exception
+        is CsvEncodingException or ClaimCsvGenerationException or CsvGeneratorRuleException;
+
+    private static ClaimCsvFieldIssue Translate(Exception exception) => exception switch
+    {
+        CsvEncodingException encoding =>
+            new(encoding.FieldId, encoding.Reason.ToString(), encoding.Detail),
+        ClaimCsvGenerationException generation => new(
+            generation.FieldId,
+            generation.Reason.ToString(),
+            generation.Detail,
+            generation.RecipientReferenceCode),
+        CsvGeneratorRuleException rule => new(rule.Target, "GeneratorRuleMalformed", rule.Detail),
+        _ => throw new InvalidOperationException("spec 由来でない例外を issue へ変換してはいけない。"),
+    };
+
     private ClaimCsvDocument GenerateCore(ClaimCsvDto dto)
     {
         ArgumentNullException.ThrowIfNull(dto);

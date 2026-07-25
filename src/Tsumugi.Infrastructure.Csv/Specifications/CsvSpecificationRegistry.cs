@@ -24,25 +24,50 @@ public sealed class CsvSpecificationRegistry : IClaimCsvSpecificationVersions
 {
     private readonly IReadOnlyList<CsvSpecificationVersionEntry> _entries;
     private readonly IReadOnlyDictionary<string, CsvSpecificationCatalog> _catalogsByVersion;
+    private readonly TimeProvider _clock;
 
     private CsvSpecificationRegistry(
         IReadOnlyList<CsvSpecificationVersionEntry> entries,
-        IReadOnlyDictionary<string, CsvSpecificationCatalog> catalogsByVersion)
+        IReadOnlyDictionary<string, CsvSpecificationCatalog> catalogsByVersion,
+        TimeProvider clock)
     {
         _entries = entries;
         _catalogsByVersion = catalogsByVersion;
+        _clock = clock;
     }
 
     /// <summary>登録されている版（適用開始の昇順）。</summary>
     public IReadOnlyList<CsvSpecificationVersionEntry> Versions => _entries;
 
     /// <summary>
-    /// 現行版（適用終了が無い最新版）。確定時に記録する版であり、readiness を検証した版でもある。
+    /// <b>今この時点で適用される版</b>。確定時に記録する版であり、readiness を検証した版でもある。
     /// </summary>
-    public string Current => _entries[^1].Version;
-
-    public static CsvSpecificationRegistry LoadEmbedded()
+    /// <remarks>
+    /// 「登録済みの最新版」ではない。次の施行分を<b>事前登録</b>した場合、最新版はまだ適用開始前なので、
+    /// それを確定時に記録すると出力側（処理対象年月で解決）と必ず食い違い、全件が版不一致になる。
+    /// 暦月の判定なので <see cref="TimeProvider.GetLocalNow"/> を使う（監査のタイムスタンプは
+    /// 従来どおり UTC。ここは「施行月に入ったか」という暦の判定であり、日本時間の月初から新版になる）。
+    /// 端末の日付がどの版の適用期間にも入らない場合は fail-close する（推測で版を選ばない）。
+    /// </remarks>
+    public string Current
     {
+        get
+        {
+            var today = _clock.GetLocalNow();
+            var month = new ProcessingMonth(today.Year, today.Month);
+            return ResolveVersion(_entries, month)
+                ?? throw new InvalidOperationException(
+                    $"現在の年月 {month} に適用されるCSV仕様版が登録されていません。"
+                    + $"端末の日付、または版レジストリの適用期間を確認してください。"
+                    + $"（登録済み: {string.Join(", ", _entries.Select(Describe))}）");
+        }
+    }
+
+    public static CsvSpecificationRegistry LoadEmbedded() => LoadEmbedded(TimeProvider.System);
+
+    public static CsvSpecificationRegistry LoadEmbedded(TimeProvider clock)
+    {
+        ArgumentNullException.ThrowIfNull(clock);
         var assembly = typeof(CsvSpecificationRegistry).Assembly;
         using var stream = CsvSpecificationLoader.OpenEmbeddedFile(
             assembly, "csv-specification-versions.json");
@@ -66,7 +91,7 @@ public sealed class CsvSpecificationRegistry : IClaimCsvSpecificationVersions
             }
         }
 
-        return new CsvSpecificationRegistry(entries, catalogs);
+        return new CsvSpecificationRegistry(entries, catalogs, clock);
     }
 
     /// <summary>処理対象年月に適用される仕様。該当版が無ければ fail-close する。</summary>

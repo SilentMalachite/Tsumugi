@@ -23,4 +23,11 @@ public interface IClaimCsvGenerator
     /// （版の解決は <see cref="IClaimCsvSpecificationVersions"/>。generator に版の property は置かない）。
     /// </summary>
     ClaimCsvDocument Generate(ClaimCsvDto dto);
+
+    /// <summary>
+    /// 生成を試みて<b>不足・不整合を全件</b>集める（例外にしない）。空なら生成できる。
+    /// <see cref="Generate"/> は最初の1件で fail-close するため、「この月を出すには何が必要か」を
+    /// 利用者に見せるにはこちらを使う（ADR 0040）。
+    /// </summary>
+    IReadOnlyList<ClaimCsvFieldIssue> CollectIssues(ClaimCsvDto dto);
 }

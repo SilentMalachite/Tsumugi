@@ -16,7 +16,14 @@ public sealed record ClaimCsvExport : Entity
     /// <summary>コントロールレコードへ書き込んだ処理対象年月。サービス提供年月とは独立した入力。</summary>
     public required ProcessingMonth ProcessingMonth { get; init; }
 
+    /// <summary>出力に実際に使ったCSV仕様版（処理対象年月に適用される版）。</summary>
     public required string CsvSpecificationVersion { get; init; }
+
+    /// <summary>
+    /// 確定時に記録されていたCSV仕様版。<see cref="CsvSpecificationVersion"/> と異なる場合は
+    /// 「旧版で確定した請求を、処理対象年月に適用される新版で出力した」ことを意味する（ADR 0040）。
+    /// </summary>
+    public required string FinalizedCsvSpecificationVersion { get; init; }
     public required string ClaimMasterVersion { get; init; }
 
     /// <summary>出力バイト列のSHA-256（64文字の小文字16進数）。</summary>
@@ -34,12 +41,16 @@ public sealed record ClaimCsvExport : Entity
         string sha256,
         int byteLength,
         string createdBy,
-        DateTimeOffset createdAt)
+        DateTimeOffset createdAt,
+        // 既存の位置引数呼び出しを壊さないため末尾へ追記する。null なら「確定時の版＝使った版」。
+        string? finalizedCsvSpecificationVersion = null)
     {
         RequireIdentity(id, nameof(id));
         RequireIdentity(claimBatchId, nameof(claimBatchId));
         _ = processingMonth.ToInt();
         ArgumentException.ThrowIfNullOrWhiteSpace(csvSpecificationVersion);
+        if (finalizedCsvSpecificationVersion is not null)
+            ArgumentException.ThrowIfNullOrWhiteSpace(finalizedCsvSpecificationVersion);
         ArgumentException.ThrowIfNullOrWhiteSpace(claimMasterVersion);
         ArgumentException.ThrowIfNullOrWhiteSpace(createdBy);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(byteLength);
@@ -51,6 +62,8 @@ public sealed record ClaimCsvExport : Entity
             ClaimBatchId = claimBatchId,
             ProcessingMonth = processingMonth,
             CsvSpecificationVersion = csvSpecificationVersion,
+            FinalizedCsvSpecificationVersion =
+                finalizedCsvSpecificationVersion ?? csvSpecificationVersion,
             ClaimMasterVersion = claimMasterVersion,
             Sha256 = sha256,
             ByteLength = byteLength,

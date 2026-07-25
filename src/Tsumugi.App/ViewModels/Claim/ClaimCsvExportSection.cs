@@ -42,6 +42,11 @@ public sealed partial class ClaimCsvExportSection(
     [ObservableProperty] private string? _lastSavedFileName;
     [ObservableProperty] private string? _errorMessage;
 
+    /// <summary>
+    /// 処理対象年月に適用される仕様版で出すために足りない項目（ADR 0040）。項目 ID と理由だけを載せる。
+    /// </summary>
+    public System.Collections.ObjectModel.ObservableCollection<string> MissingFieldSummaries { get; } = [];
+
     /// <summary>対象事業所ID。親ViewModelがOffice選択・履歴更新のたびに反映する。</summary>
     public Guid OfficeId { get; set; }
 
@@ -76,6 +81,7 @@ public sealed partial class ClaimCsvExportSection(
             return;
         }
 
+        MissingFieldSummaries.Clear();
         try
         {
             var result = await exportClaimCsv.ExecuteAsync(
@@ -99,6 +105,7 @@ public sealed partial class ClaimCsvExportSection(
         catch (ClaimCsvExportFailedException exception)
         {
             ErrorMessage = FormatExportFailure(exception);
+            await CollectMissingFieldsAsync(serviceMonth, processingMonth, ct);
         }
         catch (IOException)
         {
@@ -107,6 +114,45 @@ public sealed partial class ClaimCsvExportSection(
         catch (UnauthorizedAccessException)
         {
             ErrorMessage = SaveFailedMessage;
+        }
+    }
+
+    /// <summary>
+    /// 生成に失敗したときは「この月をこの仕様版で出すために足りない項目」を全件集めて示す。
+    /// 生成は最初の 1 件で止まるため、これが無いと利用者は 1 項目ずつ潰すことになる（ADR 0040）。
+    /// </summary>
+    private async Task CollectMissingFieldsAsync(
+        ServiceMonth serviceMonth, ProcessingMonth processingMonth, CancellationToken ct)
+    {
+        try
+        {
+            var validation = await exportClaimCsv.ValidateAsync(
+                OfficeId, serviceMonth, processingMonth, ct);
+            foreach (var issue in validation.Issues)
+            {
+                var reference = string.IsNullOrEmpty(issue.RecipientReferenceCode)
+                    ? string.Empty
+                    : $" 参照コード: {issue.RecipientReferenceCode}";
+                MissingFieldSummaries.Add($"項目: {issue.FieldId} / 理由: {issue.Reason}{reference}");
+            }
+
+            if (validation.UsesNewerVersionThanFinalized && !validation.CanExport)
+            {
+                ErrorMessage = "確定時とは異なる仕様版（処理対象年月に適用される版）で出力するため、"
+                    + "次の項目を入力して請求を再確定してください。";
+            }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (ClaimBatchNotFinalizedException)
+        {
+            // 直前の出力試行で確定状態が変わった場合。ErrorMessage は既に設定済み。
+        }
+        catch (ClaimCsvExportFailedException)
+        {
+            // 版が解決できない等、項目単位まで辿れない失敗。ErrorMessage は既に設定済み。
         }
     }
 

@@ -40,6 +40,46 @@ public sealed class CsvSpecificationRegistryTests
             .Which.Message.Should().Contain(firstFrom);
     }
 
+    // NOTE(teeth): Current は「登録済みの最新版」ではなく「その時点で適用される版」。
+    // 次の施行分を事前登録したとき、Current が将来版を返すと確定時の記録と出力時の解決が
+    // 必ず食い違い、全件が版不一致になる。
+    [Fact]
+    public void Current_is_the_version_in_force_now_not_the_newest_registered()
+    {
+        var entries = new[]
+        {
+            Entry("r7-10", "2025-10", "2027-03"),
+            Entry("r9-04", "2027-04", null),
+        };
+
+        // 2026-08 時点では r9-04 は事前登録済みだが適用開始前。
+        CsvSpecificationRegistry.ResolveVersion(entries, new ProcessingMonth(2026, 8))
+            .Should().Be("r7-10");
+        CsvSpecificationRegistry.ResolveVersion(entries, new ProcessingMonth(2027, 4))
+            .Should().Be("r9-04");
+    }
+
+    [Fact]
+    public void Current_uses_the_clock_and_fails_closed_when_no_version_applies()
+    {
+        var registry = CsvSpecificationRegistry.LoadEmbedded(
+            new FixedClock(new DateTimeOffset(2020, 1, 15, 9, 0, 0, TimeSpan.FromHours(9))));
+
+        var act = () => registry.Current;
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*端末の日付*");
+    }
+
+    [Fact]
+    public void Current_resolves_the_embedded_version_for_a_date_inside_its_period()
+    {
+        var registry = CsvSpecificationRegistry.LoadEmbedded(
+            new FixedClock(new DateTimeOffset(2026, 8, 1, 9, 0, 0, TimeSpan.FromHours(9))));
+
+        registry.Current.Should().Be("r7-10");
+    }
+
     [Fact]
     public void Every_registered_version_cites_its_applicability_period()
     {
@@ -149,6 +189,15 @@ public sealed class CsvSpecificationRegistryTests
             new CsvSpecificationVersionFile(1, "csv-specification-versions", []));
 
         act.Should().Throw<InvalidDataException>().WithMessage("*empty*");
+    }
+
+    /// <summary>暦月の判定なので local 時刻を返す固定 clock（月初の境界を JST で評価する）。</summary>
+    private sealed class FixedClock(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now.ToUniversalTime();
+
+        public override TimeZoneInfo LocalTimeZone =>
+            TimeZoneInfo.CreateCustomTimeZone("test-jst", TimeSpan.FromHours(9), "test-jst", "test-jst");
     }
 
     private static CsvSpecificationVersionEntry Entry(string version, string from, string? to) =>

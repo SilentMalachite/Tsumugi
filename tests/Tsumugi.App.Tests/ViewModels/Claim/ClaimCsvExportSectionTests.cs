@@ -149,6 +149,9 @@ public sealed class ClaimCsvExportSectionTests
 
     private sealed class RecordingGenerator : IClaimCsvGenerator
     {
+        public IReadOnlyList<global::Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvFieldIssue>
+            CollectIssues(global::Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvDto dto) => [];
+
 
         public ClaimCsvDto? LastDto { get; private set; }
         public ClaimCsvExportFailedException? Failure { get; set; }

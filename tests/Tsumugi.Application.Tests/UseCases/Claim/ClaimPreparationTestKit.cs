@@ -593,6 +593,9 @@ internal static class ClaimPreparationTestKit
     /// <summary>版が解決できない場合は生成に入らないことを示すための generator（呼ばれたら失敗）。</summary>
     internal sealed class ThrowingCsvGenerator : IClaimCsvGenerator
     {
+        public IReadOnlyList<global::Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvFieldIssue>
+            CollectIssues(global::Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvDto dto) => [];
+
         public global::Tsumugi.Application.Abstractions.ClaimCsvDocument Generate(
             global::Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvDto dto)
             => throw new InvalidOperationException("版が解決できないときに generator を呼んではいけない。");

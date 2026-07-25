@@ -342,6 +342,9 @@ internal static class ClaimPreparationViewModelTestKit
     /// <c>ClaimCsvExportProductionWiringTests</c>で別途検証済み）。</summary>
     internal sealed class NoOpClaimCsvGenerator : IClaimCsvGenerator
     {
+        public IReadOnlyList<global::Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvFieldIssue>
+            CollectIssues(global::Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvDto dto) => [];
+
         public ClaimCsvDocument Generate(Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvDto dto) =>
             new([], "J110000A.CSV");
     }

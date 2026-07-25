@@ -129,19 +129,59 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
         await act.Should().ThrowAsync<ClaimBatchNotFinalizedException>();
     }
 
-    // NOTE(teeth): 確定時に記録した CSV 仕様版と生成時の版が食い違ったら出力しない。
+    // NOTE(teeth): 確定時の版と、処理対象年月に適用される版が違っても、新版が項目を増やして
+    // いなければ再確定なしで出せる（ADR 0040）。入口で版不一致を弾く実装に戻すとここが RED。
+    // 出力履歴には「使った版」と「確定時の版」の両方が残る。
     [Fact]
-    public async Task Real_wiring_refuses_to_export_when_the_finalized_specification_version_differs()
+    public async Task Real_wiring_exports_under_the_version_that_applies_to_the_processing_month()
     {
         await using var context = _fixture.NewContext();
         var (officeId, serviceMonth) = await SeedFinalizedBatchAsync(
-            context, month: 4, csvSpecificationVersion: "r9-99");
+            context, month: 4, csvSpecificationVersion: "r9-99", withContract: true);
 
-        var act = async () => await CreateUseCase(context).ExecuteAsync(
+        var result = await CreateUseCase(context).ExecuteAsync(
             officeId, serviceMonth, new ProcessingMonth(2026, 8), "tester", default);
 
-        (await act.Should().ThrowAsync<ClaimCsvExportFailedException>())
-            .Which.Reason.Should().Be("CsvSpecificationVersionMismatch");
+        result.Bytes.Should().NotBeEmpty();
+        var history = await new ClaimCsvExportRepository(context)
+            .ListByBatchAsync(await LatestBatchIdAsync(context, officeId, serviceMonth), default);
+        var entry = history.Should().ContainSingle().Subject;
+        entry.CsvSpecificationVersion.Should().Be("r7-10", "処理対象年月 2026-08 に適用される版");
+        entry.FinalizedCsvSpecificationVersion.Should().Be("r9-99", "確定時に記録されていた版");
+    }
+
+    // NOTE(teeth): 新版で出すのに足りない項目は、最初の1件で止めずに全件返す（ADR 0040）。
+    // 契約情報が無い確定分は、契約情報レコードの複数項目と開始年月日が不足する。
+    [Fact]
+    public async Task Real_wiring_collects_every_missing_field_instead_of_only_the_first()
+    {
+        await using var context = _fixture.NewContext();
+        var (officeId, serviceMonth) = await SeedFinalizedBatchAsync(context, month: 3, withContract: false);
+
+        var validation = await CreateUseCase(context).ValidateAsync(
+            officeId, serviceMonth, new ProcessingMonth(2026, 8), default);
+
+        validation.CanExport.Should().BeFalse();
+        validation.Issues.Should().HaveCountGreaterThan(
+            1, "生成を1件で打ち切らず、不足している項目をすべて集める");
+        validation.Issues.Select(issue => issue.FieldId).Should().OnlyHaveUniqueItems();
+        validation.Issues.Should().OnlyContain(issue => issue.FieldId.Length > 0);
+        // 氏名・受給者証番号は載せない（ハード制約4）。
+        validation.Issues.Should().OnlyContain(issue => !issue.Detail.Contains('ﾂ', StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Real_wiring_reports_no_missing_fields_when_the_batch_is_exportable()
+    {
+        await using var context = _fixture.NewContext();
+        var (officeId, serviceMonth) = await SeedFinalizedBatchAsync(context, month: 2, withContract: true);
+
+        var validation = await CreateUseCase(context).ValidateAsync(
+            officeId, serviceMonth, new ProcessingMonth(2026, 8), default);
+
+        validation.CanExport.Should().BeTrue();
+        validation.UsesNewerVersionThanFinalized.Should().BeFalse();
+        validation.ResolvedVersion.Should().Be("r7-10");
     }
 
     // 出力は「確定済みの実効 ClaimBatch」からしか作れない。
