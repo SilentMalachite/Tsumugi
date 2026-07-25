@@ -780,7 +780,7 @@
         {
           "documentId": "r8-capability-correction",
           "sha256": "06414c8aad4c014f44fd211dac141d152f30135fb622cdd32874e1c6bccbd980",
-          "locator": "物理9頁 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「２．Ⅰ・イ」を含む）",
+          "locator": "物理9頁（印字頁番号なし） 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「２．Ⅰ・イ」を含む）",
           "evidenceRole": "authoritative",
           "supports": [
             "conditions"
@@ -818,7 +818,7 @@
         {
           "documentId": "r8-capability-correction",
           "sha256": "06414c8aad4c014f44fd211dac141d152f30135fb622cdd32874e1c6bccbd980",
-          "locator": "物理9頁 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「７．Ⅰ・ロ」を含む）",
+          "locator": "物理9頁（印字頁番号なし） 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「７．Ⅰ・ロ」を含む）",
           "evidenceRole": "authoritative",
           "supports": [
             "conditions"
@@ -856,7 +856,7 @@
         {
           "documentId": "r8-capability-correction",
           "sha256": "06414c8aad4c014f44fd211dac141d152f30135fb622cdd32874e1c6bccbd980",
-          "locator": "物理9頁 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「３．Ⅱ・イ」を含む）",
+          "locator": "物理9頁（印字頁番号なし） 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「３．Ⅱ・イ」を含む）",
           "evidenceRole": "authoritative",
           "supports": [
             "conditions"
@@ -894,7 +894,7 @@
         {
           "documentId": "r8-capability-correction",
           "sha256": "06414c8aad4c014f44fd211dac141d152f30135fb622cdd32874e1c6bccbd980",
-          "locator": "物理9頁 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「８．Ⅱ・ロ」を含む）",
+          "locator": "物理9頁（印字頁番号なし） 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「８．Ⅱ・ロ」を含む）",
           "evidenceRole": "authoritative",
           "supports": [
             "conditions"
@@ -932,7 +932,7 @@
         {
           "documentId": "r8-capability-correction",
           "sha256": "06414c8aad4c014f44fd211dac141d152f30135fb622cdd32874e1c6bccbd980",
-          "locator": "物理9頁 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「４．Ⅲ」を含む）",
+          "locator": "物理9頁（印字頁番号なし） 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「４．Ⅲ」を含む）",
           "evidenceRole": "authoritative",
           "supports": [
             "conditions"
@@ -970,7 +970,7 @@
         {
           "documentId": "r8-capability-correction",
           "sha256": "06414c8aad4c014f44fd211dac141d152f30135fb622cdd32874e1c6bccbd980",
-          "locator": "物理9頁 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「５．Ⅳ」を含む）",
+          "locator": "物理9頁（印字頁番号なし） 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「５．Ⅳ」を含む）",
           "evidenceRole": "authoritative",
           "supports": [
             "conditions"
