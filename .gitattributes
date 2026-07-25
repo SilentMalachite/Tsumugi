@@ -36,3 +36,7 @@
 *.dylib  binary
 *.so     binary
 *.snk    binary
+
+# 国保連CSVのgoldenはCP932/CRLFのバイト列そのものを固定する。
+# 改行・文字コードの正規化が入るとバイト一致テスト（AC3-7）が壊れるため binary 扱いにする。
+tests/Tsumugi.Infrastructure.Csv.Tests/Fixtures/*.csv binary
