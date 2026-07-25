@@ -26,13 +26,14 @@ public sealed class CloseClaimUseCase(
     IOfficeRepository officeRepository,
     IClaimBillingTokenProvider tokenProvider,
     ClaimPreparationReadiness readiness,
+    IClaimGenericFieldCatalog genericFieldCatalog,
     IClaimBatchRepository batchRepository,
     IClaimCsvSpecificationVersions specificationVersions,
     IClaimFinalizationStore finalizationStore,
     IOperationLocalSnapshotReader operationSnapshotReader)
 {
     private readonly ClaimPreviewPipeline _pipeline = new(
-        snapshotReader, masterProvider, officeRepository, tokenProvider, readiness, specificationVersions);
+        snapshotReader, masterProvider, officeRepository, tokenProvider, readiness, specificationVersions, genericFieldCatalog);
 
     // ClaimPreviewPipelineと同じ直接インスタンス化パターン（Task 2で確立）。単一固定codecの
     // envelope化にDI registry解決は不要。

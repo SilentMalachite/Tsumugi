@@ -26,6 +26,9 @@ internal static class ClaimCsvModelPath
     /// </summary>
     internal const string UnitSuffixSeparator = ":";
 
+    /// <summary>汎用 pass-through 入力（ADR 0042）の path 接頭辞。</summary>
+    internal const string GenericInputPrefix = "ClaimGenericInput.";
+
     /// <summary>1/100 時間単位（事業所編の「整数部2桁・小数部2桁」書式に対応する尺度）。</summary>
     internal const string HundredthsOfHourUnit = "hundredthsOfHour";
 
@@ -182,6 +185,12 @@ internal static class ClaimCsvModelPath
                 scope.RequireDay(path).ServiceStartTime, ClaimCsvValue.FromTime),
             "DailyRecord.ServiceEndTime" => ClaimCsvValue.FromOptional(
                 scope.RequireDay(path).ServiceEndTime, ClaimCsvValue.FromTime),
+            // 汎用 pass-through 入力（ADR 0042）。宣言だけで増える項目なので、path 名ごとの
+            // ハードコードを増やさず接頭辞で受ける。値は文字列で、数値属性の項目でも encoder が
+            // 文字種と桁数を再検証する。
+            _ when path.StartsWith(GenericInputPrefix, StringComparison.Ordinal) =>
+                GenericInput(scope, path),
+
             "DailyRecord.SpecialVisitSupportMinutes" => ClaimCsvValue.FromOptionalNumber(
                 scope.RequireDay(path).SpecialVisitSupportMinutes),
             SpecialVisitSupportServiceHoursPath =>
@@ -276,6 +285,21 @@ internal static class ClaimCsvModelPath
     /// 丸め桁も定めていないため、黙って丸めずに fail-close する。切り上げ・切り捨て・四捨五入の
     /// どれを採っても加算の算定時間が動くため、推測で埋めない（docs/open-questions.md で追跡）。
     /// </remarks>
+    /// <summary>
+    /// 宣言された汎用 pass-through 入力の値。未入力は Missing（要求条件が真なら encoder が
+    /// <c>MissingRequired</c> で fail-close する）。
+    /// </summary>
+    private static ClaimCsvValue GenericInput(ClaimCsvResolutionScope scope, string path)
+    {
+        var name = path[GenericInputPrefix.Length..];
+        var recipient = scope.RequireRecipient(path);
+        return recipient.GenericInputs is { } values
+            && values.TryGetValue(name, out var value)
+            && !string.IsNullOrWhiteSpace(value)
+                ? ClaimCsvValue.FromText(value)
+                : ClaimCsvValue.Missing;
+    }
+
     private static ClaimCsvValue HundredthsOfHour(ClaimCsvResolutionScope scope, int? minutes)
     {
         if (minutes is not { } value) return ClaimCsvValue.Missing;

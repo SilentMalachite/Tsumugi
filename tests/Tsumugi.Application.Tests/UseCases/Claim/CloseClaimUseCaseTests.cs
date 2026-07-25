@@ -149,6 +149,7 @@ public sealed class CloseClaimUseCaseTests
             new Kit.FakeOfficeRepository(Kit.Office()),
             new Kit.FakeTokenProvider(Kit.Tokens()),
             Kit.Readiness(),
+            new Kit.FakeGenericFieldCatalog(),
             new Kit.FakeBatchRepository(history),
             new Kit.FakeCsvSpecificationVersions(),
             store,

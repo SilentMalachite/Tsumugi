@@ -85,6 +85,20 @@ public sealed class ViewInputWiringTests
         xml.Should().NotContain("Phase3-3");
     }
 
+    // NOTE(teeth): 汎用 pass-through 入力（ADR 0042）は spec の宣言だけで増える。よって binding 名を
+    // 手で列挙せず、「宣言を並べる仕組みが画面にある」ことを検査する。ItemsControl と
+    // ラベル・補助文・値の binding が消えると、新しい宣言が画面に出なくなる。
+    [Fact]
+    public void ClaimInputView_renders_declared_generic_fields_from_the_specification()
+    {
+        var xml = ReadView("ClaimInputView.axaml");
+
+        xml.Should().Contain("{Binding GenericInputFields}");
+        xml.Should().Contain("{Binding Label}");
+        xml.Should().Contain("{Binding Help}");
+        xml.Should().Contain("{Binding Value}");
+    }
+
     [Fact]
     public void ClaimInputView_exposes_only_owned_fields_histories_and_keyboard_commands()
     {

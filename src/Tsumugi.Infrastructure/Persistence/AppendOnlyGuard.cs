@@ -26,6 +26,9 @@ public static class AppendOnlyGuard
         typeof(ClaimBatch),
         typeof(ClaimDetail),
         typeof(ClaimInput),
+        // 汎用 pass-through 入力（ADR 0042）。親 revision に属する子行で、変更・削除は許さない
+        // （訂正は親の新 revision で集合を作り直す）。
+        typeof(ClaimInputGenericValue),
         typeof(IntensiveSupportEpisode),
         typeof(AverageWageAnnualEvidence),
         typeof(OfficeClaimProfile),

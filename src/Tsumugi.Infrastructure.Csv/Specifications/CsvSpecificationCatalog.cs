@@ -130,7 +130,7 @@ public sealed record CsvSpecificationCatalog
         {
             "quote-rule", "prohibited-characters", "zero-value-rule", "file-name-rule", "data-kind",
             "code-table", "field-semantics", "count-rule", "unit-and-format", "derivability",
-            "record-purpose", "derived-byte-length",
+            "record-purpose", "derived-byte-length", "pass-through",
         };
 
         var duplicate = EvidenceClaims
@@ -179,6 +179,21 @@ public sealed record CsvSpecificationCatalog
                     throw new InvalidDataException(
                         $"Spec evidence claim '{claim.ClaimId}' has an invalid source reference.");
                 }
+            }
+        }
+
+        // storage: "generic" は「算定に効かない転記項目」に限る。その判断は台帳の claim で示す。
+        foreach (var mapping in MappingByFieldId.Values.Where(IsGenericStorage))
+        {
+            var claim = EvidenceClaims.FirstOrDefault(item =>
+                string.Equals(item.ClaimId, mapping.FieldId, StringComparison.Ordinal));
+            if (claim is null
+                || !claim.SourceRefs.Any(sourceRef => sourceRef.Supports.Contains(
+                    "pass-through", StringComparer.Ordinal)))
+            {
+                throw new InvalidDataException(
+                    $"fieldId '{mapping.FieldId}' declares storage 'generic' but the evidence ledger has "
+                    + "no 'pass-through' claim showing that the value does not affect the calculation.");
             }
         }
 
@@ -364,6 +379,58 @@ public sealed record CsvSpecificationCatalog
         }
     }
 
+    /// <summary>汎用入力の宣言モデル名。この model 名の値は算定入力へは一切渡さない。</summary>
+    internal const string GenericInputModel = "ClaimGenericInput";
+
+    internal static bool IsGenericStorage(CsvFieldMapping mapping) =>
+        string.Equals(mapping.Storage, "generic", StringComparison.Ordinal);
+
+    /// <summary>
+    /// <c>storage</c> の契約。既定（未宣言）は型付き。<c>generic</c> は宣言（ラベル・属性・桁数）を
+    /// 必須にし、項目定義の属性・桁数と一致させる（UI と入力検証が spec だけで駆動できる状態を保つ）。
+    /// </summary>
+    private static void ValidateStorageContract(CsvFieldSpecification field, CsvFieldMapping mapping)
+    {
+        if (mapping.Storage is not null and not "typed" and not "generic")
+        {
+            throw new InvalidDataException(
+                $"fieldId '{field.FieldId}' declares an unknown storage '{mapping.Storage}'.");
+        }
+
+        if (!IsGenericStorage(mapping))
+        {
+            if (mapping.GenericInput is not null)
+            {
+                throw new InvalidDataException(
+                    $"fieldId '{field.FieldId}' declares genericInput without storage 'generic'.");
+            }
+
+            return;
+        }
+
+        if (!string.Equals(mapping.Status, "missing", StringComparison.Ordinal))
+        {
+            throw new InvalidDataException(
+                $"fieldId '{field.FieldId}' may declare storage 'generic' only with the 'missing' status.");
+        }
+
+        if (mapping.GenericInput is not { } declaration)
+        {
+            throw new InvalidDataException(
+                $"fieldId '{field.FieldId}' declares storage 'generic' without a genericInput block.");
+        }
+
+        if (string.IsNullOrWhiteSpace(declaration.Label)
+            || string.IsNullOrWhiteSpace(declaration.Help)
+            || !string.Equals(declaration.DataType, field.DataType, StringComparison.Ordinal)
+            || declaration.MaxBytes != field.MaxBytes)
+        {
+            throw new InvalidDataException(
+                $"fieldId '{field.FieldId}' genericInput must carry a label, a help text and the "
+                + "same dataType and maxBytes as the official field definition.");
+        }
+    }
+
     private static void ValidateMapping(
         CsvFieldSpecification field,
         CsvFieldMapping mapping)
@@ -403,6 +470,8 @@ public sealed record CsvSpecificationCatalog
                 $"fieldId '{field.FieldId}' declares a crossFieldGroup outside the 'missing' status.");
         }
 
+        ValidateStorageContract(field, mapping);
+
         var validStatus = mapping.Status switch
         {
             "generated" => !string.IsNullOrWhiteSpace(mapping.GeneratorRule)
@@ -418,6 +487,15 @@ public sealed record CsvSpecificationCatalog
                 && !hasGeneratorRule
                 && !hasModelPath
                 && !hasMigrationContract
+                && !hasDependencies,
+            // storage: "generic" は Domain の型付き列を増やさないので migrationRequired は false。
+            "missing" when IsGenericStorage(mapping) => mapping.MigrationRequired is false
+                && string.Equals(mapping.TargetModel, GenericInputModel, StringComparison.Ordinal)
+                && !string.IsNullOrWhiteSpace(mapping.TargetProperty)
+                && !string.IsNullOrWhiteSpace(mapping.UiSurface)
+                && !hasGeneratorRule
+                && !hasModelPath
+                && !hasInputContract
                 && !hasDependencies,
             "missing" => mapping.MigrationRequired is true
                 && !string.IsNullOrWhiteSpace(mapping.TargetModel)

@@ -43,7 +43,9 @@ public static class ClaimPreparationContextBuilder
     public static ClaimPreparationContextBuildResult Build(
         ClaimCalculationSnapshot snapshot,
         Office? office,
-        bool masterVersionAvailable)
+        bool masterVersionAvailable,
+        // 汎用 pass-through 入力（ADR 0042）の宣言名。宣言された分だけ readiness の値を置く。
+        IReadOnlyCollection<string>? declaredGenericNames = null)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
 
@@ -59,7 +61,8 @@ public static class ClaimPreparationContextBuilder
 
         var evidenceByRecipient = snapshot.EffectiveCertificateEvidenceByRecipient;
         var recipients = snapshot.RecipientIds
-            .Select(recipientId => BuildRecipient(snapshot, recipientId, evidenceByRecipient, issues))
+            .Select(recipientId => BuildRecipient(
+                snapshot, recipientId, evidenceByRecipient, issues, declaredGenericNames))
             .ToArray();
 
         var context = new ClaimPreparationContext(
@@ -108,7 +111,8 @@ public static class ClaimPreparationContextBuilder
         ClaimCalculationSnapshot snapshot,
         Guid recipientId,
         IReadOnlyDictionary<Guid, CertificateClaimEvidence> evidenceByRecipient,
-        List<ClaimPreparationIssue> issues)
+        List<ClaimPreparationIssue> issues,
+        IReadOnlyCollection<string>? declaredGenericNames)
     {
         var inputs = snapshot.EffectiveClaimInputs
             .Where(input => input.RecipientId == recipientId)
@@ -176,7 +180,9 @@ public static class ClaimPreparationContextBuilder
                         input.ExceptionalUsageDays,
                         input.StandardUsageDayTotal,
                         input.SpecialVisitSupportBilledCount,
-                        input.OffsiteSupportCumulativeDays),
+                        input.OffsiteSupportCumulativeDays,
+                        input.GenericValues.ToDictionary(
+                            value => value.Name, value => value.Value, StringComparer.Ordinal)),
                 certificate is null
                     ? ClaimReadinessCertificate.Absent
                     : new ClaimReadinessCertificate(
@@ -189,7 +195,8 @@ public static class ClaimPreparationContextBuilder
                         contractedProvider.CertificateEntryNumber,
                         contractedProvider.FirstServiceDate),
                 dailyRecordAggregate,
-                intensiveSupportEpisodeStartDate),
+                intensiveSupportEpisodeStartDate,
+                declaredGenericNames),
             rowScopes,
             certificateCount,
             CertificateEvidenceState(certificateCount, evidence),
@@ -202,6 +209,35 @@ public static class ClaimPreparationContextBuilder
     /// 確定 snapshot 由来の値がここへ入る。ADR 0041）。
     /// </summary>
     internal static Dictionary<string, ClaimPreparationValue> BuildRecipientValues(
+        ClaimReadinessClaimInput input,
+        ClaimReadinessCertificate certificate,
+        ClaimReadinessContractedProvider contractedProvider,
+        ClaimDailyRecordAggregate dailyRecordAggregate,
+        DateOnly? intensiveSupportEpisodeStartDate,
+        IReadOnlyCollection<string>? declaredGenericNames = null)
+    {
+        var values = BuildTypedRecipientValues(
+            input, certificate, contractedProvider, dailyRecordAggregate, intensiveSupportEpisodeStartDate);
+
+        // 汎用 pass-through 入力（ADR 0042）。**宣言された名前の分だけ**キーを置く。
+        // 未入力は NotApplicable。キーを置かないと readiness が Unresolved（条件が評価できない）に
+        // なってしまい、「入力すれば済む」ことが伝わらない。
+        foreach (var name in declaredGenericNames ?? [])
+        {
+            var path = GenericInputModel + "." + name;
+            values[path] = input.GenericValues?.TryGetValue(name, out var value) is true
+                && !string.IsNullOrWhiteSpace(value)
+                    ? ClaimPreparationValue.Text(value)
+                    : ClaimPreparationValue.NotApplicable();
+        }
+
+        return values;
+    }
+
+    /// <summary>汎用入力の readiness path 接頭辞に使うモデル名（CSV 仕様の宣言と一致させる）。</summary>
+    internal const string GenericInputModel = "ClaimGenericInput";
+
+    private static Dictionary<string, ClaimPreparationValue> BuildTypedRecipientValues(
         ClaimReadinessClaimInput input,
         ClaimReadinessCertificate certificate,
         ClaimReadinessContractedProvider contractedProvider,

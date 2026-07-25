@@ -15,6 +15,11 @@ namespace Tsumugi.App.Tests;
 
 public sealed class ClaimInputViewModelTests
 {
+    /// <summary>汎用 pass-through 入力（ADR 0042）は既定で宣言なし。宣言する場合はテスト側で差し替える。</summary>
+    private static readonly IClaimGenericFieldCatalog GenericCatalog = new NoGenericFields();
+
+    private static readonly IClaimCsvSpecificationVersions CsvVersions = new FixedCsvVersions();
+
     private static readonly ServiceMonth Month = new(2026, 6);
 
     [Fact]
@@ -655,12 +660,14 @@ public sealed class ClaimInputViewModelTests
         var clock = new FixedTimeProvider(DateTimeOffset.UnixEpoch.AddDays(1));
         var sut = new ClaimInputViewModel(
             null!, null!, null!, query,
-            new SetClaimInputUseCase(claimInput, uow, clock),
+            new SetClaimInputUseCase(claimInput, uow, GenericCatalog, CsvVersions, clock),
             new SetAverageWageAnnualEvidenceUseCase(averageWage, uow, clock),
             new SetOfficeClaimProfileUseCase(officeProfile, uow, clock, policyProvider),
             new SetCertificateClaimEvidenceUseCase(certificateEvidence, uow, clock),
             new SetUpperLimitManagementStatementUseCase(statement, uow, clock),
-            new QueryClaimBillingTokenOptionsUseCase(new FakeClaimMasterProvider()))
+            new QueryClaimBillingTokenOptionsUseCase(new FakeClaimMasterProvider()),
+            GenericCatalog,
+            CsvVersions)
         {
             OfficeId = officeId,
             RecipientId = recipientId,
@@ -836,4 +843,25 @@ public sealed class ClaimInputViewModelTests
     {
         public override DateTimeOffset GetUtcNow() => now;
     }
+    /// <summary>汎用 pass-through 入力（ADR 0042）の宣言フェイク。既定は宣言なし。</summary>
+    private sealed class NoGenericFields : IClaimGenericFieldCatalog
+    {
+        /// <summary>宣言が無いので検証も行わない（宣言済みの検証は Infrastructure.Csv 側のテスト）。</summary>
+        public void ValidateValue(string specificationVersion, string name, string value)
+        {
+        }
+
+        public IReadOnlyList<ClaimGenericFieldDeclaration> GetDeclarations(string specificationVersion) => [];
+    }
+
+    private sealed class FixedCsvVersions : IClaimCsvSpecificationVersions
+    {
+        public string Current => "r7-10";
+
+        public IReadOnlyList<string> UpcomingVersions => [];
+
+        public string ResolveForProcessingMonth(ProcessingMonth processingMonth) => Current;
+    }
+
+
 }

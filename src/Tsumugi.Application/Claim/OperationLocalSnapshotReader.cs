@@ -157,7 +157,11 @@ public sealed class OperationLocalSnapshotReader(
             claimInput?.ExceptionalUsageDays,
             claimInput?.StandardUsageDayTotal,
             claimInput?.SpecialVisitSupportBilledCount,
-            claimInput?.OffsiteSupportCumulativeDays);
+            claimInput?.OffsiteSupportCumulativeDays,
+            // 汎用 pass-through 入力（ADR 0042）。確定時点の集合をそのまま焼き込む。
+            [.. (claimInput?.GenericValues ?? [])
+                .OrderBy(value => value.Name, StringComparer.Ordinal)
+                .Select(value => new ClaimFinalizationGenericValueSnapshot(value.Name, value.Value))]);
 
     private static ClaimFinalizationDailyRecordSnapshot BuildDailyRecordSnapshot(DailyRecord record)
         => new(

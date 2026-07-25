@@ -92,7 +92,22 @@ public sealed record ClaimFinalizationClaimInputSnapshot(
     /// できないため、運用者が明細書の「累計」欄に設定した値をそのまま焼き込む（導出しない）。
     /// Phase 3-3 で追加したため、これより前に確定した snapshot では null になる。
     /// </summary>
-    int? OffsiteSupportCumulativeDays = null);
+    int? OffsiteSupportCumulativeDays = null,
+    /// <summary>
+    /// 確定時点の汎用 pass-through 入力（ADR 0042）。名前→値。CSV へ転記するだけの値で、
+    /// 報酬算定には渡さない。決定論のため<b>名前昇順</b>で書き出す。
+    /// ADR 0042 より前に確定した snapshot では空。
+    /// </summary>
+    IReadOnlyList<ClaimFinalizationGenericValueSnapshot>? GenericValues = null)
+{
+    /// <inheritdoc cref="GenericValues"/>
+    public IReadOnlyList<ClaimFinalizationGenericValueSnapshot> GenericValues { get; init; } =
+        GenericValues ?? [];
+}
+
+/// <param name="Name">値の名前（CSV 仕様の宣言に一致）。</param>
+/// <param name="Value">値（文字列表現）。</param>
+public sealed record ClaimFinalizationGenericValueSnapshot(string Name, string Value);
 
 public sealed record ClaimFinalizationDailyRecordSnapshot(
     DateOnly ServiceDate,

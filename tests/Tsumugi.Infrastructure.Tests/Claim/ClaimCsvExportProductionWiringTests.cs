@@ -226,6 +226,7 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
         CsvSpecificationRegistry.LoadEmbedded(),
         // production と同じ「版ごとの readiness 要件」を使う（要件由来の不足も合流する）。
         ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(CsvSpecificationRegistry.LoadEmbedded()),
+        CsvGenericFieldCatalog.LoadEmbedded(CsvSpecificationRegistry.LoadEmbedded()),
         new ClaimCsvGenerator(CsvSpecificationRegistry.LoadEmbedded()),
         new ClaimCsvExportRepository(context),
         new FixedTimeProvider(FixedNow));

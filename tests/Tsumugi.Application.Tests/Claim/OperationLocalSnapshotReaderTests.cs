@@ -137,7 +137,9 @@ public sealed class OperationLocalSnapshotReaderTests
             "r6-2026-04", "r7-10", "r1-10", CancellationToken.None);
 
         snapshot.IntensiveSupportEpisode.Should().BeNull();
-        snapshot.ClaimInput.Should().Be(
+        // record 等値はコレクション member（汎用 pass-through 入力・ADR 0042）を参照比較するため、
+        // 構造比較で見る（他の snapshot（DailyRecords 等）と同じ扱い）。
+        snapshot.ClaimInput.Should().BeEquivalentTo(
             new ClaimFinalizationClaimInputSnapshot(null, null, null, null, null, null, null));
     }
 

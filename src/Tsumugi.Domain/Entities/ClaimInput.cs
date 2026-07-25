@@ -14,6 +14,14 @@ public sealed record ClaimInput : Entity
     public required int Revision { get; init; }
     public required RecordKind Kind { get; init; }
     public Guid? ExpectedHeadId { get; init; }
+
+    /// <summary>
+    /// 汎用 pass-through 入力（ADR 0042）。CSV 仕様が <c>storage: "generic"</c> と宣言した項目の値で、
+    /// <b>報酬算定には一切渡さない</b>（転記専用）。名前と値の意味は CSV 仕様側の宣言が正本で、
+    /// Domain は「名前は空でない・重複しない・値は空でない」だけを保証する。
+    /// 訂正は他の請求入力と同じく新 revision で集合を作り直す（この行に独立した履歴を持たせない）。
+    /// </summary>
+    public IReadOnlyList<ClaimInputGenericValue> GenericValues { get; init; } = [];
     public UpperLimitManagementResult? UpperLimitManagementResult { get; init; }
     public int? UpperLimitManagedAmountYen { get; init; }
     public int? MunicipalSubsidyAmountYen { get; init; }

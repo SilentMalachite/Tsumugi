@@ -211,7 +211,9 @@ public sealed class QueryClaimInputWorkspaceUseCase(
             item.CreatedAt,
             item.CreatedBy,
             item.SpecialVisitSupportBilledCount,
-            item.OffsiteSupportCumulativeDays);
+            item.OffsiteSupportCumulativeDays,
+            item.GenericValues.ToDictionary(
+                value => value.Name, value => value.Value, StringComparer.Ordinal));
 
     private static AverageWageAnnualEvidenceQueryRevisionDto Map(
         AverageWageAnnualEvidence item) =>

@@ -142,6 +142,7 @@ public sealed class ClaimCsvExportSectionTests
             new StubOfficeContextProvider(),
             new StubSpecificationVersions(),
             new StubRequirementProvider(),
+            new StubGenericFieldCatalog(),
             generator,
             new NoopExportRepository(),
             TimeProvider.System);
@@ -196,6 +197,17 @@ public sealed class ClaimCsvExportSectionTests
     private sealed class StubRequirementProvider : IClaimInputRequirementProvider
     {
         public IReadOnlyList<ClaimInputRequirement> GetRequirements(string specificationVersion) => [];
+    }
+
+    /// <summary>汎用入力の宣言なし（このテストの関心は UI 配線）。</summary>
+    private sealed class StubGenericFieldCatalog : IClaimGenericFieldCatalog
+    {
+        /// <summary>宣言が無いので検証も行わない（宣言済みの検証は Infrastructure.Csv 側のテスト）。</summary>
+        public void ValidateValue(string specificationVersion, string name, string value)
+        {
+        }
+
+        public IReadOnlyList<ClaimGenericFieldDeclaration> GetDeclarations(string specificationVersion) => [];
     }
 
     /// <summary>版解決のスタブ。fixture が確定側に書く版と同じ文字列を返す。</summary>

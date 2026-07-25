@@ -81,7 +81,12 @@ public sealed record ClaimCsvRecipientDto(
     // Phase 3-3（グループB個別入力）。既存プロパティの順序を変えるとゴールデンCSVが壊れるため、
     // 末尾に省略可能パラメータとして追記する。
     int? SpecialVisitSupportBilledCount = null,
-    int? OffsiteSupportCumulativeDays = null);
+    int? OffsiteSupportCumulativeDays = null,
+    /// <summary>
+    /// 汎用 pass-through 入力（ADR 0042）。名前→値。CSV 仕様が <c>storage: "generic"</c> と
+    /// 宣言した項目の値で、転記専用。
+    /// </summary>
+    IReadOnlyDictionary<string, string>? GenericInputs = null);
 
 /// <summary>
 /// 明細書「契約情報」レコード（<c>provider:J121:05</c>）に必要な契約内容。

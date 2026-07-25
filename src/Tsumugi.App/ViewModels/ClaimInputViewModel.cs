@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Application.UseCases.Certificate;
 using Tsumugi.Application.UseCases.Claim;
@@ -31,8 +32,13 @@ public sealed partial class ClaimInputViewModel(
     SetOfficeClaimProfileUseCase setOfficeProfile,
     SetCertificateClaimEvidenceUseCase setCertificateEvidence,
     SetUpperLimitManagementStatementUseCase setStatement,
-    QueryClaimBillingTokenOptionsUseCase queryBillingTokenOptions) : ViewModelBase
+    QueryClaimBillingTokenOptionsUseCase queryBillingTokenOptions,
+    IClaimGenericFieldCatalog genericFieldCatalog,
+    IClaimCsvSpecificationVersions specificationVersions) : ViewModelBase
 {
+    /// <summary>この画面が担う uiSurface（CSV 仕様の宣言と一致させる）。</summary>
+    private const string ClaimInputSurface = "ClaimInputView";
+
     private const string ReloadMessage = "請求入力履歴を再読込してください。";
     private const string InvalidMessage = "請求入力の内容を確認してください。";
     private const string MasterUnavailableMessage = "請求制度マスターを利用できません。";
@@ -188,6 +194,12 @@ public sealed partial class ClaimInputViewModel(
     public ObservableCollection<RecipientDto> Recipients { get; } = [];
     public ObservableCollection<CertificateDto> Certificates { get; } = [];
     public ObservableCollection<ClaimInputQueryRevisionDto> ClaimInputRevisions { get; } = [];
+
+    /// <summary>
+    /// 汎用 pass-through 入力（ADR 0042）の入力欄。CSV 仕様が <c>storage: "generic"</c> と宣言した
+    /// 項目だけが並ぶ。宣言が無ければ空で、画面のセクションも表示されない。
+    /// </summary>
+    public ObservableCollection<Claim.ClaimGenericInputField> GenericInputFields { get; } = [];
     public ObservableCollection<AverageWageAnnualEvidenceQueryRevisionDto>
         AverageWageRevisions
     { get; } = [];
@@ -337,6 +349,9 @@ public sealed partial class ClaimInputViewModel(
                 StandardUsageDayTotal = StandardUsageDayTotal,
                 SpecialVisitSupportBilledCount = SpecialVisitSupportBilledCount,
                 OffsiteSupportCumulativeDays = OffsiteSupportCumulativeDays,
+                // 汎用 pass-through 入力（ADR 0042）。宣言された欄の値をそのまま送る。
+                GenericValues = GenericInputFields.ToDictionary(
+                    field => field.Name, field => field.Value, StringComparer.Ordinal),
             }, Environment.UserName, default));
     }
 
@@ -708,7 +723,37 @@ public sealed partial class ClaimInputViewModel(
         StandardUsageDayTotal = value?.StandardUsageDayTotal;
         SpecialVisitSupportBilledCount = value?.SpecialVisitSupportBilledCount;
         OffsiteSupportCumulativeDays = value?.OffsiteSupportCumulativeDays;
+        ApplyGenericInputValues(value?.GenericValues);
         _claimInputReentry = false;
+    }
+
+    /// <summary>
+    /// 汎用 pass-through 入力の欄を宣言から作り直し、実効 revision の値を反映する。
+    /// 欄そのものは CSV 仕様の宣言が正本なので、値の有無に関わらず宣言された分だけ並べる。
+    /// </summary>
+    private void ApplyGenericInputValues(IReadOnlyDictionary<string, string>? values)
+    {
+        var declarations = genericFieldCatalog.GetDeclarations(specificationVersions.Current)
+            .Where(declaration => string.Equals(
+                declaration.UiSurface, ClaimInputSurface, StringComparison.Ordinal))
+            .ToArray();
+        if (GenericInputFields.Count != declarations.Length
+            || GenericInputFields.Zip(declarations).Any(pair =>
+                !string.Equals(pair.First.Name, pair.Second.Name, StringComparison.Ordinal)))
+        {
+            GenericInputFields.Clear();
+            foreach (var declaration in declarations)
+            {
+                GenericInputFields.Add(new Claim.ClaimGenericInputField(declaration));
+            }
+        }
+
+        foreach (var field in GenericInputFields)
+        {
+            field.Value = values is not null && values.TryGetValue(field.Name, out var value)
+                ? value
+                : null;
+        }
     }
 
     private void ClearExceptionalUsage()

@@ -122,6 +122,7 @@ public sealed class CalculateClaimUseCaseTests
                 new Kit.FakeOfficeRepository(Kit.Office()),
                 new Kit.FakeTokenProvider(Kit.Tokens()),
                 readiness,
+                new Kit.FakeGenericFieldCatalog(),
                 versions)
             .ExecuteAsync(new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
 
@@ -156,6 +157,7 @@ public sealed class CalculateClaimUseCaseTests
                 new Kit.FakeOfficeRepository(Kit.Office()),
                 new Kit.FakeTokenProvider(Kit.Tokens()),
                 readiness,
+                new Kit.FakeGenericFieldCatalog(),
                 versions)
             .ExecuteAsync(new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
 
@@ -193,6 +195,7 @@ public sealed class CalculateClaimUseCaseTests
                 new Kit.FakeOfficeRepository(Kit.Office()),
                 new Kit.FakeTokenProvider(Kit.Tokens()),
                 readiness,
+                new Kit.FakeGenericFieldCatalog(),
                 versions)
             .ExecuteAsync(new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
 
@@ -230,6 +233,7 @@ public sealed class CalculateClaimUseCaseTests
                 new Kit.FakeOfficeRepository(Kit.Office()),
                 new Kit.FakeTokenProvider(Kit.Tokens()),
                 readiness,
+                new Kit.FakeGenericFieldCatalog(),
                 versions)
             .ExecuteAsync(new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
 
@@ -409,5 +413,6 @@ public sealed class CalculateClaimUseCaseTests
             new Kit.FakeOfficeRepository(officeMissing ? null : office ?? Kit.Office()),
             new Kit.FakeTokenProvider(tokens ?? Kit.Tokens()),
             Kit.Readiness(),
+            new Kit.FakeGenericFieldCatalog(),
             new Kit.FakeCsvSpecificationVersions());
 }

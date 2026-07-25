@@ -34,7 +34,8 @@ internal sealed class ClaimPreviewPipeline(
     IOfficeRepository officeRepository,
     IClaimBillingTokenProvider tokenProvider,
     ClaimPreparationReadiness readiness,
-    IClaimCsvSpecificationVersions specificationVersions)
+    IClaimCsvSpecificationVersions specificationVersions,
+    IClaimGenericFieldCatalog genericFieldCatalog)
 {
     private static readonly ClaimSnapshotValidationCodecV2 SnapshotCodec = new();
 
@@ -55,10 +56,16 @@ internal sealed class ClaimPreviewPipeline(
         }
 
         var tokens = office is null ? null : tokenProvider.Resolve(office, snapshot.Profile, serviceMonth);
+        var currentVersionForGeneric = specificationVersions.Current;
         var contextResult = ClaimPreparationContextBuilder.Build(
-            snapshot, office, masterVersionAvailable: release is not null);
+            snapshot,
+            office,
+            masterVersionAvailable: release is not null,
+            declaredGenericNames: [.. genericFieldCatalog
+                .GetDeclarations(currentVersionForGeneric)
+                .Select(declaration => declaration.Name)]);
         // readiness は「現行版の要件」で評価する（確定時に記録する版と同じ出所）。
-        var currentVersion = specificationVersions.Current;
+        var currentVersion = currentVersionForGeneric;
         var readinessResult = readiness.Evaluate(contextResult.Context, currentVersion);
 
         // 事前登録済みの将来版でも評価し、現行版との差だけを情報として集める。

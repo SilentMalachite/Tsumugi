@@ -54,7 +54,9 @@ public sealed record ClaimInputQueryRevisionDto(
     // AverageWageAnnualEvidenceQueryRevisionDto.ComputedAverageWageMonthYen /
     // OfficeClaimProfileQueryRevisionDto.CapacityHeadcount と同じ作法で監査列の後ろへ追記する。
     int? SpecialVisitSupportBilledCount,
-    int? OffsiteSupportCumulativeDays);
+    int? OffsiteSupportCumulativeDays,
+    /// <summary>汎用 pass-through 入力（ADR 0042）。名前→値。宣言が無い版では空。</summary>
+    IReadOnlyDictionary<string, string>? GenericValues = null);
 
 /// <param name="ComputedAverageWageMonthYen">
 /// ADR 0023の正式式（<c>AverageWageFormula</c>）で当該revisionの確認済み実績から算出した

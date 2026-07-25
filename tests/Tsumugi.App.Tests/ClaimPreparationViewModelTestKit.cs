@@ -422,6 +422,17 @@ internal static class ClaimPreparationViewModelTestKit
     /// CommitAsync で受け取ったdraftをそのままheader/detailへ写像して蓄積することで、
     /// 「確定→履歴照会」がVM経由で一貫することを検証できるようにする。
     /// </summary>
+    /// <summary>汎用 pass-through 入力（ADR 0042）の宣言フェイク。既定は宣言なし。</summary>
+    internal sealed class FakeGenericFieldCatalog : IClaimGenericFieldCatalog
+    {
+        /// <summary>宣言が無いので検証も行わない（宣言済みの検証は Infrastructure.Csv 側のテスト）。</summary>
+        public void ValidateValue(string specificationVersion, string name, string value)
+        {
+        }
+
+        public IReadOnlyList<ClaimGenericFieldDeclaration> GetDeclarations(string specificationVersion) => [];
+    }
+
     /// <summary>CSV仕様版の解決フェイク。プレビューと確定で同じ版文字列を使うことが要件。</summary>
     internal sealed class FakeCsvSpecificationVersions : IClaimCsvSpecificationVersions
     {

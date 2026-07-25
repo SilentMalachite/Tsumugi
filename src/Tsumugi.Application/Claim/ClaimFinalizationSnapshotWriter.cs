@@ -102,6 +102,18 @@ public static class ClaimFinalizationSnapshotWriter
             writer, "specialVisitSupportBilledCount", claimInput.SpecialVisitSupportBilledCount);
         WriteNumberOrNull(
             writer, "offsiteSupportCumulativeDays", claimInput.OffsiteSupportCumulativeDays);
+        // 汎用 pass-through 入力（ADR 0042）。名前昇順で書き、同じ集合なら同じバイト列になる。
+        writer.WriteStartArray("genericValues");
+        foreach (var value in claimInput.GenericValues
+            .OrderBy(item => item.Name, StringComparer.Ordinal))
+        {
+            writer.WriteStartObject();
+            writer.WriteString("name", value.Name);
+            writer.WriteString("value", value.Value);
+            writer.WriteEndObject();
+        }
+
+        writer.WriteEndArray();
         writer.WriteEndObject();
     }
 

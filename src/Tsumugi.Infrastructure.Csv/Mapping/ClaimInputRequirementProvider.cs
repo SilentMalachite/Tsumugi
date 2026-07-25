@@ -42,7 +42,8 @@ public sealed class ClaimInputRequirementProvider
     public static ClaimInputRequirementProvider LoadEmbedded() =>
         ForCatalog(CsvSpecificationLoader.LoadEmbedded());
 
-    private static ClaimInputRequirementProvider ForCatalog(CsvSpecificationCatalog catalog)
+    /// <summary>単一 catalog から要件を組む（テスト・診断が catalog を直接与えるための入口）。</summary>
+    internal static ClaimInputRequirementProvider ForCatalog(CsvSpecificationCatalog catalog)
     {
         var csvSources = catalog.MappingByFieldId.Values
             .Where(mapping => string.Equals(mapping.Status, "missing", StringComparison.Ordinal))

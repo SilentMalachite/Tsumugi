@@ -91,6 +91,9 @@ public static class CompositionRoot
         // Phase 3-1: 算定プレビュー→確定→取下げ→履歴（Task 9）。
         // readinessの要件はInfrastructure.Csv埋め込みcatalog（typed requirements）から供給する。
         // 版レジストリに登録された全版分を持ち、版を指定して引く（ADR 0041）。
+        // 汎用 pass-through 入力の宣言（ADR 0042）。CSV 仕様の storage: "generic" が正本。
+        services.AddSingleton<IClaimGenericFieldCatalog>(
+            sp => CsvGenericFieldCatalog.LoadEmbedded(sp.GetRequiredService<CsvSpecificationRegistry>()));
         services.AddSingleton<IClaimInputRequirementProvider>(
             sp => ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
                 sp.GetRequiredService<CsvSpecificationRegistry>()));

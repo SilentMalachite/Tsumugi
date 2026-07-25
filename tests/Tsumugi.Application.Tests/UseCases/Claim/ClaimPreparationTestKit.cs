@@ -618,6 +618,21 @@ internal static class ClaimPreparationTestKit
             => Task.FromResult<IReadOnlyList<global::Tsumugi.Domain.Entities.ClaimCsvExport>>([]);
     }
 
+    /// <summary>
+    /// 汎用 pass-through 入力の宣言フェイク（ADR 0042）。既定は宣言なし。
+    /// </summary>
+    internal sealed class FakeGenericFieldCatalog(
+        params ClaimGenericFieldDeclaration[] declarations) : IClaimGenericFieldCatalog
+    {
+        /// <summary>宣言が無いので検証も行わない（宣言済みの検証は Infrastructure.Csv 側のテスト）。</summary>
+        public void ValidateValue(string specificationVersion, string name, string value)
+        {
+        }
+
+        public IReadOnlyList<ClaimGenericFieldDeclaration> GetDeclarations(string specificationVersion)
+            => declarations;
+    }
+
     internal sealed class FakeCsvSpecificationVersions(string current = "r7-10")
         : IClaimCsvSpecificationVersions
     {

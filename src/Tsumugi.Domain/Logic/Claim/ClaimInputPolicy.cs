@@ -56,7 +56,8 @@ public static class ClaimInputPolicy
                     || input.ExceptionalUsageDays is not null
                     || input.StandardUsageDayTotal is not null
                     || input.SpecialVisitSupportBilledCount is not null
-                    || input.OffsiteSupportCumulativeDays is not null))
+                    || input.OffsiteSupportCumulativeDays is not null
+                    || input.GenericValues.Count > 0))
                 throw Invalid("ClaimInputのCancelは請求入力値を持てません。");
             if (input.UpperLimitManagementResult is { } result && !Enum.IsDefined(result))
                 throw Invalid("未知の上限額管理結果です。");
@@ -65,6 +66,15 @@ public static class ClaimInputPolicy
                 throw Invalid("訪問支援特別加算の算定回数は0以上である必要があります。");
             if (input.OffsiteSupportCumulativeDays is < 0)
                 throw Invalid("施設外支援の累計日数は0以上である必要があります。");
+            // 汎用 pass-through 入力（ADR 0042）。名前の重複と空値は Domain で弾く。
+            // 型・桁数の検証は CSV 仕様側の宣言に依るため Application が行う。
+            if (input.GenericValues.Select(value => value.Name)
+                    .Distinct(StringComparer.Ordinal).Count() != input.GenericValues.Count)
+                throw Invalid("汎用請求入力の名前が重複しています。");
+            if (input.GenericValues.Any(value =>
+                    string.IsNullOrWhiteSpace(value.Name) || string.IsNullOrWhiteSpace(value.Value)
+                    || value.ClaimInputId != input.Id))
+                throw Invalid("汎用請求入力の名前・値・親IDが不正です。");
 
             if (index == 0) continue;
             if (input.Kind == RecordKind.New)

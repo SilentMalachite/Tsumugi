@@ -690,6 +690,7 @@ public sealed class ClaimPreviewProductionWiringTests
                 new FakeOfficeRepository(BuildOffice()),
                 new OfficeClaimBillingTokenProvider(),
                 new ClaimPreparationReadiness(new EmptyRequirementProvider()),
+                CsvGenericFieldCatalog.LoadEmbedded(CsvSpecificationRegistry.LoadEmbedded()),
                 new ClaimBatchRepository(closeContext),
                 CsvSpecificationRegistry.LoadEmbedded(),
                 new ClaimFinalizationStore(
@@ -752,6 +753,7 @@ public sealed class ClaimPreviewProductionWiringTests
                 CsvSpecificationRegistry.LoadEmbedded(),
                 ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
                     CsvSpecificationRegistry.LoadEmbedded()),
+                CsvGenericFieldCatalog.LoadEmbedded(CsvSpecificationRegistry.LoadEmbedded()),
                 new ClaimCsvGenerator(CsvSpecificationRegistry.LoadEmbedded()),
                 new ClaimCsvExportRepository(csvContext),
                 TimeProvider.System);
@@ -864,6 +866,7 @@ public sealed class ClaimPreviewProductionWiringTests
             new FakeOfficeRepository(BuildOffice()),
             new OfficeClaimBillingTokenProvider(),
             new ClaimPreparationReadiness(requirementProvider),
+            CsvGenericFieldCatalog.LoadEmbedded(CsvSpecificationRegistry.LoadEmbedded()),
             CsvSpecificationRegistry.LoadEmbedded());
 
     private static Office BuildOffice() => Office.Create(

@@ -112,7 +112,27 @@ public static class ClaimFinalizationSnapshotReader
         // Phase 3-3 で追加。これより前に確定した snapshot はキー自体を持たないため、
         // キー不在も null として受ける（後方互換）。要否の判定は CSV 生成側の fail-close に任せる。
         SpecialVisitSupportBilledCount: OptionalIntWhenPresent(claimInput, "specialVisitSupportBilledCount"),
-        OffsiteSupportCumulativeDays: OptionalIntWhenPresent(claimInput, "offsiteSupportCumulativeDays"));
+        OffsiteSupportCumulativeDays: OptionalIntWhenPresent(claimInput, "offsiteSupportCumulativeDays"),
+        GenericValues: ParseGenericValues(claimInput));
+
+    /// <summary>汎用 pass-through 入力（ADR 0042）。キー不在の旧 snapshot は空として読む。</summary>
+    private static IReadOnlyList<ClaimFinalizationGenericValueSnapshot> ParseGenericValues(
+        JsonElement claimInput)
+    {
+        if (!claimInput.TryGetProperty("genericValues", out var values)
+            || values.ValueKind == JsonValueKind.Null)
+        {
+            return [];
+        }
+
+        if (values.ValueKind != JsonValueKind.Array)
+        {
+            throw new InvalidOperationException("フィールド 'genericValues' は配列でなければなりません。");
+        }
+
+        return [.. values.EnumerateArray().Select(item => new ClaimFinalizationGenericValueSnapshot(
+            RequireString(item, "name"), RequireString(item, "value")))];
+    }
 
     private static IReadOnlyList<ClaimFinalizationDailyRecordSnapshot> ParseDailyRecords(JsonElement dailyRecords)
         => [.. dailyRecords.EnumerateArray().Select(ParseDailyRecord)];

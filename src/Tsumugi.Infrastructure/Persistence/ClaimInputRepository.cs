@@ -20,6 +20,8 @@ public sealed class ClaimInputRepository(TsumugiDbContext db) : IClaimInputRepos
         CancellationToken ct) =>
         await db.ClaimInputs
             .AsNoTracking()
+            // 汎用 pass-through 入力（ADR 0042）は親 revision の一部なので必ず一緒に読む。
+            .Include(input => input.GenericValues)
             .Where(input => input.OfficeId == officeId
                             && input.RecipientId == recipientId
                             && input.ServiceMonth == serviceMonth)

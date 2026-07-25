@@ -12,6 +12,11 @@ namespace Tsumugi.Application.Tests.Claim;
 
 public sealed class SetClaimInputUseCaseTests
 {
+    /// <summary>汎用 pass-through 入力（ADR 0042）は既定で宣言なし。宣言する場合はテスト側で差し替える。</summary>
+    private static readonly IClaimGenericFieldCatalog GenericCatalog = new NoGenericFields();
+
+    private static readonly IClaimCsvSpecificationVersions CsvVersions = new FixedCsvVersions();
+
     private static readonly DateTimeOffset Now = new(2026, 7, 12, 1, 2, 3, TimeSpan.Zero);
     private static readonly ServiceMonth Month = new(2026, 6);
 
@@ -20,7 +25,7 @@ public sealed class SetClaimInputUseCaseTests
     {
         var repo = new FakeClaimInputRepository();
         var uow = new FakeUnitOfWork();
-        var sut = new SetClaimInputUseCase(repo, uow, new FixedTimeProvider(Now));
+        var sut = new SetClaimInputUseCase(repo, uow, GenericCatalog, CsvVersions, new FixedTimeProvider(Now));
         var officeId = Guid.NewGuid();
         var recipientId = Guid.NewGuid();
 
@@ -59,7 +64,7 @@ public sealed class SetClaimInputUseCaseTests
     public async Task Execute_rejects_missing_and_stale_expected_head_with_closed_errors()
     {
         var repo = new FakeClaimInputRepository();
-        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), GenericCatalog, CsvVersions, new FixedTimeProvider(Now));
         var officeId = Guid.NewGuid();
         var recipientId = Guid.NewGuid();
         var created = await sut.ExecuteAsync(
@@ -86,7 +91,7 @@ public sealed class SetClaimInputUseCaseTests
     public async Task Execute_rejects_expected_head_from_another_root()
     {
         var repo = new FakeClaimInputRepository();
-        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), GenericCatalog, CsvVersions, new FixedTimeProvider(Now));
         var officeId = Guid.NewGuid();
         var selectedRecipientId = Guid.NewGuid();
         var selected = await sut.ExecuteAsync(
@@ -109,7 +114,7 @@ public sealed class SetClaimInputUseCaseTests
     public async Task Execute_rejects_empty_identity_with_closed_field_code()
     {
         var repo = new FakeClaimInputRepository();
-        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), GenericCatalog, CsvVersions, new FixedTimeProvider(Now));
 
         var act = () => sut.ExecuteAsync(
             ValidRequest(Guid.Empty, Guid.NewGuid(), RecordKind.New, null),
@@ -125,7 +130,7 @@ public sealed class SetClaimInputUseCaseTests
     public async Task Execute_rejects_empty_actor_without_echoing_it()
     {
         var repo = new FakeClaimInputRepository();
-        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), GenericCatalog, CsvVersions, new FixedTimeProvider(Now));
 
         var act = () => sut.ExecuteAsync(
             ValidRequest(Guid.NewGuid(), Guid.NewGuid(), RecordKind.New, null),
@@ -141,7 +146,7 @@ public sealed class SetClaimInputUseCaseTests
     public async Task Execute_rejects_corrupt_existing_history_with_sanitized_error()
     {
         var repo = new FakeClaimInputRepository();
-        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), GenericCatalog, CsvVersions, new FixedTimeProvider(Now));
         var officeId = Guid.NewGuid();
         var recipientId = Guid.NewGuid();
         var created = await sut.ExecuteAsync(
@@ -163,7 +168,7 @@ public sealed class SetClaimInputUseCaseTests
     public async Task Execute_rejects_unknown_record_kind()
     {
         var repo = new FakeClaimInputRepository();
-        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), GenericCatalog, CsvVersions, new FixedTimeProvider(Now));
         var request = ValidRequest(
             Guid.NewGuid(), Guid.NewGuid(), (RecordKind)999, expectedHeadId: null);
 
@@ -180,7 +185,7 @@ public sealed class SetClaimInputUseCaseTests
     public async Task Execute_rejects_replay_instead_of_reusing_the_previous_operation()
     {
         var repo = new FakeClaimInputRepository();
-        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), GenericCatalog, CsvVersions, new FixedTimeProvider(Now));
         var officeId = Guid.NewGuid();
         var recipientId = Guid.NewGuid();
         var created = await sut.ExecuteAsync(
@@ -199,7 +204,7 @@ public sealed class SetClaimInputUseCaseTests
     public async Task Execute_rejects_cross_field_values_without_echoing_input()
     {
         var repo = new FakeClaimInputRepository();
-        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), GenericCatalog, CsvVersions, new FixedTimeProvider(Now));
         var request = ValidRequest(Guid.NewGuid(), Guid.NewGuid(), RecordKind.New, null) with
         {
             ExceptionalUsageEndMonth = null,
@@ -219,7 +224,7 @@ public sealed class SetClaimInputUseCaseTests
     public async Task Execute_round_trips_group_b_explicit_addition_inputs()
     {
         var repo = new FakeClaimInputRepository();
-        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), GenericCatalog, CsvVersions, new FixedTimeProvider(Now));
         var officeId = Guid.NewGuid();
         var recipientId = Guid.NewGuid();
 
@@ -241,7 +246,7 @@ public sealed class SetClaimInputUseCaseTests
     public async Task Execute_keeps_group_b_explicit_addition_inputs_null_when_not_submitted()
     {
         var repo = new FakeClaimInputRepository();
-        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), GenericCatalog, CsvVersions, new FixedTimeProvider(Now));
 
         await sut.ExecuteAsync(
             ValidRequest(Guid.NewGuid(), Guid.NewGuid(), RecordKind.New, null),
@@ -264,7 +269,7 @@ public sealed class SetClaimInputUseCaseTests
         int? billedCount, int? cumulativeDays)
     {
         var repo = new FakeClaimInputRepository();
-        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), GenericCatalog, CsvVersions, new FixedTimeProvider(Now));
         var request = ValidRequest(Guid.NewGuid(), Guid.NewGuid(), RecordKind.New, null) with
         {
             SpecialVisitSupportBilledCount = billedCount,
@@ -284,7 +289,7 @@ public sealed class SetClaimInputUseCaseTests
     public async Task Execute_rejects_cancel_carrying_group_b_explicit_addition_inputs()
     {
         var repo = new FakeClaimInputRepository();
-        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), new FixedTimeProvider(Now));
+        var sut = new SetClaimInputUseCase(repo, new FakeUnitOfWork(), GenericCatalog, CsvVersions, new FixedTimeProvider(Now));
         var officeId = Guid.NewGuid();
         var recipientId = Guid.NewGuid();
         var created = await sut.ExecuteAsync(
@@ -411,4 +416,128 @@ public sealed class SetClaimInputUseCaseTests
     {
         public override DateTimeOffset GetUtcNow() => now;
     }
+    // NOTE(teeth): 汎用 pass-through 入力（ADR 0042）。宣言済みの名前だけ保存し、未宣言は拒否、
+    // 型・桁数の判定は仕様を所有する層（catalog）に委ねる。
+    [Fact]
+    public async Task Execute_stores_declared_generic_values()
+    {
+        var repo = new FakeClaimInputRepository();
+        var sut = new SetClaimInputUseCase(
+            repo, new FakeUnitOfWork(), new DeclaringGenericFields(), new FixedCsvVersions(),
+            new FixedTimeProvider(Now));
+
+        await sut.ExecuteAsync(
+            new SetClaimInputRequest(
+                Guid.NewGuid(), Guid.NewGuid(), new ServiceMonth(2026, 7), RecordKind.New, null)
+            {
+                GenericValues = new Dictionary<string, string?>(StringComparer.Ordinal)
+                {
+                    ["DemoDays"] = " 12 ",
+                    ["Untouched"] = "   ",
+                },
+            },
+            "tester",
+            CancellationToken.None);
+
+        var stored = repo.Items.Should().ContainSingle().Subject;
+        var value = stored.GenericValues.Should().ContainSingle().Subject;
+        value.Name.Should().Be("DemoDays");
+        value.Value.Should().Be("12", "前後の空白は落とす");
+        value.ClaimInputId.Should().Be(stored.Id);
+    }
+
+    [Fact]
+    public async Task Execute_rejects_an_undeclared_generic_value()
+    {
+        var sut = new SetClaimInputUseCase(
+            new FakeClaimInputRepository(), new FakeUnitOfWork(), new DeclaringGenericFields(), new FixedCsvVersions(),
+            new FixedTimeProvider(Now));
+
+        var act = () => sut.ExecuteAsync(
+            new SetClaimInputRequest(
+                Guid.NewGuid(), Guid.NewGuid(), new ServiceMonth(2026, 7), RecordKind.New, null)
+            {
+                GenericValues = new Dictionary<string, string?>(StringComparer.Ordinal)
+                {
+                    ["NotDeclared"] = "1",
+                },
+            },
+            "tester",
+            CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*宣言されていません*");
+    }
+
+    [Fact]
+    public async Task Execute_rejects_generic_values_on_a_cancel_record()
+    {
+        var repo = new FakeClaimInputRepository();
+        var head = await new SetClaimInputUseCase(
+                repo, new FakeUnitOfWork(), new DeclaringGenericFields(), new FixedCsvVersions(),
+                new FixedTimeProvider(Now))
+            .ExecuteAsync(
+                new SetClaimInputRequest(
+                    Guid.NewGuid(), Guid.NewGuid(), new ServiceMonth(2026, 7), RecordKind.New, null),
+                "tester",
+                CancellationToken.None);
+
+        var act = () => new SetClaimInputUseCase(
+                repo, new FakeUnitOfWork(), new DeclaringGenericFields(), new FixedCsvVersions(),
+                new FixedTimeProvider(Now))
+            .ExecuteAsync(
+                new SetClaimInputRequest(
+                    repo.Items[0].OfficeId,
+                    repo.Items[0].RecipientId,
+                    new ServiceMonth(2026, 7),
+                    RecordKind.Cancel,
+                    head.Id)
+                {
+                    GenericValues = new Dictionary<string, string?>(StringComparer.Ordinal)
+                    {
+                        ["DemoDays"] = "1",
+                    },
+                },
+                "tester",
+                CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    /// <summary>1 項目だけ宣言し、検証は名前の存在だけを見るフェイク。</summary>
+    private sealed class DeclaringGenericFields : IClaimGenericFieldCatalog
+    {
+        public IReadOnlyList<ClaimGenericFieldDeclaration> GetDeclarations(string specificationVersion) =>
+            [new("DemoDays", "provider:J121:04:009", "実証用", "実証用", "numeric", 2, "ClaimInputView")];
+
+        public void ValidateValue(string specificationVersion, string name, string value)
+        {
+            if (GetDeclarations(specificationVersion).All(declaration => declaration.Name != name))
+            {
+                throw new InvalidOperationException($"汎用請求入力 '{name}' は宣言されていません。");
+            }
+        }
+    }
+
+    /// <summary>汎用 pass-through 入力（ADR 0042）の宣言フェイク。既定は宣言なし。</summary>
+    private sealed class NoGenericFields : IClaimGenericFieldCatalog
+    {
+        /// <summary>宣言が無いので検証も行わない（宣言済みの検証は Infrastructure.Csv 側のテスト）。</summary>
+        public void ValidateValue(string specificationVersion, string name, string value)
+        {
+        }
+
+        public IReadOnlyList<ClaimGenericFieldDeclaration> GetDeclarations(string specificationVersion) => [];
+    }
+
+    private sealed class FixedCsvVersions : IClaimCsvSpecificationVersions
+    {
+        public string Current => "r7-10";
+
+        public IReadOnlyList<string> UpcomingVersions => [];
+
+        public string ResolveForProcessingMonth(ProcessingMonth processingMonth) => Current;
+    }
+
+
 }

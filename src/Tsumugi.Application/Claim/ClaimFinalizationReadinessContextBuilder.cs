@@ -30,12 +30,13 @@ public static class ClaimFinalizationReadinessContextBuilder
     /// </summary>
     public static IReadOnlyList<ClaimPreparationIssue> Evaluate(
         ClaimFinalizationSnapshot snapshot,
-        IReadOnlyList<ClaimInputRequirement> requirements)
+        IReadOnlyList<ClaimInputRequirement> requirements,
+        IReadOnlyCollection<string>? declaredGenericNames = null)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(requirements);
 
-        var values = BuildValues(snapshot);
+        var values = BuildValues(snapshot, declaredGenericNames);
         var rowScopes = BuildRowScopes(snapshot);
         var issues = new HashSet<ClaimPreparationIssue>();
         foreach (var requirement in requirements)
@@ -49,7 +50,8 @@ public static class ClaimFinalizationReadinessContextBuilder
 
     /// <summary>確定 snapshot 由来の readiness 値（事業所＋受給者を 1 つの辞書にまとめる）。</summary>
     internal static IReadOnlyDictionary<string, ClaimPreparationValue> BuildValues(
-        ClaimFinalizationSnapshot snapshot)
+        ClaimFinalizationSnapshot snapshot,
+        IReadOnlyCollection<string>? declaredGenericNames = null)
     {
         var values = ClaimPreparationContextBuilder.BuildOfficeValues(new ClaimReadinessOffice(
             snapshot.Office.PostalCode,
@@ -65,7 +67,8 @@ public static class ClaimFinalizationReadinessContextBuilder
                 snapshot.Certificate.UpperLimitManagementProviderNumber),
             ContractedProviderOf(snapshot.ContractedProvider),
             AggregateOf(snapshot.DailyRecords),
-            snapshot.IntensiveSupportEpisode?.StartDate))
+            snapshot.IntensiveSupportEpisode?.StartDate,
+            declaredGenericNames))
         {
             values[pair.Key] = pair.Value;
         }
@@ -82,7 +85,9 @@ public static class ClaimFinalizationReadinessContextBuilder
         input.ExceptionalUsageDays,
         input.StandardUsageDayTotal,
         input.SpecialVisitSupportBilledCount,
-        input.OffsiteSupportCumulativeDays);
+        input.OffsiteSupportCumulativeDays,
+        input.GenericValues.ToDictionary(
+            value => value.Name, value => value.Value, StringComparer.Ordinal));
 
     private static ClaimReadinessContractedProvider ContractedProviderOf(
         ClaimFinalizationContractedProviderSnapshot? contractedProvider)

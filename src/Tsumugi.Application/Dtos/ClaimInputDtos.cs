@@ -20,6 +20,14 @@ public sealed record SetClaimInputRequest(
     public int? StandardUsageDayTotal { get; init; }
 
     /// <summary>
+    /// 汎用 pass-through 入力（ADR 0042）。名前は CSV 仕様の宣言（<c>storage: "generic"</c>）に一致し、
+    /// 値は文字列。型・桁数は宣言に従って <see cref="UseCases.Claim.SetClaimInputUseCase"/> が検証する。
+    /// 空文字・null の値は「入力なし」として保存しない。
+    /// </summary>
+    public IReadOnlyDictionary<string, string?> GenericValues { get; init; } =
+        new Dictionary<string, string?>(StringComparer.Ordinal);
+
+    /// <summary>
     /// 訪問支援特別加算の算定回数（当月合計・単位は「回」）。
     /// 日次実績から導出できない個別入力（<see cref="Domain.Entities.ClaimInput.SpecialVisitSupportBilledCount"/>）。
     /// </summary>

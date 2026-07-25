@@ -169,12 +169,14 @@ public sealed class ClaimPreparationViewModelTests
         var batchStore = new Kit.FakeClaimBatchStore();
         var csvVersions = new Kit.FakeCsvSpecificationVersions();
 
+        var genericFields = new Kit.FakeGenericFieldCatalog();
         var calculateClaim = new CalculateClaimUseCase(
             snapshotReader, masterProvider, officeRepository, tokenProvider, readiness,
-            csvVersions);
+            genericFields, csvVersions);
         var closeClaim = new CloseClaimUseCase(
             snapshotReader, masterProvider, officeRepository, tokenProvider, readiness,
-            batchStore, csvVersions, batchStore, new Kit.FakeOperationLocalSnapshotReader());
+            genericFields, batchStore, csvVersions, batchStore,
+            new Kit.FakeOperationLocalSnapshotReader());
         var cancelClaim = new CancelClaimUseCase(batchStore, batchStore);
         var queryClaim = new QueryClaimUseCase(batchStore);
         var listOffices = new ListOfficesUseCase(officeRepository);
@@ -188,6 +190,7 @@ public sealed class ClaimPreparationViewModelTests
             new Kit.FixedClaimCsvOfficeContextProvider(),
             csvVersions,
             new Kit.EmptyRequirementProvider(),
+            new Kit.FakeGenericFieldCatalog(),
             new Kit.NoOpClaimCsvGenerator(),
             new Kit.NoOpClaimCsvExportRepository(),
             TimeProvider.System);

@@ -32,6 +32,7 @@ public sealed class ExportClaimCsvUseCase(
     IClaimCsvOfficeContextProvider officeContextProvider,
     IClaimCsvSpecificationVersions specificationVersions,
     IClaimInputRequirementProvider requirementProvider,
+    IClaimGenericFieldCatalog genericFieldCatalog,
     IClaimCsvGenerator generator,
     IClaimCsvExportRepository exportRepository,
     TimeProvider clock)
@@ -108,8 +109,11 @@ public sealed class ExportClaimCsvUseCase(
         var requirementIssues = latest.Details
             .Select(detail => ClaimFinalizationSnapshotReader.Parse( // CultureInfo: 非該当（JSON snapshot parser）
                 Encoding.UTF8.GetBytes(detail.CalculationSnapshotJson)))
-            .SelectMany(snapshot => ClaimFinalizationReadinessContextBuilder
-                .Evaluate(snapshot, requirements))
+            .SelectMany(snapshot => ClaimFinalizationReadinessContextBuilder.Evaluate(
+                snapshot,
+                requirements,
+                [.. genericFieldCatalog.GetDeclarations(resolvedVersion)
+                    .Select(declaration => declaration.Name)]))
             .Select(issue => new ClaimCsvFieldIssue(
                 issue.FieldCode,
                 issue.Code.ToString(),
@@ -213,7 +217,9 @@ public sealed class ExportClaimCsvUseCase(
         // グループB個別入力（訪問支援特別加算の算定回数・施設外支援の累計日数）。確定時点の値を
         // そのまま渡し、必須判定は CSV 仕様側の fail-close に委ねる（推測で埋めない）。
         SpecialVisitSupportBilledCount: snapshot.ClaimInput.SpecialVisitSupportBilledCount,
-        OffsiteSupportCumulativeDays: snapshot.ClaimInput.OffsiteSupportCumulativeDays);
+        OffsiteSupportCumulativeDays: snapshot.ClaimInput.OffsiteSupportCumulativeDays,
+        GenericInputs: snapshot.ClaimInput.GenericValues.ToDictionary(
+            value => value.Name, value => value.Value, StringComparer.Ordinal));
 
     private static ClaimCsvDailyRecordDto MapDailyRecord(
         ClaimFinalizationDailyRecordSnapshot record) => new(

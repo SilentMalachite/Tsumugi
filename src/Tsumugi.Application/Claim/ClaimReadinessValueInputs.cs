@@ -20,7 +20,12 @@ public sealed record ClaimReadinessClaimInput(
     int? ExceptionalUsageDays,
     int? StandardUsageDayTotal,
     int? SpecialVisitSupportBilledCount,
-    int? OffsiteSupportCumulativeDays)
+    int? OffsiteSupportCumulativeDays,
+    /// <summary>
+    /// 汎用 pass-through 入力（ADR 0042）の値（名前→値）。宣言された名前のうちここに無いものは
+    /// 「未入力」として供給される。
+    /// </summary>
+    IReadOnlyDictionary<string, string>? GenericValues = null)
 {
     /// <summary>実効 ClaimInput が無い状態（全項目 null）。</summary>
     public static ClaimReadinessClaimInput Absent { get; } =

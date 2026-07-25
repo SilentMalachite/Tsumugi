@@ -76,6 +76,19 @@ public static class ClaimRecipientSnapshotWriter
                     writer, "specialVisitSupportBilledCount", claimInput.SpecialVisitSupportBilledCount);
                 WriteNumberOrNull(
                     writer, "offsiteSupportCumulativeDays", claimInput.OffsiteSupportCumulativeDays);
+                // 汎用 pass-through 入力（ADR 0042）も PreviewHash に含める。含めないとプレビュー後に
+                // 書き換えても同じ hash で確定できてしまう。名前昇順で決定論にする。
+                writer.WriteStartArray("genericValues");
+                foreach (var value in claimInput.GenericValues
+                    .OrderBy(item => item.Name, StringComparer.Ordinal))
+                {
+                    writer.WriteStartObject();
+                    writer.WriteString("name", value.Name);
+                    writer.WriteString("value", value.Value);
+                    writer.WriteEndObject();
+                }
+
+                writer.WriteEndArray();
                 writer.WriteEndObject();
             }
 

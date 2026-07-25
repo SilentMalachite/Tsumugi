@@ -9,6 +9,8 @@ namespace Tsumugi.Application.UseCases.Claim;
 public sealed class SetClaimInputUseCase(
     IClaimInputRepository repo,
     IUnitOfWork uow,
+    IClaimGenericFieldCatalog genericFieldCatalog,
+    IClaimCsvSpecificationVersions specificationVersions,
     TimeProvider clock)
 {
     public async Task<ClaimInputRevisionDto> ExecuteAsync(
@@ -31,6 +33,7 @@ public sealed class SetClaimInputUseCase(
         ValidateCrossFieldValues(request);
 
         var id = Guid.NewGuid();
+        var genericValues = BuildGenericValues(request, id);
         var entity = new ClaimInput
         {
             Id = id,
@@ -50,6 +53,7 @@ public sealed class SetClaimInputUseCase(
             StandardUsageDayTotal = request.StandardUsageDayTotal,
             SpecialVisitSupportBilledCount = request.SpecialVisitSupportBilledCount,
             OffsiteSupportCumulativeDays = request.OffsiteSupportCumulativeDays,
+            GenericValues = genericValues,
             CreatedAt = clock.GetUtcNow(),
             CreatedBy = actor,
             ConcurrencyToken = Guid.NewGuid(),
@@ -60,6 +64,35 @@ public sealed class SetClaimInputUseCase(
         await repo.AddAsync(entity, ct);
         await uow.SaveChangesAsync(ct);
         return Map(entity);
+    }
+
+    /// <summary>
+    /// 汎用 pass-through 入力（ADR 0042）を検証して行へ変換する。宣言（名前・型・桁数）は CSV 仕様側が
+    /// 正本で、ここでは <see cref="IClaimGenericFieldCatalog"/> から取った宣言だけを信じる
+    /// （Application に fieldId や桁数をハードコードしない）。未宣言の名前は保存しない。
+    /// </summary>
+    private ClaimInputGenericValue[] BuildGenericValues(SetClaimInputRequest request, Guid claimInputId)
+    {
+        var entered = request.GenericValues
+            .Where(pair => !string.IsNullOrWhiteSpace(pair.Value))
+            .ToArray();
+        if (entered.Length == 0) return [];
+
+        if (request.Kind == RecordKind.Cancel)
+        {
+            throw new InvalidOperationException("取消レコードは請求入力値を持てません。");
+        }
+
+        var version = specificationVersions.Current;
+        return [.. entered
+            .OrderBy(pair => pair.Key, StringComparer.Ordinal)
+            .Select(pair =>
+            {
+                var value = pair.Value!.Trim();
+                // 宣言の有無・型・桁数の判定は仕様を所有する層に委ねる（未宣言の名前もここで弾かれる）。
+                genericFieldCatalog.ValidateValue(version, pair.Key, value);
+                return ClaimInputGenericValue.Create(Guid.NewGuid(), claimInputId, pair.Key, value);
+            })];
     }
 
     private static void ValidateCrossFieldValues(SetClaimInputRequest request)

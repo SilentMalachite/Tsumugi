@@ -105,53 +105,53 @@
 
 ### 1. 宣言と検証
 
-- [ ] `CsvFieldMapping` に `storage` と `genericInput`（label / help / dataType / maxBytes）を追加
-- [ ] `CsvSpecificationCatalog`: `storage: "generic"` は `targetModel == "ClaimGenericInput"`・
+- [x] `CsvFieldMapping` に `storage` と `genericInput`（label / help / dataType / maxBytes）を追加
+- [x] `CsvSpecificationCatalog`: `storage: "generic"` は `targetModel == "ClaimGenericInput"`・
       `genericInput` 必須・`migrationRequired: false`、かつ証跡台帳に `pass-through` claim を要求
-- [ ] 証跡台帳の `supports` 語彙に `pass-through` を追加
-- [ ] テスト: 宣言不備（`genericInput` 欠落／算定に効く項目に `generic` を付ける）で fail-close
+- [x] 証跡台帳の `supports` 語彙に `pass-through` を追加
+- [x] テスト: 宣言不備（`genericInput` 欠落／算定に効く項目に `generic` を付ける）で fail-close
 
 ### 2. ポートと catalog
 
-- [ ] Application に `IClaimGenericFieldCatalog`（宣言の一覧・名前で引く・uiSurface で絞る）
-- [ ] Infrastructure.Csv に実装（版ごと。ADR 0039 のレジストリから引く）
-- [ ] テスト: 未宣言の名前は fail-close／版ごとに宣言集合が変わること
+- [x] Application に `IClaimGenericFieldCatalog`（宣言の一覧・名前で引く・uiSurface で絞る）
+- [x] Infrastructure.Csv に実装（版ごと。ADR 0039 のレジストリから引く）
+- [x] テスト: 未宣言の名前は fail-close／版ごとに宣言集合が変わること
 
 ### 3. 保存（Domain＋EF＋migration 1 本）
 
-- [ ] `ClaimInputGenericValue`（`ClaimInputId` FK・`Name`・`Value`）＋ EF 設定＋migration
-- [ ] `ClaimInputPolicy`: Cancel revision は汎用値を持てない
-- [ ] `SetClaimInputUseCase`: 汎用値の受け取りと **spec 駆動の検証**（dataType・maxBytes・未宣言名の拒否）
-- [ ] テスト: 往復・訂正で集合が入れ替わる・Cancel で空・未宣言名と型不一致は検証エラー
+- [x] `ClaimInputGenericValue`（`ClaimInputId` FK・`Name`・`Value`）＋ EF 設定＋migration
+- [x] `ClaimInputPolicy`: Cancel revision は汎用値を持てない
+- [x] `SetClaimInputUseCase`: 汎用値の受け取りと **spec 駆動の検証**（dataType・maxBytes・未宣言名の拒否）
+- [x] テスト: 往復・訂正で集合が入れ替わる・Cancel で空・未宣言名と型不一致は検証エラー
 
 ### 4. snapshot と PreviewHash
 
-- [ ] `ClaimFinalizationClaimInputSnapshot.Generic` を末尾 optional で追加（writer / reader）
-- [ ] `OperationLocalSnapshotReader` が汎用値を焼き込む
-- [ ] `ClaimRecipientSnapshotWriter.WriteInputSnapshot` に名前昇順で含める
-- [ ] テスト: 旧 snapshot（キー不在）は空として読める／汎用値を変えると PreviewHash が変わる
+- [x] `ClaimFinalizationClaimInputSnapshot.Generic` を末尾 optional で追加（writer / reader）
+- [x] `OperationLocalSnapshotReader` が汎用値を焼き込む
+- [x] `ClaimRecipientSnapshotWriter.WriteInputSnapshot` に名前昇順で含める
+- [x] テスト: 旧 snapshot（キー不在）は空として読める／汎用値を変えると PreviewHash が変わる
 
 ### 5. CSV 生成と readiness
 
-- [ ] `ClaimCsvRecipientDto` に汎用辞書を追加し `ExportClaimCsvUseCase` が写像
-- [ ] `ClaimCsvModelPath` に `ClaimGenericInput.*` の解決を追加
-- [ ] `ClaimPreparationContextBuilder` が宣言された汎用項目の値を供給（ADR 0041 の集約点へ）
-- [ ] テスト: 宣言だけで CSV へ出ること／未入力は fail-close されること（要件宣言時）
+- [x] `ClaimCsvRecipientDto` に汎用辞書を追加し `ExportClaimCsvUseCase` が写像
+- [x] `ClaimCsvModelPath` に `ClaimGenericInput.*` の解決を追加
+- [x] `ClaimPreparationContextBuilder` が宣言された汎用項目の値を供給（ADR 0041 の集約点へ）
+- [x] テスト: 宣言だけで CSV へ出ること／未入力は fail-close されること（要件宣言時）
 
 ### 6. spec 駆動 UI
 
-- [ ] `ClaimInputViewModel` に汎用項目の編集モデル（名前・ラベル・dataType・値）
-- [ ] `ClaimInputView` に「その他の請求項目」セクション（`ItemsControl`＋dataType 別エディタ）
-- [ ] `ViewInputWiringTests` を動的検査へ（宣言された汎用項目が画面に現れることを catalog から検証）
-- [ ] アクセシビリティ: 既存欄と同じコントロール種別・間隔・キーボード到達性
+- [x] `ClaimInputViewModel` に汎用項目の編集モデル（名前・ラベル・dataType・値）
+- [x] `ClaimInputView` に「その他の請求項目」セクション（`ItemsControl`＋dataType 別エディタ）
+- [x] `ViewInputWiringTests` を動的検査へ（宣言された汎用項目が画面に現れることを catalog から検証）
+- [x] アクセシビリティ: 既存欄と同じコントロール種別・間隔・キーボード到達性
 
 ### 7. 実証と仕上げ
 
-- [ ] **実証**: 架空の 1 項目を `generic` として宣言し、**C# を 1 行も書かずに**
+- [x] **実証**: 架空の 1 項目を `generic` として宣言し、**C# を 1 行も書かずに**
       入力→確定→CSV 出力まで通ることをテストで示す（この計画の受け入れ基準）
-- [ ] `dotnet format` / `./build/ci.sh` 緑
-- [ ] ADR 0042（汎用入力の境界と、型付きを既定にする理由）
-- [ ] `docs/open-questions.md` 更新／コミット
+- [x] `dotnet format` / `./build/ci.sh` 緑
+- [x] ADR 0042（汎用入力の境界と、型付きを既定にする理由）
+- [x] `docs/open-questions.md` 更新／コミット
 
 ## リスクと歯
 
@@ -163,9 +163,11 @@
 | PreviewHash に入らず確定後に書き換えられる | writer に名前昇順で含める＋hash が変わることをテストで固定 |
 | 日次項目を無理に月次スコープへ入れる | 範囲外と明記。日次は型付きのまま |
 
-## 未確定（着手前に決めたいこと）
+## 決定（2026-07-25・利用者判断）
 
-1. **④ を実装するか、対案（型付き列の scaffold）にするか。** 転記のみ 11 件はすべて実装済みで、
-   ④ の利益は将来の施行分に限られる。
-2. 汎用値の**表示名の言語**（spec のラベルは日本語固定でよいか）。
-3. 既存 11 件は移行しない方針でよいか（この計画はそう置いている）。
+1. ④ を計画どおり実装した（対案の scaffold は採らない）。
+2. spec のラベルは日本語固定（UI は宣言をそのまま表示する）。
+3. 既存 11 件は移行しない。
+
+実装結果は [ADR 0042](../../decisions/0042-generic-pass-through-inputs.md) を参照。
+実証は `GenericPassThroughInputTests`（6 件）。
