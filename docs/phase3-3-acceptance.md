@@ -145,7 +145,30 @@ DSL の語彙は `CsvGeneratorRuleParserTests.The_embedded_specification_uses_ex
 
 ## 10. `./build/ci.sh` 実行証跡
 
-（本節は §11 の実行後に結果を記載する）
+2026-07-25 実行、**全ゲート緑**。
+
+```
+==> restore
+==> format verify (gate #2)
+==> build warnings-as-errors (gate #1)
+==> test + coverage (gate #3, arch=gate#4, offline=gate#5)
+成功!  失敗: 0、合格:   677 - Tsumugi.Domain.Tests.dll
+成功!  失敗: 0、合格:   411 - Tsumugi.Application.Tests.dll
+成功!  失敗: 0、合格:   153 - Tsumugi.Infrastructure.Csv.Tests.dll
+成功!  失敗: 0、合格:    30 - Tsumugi.Infrastructure.Reporting.Tests.dll
+成功!  失敗: 0、合格:   252 - Tsumugi.App.Tests.dll
+成功!  失敗: 0、合格:   637 - Tsumugi.Infrastructure.Tests.dll
+==> coverage threshold gate
+Tsumugi.Domain      Line 95.63% / Branch 88.29% / Method 93.89%  (floor 95%)
+Tsumugi.Application Line 90.57% / Branch 84.26% / Method 84.28%  (floor 70%)
+==> CI OK
+```
+
+合計 2,160 テスト（Phase 3-3 で追加した主なテストクラス: `ClaimCsvExportTests` 11 /
+`ClaimCsvExportRepositoryTests` 6 / `CsvCellEncoderTests` 29 / `CsvGeneratorRuleParserTests` 14 /
+`ClaimCsvGeneratorTests` 10 / `GoldenCsvSnapshotTests` 10 / `ExceptionalUsageCrossFieldTests` 5 /
+`Tsumugi.Infrastructure.Csv.Tests.ArchitectureTests` 6 / `ClaimCsvExportProductionWiringTests` 5 /
+`ClaimCsvExportSectionTests` 7）。
 
 ---
 
