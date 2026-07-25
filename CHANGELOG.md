@@ -33,6 +33,22 @@
 - 対象service-code revisionsを含む令和6/8報酬masterのproduction seed、保護施設事務費の実値recordと証拠取込、master resolver、平均工賃・基本報酬・加算減算・地域単価・利用者負担のruntime計算、production snapshot codec、validated finalization / `IValidatedClaimSnapshotReader`を実装する。
 - 3帳票と国保連提出CSV（CP932 / CRLF）の生成・保存UIを実装する。現時点では請求CSV生成完了ではない。
 
+## Phase 3-4 完了 (2026-07-26)
+
+- 令和8年6月施行分（`claim-master-r8-06`）の制度実値を投入し、2026-06 以降の請求が
+  改定対象・改定対象外を問わず成立するようにした
+- 地域区分単価・負担上限額の R8 適用を出典付きで確定（ADR 0044）。地域単価・負担上限額は
+  3年ごとの報酬改定パッケージとは別の法令・通知系統に属するため、検査基準を「改定パッケージに
+  載っているか」から「実際に属する系統でR8-06時点の適用を直接確認できたか」へ改めた
+- 福祉・介護職員等処遇改善加算の R8 実値6区分と新設サービスコードを投入（ADR 0045）。
+  (Ⅰ)イ・(Ⅱ)イ・(Ⅲ)・(Ⅳ)はR6と同一コードを継続、(Ⅰ)ロ・(Ⅱ)ロのみ新設コード
+- R8 改定対象の新12区分（条件トークン13個・基本報酬180行・サービスコード180行）を投入（ADR 0046）
+- `ClaimMasterR8ContinuityTests` / `ClaimMasterR8BoundaryTests` を追加・拡張し、2026-06 へ到達する
+  全 entry が R8 出典を持つか適用期間が閉じているかを機械検査、golden case 2件で新区分の算定を固定
+- ADR 0027 決定6 / ADR 0028 決定7 の繰り延べを ADR 0046 / ADR 0045 で引き取ってクローズ
+- 未投入: 処遇改善(Ⅴ)・障害者支援施設variant・`r8-reform-status-exempt`・option 8（filed-transition）
+  対応。詳細は [`docs/phase3-4-acceptance.md`](docs/phase3-4-acceptance.md) と `docs/open-questions.md`
+
 ## Phase 3-2 完了 (2026-07-20)
 
 - Claim snapshot codec v2 (`claim-snapshot-v2`) で office / recipient / certificate / dailyRecord[] / claimInput / intensiveSupportEpisode / claimLines[] を確定時に凍結
