@@ -482,3 +482,18 @@ xlsx側の状態遷移追跡（列D「算定項目」で人員配置、列H「�
 | cap-81-plus | band-20000-23000 | 437 | 464402 | 就継ＢⅢ５改定Ｅ | 1789 | 238 | 54-55 |
 | cap-81-plus | band-18000-20000 | 437 | 464408 | 就継ＢⅢ５改定６ | 1795 | 238 | 54-55 |
 | cap-81-plus | band-15000-18000 | 424 | 464414 | 就継ＢⅢ５改定Ｆ | 1801 | 238 | 54-55 |
+
+### 手計算検証ケース（golden case期待値）
+
+端数規則・前提はADR 0027決定4・ADR 0028決定6・ADR 0045「手計算検証ケース」節と同一（月次給付単位数は整数合算、%行は`claim.rounding.units.half-up.v1`で丸めてから加算、総費用額・1割相当額は円未満切捨て、給付費＝総費用額−決定利用者負担額）。改定対象事業所（`R8ReformStatus.ReformTarget`）× 新区分（option 11＝`band-48000-plus`）× 2026年6月のケースで、法31条特例不適用・上限は1割相当額以上・上限額管理対象外を前提とする。
+
+#### ケース: cap-20-or-less × band-48000-plus（option 11） × staff-6-1 × 23日 × region-grade-1（reform-target、2026-06）
+
+- 基本: 463340（就継ＢⅠ１改定１。上記決定表、サービス費（Ⅰ（６：１））の先頭行）837単位×23日 = 19,251単位。この行はaverage-wage-band(=11)＋r8-reform-status(=reform-target)の2条件で選定する（本ADR決定1・2の`kind`をそのまま使用し、PaymentBand tokenでは選ばない）。
+- 福祉・介護職員等処遇改善加算(Ⅰ)イ: 465120（ADR 0045決定表、体制届選択番号2＝`capability-treatment-improvement-r8-i-i`）。月次対象単位合計（`target.b46.items-1-to-16-4.v1`）は本ケースの基本報酬行のみが対象で19,251単位。19,251 × 105/1000 = 2,021.355 → `claim.rounding.units.half-up.v1` → **2,021単位**
+- 月次給付単位数: 19,251 + 2,021 = **21,272単位**
+- 総費用額: 21,272 × 11.14円（region-grade-1。ADR 0044により2026-06も改定なしで継続）= 236,970.08円 → 円未満切捨て → **236,970円**
+- 1割相当額: 236,970 × 10/100 = 23,697.0円 → 円未満切捨て → 23,697円
+- 給付費: 236,970 − 23,697 = **213,273円**
+
+`tests/Tsumugi.Domain.Tests/Logic/Claim/ClaimCalculatorGoldenCaseTests.cs`の`Matches_adr_0046_worked_example_reform_target_office_in_june_2026`が上記期待値を固定する（マスタ行はDomainテストの依存方向規律によりテストファイル内に再掲。`R8Masters()`ヘルパ。ADR 0045本文の`R8Masters()`と同一ヘルパを共有する）。

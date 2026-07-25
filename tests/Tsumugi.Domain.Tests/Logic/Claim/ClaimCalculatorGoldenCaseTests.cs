@@ -29,6 +29,12 @@ public sealed class ClaimCalculatorGoldenCaseTests
     private const string SyntheticBurdenCategory = "cat-a";
     private const int SyntheticBurdenCategoryCapYen = 99_999_999;
 
+    // ADR 0045決定表: 福祉・介護職員等処遇改善加算(Ⅰ)イ（体制届選択番号2）のOfficeCapabilityトークン。
+    // R6統一処遇改善(Ⅰ)（選択番号2）と値としては同じ文字列だが、参照する条件定義キー・有効期間は
+    // 別物であり世代混同は起きない（ADR 0045本文の指摘）。golden case 1・2の双方で同じ区分を使う。
+    private const string TreatmentImprovementR8CapabilityKey =
+        "mhlw.b46.capability.treatment-improvement.2";
+
     public static TheoryData<string, ClaimBillingConditionContext, string, int, int, int, int, int> GoldenCases()
     {
         var data = new TheoryData<string, ClaimBillingConditionContext, string, int, int, int, int, int>();
@@ -278,6 +284,83 @@ public sealed class ClaimCalculatorGoldenCaseTests
         detail.BenefitYen.Should().Be(101_268);
     }
 
+    /// <summary>
+    /// ADR 0045 worked example: 改定対象外事業所（<see cref="R8ReformStatus.ReformExempt"/>）×
+    /// 2026-06。R6基本報酬行462049（ADR 0027決定6により2026-06以降も継続。r8-reform-status条件を
+    /// 一切持たず、いずれのR8ReformStatusでも無条件に一致する）＋ R8処遇改善(Ⅰ)イ
+    /// （ADR 0045決定表、465120＠105/1000）。期待値の算出過程はADR 0045の
+    /// 「手計算検証ケース」節に記載する。
+    /// </summary>
+    [Fact]
+    public void Matches_adr_0045_worked_example_reform_exempt_office_in_june_2026()
+    {
+        var context = new ClaimBillingConditionContext(
+            RewardSystem: "b-type",
+            PaymentBand: "band-20000-25000",
+            CapacityHeadcount: 20,
+            StaffingKey: "staff-7.5-1",
+            AverageWageBandOption: new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 5),
+            R8ReformStatus: R8ReformStatus.ReformExempt,
+            OfficeCapabilityKeys: [TreatmentImprovementR8CapabilityKey]);
+
+        var result = ClaimCalculator.Calculate(R8Masters(), new ClaimCalculationRequest(
+            new ServiceMonth(2026, 6), context, "region-grade-2", "b-type",
+            [new RecipientClaimSource(
+                RecipientA, BilledDays: 22, BenefitRatePercent: 90,
+                CertificateMonthlyCapYen: UnboundedSyntheticCapYen,
+                BurdenCategory: SyntheticBurdenCategory)],
+            CountSelectorBindings));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        detail.AdditionLines.Select(line => (line.ServiceCode, line.Units)).Should().BeEquivalentTo(
+        [
+            ("465120", 1_471),
+        ]);
+        detail.TotalUnits.Should().Be(15_485);
+        detail.TotalCostYen.Should().Be(168_941);
+        detail.BurdenYen.Should().Be(16_894);
+        detail.BenefitYen.Should().Be(152_047);
+    }
+
+    /// <summary>
+    /// ADR 0046 worked example: 改定対象事業所（<see cref="R8ReformStatus.ReformTarget"/>）×
+    /// 新12区分（option 11＝band-48000-plus）× 2026-06。新区分の基本報酬463340
+    /// （ADR 0046決定表・Task 4、837単位/日）＋ R8処遇改善(Ⅰ)イ（ADR 0045決定表、465120＠105/1000）。
+    /// 基本報酬行はaverage-wage-band(=11)＋r8-reform-status(=reform-target)の2条件で選定する
+    /// （ADR 0046決定「kind: average-wage-band」をそのまま再現する。PaymentBand tokenは
+    /// 解決に使わない実装契約と整合し、本ケースでもcontext.PaymentBandは記述用に留まる）。
+    /// </summary>
+    [Fact]
+    public void Matches_adr_0046_worked_example_reform_target_office_in_june_2026()
+    {
+        var context = new ClaimBillingConditionContext(
+            RewardSystem: "b-type",
+            PaymentBand: "band-48000-plus",
+            CapacityHeadcount: 20,
+            StaffingKey: "staff-6-1",
+            AverageWageBandOption: new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 11),
+            R8ReformStatus: R8ReformStatus.ReformTarget,
+            OfficeCapabilityKeys: [TreatmentImprovementR8CapabilityKey]);
+
+        var result = ClaimCalculator.Calculate(R8Masters(), new ClaimCalculationRequest(
+            new ServiceMonth(2026, 6), context, "region-grade-1", "b-type",
+            [new RecipientClaimSource(
+                RecipientA, BilledDays: 23, BenefitRatePercent: 90,
+                CertificateMonthlyCapYen: UnboundedSyntheticCapYen,
+                BurdenCategory: SyntheticBurdenCategory)],
+            CountSelectorBindings));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        detail.AdditionLines.Select(line => (line.ServiceCode, line.Units)).Should().BeEquivalentTo(
+        [
+            ("465120", 2_021),
+        ]);
+        detail.TotalUnits.Should().Be(21_272);
+        detail.TotalCostYen.Should().Be(236_970);
+        detail.BurdenYen.Should().Be(23_697);
+        detail.BenefitYen.Should().Be(213_273);
+    }
+
     /// <summary>ADR 0028決定2のcountSelector正準トークン束縛（productionと同一語彙）。</summary>
     private static readonly IReadOnlyDictionary<string, ClaimCountMetric> CountSelectorBindings =
         new Dictionary<string, ClaimCountMetric>(StringComparer.Ordinal)
@@ -522,5 +605,148 @@ public sealed class ClaimCalculatorGoldenCaseTests
             ConditionDefinition(
                 "cond-staff-6-1", ClaimConditionKind.Staffing, ClaimConditionOperator.Equals,
                 new ClaimConditionTokenOperand("staff-6-1")),
+        ]);
+
+    // ADR 0045・ADR 0046のworked exampleが引用する率（(Ⅰ)イ＠105/1000、2026-06以降）。
+    // golden case 1・2の双方で同じ区分を使う（Task 2で確立したOfficeCapabilityトークン形式の再掲）。
+    private static readonly PercentageOfTargetAmount TreatmentImprovementR8Percentage = new(
+        0.105m,
+        PercentageApplicationKind.Add,
+        PercentageBaseScope.MonthlyTargetUnitSum,
+        MonthlyTargetSelector,
+        CalculationOrder: 1);
+
+    private static ClaimSourceRef SourceRefR8() => new(
+        "r8-fee-notice",
+        "0000000000000000000000000000000000000000000000000000000000000",
+        "ADR 0045決定表・ADR 0046決定表",
+        ClaimSourceEvidenceRole.Authoritative,
+        [ClaimSourceSupport.MasterValues, ClaimSourceSupport.EffectivePeriod]);
+
+    private static ClaimConditionDefinition ConditionDefinitionR8(
+        string key, ClaimConditionKind kind, ClaimConditionOperator @operator, ClaimConditionOperand operand) => new(
+        key, new ServiceMonth(2026, 6), null, kind, @operator, operand, [SourceRefR8()]);
+
+    private static BasicRewardMasterRow BasicRewardR8(
+        string key, string paymentBand, string staffingKey, string capacityKey, string serviceCode, int baseUnits) => new(
+        key, paymentBand, staffingKey, capacityKey, serviceCode, baseUnits,
+        new ServiceMonth(2026, 6), null, [SourceRefR8()]);
+
+    private static ServiceCodeMasterRow ServiceCodeR8(
+        string key, string serviceCode, string officialLabel, IReadOnlyList<string> conditionSelectors,
+        string baseComponentKey) => new(
+        key, serviceCode, officialLabel, "b-type", [MonthlyTargetSelector], conditionSelectors,
+        new BaseComponentPassThroughRule(baseComponentKey, "step-base", null, BillingUnit.PerDay),
+        [new ClaimComponentRef(ClaimComponentMasterKind.BasicRewards, baseComponentKey, ClaimComponentRole.Base)],
+        new ServiceMonth(2026, 6), null, [SourceRefR8()]);
+
+    /// <summary>
+    /// ADR 0045・ADR 0046のworked exampleケース2件（golden case 1・2）用マスタ。<see cref="Masters"/>と
+    /// 同じ方式でR8行をこのテストファイル内に再掲する（DomainテストはInfrastructureのseedへ
+    /// 依存できない）。462049（cap-20-or-less×band-20000-25000×staff-7.5-1）はADR 0027決定6により
+    /// 2026-06以降も継続する行であり、r8-reform-status条件を一切持たないため既存の
+    /// <see cref="BasicReward"/>・<see cref="ServiceCode"/>ヘルパ（EffectiveFrom 2024-04）を
+    /// そのまま再利用する（R8で新規に版が切られたわけではない。ADR 0046「reform-exemptを
+    /// 投入しなかった理由」節）。463340（cap-20-or-less×band-48000-plus×staff-6-1）はADR 0046決定表
+    /// （Task 4・Task 5）が新設したR8改定対象行で、average-wage-band(=11)＋r8-reform-status
+    /// (=reform-target)の2条件で選定する（ADR 0046決定の「kind: average-wage-band」をそのまま
+    /// 再現し、PaymentBand tokenでは選ばない）。地域単価・負担上限はADR 0044により2026-06も
+    /// 継続するため、既存の<see cref="RegionUnitPrice"/>・<see cref="BurdenCap"/>ヘルパをそのまま
+    /// 再利用する。
+    /// </summary>
+    private static ClaimCalculationMasterBundle R8Masters() => new(
+        BasicRewards:
+        [
+            // ADR 0027 §2.2の継続（ADR 0027決定6・ADR 0045背景）。
+            BasicReward("base-462049", "band-20000-25000", "staff-7.5-1", "cap-20-or-less", "462049", 637),
+            // ADR 0046決定表（Task 4）: cap-20-or-less×band-48000-plus(option11)×staff-6-1 = 837単位/日。
+            BasicRewardR8("base-r8-463340", "band-48000-plus", "staff-6-1", "cap-20-or-less", "463340", 837),
+        ],
+        UnitAdjustments:
+        [
+            // ADR 0045決定表: 福祉・介護職員等処遇改善加算(Ⅰ)イ＠105/1000（2026-06以降）。
+            new UnitAdjustmentMasterRow(
+                "addition.treatment-improvement.r8.i-i",
+                TreatmentImprovementR8Percentage,
+                "claim.step.units.monthly-target.percentage.v1",
+                "claim.rounding.units.half-up.v1",
+                BillingUnit.PerMonth,
+                new ServiceMonth(2026, 6),
+                null,
+                [SourceRefR8()]),
+        ],
+        RegionUnitPrices:
+        [
+            // ADR 0027 §3の継続（ADR 0044: 地域単価は2026-06以降も改定なし）。
+            RegionUnitPrice("region-grade-2", 10.91m),
+            RegionUnitPrice("region-grade-1", 11.14m),
+        ],
+        BurdenCaps: [BurdenCap()],
+        TransitionRules: [],
+        ServiceCodes:
+        [
+            // ADR 0027 §2.2の継続。r8-reform-status条件を一切持たず、改定対象・対象外いずれの
+            // R8ReformStatusでも無条件に一致する（ADR 0046「reform-exemptを投入しなかった理由」節）。
+            ServiceCode(
+                "sc-462049", "462049", "就継ＢⅡ１５",
+                ["cond-system-b", "cond-band-20000-25000", "cond-cap-20-or-less", "cond-staff-7-5-1"],
+                "base-462049"),
+            // ADR 0046決定表（Task 5）: average-wage-band(=11)＋r8-reform-status(=reform-target)で
+            // 選定する新12区分側の1行。
+            ServiceCodeR8(
+                "sc-r8-463340", "463340", "就継ＢⅠ１改定１",
+                ["cond-system-b", "cond-r8-avg-11", "cond-r8-reform-target", "cond-cap-20-or-less", "cond-staff-6-1"],
+                "base-r8-463340"),
+            // ADR 0045決定表: 福祉・介護職員等処遇改善加算(Ⅰ)イ（465120。R6と同一コードを継続）。
+            // %行はSelectorsにMonthlyTargetSelectorを載せない（%行自身は対象合計に含まない）。
+            new ServiceCodeMasterRow(
+                "sc-r8-465120-i-i", "465120", "福祉・介護職員等処遇改善加算(Ⅰ)イ", "b-type",
+                ["selector:sc-r8-465120-i-i"],
+                ["cond-system-b", "cond-cap-treatment-r8-i-i"],
+                new UnitAdditionRule(
+                    "addition.treatment-improvement.r8.i-i",
+                    TreatmentImprovementR8Percentage,
+                    "claim.step.units.monthly-target.percentage.v1",
+                    "claim.rounding.units.half-up.v1",
+                    BillingUnit.PerMonth),
+                [
+                    new ClaimComponentRef(
+                        ClaimComponentMasterKind.Additions,
+                        "addition.treatment-improvement.r8.i-i",
+                        ClaimComponentRole.Adjustment),
+                ],
+                new ServiceMonth(2026, 6),
+                null,
+                [SourceRefR8()]),
+        ],
+        ConditionDefinitions:
+        [
+            // ADR 0027 §2.2の継続分（既存Masters()と同一定義を再掲）。
+            ConditionDefinition(
+                "cond-system-b", ClaimConditionKind.RewardSystem, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand("b-type")),
+            ConditionDefinition(
+                "cond-band-20000-25000", ClaimConditionKind.PaymentBand, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand("band-20000-25000")),
+            ConditionDefinition(
+                "cond-cap-20-or-less", ClaimConditionKind.Capacity, ClaimConditionOperator.LessThanOrEqual,
+                new ClaimConditionIntegerOperand(20)),
+            ConditionDefinition(
+                "cond-staff-7-5-1", ClaimConditionKind.Staffing, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand("staff-7.5-1")),
+            ConditionDefinition(
+                "cond-staff-6-1", ClaimConditionKind.Staffing, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand("staff-6-1")),
+            ConditionDefinition(
+                "cond-cap-treatment-r8-i-i", ClaimConditionKind.OfficeCapability, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand(TreatmentImprovementR8CapabilityKey)),
+            // ADR 0046決定表（Task 3）: average-wage-band条件（option 11＝band-48000-plus）。
+            ConditionDefinitionR8(
+                "cond-r8-avg-11", ClaimConditionKind.AverageWageBand, ClaimConditionOperator.Equals,
+                new ClaimConditionIntegerOperand(11)),
+            // ADR 0046決定表（Task 3）: r8-reform-status条件（reform-target）。
+            ConditionDefinitionR8(
+                "cond-r8-reform-target", ClaimConditionKind.R8ReformStatus, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand("reform-target")),
         ]);
 }

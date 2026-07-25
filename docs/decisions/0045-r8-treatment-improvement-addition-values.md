@@ -162,6 +162,21 @@ field-idは `treatment-improvement`（ADR 0021の既存field-idを継続使用�
 - `calculationOrder` — 相互排他家族内の順序。1〜6を告示の項番順（イ〜ヘ）で採番。
 - `roundingRuleId: "claim.rounding.units.half-up.v1"` — `r8-calculation-note` 物理8〜9頁の四捨五入規則と整合。
 
+### 手計算検証ケース（golden case期待値）
+
+端数規則はADR 0025に従う: 月次給付単位数は基本報酬＋加算の整数合算（%行は`claim.rounding.units.half-up.v1`で丸めてから加算）、総費用額＝給付単位数×地域単価の円未満切捨て、1割相当額＝総費用額×10/100の円未満切捨て、給付費＝総費用額−決定利用者負担額。改定対象外事業所（`R8ReformStatus.ReformExempt`）× 2026年6月のケースで、法31条特例不適用・上限は1割相当額以上・上限額管理対象外を前提とする（ADR 0027決定4・ADR 0028決定6と同一前提）。
+
+#### ケース: cap-20-or-less × band-20000-25000 × staff-7.5-1 × 22日 × region-grade-2（reform-exempt、2026-06）
+
+- 基本: 462049（就継ＢⅡ１５、ADR 0027決定6により2026-06以降も継続。r8-reform-status条件を一切持たないため`R8ReformStatus.ReformExempt`でも無条件に一致する）637単位×22日 = 14,014単位
+- 福祉・介護職員等処遇改善加算(Ⅰ)イ: 465120（本ADR決定表、体制届選択番号2＝`capability-treatment-improvement-r8-i-i`）。月次対象単位合計（`target.b46.items-1-to-16-4.v1`）は本ケースの基本報酬行のみが対象で14,014単位。14,014 × 105/1000 = 1,471.47 → `claim.rounding.units.half-up.v1` → **1,471単位**
+- 月次給付単位数: 14,014 + 1,471 = **15,485単位**
+- 総費用額: 15,485 × 10.91円（region-grade-2。ADR 0044により2026-06も改定なしで継続）= 168,941.35円 → 円未満切捨て → **168,941円**
+- 1割相当額: 168,941 × 10/100 = 16,894.1円 → 円未満切捨て → 16,894円
+- 給付費: 168,941 − 16,894 = **152,047円**
+
+`tests/Tsumugi.Domain.Tests/Logic/Claim/ClaimCalculatorGoldenCaseTests.cs`の`Matches_adr_0045_worked_example_reform_exempt_office_in_june_2026`が上記期待値を固定する（マスタ行はDomainテストの依存方向規律によりテストファイル内に再掲。`R8Masters()`ヘルパ）。
+
 ### 確定できなかった区分
 
 | 区分 | 未投入の理由 | 現在の挙動（Fix Round 1 I-4） |

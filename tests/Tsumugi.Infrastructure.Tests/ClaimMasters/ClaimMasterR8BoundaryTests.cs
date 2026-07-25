@@ -355,6 +355,25 @@ public sealed class ClaimMasterR8BoundaryTests
                 expected, $"{key} の率はADR 0045決定表の値と一致しなければならない");
     }
 
+    /// <summary>
+    /// Task 6（ADR 0044・AC3-4-4）: 地域単価・負担上限はR8出典に裏付けられて2026-06でも解決する
+    /// （Task 1の分岐(a): 継続。分岐(c)＝確定できず閉じる、を採らなかったことを固定する）。
+    /// これが空/未解決のまま2026-06の請求を通すと、給付単位数は算定できても総費用額・利用者負担額
+    /// が確定できず、静かな誤請求（0円扱い等）に繋がるため、ここで「解決できる」こと自体を機械的に
+    /// pinする。
+    /// </summary>
+    [Fact]
+    public void Region_unit_prices_and_burden_caps_resolve_in_june_2026()
+    {
+        // ADR 0044: 地域単価・負担上限はR8出典に裏付けられて2026-06でも解決する。
+        var june = Provider.ResolveCalculationMasters(June2026);
+
+        june.RegionUnitPrices.Should().NotBeEmpty(
+            "地域単価が解決できなければ総費用額を算出できない");
+        june.BurdenCaps.Should().NotBeEmpty(
+            "負担上限が解決できなければ利用者負担を確定できない");
+    }
+
     private static OfficeClaimProfile ReformTargetProfile(AverageWageBandOption option)
     {
         var id = Guid.NewGuid();
