@@ -104,8 +104,14 @@ public sealed class ExportClaimCsvUseCase(
         // 2 つの由来を合わせる。
         // (1) 要件由来: 解決版の readiness 要件を確定 snapshot で評価する（項目の入力漏れ）。
         // (2) 生成由来: 実際に生成を試して encoder が落ちた項目（桁・文字種・解決不能な rule）。
-        // 同じ項目が両方から出ることがあるため fieldId で重複排除する。
+        // 同じ項目が両方から出ることがあるため fieldId で重複排除する。要件由来の issue は
+        // モデル path（ContractedProvider.FirstServiceDate 等）を持つので、<b>仕様上の fieldId へ展開</b>
+        // してから合流させる（path のまま載せると DTO 契約に反し、生成由来の同一不足と重複排除されない）。
         var requirements = requirementProvider.GetRequirements(resolvedVersion);
+        var fieldIdsByTargetPath = requirements.ToDictionary(
+            requirement => requirement.TargetPath,
+            requirement => (IReadOnlyList<string>)requirement.FieldIds,
+            StringComparer.Ordinal);
         var requirementIssues = latest.Details
             .Select(detail => ClaimFinalizationSnapshotReader.Parse( // CultureInfo: 非該当（JSON snapshot parser）
                 Encoding.UTF8.GetBytes(detail.CalculationSnapshotJson)))
@@ -114,11 +120,12 @@ public sealed class ExportClaimCsvUseCase(
                 requirements,
                 [.. genericFieldCatalog.GetDeclarations(resolvedVersion)
                     .Select(declaration => declaration.Name)]))
-            .Select(issue => new ClaimCsvFieldIssue(
-                issue.FieldCode,
-                issue.Code.ToString(),
-                "確定済み請求に、この仕様版が要求する項目が入っていません。",
-                null));
+            .SelectMany(issue => FieldIdsOf(issue, fieldIdsByTargetPath)
+                .Select(fieldId => new ClaimCsvFieldIssue(
+                    fieldId,
+                    issue.Code.ToString(),
+                    "確定済み請求に、この仕様版が要求する項目が入っていません。",
+                    null)));
 
         var issues = requirementIssues
             .Concat(generator.CollectIssues(dto))
@@ -129,6 +136,18 @@ public sealed class ExportClaimCsvUseCase(
         return new ClaimCsvExportValidationResult(
             latest.Header.CsvSpecificationVersion, resolvedVersion, issues);
     }
+
+    /// <summary>
+    /// 要件由来の issue を仕様上の fieldId へ展開する。要件は 1 つの target path に対して複数の項目を
+    /// 束ねているため、不足は<b>その全項目</b>として示す（利用者が仕様書で引ける ID になる）。
+    /// 対応する要件が見つからない場合だけは path を落とさずそのまま載せる（黙って消さない）。
+    /// </summary>
+    private static IReadOnlyList<string> FieldIdsOf(
+        ClaimPreparationIssue issue,
+        Dictionary<string, IReadOnlyList<string>> fieldIdsByTargetPath)
+        => fieldIdsByTargetPath.TryGetValue(issue.FieldCode, out var fieldIds) && fieldIds.Count > 0
+            ? fieldIds
+            : [issue.FieldCode];
 
     private string ResolveVersion(ProcessingMonth processingMonth)
     {

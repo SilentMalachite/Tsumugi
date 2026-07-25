@@ -97,40 +97,29 @@ public static class ClaimFinalizationReadinessContextBuilder
                 contractedProvider.CertificateEntryNumber, contractedProvider.FirstServiceDate);
 
     /// <summary>
-    /// 日次記録の縮約。<see cref="ClaimDailyRecordAggregate"/> の doc-comment と同じ規則で、
-    /// 本体報酬を算定する日（<see cref="Attendance.Present"/>）だけを母集団にする。
+    /// 日次記録の縮約。規則は <see cref="ClaimDailyRecordReduction"/>（確定前と同じ関数）に置く。
+    /// ここに規則を書くと、確定前は通ったのに再評価では不足、という食い違いが生まれる。
     /// </summary>
     private static ClaimDailyRecordAggregate AggregateOf(
         IReadOnlyList<ClaimFinalizationDailyRecordSnapshot> dailyRecords)
-    {
-        var presentDays = dailyRecords
-            .Where(record => record.Attendance == Attendance.Present)
-            .OrderBy(record => record.ServiceDate)
-            .ToArray();
-        if (presentDays.Length == 0) return ClaimDailyRecordAggregate.Empty;
-
-        return new ClaimDailyRecordAggregate(
-            ServiceStartTime: presentDays.Select(record => record.ServiceStartTime).FirstOrDefault(),
-            ServiceEndTime: presentDays.Select(record => record.ServiceEndTime).FirstOrDefault(),
-            SpecialVisitSupportMinutesTotal:
-                presentDays.Sum(record => record.SpecialVisitSupportMinutes ?? 0),
-            OffsiteSupportApplied: presentDays.Any(record => record.OffsiteSupportApplied),
-            MedicalCoordinationType: FirstEnum<MedicalCoordinationType>(
-                presentDays.Select(record => record.MedicalCoordinationType)),
-            TrialUseSupportType: FirstEnum<TrialUseSupportType>(
-                presentDays.Select(record => record.TrialUseSupportType)),
-            RegionalCollaborationApplied: presentDays.Any(record => record.RegionalCollaborationApplied),
-            IntensiveSupportApplied: presentDays.Any(record => record.IntensiveSupportApplied),
-            EmergencyAdmissionApplied: presentDays.Any(record => record.EmergencyAdmissionApplied),
-            RecipientConfirmation: presentDays.All(record => record.RecipientConfirmation)
+        => ClaimDailyRecordReduction.Reduce(dailyRecords.Select(record => new ClaimReadinessDailyRow(
+            record.ServiceDate,
+            record.Attendance,
+            record.ServiceStartTime,
+            record.ServiceEndTime,
+            record.SpecialVisitSupportMinutes,
+            record.OffsiteSupportApplied,
+            ParseEnum<MedicalCoordinationType>(record.MedicalCoordinationType)
+                ?? MedicalCoordinationType.Unspecified,
+            ParseEnum<TrialUseSupportType>(record.TrialUseSupportType)
+                ?? TrialUseSupportType.Unspecified,
+            record.RegionalCollaborationApplied,
+            record.IntensiveSupportApplied,
+            record.EmergencyAdmissionApplied,
+            record.RecipientConfirmation
                 ? RecipientConfirmationStatus.Confirmed
                 : RecipientConfirmationStatus.Unspecified,
-            // 未入力（どの日にも値が無い）は null。0 を渡すと「入力済みの 0」と区別できず fail-open する。
-            SpecialVisitSupportBilledHoursTotal:
-                presentDays.Any(record => record.SpecialVisitSupportBilledHours is not null)
-                    ? presentDays.Sum(record => record.SpecialVisitSupportBilledHours ?? 0)
-                    : null);
-    }
+            record.SpecialVisitSupportBilledHours)));
 
     /// <summary>
     /// 行スコープ。実績記録票の日次行は本体報酬算定日が 1 日以上あれば存在し、
@@ -152,10 +141,6 @@ public static class ClaimFinalizationReadinessContextBuilder
 
         return scopes;
     }
-
-    private static TEnum FirstEnum<TEnum>(IEnumerable<string?> tokens)
-        where TEnum : struct, Enum
-        => tokens.Select(ParseEnum<TEnum>).FirstOrDefault(value => value is not null) ?? default;
 
     private static TEnum? ParseEnum<TEnum>(string? token)
         where TEnum : struct, Enum

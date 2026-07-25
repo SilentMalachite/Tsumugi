@@ -14,7 +14,9 @@ public sealed class CsvSpecificationRegistryTests
         new string('a', 64),
         "section=索引",
         "authoritative",
-        ["applicability-period"]);
+        ["applicability-period"],
+        // 出典は位置と原文引用まで揃って初めて後から検証できる（ADR 0038）。
+        "令和７年10月施行分");
 
     [Fact]
     public void The_embedded_registry_resolves_the_current_version()
@@ -22,8 +24,17 @@ public sealed class CsvSpecificationRegistryTests
         var registry = CsvSpecificationRegistry.LoadEmbedded();
 
         registry.Versions.Should().NotBeEmpty();
-        registry.Current.Should().Be(registry.Versions[^1].Version);
-        registry.Resolve(new ProcessingMonth(2026, 8)).Version.Should().Be(registry.Current);
+        // NOTE(teeth): 「登録済みの最新版」ではなく「その時点で適用される版」。将来の施行分を
+        // 事前登録すると Versions[^1] は将来版になるので、最新版と同一視すると正しい実装が落ちる
+        // （＝版の事前登録という主要ユースケースを CI が阻害する。ADR 0039・0041）。
+        registry.Current.Should().Be(registry.ResolveForProcessingMonth(CurrentProcessingMonth()));
+        registry.Resolve(CurrentProcessingMonth()).Version.Should().Be(registry.Current);
+    }
+
+    private static ProcessingMonth CurrentProcessingMonth()
+    {
+        var now = TimeProvider.System.GetLocalNow();
+        return new ProcessingMonth(now.Year, now.Month);
     }
 
     // NOTE(teeth): 適用開始前の処理対象年月では、推測で現行版を使わず fail-close する。
@@ -189,6 +200,61 @@ public sealed class CsvSpecificationRegistryTests
             new CsvSpecificationVersionFile(1, "csv-specification-versions", []));
 
         act.Should().Throw<InvalidDataException>().WithMessage("*empty*");
+    }
+
+    // NOTE(teeth): 適用期間は「どの版でCSVを作るか」を決める。索引が差し替わって sources.json の
+    // SHA-256 が変わったのに件数しか見ないと、旧い適用期間のまま起動して<b>新しい施行分に気づかず</b>
+    // 旧版で請求データを作る（ADR 0038 の fail-close をここにも効かせる）。
+    [Fact]
+    public void A_stale_pinned_hash_for_the_applicability_source_fails_closed()
+    {
+        var catalog = CsvSpecificationLoader.LoadEmbedded("r7-10");
+        var entry = Entry("r7-10", "2025-10", null) with
+        {
+            SourceRefs = [AnyRef with { Sha256 = new string('b', 64) }],
+        };
+
+        var act = () => CsvSpecificationRegistry.ValidateApplicabilityEvidence(entry, catalog);
+
+        act.Should().Throw<InvalidDataException>().WithMessage("*stale SHA-256*");
+    }
+
+    [Fact]
+    public void An_unregistered_applicability_document_fails_closed()
+    {
+        var catalog = CsvSpecificationLoader.LoadEmbedded("r7-10");
+        var entry = Entry("r7-10", "2025-10", null) with
+        {
+            SourceRefs = [AnyRef with { DocumentId = "not-registered" }],
+        };
+
+        var act = () => CsvSpecificationRegistry.ValidateApplicabilityEvidence(entry, catalog);
+
+        act.Should().Throw<InvalidDataException>().WithMessage("*unregistered document*");
+    }
+
+    [Fact]
+    public void A_source_that_does_not_support_the_applicability_period_fails_closed()
+    {
+        var catalog = CsvSpecificationLoader.LoadEmbedded("r7-10");
+        var registered = catalog.SourcesById["interface-index-r7-10"];
+        var entry = Entry("r7-10", "2025-10", null) with
+        {
+            SourceRefs = [AnyRef with { Sha256 = registered.Sha256, Supports = ["data-kind"] }],
+        };
+
+        var act = () => CsvSpecificationRegistry.ValidateApplicabilityEvidence(entry, catalog);
+
+        act.Should().Throw<InvalidDataException>().WithMessage("*applicability-period*");
+    }
+
+    // 埋め込みレジストリは実際に照合を通る（登録済み SHA-256 と一致している）。
+    [Fact]
+    public void The_embedded_registry_passes_the_applicability_evidence_check()
+    {
+        var act = () => CsvSpecificationRegistry.LoadEmbedded();
+
+        act.Should().NotThrow();
     }
 
     /// <summary>暦月の判定なので local 時刻を返す固定 clock（月初の境界を JST で評価する）。</summary>

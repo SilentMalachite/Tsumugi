@@ -75,3 +75,19 @@
 
 - 出力時（`ExportClaimCsvUseCase.ValidateAsync`）は解決版の要件だけを見るため、緩んだ項目は
   自動的に不足として出なくなる（追加対応は不要）。
+
+## 追記（2026-07-25・Codex レビュー由来）
+
+1. **日次記録の縮約は 1 か所**（`ClaimDailyRecordReduction`）。確定前（DB 由来）と確定後（snapshot 由来）で
+   規則が分かれていた（時刻・区分は「先頭日の値」対「最初に入力された日の値」、受給者確認は「全日確認」対
+   「最初の非 Unspecified」）。規則が違うと**確定できた請求が再評価では項目不足**になる。
+   正本は `ClaimDailyRecordAggregate` の doc-comment、実装は共有関数だけに置く。
+   証跡: `ClaimDailyRecordReductionTests`（6 件）。
+2. **要件由来の不足は仕様上の fieldId へ展開して返す**。`ClaimPreparationIssue.FieldCode` は
+   モデル path なので、そのまま `ClaimCsvFieldIssue.FieldId` に載せると DTO 契約に反し、生成由来の
+   同じ不足と重複排除されず二重に見える。要件が束ねている項目全件へ展開する。
+3. **不足一覧は画面に出す**。ViewModel が集めるだけで表示が無く、利用者には「次の項目を入力して
+   ください」だけが見えていた（ADR 0040 の約束が UI で果たされていなかった）。
+   証跡: `ClaimPreparationView_lists_every_missing_field_of_the_csv_export`。
+4. `Current` を「登録済みの最新版」と同一視するテストを直した。将来の施行分を事前登録すると
+   正しい実装が落ち、**版の事前登録という主要ユースケースを CI が阻害する**状態だった。

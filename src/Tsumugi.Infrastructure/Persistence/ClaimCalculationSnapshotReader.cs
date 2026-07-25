@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Tsumugi.Application.Abstractions;
+using Tsumugi.Application.Claim;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic;
@@ -202,40 +203,23 @@ public sealed class ClaimCalculationSnapshotReader(
                     TransportKind.Round => 2,
                     _ => 0,
                 }));
-            aggregateByRecipient[recipientId] = presentDays.Length == 0
-                ? ClaimDailyRecordAggregate.Empty
-                : new ClaimDailyRecordAggregate(
-                    ServiceStartTime: presentDays
-                        .Select(record => record.ServiceStartTime)
-                        .FirstOrDefault(value => value is not null),
-                    ServiceEndTime: presentDays
-                        .Select(record => record.ServiceEndTime)
-                        .FirstOrDefault(value => value is not null),
-                    SpecialVisitSupportMinutesTotal: presentDays
-                        .Sum(record => record.SpecialVisitSupportMinutes ?? 0),
-                    OffsiteSupportApplied: presentDays.Any(record => record.OffsiteSupportApplied == true),
-                    MedicalCoordinationType: presentDays
-                        .Select(record => record.MedicalCoordinationType)
-                        .FirstOrDefault(value => value != MedicalCoordinationType.Unspecified),
-                    TrialUseSupportType: presentDays
-                        .Select(record => record.TrialUseSupportType)
-                        .FirstOrDefault(value => value != TrialUseSupportType.Unspecified),
-                    RegionalCollaborationApplied: presentDays
-                        .Any(record => record.RegionalCollaborationApplied == true),
-                    IntensiveSupportApplied: presentDays.Any(record => record.IntensiveSupportApplied == true),
-                    EmergencyAdmissionApplied: presentDays
-                        .Any(record => record.EmergencyAdmissionApplied == true),
-                    RecipientConfirmation: presentDays
-                        .Select(record => record.RecipientConfirmation)
-                        .FirstOrDefault(value => value != RecipientConfirmationStatus.Unspecified),
-                    // 訪問支援特別加算の算定時間数（時間）。サービス提供時間（分）と同じくSUM縮約だが、
-                    // 別項目・別尺度なので合算しない（Phase 3-3）。
-                    // どの日にも入力が無ければ null（＝未入力）。0 を返すと readiness が
-                    // 「入力済みの 0」と区別できず fail-open する。
-                    SpecialVisitSupportBilledHoursTotal: presentDays
-                        .Any(record => record.SpecialVisitSupportBilledHours is not null)
-                        ? presentDays.Sum(record => record.SpecialVisitSupportBilledHours ?? 0)
-                        : null);
+            // 縮約規則は確定 snapshot 側と同じ関数に置く（規則を2か所に書くと、確定前は通ったのに
+            // 再評価では不足、という食い違いが生まれる）。
+            aggregateByRecipient[recipientId] = ClaimDailyRecordReduction.Reduce(
+                presentDays.Select(record => new ClaimReadinessDailyRow(
+                    record.ServiceDate,
+                    record.Attendance,
+                    record.ServiceStartTime,
+                    record.ServiceEndTime,
+                    record.SpecialVisitSupportMinutes,
+                    record.OffsiteSupportApplied == true,
+                    record.MedicalCoordinationType,
+                    record.TrialUseSupportType,
+                    record.RegionalCollaborationApplied == true,
+                    record.IntensiveSupportApplied == true,
+                    record.EmergencyAdmissionApplied == true,
+                    record.RecipientConfirmation,
+                    record.SpecialVisitSupportBilledHours)));
         }
         return (billedDaysByRecipient, aggregateByRecipient, additionCountsByRecipient);
     }

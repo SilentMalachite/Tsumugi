@@ -213,6 +213,18 @@ public sealed class ViewInputWiringTests
             because: "契約一覧 Read が画面から到達不能だと AC1-1 CRUD を満たさない");
     }
 
+    // NOTE(teeth): ViewModel が集めた不足項目一覧が画面に出ていること（ADR 0040）。
+    // VM が集めるだけで表示が無いと、利用者は「次の項目を入力してください」だけを見て
+    // 1 項目ずつ潰すことになる（Codex 指摘で実際に抜けていた）。
+    [Fact]
+    public void ClaimPreparationView_lists_every_missing_field_of_the_csv_export()
+    {
+        var xml = ReadView("ClaimPreparationView.axaml");
+
+        xml.Should().Contain("{Binding CsvExportSection.MissingFieldSummaries}");
+        xml.Should().Contain("{Binding CsvExportSection.HasMissingFields}");
+    }
+
     private static string ReadView(string fileName)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

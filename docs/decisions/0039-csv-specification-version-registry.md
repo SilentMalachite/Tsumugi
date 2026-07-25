@@ -60,6 +60,17 @@ CSV 出力の配線テストは行を直接 seed し、その fixture が `"r7-1
 `effectiveTo` は null。次の施行分で共通編・事業所編が改訂されたら、この版に `effectiveTo` を入れて
 新版を追記する。
 
+## 追記（2026-07-25・Codex レビュー由来）
+
+適用期間の出典は**件数と注記だけでなく内容を照合する**。`sources.json` の SHA-256 と一致すること、
+位置と原文引用があること、`applicability-period` を支持する出典が 1 件以上あることを読み込み時に検証し、
+どれかが欠けると起動時に fail-close する（`CsvSpecificationRegistry.ValidateApplicabilityEvidence`）。
+索引が差し替わったのに件数しか見ないと、**新しい施行分に気づかないまま旧版で請求データを作れてしまう**
+（ADR 0038 の fail-close をレジストリ側にも効かせる）。証跡:
+`A_stale_pinned_hash_for_the_applicability_source_fails_closed` /
+`An_unregistered_applicability_document_fails_closed` /
+`A_source_that_does_not_support_the_applicability_period_fails_closed`。
+
 ## 影響
 
 - `IClaimCsvGenerator` から `SpecificationVersion` を外した（版の解決は 1 か所に集約）。

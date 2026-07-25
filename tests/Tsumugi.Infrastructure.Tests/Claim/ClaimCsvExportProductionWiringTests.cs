@@ -167,6 +167,12 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
             1, "生成を1件で打ち切らず、不足している項目をすべて集める");
         validation.Issues.Select(issue => issue.FieldId).Should().OnlyHaveUniqueItems();
         validation.Issues.Should().OnlyContain(issue => issue.FieldId.Length > 0);
+        // NOTE(teeth): 不足はすべて<b>仕様上の項目 ID</b>で示す（利用者が仕様書で引ける ID）。
+        // モデル path（ContractedProvider.FirstServiceDate 等）を載せると DTO 契約に反し、
+        // 生成由来の同じ不足と重複排除されず二重に見える。
+        validation.Issues.Should().OnlyContain(issue =>
+            issue.FieldId.StartsWith("provider:", StringComparison.Ordinal)
+            || issue.FieldId.StartsWith("common:", StringComparison.Ordinal));
         // 氏名・受給者証番号は載せない（ハード制約4）。
         validation.Issues.Should().OnlyContain(issue => !issue.Detail.Contains('ﾂ', StringComparison.Ordinal));
     }

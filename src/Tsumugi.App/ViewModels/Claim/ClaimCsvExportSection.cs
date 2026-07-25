@@ -47,6 +47,9 @@ public sealed partial class ClaimCsvExportSection(
     /// </summary>
     public System.Collections.ObjectModel.ObservableCollection<string> MissingFieldSummaries { get; } = [];
 
+    /// <summary>不足項目の一覧を表示するか（空のときに見出しだけ残らないようにする）。</summary>
+    public bool HasMissingFields => MissingFieldSummaries.Count > 0;
+
     /// <summary>対象事業所ID。親ViewModelがOffice選択・履歴更新のたびに反映する。</summary>
     public Guid OfficeId { get; set; }
 
@@ -82,6 +85,7 @@ public sealed partial class ClaimCsvExportSection(
         }
 
         MissingFieldSummaries.Clear();
+        OnPropertyChanged(nameof(HasMissingFields));
         try
         {
             var result = await exportClaimCsv.ExecuteAsync(
@@ -135,6 +139,8 @@ public sealed partial class ClaimCsvExportSection(
                     : $" 参照コード: {issue.RecipientReferenceCode}";
                 MissingFieldSummaries.Add($"項目: {issue.FieldId} / 理由: {issue.Reason}{reference}");
             }
+
+            OnPropertyChanged(nameof(HasMissingFields));
 
             if (validation.UsesNewerVersionThanFinalized && !validation.CanExport)
             {

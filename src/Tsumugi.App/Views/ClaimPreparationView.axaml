@@ -174,6 +174,18 @@
                     <TextBlock Text="{Binding CsvExportSection.ErrorMessage}" Foreground="Red"
                                IsVisible="{Binding CsvExportSection.ErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}"
                                TextWrapping="Wrap" />
+                    <!-- 不足項目は全件並べる（ADR 0040）。1件だけ見せると利用者が1項目ずつ潰すことになる。 -->
+                    <StackPanel Spacing="4"
+                                IsVisible="{Binding CsvExportSection.HasMissingFields}">
+                        <TextBlock Text="不足している項目" FontWeight="Bold" />
+                        <ItemsControl ItemsSource="{Binding CsvExportSection.MissingFieldSummaries}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
                     <TextBlock Text="{Binding CsvExportSection.LastSavedFileName, StringFormat='最後に保存: {0}'}"
                                IsVisible="{Binding CsvExportSection.LastSavedFileName, Converter={x:Static ObjectConverters.IsNotNull}}" />
                 </StackPanel>

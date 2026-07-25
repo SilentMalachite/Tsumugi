@@ -89,9 +89,61 @@ public sealed class CsvSpecificationRegistry : IClaimCsvSpecificationVersions
                     $"CSV specification version '{entry.Version}' does not match its catalog version "
                     + $"'{catalogs[entry.Version].Version}'.");
             }
+
+            ValidateApplicabilityEvidence(entry, catalogs[entry.Version]);
         }
 
         return new CsvSpecificationRegistry(entries, catalogs, clock);
+    }
+
+    /// <summary>この版が「いつからいつまで適用されるか」の根拠。この語を支持する出典が必須。</summary>
+    private const string ApplicabilityPeriodSupport = "applicability-period";
+
+    /// <summary>
+    /// 適用期間の出典を<b>文書の現在の SHA-256 と突き合わせる</b>（ADR 0038 と同じ fail-close）。
+    /// </summary>
+    /// <remarks>
+    /// 適用期間は「どの版でCSVを作るか」を決める。索引が更新されて <c>sources.json</c> の SHA-256 が
+    /// 変わったのに、ここが件数と注記しか見ないと、<b>差し替わった索引のまま旧い適用期間で起動できる</b>
+    /// （＝新しい施行分が出ているのに気づかないまま旧版で請求データを作る）。件数ではなく内容を照合する。
+    /// </remarks>
+    internal static void ValidateApplicabilityEvidence(
+        CsvSpecificationVersionEntry entry,
+        CsvSpecificationCatalog catalog)
+    {
+        foreach (var sourceRef in entry.SourceRefs)
+        {
+            if (!catalog.SourcesById.TryGetValue(sourceRef.DocumentId, out var document))
+            {
+                throw new InvalidDataException(
+                    $"CSV specification version '{entry.Version}' cites unregistered document "
+                    + $"'{sourceRef.DocumentId}'.");
+            }
+
+            if (!string.Equals(sourceRef.Sha256, document.Sha256, StringComparison.Ordinal))
+            {
+                throw new InvalidDataException(
+                    $"CSV specification version '{entry.Version}' pins a stale SHA-256 for document "
+                    + $"'{sourceRef.DocumentId}'. Re-verify the applicability period against the new "
+                    + "document before updating the pinned hash.");
+            }
+
+            if (string.IsNullOrWhiteSpace(sourceRef.Locator)
+                || string.IsNullOrWhiteSpace(sourceRef.Quote))
+            {
+                throw new InvalidDataException(
+                    $"CSV specification version '{entry.Version}' cites document "
+                    + $"'{sourceRef.DocumentId}' without a locator and an original quote.");
+            }
+        }
+
+        if (!entry.SourceRefs.Any(sourceRef =>
+                sourceRef.Supports.Contains(ApplicabilityPeriodSupport, StringComparer.Ordinal)))
+        {
+            throw new InvalidDataException(
+                $"CSV specification version '{entry.Version}' has no source supporting "
+                + $"'{ApplicabilityPeriodSupport}'.");
+        }
     }
 
     /// <summary>版名で仕様を引く（版ごとの readiness 要件を組むときに使う）。</summary>
