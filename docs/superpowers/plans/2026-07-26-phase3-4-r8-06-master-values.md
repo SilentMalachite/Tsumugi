@@ -721,6 +721,16 @@ git commit -m "feat(phase3-4/AC3-4-2): R8の福祉・介護職員等処遇改善
 
 ---
 
+> ## ⚠️ Task 3・4・5 は1つのタスク・1コミットとして実行する（2026-07-26 修正）
+>
+> **当初の3分割は実行不能だった。** `ClaimMasterFileValidator.ValidateConditions`（`ClaimMasterFileValidator.cs:2325`）は、**`conditionDefinitions` のキーが `service-codes.json` のどの entry の `conditionSelectors` からも参照されていない場合に例外を投げる**（`byKey.Keys.Except(used).FirstOrDefault()` → `"is unused"`）。これは orphan token の蓄積を防ぐ dead-code ガードであり、健全な不変条件である。
+>
+> したがって seed は**毎コミット内部整合していなければならず**、「トークンだけ先に入れる」中間状態は存在できない。Task 3 単独のコミットは 89 件のテストを赤にする（`Tsumugi.Infrastructure.Tests` 69 ＋ `Tsumugi.App.Tests` 20、すべて同一根本原因）。
+>
+> **検討して不採用にした案**: (a) validator に猶予機構を足す — コミット境界の都合で production の不変条件を緩めるのは本末転倒。(b) Task 5 の一部を前倒しする — 依然として部分状態が残る。
+>
+> **採用**: Task 3 → 4 → 5 の**手順はそのまま順に実施し、コミットは Task 5 の末尾で1回だけ行う**。Task 3 Step 7 と Task 4 Step 9 のコミットは実施しない（それ以外の Step はすべて実施する。特に各 Step の RED 確認と歯の確認は省略しない）。レビュー単位は3タスク分の統合差分になる。
+
 ## Task 3: 新12区分の条件トークン14個（AC3-4-3 の前段）
 
 **Files:**
@@ -887,15 +897,9 @@ dotnet test
 
 期待: 全緑。この時点では `basic-rewards` にまだ R8 行が無いため、`ClaimMasterR8BoundaryTests.Reform_target_r8_numeric_options_fail_explicitly_until_their_rows_land` は**まだ緑**（fail-close のまま）である。これは正しい中間状態。
 
-- [ ] **Step 7: コミット**
+- [ ] ~~**Step 7: コミット**~~ — **実施しない。** 冒頭の注記のとおり、`conditionDefinitions` だけを入れた状態は `ValidateConditions` の未参照ガードに掛かる。そのまま Task 4 へ進む。
 
-```bash
-./build/ci.sh
-git add src/Tsumugi.Infrastructure/ClaimMasters/Seed/service-codes.json \
-        tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimMasterSeedPhase31Tests.cs \
-        docs/decisions/0046-r8-reform-target-payment-bands.md docs/open-questions.md
-git commit -m "feat(phase3-4/AC3-4-3): R8新12区分の条件トークン14個を出典付きで追加する"
-```
+> この時点で `dotnet test` は赤い（未参照トークンによりマスタのロード自体が落ちるため、静的コンストラクタ経由で広範に波及する）。**これは想定内の中間状態**であり、Task 5 の末尾で緑に戻る。Task 4・5 の各 Step の RED 確認は、この赤とは別物であることに注意して読むこと（対象テストが**期待するメッセージで**落ちているかを確認する）。
 
 ---
 
@@ -1102,15 +1106,7 @@ dotnet test
 
 180行のうち1行を削除して Step 1 のテストが RED（`HaveCount(180)` と各区分15行の両方）になることを確認する。1行の `baseUnits` を1増やして ADR 0046 の決定表との齟齬が Task 6 の golden case で検出されることを、Task 6 完了後に確認する。
 
-- [ ] **Step 9: コミット**
-
-```bash
-./build/ci.sh
-git add src/Tsumugi.Infrastructure/ClaimMasters/Seed/basic-rewards.json \
-        tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ \
-        docs/decisions/0046-r8-reform-target-payment-bands.md
-git commit -m "feat(phase3-4/AC3-4-3): R8改定対象の新12区分 基本報酬180行を投入する"
-```
+- [ ] ~~**Step 9: コミット**~~ — **実施しない。** そのまま Task 5 へ進む。`basic-rewards` を入れても、対応する `service-codes` 行が無い限り `conditionDefinitions` の未参照ガードは解けない（`conditionSelectors` を持つのは `service-codes.json` の entry だけ）。緑に戻るのは Task 5 の Step 3 完了後。
 
 ---
 
@@ -1356,11 +1352,16 @@ dotnet test
 
 - [ ] **Step 8: コミット**
 
+**Task 3・4・5 を通した唯一のコミットである。** 冒頭の注記のとおり、seed の内部整合性（`ValidateConditions` の未参照ガード）により、この3タスクは分割してコミットできない。
+
 ```bash
 ./build/ci.sh
 git add src/Tsumugi.Infrastructure/ClaimMasters/Seed/service-codes.json \
-        tests/Tsumugi.Infrastructure.Tests/ClaimMasters/
-git commit -m "feat(phase3-4/AC3-4-3): R8新12区分のサービスコード180行を投入しfail-closeを解除する"
+        src/Tsumugi.Infrastructure/ClaimMasters/Seed/basic-rewards.json \
+        tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ \
+        docs/decisions/0046-r8-reform-target-payment-bands.md \
+        docs/open-questions.md
+git commit -m "feat(phase3-4/AC3-4-3): R8改定対象の新12区分（条件トークン14・基本報酬180行・サービスコード180行）を投入する"
 ```
 
 ---
