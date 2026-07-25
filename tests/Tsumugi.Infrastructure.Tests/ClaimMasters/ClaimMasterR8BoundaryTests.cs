@@ -146,11 +146,15 @@ public sealed class ClaimMasterR8BoundaryTests
     public void Basic_reward_rows_continue_unchanged_across_the_r8_boundary()
     {
         // ADR 0027 決定6: 改定対象外向けR6基本報酬行（135行）はR8-06でも無変更で継続する。
+        // ADR 0046: R8改定対象向けの新12区分180行が2026-06から加わる（R6行は変えない）。
         var may = Provider.ResolveCalculationMasters(May2026).BasicRewards;
         var june = Provider.ResolveCalculationMasters(June2026).BasicRewards;
 
         may.Should().HaveCount(135);
-        june.Should().BeEquivalentTo(may, "R6基本報酬行は135/135が検証済みの継続対象");
+        june.Should().HaveCount(135 + 180, "R6の135行を保ったままR8改定対象の180行が加わる");
+
+        // R6の135行は1行も変わらず、1行も消えていない。
+        june.Should().Contain(may, "R6基本報酬行は135/135が検証済みの継続対象");
     }
 
     [Theory]
@@ -179,19 +183,66 @@ public sealed class ClaimMasterR8BoundaryTests
             .AllowedOptionsByR8ReformStatus[juneStatus].Should().Contain(option);
     }
 
-    [Fact]
-    public void Reform_target_r8_numeric_options_fail_explicitly_until_their_rows_land()
+    [Theory]
+    [InlineData(11)]
+    [InlineData(12)]
+    [InlineData(13)]
+    [InlineData(14)]
+    [InlineData(15)]
+    [InlineData(16)]
+    [InlineData(17)]
+    [InlineData(18)]
+    [InlineData(19)]
+    [InlineData(20)]
+    [InlineData(21)]
+    [InlineData(22)]
+    public void Reform_target_offices_resolve_every_r8_numeric_band(int officialOptionCode)
     {
-        // ADR 0027はR8改定対象の新12区分（option 11〜22）のservice-code実値を確定していない
-        // （seed投入なし。docs/open-questions.md）。改定対象が新区分で2026-06を請求しようと
-        // すると、暗黙のR6単価にフォールバックせず明示的に失敗する。
+        // ADR 0046: 改定対象の新12区分（option 11〜22）はseed投入済みで、2026-06に解決できる。
         var juneMasters = Provider.ResolveCalculationMasters(June2026);
 
-        var action = () => ServiceCodeResolver.ResolveBasicReward(
-            juneMasters, June2026, Context(Numeric(12), R8ReformStatus.ReformTarget));
+        var resolved = ServiceCodeResolver.ResolveBasicReward(
+            juneMasters, June2026,
+            Context(Numeric(officialOptionCode), R8ReformStatus.ReformTarget));
 
-        action.Should().Throw<ServiceCodeResolutionException>()
-            .Which.Code.Should().Be(ServiceCodeResolutionErrorCode.MasterUnavailable);
+        resolved.ServiceCode.Should().NotBeNullOrWhiteSpace();
+        resolved.UnitsPerDay.Should().BePositive();
+
+        // 経過措置ruleでも許可されている（runtime guardと整合）。
+        SingleTransitionRule(June2026)
+            .AllowedOptionsByR8ReformStatus[R8ReformStatus.ReformTarget]
+            .Should().Contain(Numeric(officialOptionCode));
+    }
+
+    // Task 5 ブリーフは本テストを ServiceCodeResolver.ResolveBasicReward への直接呼び出しで
+    // 書いていたが、実装を調査したところ ServiceCodeResolver 自体は
+    // AverageWageBandOption と R8ReformStatus の整合性を検査しない（R6行はr8-reform-status
+    // 条件を持たないため「制約なし」と評価され、改定対象コンテキストでも普通に解決してしまう
+    // ことを実測で確認した）。この整合性は1つ上の層、OfficeClaimProfilePolicy.ValidateHistory
+    // （プロファイル登録時点でreform-target×R6数値区分の組合せそのものを拒否する。既存の
+    // Profile_policy_rejects_a_reform_target_profile_with_an_r6_numeric_option_at_r8が
+    // option 3の1点で実証済み）が担っている。fail-closeを「消す」のではなく、ブリーフが
+    // 意図した「消えていないことの確認」を実際に効いている層へ「移す」ため、本テストは
+    // 同じ機構をoption 1〜7・9の全8点へ拡張したTheoryとして書き直す。
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(5)]
+    [InlineData(6)]
+    [InlineData(7)]
+    [InlineData(9)]
+    public void Reform_target_offices_still_fail_closed_on_r6_numeric_bands(int r6NumericCode)
+    {
+        // 新12区分を投入しても、改定対象がR6数値区分を宣言する経路は開かない
+        // （プロファイル登録時点でフェイルクローズする）。
+        var policy = Provider.Resolve(new ClaimMasterVersion("claim-master-r8-06"));
+
+        var action = () => policy.ValidateHistory([ReformTargetProfile(Numeric(r6NumericCode))]);
+
+        action.Should().Throw<InvalidOperationException>(
+            $"改定対象がR6区分option {r6NumericCode}を宣言することはフェイルクローズする");
     }
 
     [Fact]
