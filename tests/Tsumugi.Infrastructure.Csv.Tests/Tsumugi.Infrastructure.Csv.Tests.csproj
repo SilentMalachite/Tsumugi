@@ -21,6 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- golden CSV は CP932 のバイト列そのものを比較するため、変換せず出力ディレクトリへ複製する。 -->
+    <None Include="Fixtures/*.csv" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Tsumugi.Infrastructure.Csv\Tsumugi.Infrastructure.Csv.csproj" />
   </ItemGroup>
 
