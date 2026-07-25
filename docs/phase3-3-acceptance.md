@@ -127,7 +127,7 @@ DSL の語彙は `CsvGeneratorRuleParserTests.The_embedded_specification_uses_ex
 4. **`provider:J121:02:009`（終了年月日）**: 契約終了は snapshot v2 に含まれないため常に空欄。任意項目のため spec 上の不整合は生じない。
 5. **訪問支援特別加算の算定回数・算定時間数（`provider:J611:01:052` / `provider:J611:02:028`）と施設外支援の年度累計（`:054`）**: 意味論は登録済み一次資料から確定した（ADR 0033 追記）。算定回数・算定時間数は計画に基づく別概念で日次実績から導出できず、施設外支援の累計は**年度（4/1〜3/31）累計**であり当月分しか持たない snapshot から算出できない。**いずれも ADR 0032 と同じ個別入力が必要で、それまで該当加算を算定する事業所では fail-close する。**
 6. **`provider:J611:01:070`〜`072`（初期加算）/ `ClaimServiceLine.SummaryNote` / `DailyRecord.Note` / `ContractedProvider.*`**: finalization snapshot v2 に含まれない。いずれも条件付き項目のため空欄が正しい出力になる。`provider:J121:05`（経過措置）は 0 レコードで出力する。
-7. **引用規則**: 共通編 1.2.2(4) から確定（ADR 0033）。「漢字」= 2 バイトコードのため全角カナ・全角記号も引用する。残る未確定は属性区分（英数/漢字）に紐づく文字種検証で、`dataType` が公式の属性区分と 1 対 1 でないため未実装。
+7. **引用規則**: 共通編 1.2.2(4) から確定（ADR 0033）。「漢字」= 2 バイトコードのため全角カナ・全角記号も引用する。~~残る未確定は属性区分に紐づく文字種検証~~ → **2026-07-25 に実装（ADR 0043・§13）**。属性区分を運用 spec が項目ごとに運び（`dataType` とは 1 対 1 でないため独立キー `officialAttribute`）、`CsvCellEncoder` が区分ごとの文字種を強制する。
 8. **データ種別（`common:outer:control:005`）**: 共通編 1.6 から確定（ADR 0033）。混在時も最初のデータレコードの交換情報識別番号の上3桁で、実装は正しい。ただし同節の例外対応表（物理44頁）がテキスト抽出できず、B型請求が例外に該当するかは目視確認が残る。
 9. **GUI 手動貫通確認 未実施**: `ClaimInputView`（例外利用日セクション）と `ClaimPreparationView`（国保連CSV出力セクション）の実機確認は未実施。Phase 1 からの継続課題として `docs/open-questions.md` に残す。
 10. **golden CSV は自前生成**: 公式サンプル CSV・取込テストデータは公開されておらず、実データ突合には電子請求受付システムのテスト環境（電子証明書・伝送を伴う＝責務境界外）が必要と確定した（ADR 0033 追記）。golden の用途は「意図しないバイト変化の検出」に限定し、**仕様適合は登録済み一次資料の条文に対して固定する**（ADR 0033）。運用開始時に事業所側で公式システムへの取込テストを一度実施することを前提とする。
@@ -310,3 +310,74 @@ Tsumugi.Application Line 90.57% / Branch 84.26% / Method 84.28%  (floor 70%)
   `..._reports_missing_daily_record_field_on_present_day("DailyRecord.SpecialVisitSupportBilledHours")` /
   `ClaimCsvSpecialVisitAndOffsiteSupportTests`（単位変換と fail-close）
 - 残課題: `:027` の丸め規則（分が 3 の倍数でない場合）は公式規定が見つからず fail-close。open-questions に起票。
+
+## 13. 属性区分の文字種強制とコントロールレコードの市町村番号（2026-07-25 追記 / ADR 0043）
+
+「公式システムでの取込失敗に直結しうる残件」2 件を閉じた。根拠は登録済み `common-r7-10`
+（SHA-256 `f6932c52…` を登録 URL から再取得して一致確認）。**節番号は 1.2.3③ ではなく
+1.3.2(1)③（物理 10〜11 頁）**で、それまでの記述は誤りだった。
+
+### 13-1. 見つかった仕様違反（1 件）
+
+| 項目 | 違反 | 修正 |
+|---|---|---|
+| `provider:J121:01:008` 支給決定者氏名カナ | 公式属性は **英数**（半角 1 バイト。桁数 25 が奇数であることも裏づけ）なのに `Recipient.KanaName` をそのまま出力し、**全角カナ氏名が CSV に載っていた**（1.3.2(1)③「「英数」項目には漢字（2 バイトコード）を混在させない」に違反）。golden `csv-golden-cjk.csv` に `"ツムギタロウ"` として固定されていた | `modelPath` を `Recipient.KanaName:halfWidthKana` へ。全角入力は Unicode 互換分解（NFKD）から実行時に導出した逆引きで半角へ写す（`HalfWidthKana`。写像表は手書きしない）。半角形を持たない文字（ひらがな・漢字・康熙部首）は丸めずに fail-close |
+
+### 13-2. 属性区分の強制
+
+- 運用 spec の**全 443 項目**が `officialAttribute` を持つ（`CsvFieldSpecification.OfficialAttribute` は
+  required。宣言が欠けると spec の読み込み自体が落ちる）。同期は `build/sync_official_attributes.py`、
+  突合は `ItemTableCrossCheckTests.Every_official_attribute_matches_the_extraction` が**完全一致**で固定。
+  分布は 数値 247 / コード値 150 / 英数 43 / 漢字 2 / 空欄 1（可変長ペイロード）。
+- `CsvOfficialAttribute` ＋ `CsvCellEncoder` が区分ごとの文字種を強制（新 reason
+  `InvalidCharacterForOfficialAttribute` / `UnknownOfficialAttribute`）。検証は CP932 変換の**後**
+  （表現不能文字は属性違反ではなく別理由で落とす）。
+- `dataType=code` はこれまで文字種を検証していなかったが、コード値属性として ASCII 数字のみに縛られた。
+- 数値属性のマイナス符号は仕様上許されるが採らない（負値を取り得る項目が項目単位で宣言されておらず、
+  生成器は負値を出さない。狭い側に寄せて fail-close）。
+
+### 13-3. コントロールレコードの送付元識別（実装は適合していた）
+
+| 項目 | 値 | 根拠（物理 6 頁 項番 6〜8） |
+|---|---|---|
+| `:006` 市町村番号 | `0` | 「市町村以外の場合は 0 を設定する」（送付元は事業所） |
+| `:007` 事業所番号 | 自事業所の事業所番号 | 「送付元または送付先が事業所の場合は事業所番号を設定」 |
+| `:008` 都道府県番号 | `0` | 「都道府県以外の場合は 0 を設定」 |
+
+コード値属性の「全桁 0 は未設定＝必須項目ならエラー」（1.3.2(1)③ ※1・※2）を**一律には当てない**。
+同③ が「特に記載が無い限り」と前置きしており、項目の内容欄の個別指示が優先するため
+（一律 guard を入れると公式指示どおりの 0 が出せなくなる）。この判断は証跡台帳
+`rule:item-note-overrides-attribute-default` に残した。
+
+### 13-4. 波及
+
+- **B 型請求の CSV は全項目が 1 バイト文字になった**。2 バイトを載せられるのは属性 `漢字` の 2 項目
+  （摘要・備考）だけで、どちらも確定 snapshot に無く常に空欄（§8-6）。CP932 の 2 バイト変換・
+  引用規則は実データ経路では働かず、`CsvCellEncoder` の単体テストが担保する。
+- golden は `csv-golden-cjk.csv` のみ変化（1815 → 1808 バイト。`"ツムギタロウ"` 14 バイト →
+  `ﾂﾑｷﾞﾀﾛｳ` 7 バイト、2 バイトコードを含まないので引用符も外れる）。他 3 種は不変。
+- 康熙部首の fail-close 理由が `NonRepresentableCharacter` → `UnresolvableModelPath` へ
+  （半角化の段が CP932 変換より前に立つ）。fail-close する事実は変わらない。
+- 証跡台帳へ 6 claim 追加（`rule:official-attribute-character-classes` /
+  `rule:item-note-overrides-attribute-default` /
+  `common:outer:control:006` `:007` `:008` / `provider:J121:01:008`）。`supports` の閉じた語彙へ
+  `character-class` / `rule-precedence` を追加。
+
+### 13-5. `./build/ci.sh` 実行証跡（2026-07-25、全ゲート緑）
+
+```
+==> restore / format verify / build warnings-as-errors / test + coverage
+成功!  失敗: 0、合格:   685 - Tsumugi.Domain.Tests.dll
+成功!  失敗: 0、合格:   460 - Tsumugi.Application.Tests.dll
+成功!  失敗: 0、合格:   313 - Tsumugi.Infrastructure.Csv.Tests.dll
+成功!  失敗: 0、合格:    30 - Tsumugi.Infrastructure.Reporting.Tests.dll
+成功!  失敗: 0、合格:   259 - Tsumugi.App.Tests.dll
+成功!  失敗: 0、合格:   654 - Tsumugi.Infrastructure.Tests.dll
+==> coverage threshold gate
+Tsumugi.Domain      Line 95.04% / Branch 87.85% / Method 93.28%  (floor 95%)
+Tsumugi.Application Line 91.84% / Branch 83.66% / Method 85.00%  (floor 70%)
+==> CI OK
+```
+
+合計 2,401 テスト。本スライスで 29 ケース追加（`CsvCellEncoderTests` +19 /
+`OfficialAttributeConformanceTests` 8 / `ItemTableCrossCheckTests` +2〈2 文書 × 1 Theory〉）。
