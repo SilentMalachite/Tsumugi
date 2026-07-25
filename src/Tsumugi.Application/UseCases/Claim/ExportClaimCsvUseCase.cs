@@ -31,6 +31,7 @@ public sealed class ExportClaimCsvUseCase(
     VerifiedClaimBatchProvider verifiedBatchProvider,
     IClaimCsvOfficeContextProvider officeContextProvider,
     IClaimCsvSpecificationVersions specificationVersions,
+    IClaimInputRequirementProvider requirementProvider,
     IClaimCsvGenerator generator,
     IClaimCsvExportRepository exportRepository,
     TimeProvider clock)
@@ -99,10 +100,30 @@ public sealed class ExportClaimCsvUseCase(
         var dto = BuildDto(
             latest.Header, latest.Details, serviceMonth, processingMonth, resolvedVersion);
 
+        // 2 つの由来を合わせる。
+        // (1) 要件由来: 解決版の readiness 要件を確定 snapshot で評価する（項目の入力漏れ）。
+        // (2) 生成由来: 実際に生成を試して encoder が落ちた項目（桁・文字種・解決不能な rule）。
+        // 同じ項目が両方から出ることがあるため fieldId で重複排除する。
+        var requirements = requirementProvider.GetRequirements(resolvedVersion);
+        var requirementIssues = latest.Details
+            .Select(detail => ClaimFinalizationSnapshotReader.Parse( // CultureInfo: 非該当（JSON snapshot parser）
+                Encoding.UTF8.GetBytes(detail.CalculationSnapshotJson)))
+            .SelectMany(snapshot => ClaimFinalizationReadinessContextBuilder
+                .Evaluate(snapshot, requirements))
+            .Select(issue => new ClaimCsvFieldIssue(
+                issue.FieldCode,
+                issue.Code.ToString(),
+                "確定済み請求に、この仕様版が要求する項目が入っていません。",
+                null));
+
+        var issues = requirementIssues
+            .Concat(generator.CollectIssues(dto))
+            .GroupBy(issue => issue.FieldId, StringComparer.Ordinal)
+            .Select(group => group.First())
+            .ToArray();
+
         return new ClaimCsvExportValidationResult(
-            latest.Header.CsvSpecificationVersion,
-            resolvedVersion,
-            generator.CollectIssues(dto));
+            latest.Header.CsvSpecificationVersion, resolvedVersion, issues);
     }
 
     private string ResolveVersion(ProcessingMonth processingMonth)

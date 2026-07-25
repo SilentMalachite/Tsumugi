@@ -213,7 +213,8 @@ public sealed class ClaimPreviewProductionWiringTests
         // （本ファイル冒頭remarks参照。以前はこの14 pathが未写像で常にNotReadyだった。Task 4 fix roundで
         // DailyRecord.RecipientConfirmationが加わり15 pathになった）。
         var useCase = CreateUseCase(
-            BuildSnapshot(staffingKey: "staff-6-1"), ClaimInputRequirementProvider.LoadEmbedded());
+            BuildSnapshot(staffingKey: "staff-6-1"), ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                CsvSpecificationRegistry.LoadEmbedded()));
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
@@ -231,7 +232,8 @@ public sealed class ClaimPreviewProductionWiringTests
         // 他は全てフル入力のままでもその1件だけがissueとして残ることを検証する。
         var useCase = CreateUseCase(
             BuildSnapshot(staffingKey: "staff-6-1", certificateMunicipalityNumber: null),
-            ClaimInputRequirementProvider.LoadEmbedded());
+            ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                CsvSpecificationRegistry.LoadEmbedded()));
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
@@ -253,7 +255,8 @@ public sealed class ClaimPreviewProductionWiringTests
         // これだけを欠落させてもReadyを維持することを実embedded catalogで確認する。
         var useCase = CreateUseCase(
             BuildSnapshot(staffingKey: "staff-6-1", certificateSubsidyMunicipalityNumber: null),
-            ClaimInputRequirementProvider.LoadEmbedded());
+            ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                CsvSpecificationRegistry.LoadEmbedded()));
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
@@ -274,7 +277,8 @@ public sealed class ClaimPreviewProductionWiringTests
         // risk対応。UpperLimitManagement系と対称のパターン）。
         var useCase = CreateUseCase(
             BuildSnapshot(staffingKey: "staff-6-1", claimInputMunicipalSubsidyAmountYen: null),
-            ClaimInputRequirementProvider.LoadEmbedded());
+            ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                CsvSpecificationRegistry.LoadEmbedded()));
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
@@ -302,7 +306,8 @@ public sealed class ClaimPreviewProductionWiringTests
                 staffingKey: "staff-6-1",
                 certificateSubsidyMunicipalityNumber: null,
                 claimInputMunicipalSubsidyAmountYen: null),
-            ClaimInputRequirementProvider.LoadEmbedded());
+            ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                CsvSpecificationRegistry.LoadEmbedded()));
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
@@ -324,7 +329,8 @@ public sealed class ClaimPreviewProductionWiringTests
                 certificateUpperLimitManagementProviderNumber: null,
                 claimInputUpperLimitManagementResult: null,
                 claimInputUpperLimitManagedAmountYen: null),
-            ClaimInputRequirementProvider.LoadEmbedded());
+            ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                CsvSpecificationRegistry.LoadEmbedded()));
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
@@ -344,7 +350,8 @@ public sealed class ClaimPreviewProductionWiringTests
         // ケースであり、Any(...)合流の実効性を証明する（brief記載のCRITICAL cascade risk対応）。
         var useCase = CreateUseCase(
             BuildSnapshot(staffingKey: "staff-6-1", claimInputUpperLimitManagementResult: null),
-            ClaimInputRequirementProvider.LoadEmbedded());
+            ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                CsvSpecificationRegistry.LoadEmbedded()));
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
@@ -366,7 +373,8 @@ public sealed class ClaimPreviewProductionWiringTests
         // UpperLimitManagedAmountYen側で検証する。
         var useCase = CreateUseCase(
             BuildSnapshot(staffingKey: "staff-6-1", claimInputUpperLimitManagedAmountYen: null),
-            ClaimInputRequirementProvider.LoadEmbedded());
+            ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                CsvSpecificationRegistry.LoadEmbedded()));
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
@@ -393,7 +401,8 @@ public sealed class ClaimPreviewProductionWiringTests
     {
         var useCase = CreateUseCase(
             BuildSnapshot(staffingKey: "staff-6-1", claimInputSpecialVisitSupportBilledCount: null),
-            ClaimInputRequirementProvider.LoadEmbedded());
+            ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                CsvSpecificationRegistry.LoadEmbedded()));
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
@@ -413,7 +422,8 @@ public sealed class ClaimPreviewProductionWiringTests
     {
         var useCase = CreateUseCase(
             BuildSnapshot(staffingKey: "staff-6-1", claimInputOffsiteSupportCumulativeDays: null),
-            ClaimInputRequirementProvider.LoadEmbedded());
+            ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                CsvSpecificationRegistry.LoadEmbedded()));
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
@@ -461,7 +471,8 @@ public sealed class ClaimPreviewProductionWiringTests
                 expectedFieldCode == "DailyRecord.SpecialVisitSupportBilledHours" ? null : 2);
         var useCase = CreateUseCase(
             BuildSnapshot(staffingKey: "staff-6-1", dailyRecordAggregateOverride: dailyRecordAggregate),
-            ClaimInputRequirementProvider.LoadEmbedded());
+            ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                CsvSpecificationRegistry.LoadEmbedded()));
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
@@ -487,7 +498,8 @@ public sealed class ClaimPreviewProductionWiringTests
                 staffingKey: "staff-6-1",
                 dailyRecordAggregateOverride: emptyDailyRecordAggregate,
                 billedDaysOverride: 0),
-            ClaimInputRequirementProvider.LoadEmbedded());
+            ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                CsvSpecificationRegistry.LoadEmbedded()));
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
@@ -511,7 +523,8 @@ public sealed class ClaimPreviewProductionWiringTests
             BuildSnapshot(
                 staffingKey: "staff-6-1",
                 intensiveSupportEpisodeStartDateByRecipientOverride: new Dictionary<Guid, DateOnly>()),
-            ClaimInputRequirementProvider.LoadEmbedded());
+            ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                CsvSpecificationRegistry.LoadEmbedded()));
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
@@ -553,7 +566,8 @@ public sealed class ClaimPreviewProductionWiringTests
                 staffingKey: "staff-6-1",
                 dailyRecordAggregateOverride: dailyRecordAggregate,
                 intensiveSupportEpisodeStartDateByRecipientOverride: new Dictionary<Guid, DateOnly>()),
-            ClaimInputRequirementProvider.LoadEmbedded());
+            ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                CsvSpecificationRegistry.LoadEmbedded()));
 
         var dto = await useCase.ExecuteAsync(
             new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
@@ -736,6 +750,8 @@ public sealed class ClaimPreviewProductionWiringTests
                         new ProductionClaimSnapshotValidationCodecRegistry())),
                 new ClaimMasterCsvOfficeContextProvider(JsonClaimMasterProvider.LoadEmbedded()),
                 CsvSpecificationRegistry.LoadEmbedded(),
+                ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                    CsvSpecificationRegistry.LoadEmbedded()),
                 new ClaimCsvGenerator(CsvSpecificationRegistry.LoadEmbedded()),
                 new ClaimCsvExportRepository(csvContext),
                 TimeProvider.System);
@@ -1081,6 +1097,6 @@ public sealed class ClaimPreviewProductionWiringTests
     /// </summary>
     private sealed class EmptyRequirementProvider : IClaimInputRequirementProvider
     {
-        public IReadOnlyList<ClaimInputRequirement> GetRequirements() => [];
+        public IReadOnlyList<ClaimInputRequirement> GetRequirements(string specificationVersion) => [];
     }
 }

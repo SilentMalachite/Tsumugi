@@ -37,52 +37,56 @@ evidence（受給者証の確認記録・上限額管理結果票）や証の重
 
 ### 1. 要件評価の共通化（振る舞い不変のリファクタ）
 
-- [ ] `ClaimPreparationReadiness` の `EvaluateCondition` / `IsPresent` /
+- [x] `ClaimPreparationReadiness` の `EvaluateCondition` / `IsPresent` /
       `AddMissingRequirementIssue` を internal な `ClaimRequirementEvaluator` へ抽出する
-- [ ] `ClaimPreparationReadiness` は抽出先へ委譲する（既存テストが全緑のままであることが受け入れ基準）
+- [x] `ClaimPreparationReadiness` は抽出先へ委譲する（既存テストが全緑のままであることが受け入れ基準）
 
 ### 2. 版ごとの requirement
 
-- [ ] `IClaimInputRequirementProvider` を `GetRequirements(string specificationVersion)` へ変更
+- [x] `IClaimInputRequirementProvider` を `GetRequirements(string specificationVersion)` へ変更
       （版を明示しない入口は残さない。どの版で評価したのか曖昧にしないため）
-- [ ] `ClaimInputRequirementProvider` を版レジストリから構築し、版ごとの要件集合をキャッシュする。
+- [x] `ClaimInputRequirementProvider` を版レジストリから構築し、版ごとの要件集合をキャッシュする。
       未登録の版は fail-close
-- [ ] 帳票側のマッピング（`report-field-mapping-r8-06`）は CSV 仕様版に属さないため、
+- [x] 帳票側のマッピング（`report-field-mapping-r8-06`）は CSV 仕様版に属さないため、
       **全版に共通で合流**する旨をコメントと doc に明記
-- [ ] `ClaimPreparationReadiness.Evaluate(context, specificationVersion)` へ変更し、
+- [x] `ClaimPreparationReadiness.Evaluate(context, specificationVersion)` へ変更し、
       呼び出し側（`CalculateClaimUseCase` / `CloseClaimUseCase`）は
       `IClaimCsvSpecificationVersions.Current` を渡す
-- [ ] テスト: 版ごとに要件件数が引けること／未登録版は fail-close
+- [x] テスト: 版ごとに要件件数が引けること／未登録版は fail-close
 
 ### 3. 確定 snapshot → readiness 値の写像
 
-- [ ] `ClaimFinalizationReadinessContextBuilder`（Application）を追加。
+> 計画からの改善: 「2 つの builder ＋ キー集合一致テスト」ではなく、**値の組み立て（path キーを書く場所）を
+> 1 関数に集約**し、確定前は DB 由来・確定後は snapshot 由来の値をその関数へ詰め替える形にした
+> （`ClaimReadinessClaimInput` 等の素の値レコード）。ドリフトの可能性自体を消せるため。
+
+- [x] `ClaimFinalizationReadinessContextBuilder`（Application）を追加。
       入力は `ClaimFinalizationSnapshot`、出力は値辞書＋rowScopes
-- [ ] `DailyRecord` 系は既存の DB 側集約（`ClaimCalculationSnapshotReader`）と同じ規則で集約する
+- [x] `DailyRecord` 系は既存の DB 側集約（`ClaimCalculationSnapshotReader`）と同じ規則で集約する
       （未入力を 0 として供給すると fail-open するもの＝算定時間数は null のまま）
-- [ ] **歯**: DB 側 builder が作るキー集合と snapshot 側のキー集合が**完全一致**することをテストで固定
+- [x] **歯**: DB 側 builder が作るキー集合と snapshot 側のキー集合が**完全一致**することをテストで固定
       （どちらかにパスを足して他方を忘れると RED）
-- [ ] テスト: 各グループ 1 件以上の往復（値が入る／未入力は NotApplicable）
+- [x] テスト: 各グループ 1 件以上の往復（値が入る／未入力は NotApplicable）
 
 ### 4. 出力側で使う（要件由来の不足を合流）
 
-- [ ] `ExportClaimCsvUseCase.ValidateAsync` に、解決版の要件を確定 snapshot で評価した不足を合流。
+- [x] `ExportClaimCsvUseCase.ValidateAsync` に、解決版の要件を確定 snapshot で評価した不足を合流。
       生成由来の issue と `fieldId` で重複排除し、由来（要件／生成）を区別できる形にする
-- [ ] テスト: 契約情報の無い確定分で、要件由来と生成由来の両方が出て重複しないこと
-- [ ] テスト: snapshot 由来の評価が evidence 系 issue を出さないこと（範囲の線引きの固定）
+- [x] テスト: 契約情報の無い確定分で、要件由来と生成由来の両方が出て重複しないこと
+- [x] テスト: snapshot 由来の評価が evidence 系 issue を出さないこと（範囲の線引きの固定）
 
 ### 5. 確定前に将来の施行分で警告
 
-- [ ] `IClaimCsvSpecificationVersions` に `UpcomingVersions`（適用開始前の登録済み版）を追加
-- [ ] `ClaimPreviewDto` に警告一覧（`UpcomingSpecificationIssues`）を末尾 optional で追加。
+- [x] `IClaimCsvSpecificationVersions` に `UpcomingVersions`（適用開始前の登録済み版）を追加
+- [x] `ClaimPreviewDto` に警告一覧（`UpcomingSpecificationIssues`）を末尾 optional で追加。
       **`IsReady` は変えない**（将来版の不足で確定を止めない）
-- [ ] `ClaimPreviewPipeline` が将来版の要件でも評価して警告を積む
-- [ ] `ClaimPreparationViewModel` / `ClaimPreparationView` に「次の施行分で必要になる項目」を表示
-- [ ] テスト: 将来版を事前登録したとき、現行版では ready のまま将来版の不足が警告に出ること
+- [x] `ClaimPreviewPipeline` が将来版の要件でも評価して警告を積む
+- [x] `ClaimPreparationViewModel` / `ClaimPreparationView` に「次の施行分で必要になる項目」を表示
+- [x] テスト: 将来版を事前登録したとき、現行版では ready のまま将来版の不足が警告に出ること
 
 ### 6. 仕上げ
 
-- [ ] `dotnet format` / `./build/ci.sh` 緑
-- [ ] ADR 0041 を追加（範囲の線引きと、evidence を再現しない理由を明記）
-- [ ] `docs/open-questions.md` の該当項目をクローズ
-- [ ] コミット
+- [x] `dotnet format` / `./build/ci.sh` 緑
+- [x] ADR 0041 を追加（範囲の線引きと、evidence を再現しない理由を明記）
+- [x] `docs/open-questions.md` の該当項目をクローズ
+- [x] コミット

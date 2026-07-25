@@ -60,6 +60,18 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
+            <!-- 次の施行分（事前登録済みの将来版）で必要になる項目。確定は止めない警告。 -->
+            <TextBlock Text="次の施行分で必要になる項目（今月の確定は止めません）" FontWeight="Bold"
+                       IsVisible="{Binding UpcomingSpecificationWarnings.Count, Converter={x:Static conv:CountGreaterThanZeroConverter.Instance}}" />
+            <ItemsControl ItemsSource="{Binding UpcomingSpecificationWarnings}"
+                          IsVisible="{Binding UpcomingSpecificationWarnings.Count, Converter={x:Static conv:CountGreaterThanZeroConverter.Instance}}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
             <TextBlock Text="プレビュー明細" FontWeight="Bold" />
             <DataGrid ItemsSource="{Binding Preview.Details}"
                       AutoGenerateColumns="False" IsReadOnly="True"

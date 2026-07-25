@@ -15,4 +15,10 @@ public interface IClaimCsvSpecificationVersions
     /// 処理対象年月に適用される版。該当版が無ければ例外（推測で現行版を使わない）。
     /// </summary>
     string ResolveForProcessingMonth(ProcessingMonth processingMonth);
+
+    /// <summary>
+    /// 適用開始前の登録済み版（事前登録した将来の施行分）。確定前に「次の施行分で必要になる項目」を
+    /// 警告するために使う。空なら将来版は未登録。
+    /// </summary>
+    IReadOnlyList<string> UpcomingVersions { get; }
 }

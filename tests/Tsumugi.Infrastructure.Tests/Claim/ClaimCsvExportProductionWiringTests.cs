@@ -10,6 +10,7 @@ using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.ValueObjects;
 using Tsumugi.Infrastructure.ClaimMasters;
 using Tsumugi.Infrastructure.Csv.Generation;
+using Tsumugi.Infrastructure.Csv.Mapping;
 using Tsumugi.Infrastructure.Csv.Specifications;
 using Tsumugi.Infrastructure.Csv.Writer;
 using Tsumugi.Infrastructure.Persistence;
@@ -223,6 +224,8 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
                 new ProductionClaimSnapshotValidationCodecRegistry())),
         new ClaimMasterCsvOfficeContextProvider(JsonClaimMasterProvider.LoadEmbedded()),
         CsvSpecificationRegistry.LoadEmbedded(),
+        // production と同じ「版ごとの readiness 要件」を使う（要件由来の不足も合流する）。
+        ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(CsvSpecificationRegistry.LoadEmbedded()),
         new ClaimCsvGenerator(CsvSpecificationRegistry.LoadEmbedded()),
         new ClaimCsvExportRepository(context),
         new FixedTimeProvider(FixedNow));

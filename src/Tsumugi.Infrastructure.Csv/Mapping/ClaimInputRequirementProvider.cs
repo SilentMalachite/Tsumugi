@@ -7,7 +7,7 @@ using Tsumugi.Infrastructure.Csv.Specifications;
 
 namespace Tsumugi.Infrastructure.Csv.Mapping;
 
-public sealed class ClaimInputRequirementProvider : IClaimInputRequirementProvider
+public sealed class ClaimInputRequirementProvider
 {
     private static readonly JsonSerializerOptions ReportMappingSerializerOptions = new()
     {
@@ -22,9 +22,28 @@ public sealed class ClaimInputRequirementProvider : IClaimInputRequirementProvid
         _requirements = Array.AsReadOnly(requirements.ToArray());
     }
 
-    public static ClaimInputRequirementProvider LoadEmbedded()
+    /// <summary>
+    /// 登録済みの全仕様版について要件集合を組む。版ごとに <c>field-mapping-{version}.json</c> の
+    /// <c>missing</c> を読み、帳票側のマッピング（<c>report-field-mapping-r8-06</c>）は
+    /// <b>CSV 仕様版に属さないので全版へ共通で合流</b>する（帳票の様式は別文書系列で改訂される）。
+    /// </summary>
+    public static VersionedClaimInputRequirementProvider LoadEmbeddedForAllVersions(
+        CsvSpecificationRegistry registry)
     {
-        var catalog = CsvSpecificationLoader.LoadEmbedded();
+        ArgumentNullException.ThrowIfNull(registry);
+        var byVersion = registry.Versions.ToDictionary(
+            entry => entry.Version,
+            entry => ForCatalog(registry.ResolveByVersion(entry.Version)),
+            StringComparer.Ordinal);
+        return new VersionedClaimInputRequirementProvider(byVersion);
+    }
+
+    /// <summary>単一版の要件集合（現行版を明示せずに使う経路はテスト・診断のみ）。</summary>
+    public static ClaimInputRequirementProvider LoadEmbedded() =>
+        ForCatalog(CsvSpecificationLoader.LoadEmbedded());
+
+    private static ClaimInputRequirementProvider ForCatalog(CsvSpecificationCatalog catalog)
+    {
         var csvSources = catalog.MappingByFieldId.Values
             .Where(mapping => string.Equals(mapping.Status, "missing", StringComparison.Ordinal))
             .Select(ToSource);
@@ -67,6 +86,7 @@ public sealed class ClaimInputRequirementProvider : IClaimInputRequirementProvid
         return new ClaimInputRequirementProvider(requirements);
     }
 
+    /// <summary>この版の要件。<see cref="VersionedClaimInputRequirementProvider"/> 経由で引く。</summary>
     public IReadOnlyList<ClaimInputRequirement> GetRequirements() => _requirements;
 
     private static ClaimInputRequirement CreateRequirement(

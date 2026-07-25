@@ -102,6 +102,46 @@ public sealed class CalculateClaimUseCaseTests
             && issue.FieldCode == "OfficeClaimProfile.AverageWageBandOption");
     }
 
+    // NOTE(teeth): 事前登録した将来版の不足は「警告」であって確定を止めない（ADR 0041）。
+    // IsReady を将来版で落とす実装にすると、まだ施行前の版のせいで今月の請求が確定できなくなる。
+    [Fact]
+    public async Task Execute_warns_about_upcoming_versions_without_blocking_readiness()
+    {
+        var futureRequirement = new ClaimInputRequirement(
+            "ContractedProvider.FirstServiceDate",
+            ["provider:J121:02:008"],
+            new ClaimRequirementCondition.Always(),
+            ClaimInputDestination.Certificate);
+        var readiness = new ClaimPreparationReadiness(
+            new VersionedRequirementProvider(current: [], upcoming: [futureRequirement]));
+        var versions = new Kit.FakeCsvSpecificationVersions { UpcomingVersions = ["r9-04"] };
+
+        var dto = await new CalculateClaimUseCase(
+                new Kit.FakeSnapshotReader(Kit.Snapshot()),
+                new Kit.FakeMasterProvider(Kit.Release(), Kit.SyntheticMasters()),
+                new Kit.FakeOfficeRepository(Kit.Office()),
+                new Kit.FakeTokenProvider(Kit.Tokens()),
+                readiness,
+                versions)
+            .ExecuteAsync(new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeTrue("将来版の不足で今月の確定は止めない");
+        dto.Issues.Should().BeEmpty();
+        var warning = dto.UpcomingSpecificationIssues.Should().NotBeNull()
+            .And.ContainSingle().Subject;
+        warning.SpecificationVersion.Should().Be("r9-04");
+        warning.Issue.FieldCode.Should().Be("ContractedProvider.FirstServiceDate");
+    }
+
+    /// <summary>現行版は要件なし、将来版だけ要件を返すフェイク。</summary>
+    private sealed class VersionedRequirementProvider(
+        IReadOnlyList<ClaimInputRequirement> current,
+        IReadOnlyList<ClaimInputRequirement> upcoming) : IClaimInputRequirementProvider
+    {
+        public IReadOnlyList<ClaimInputRequirement> GetRequirements(string specificationVersion) =>
+            string.Equals(specificationVersion, "r9-04", StringComparison.Ordinal) ? upcoming : current;
+    }
+
     [Fact]
     public async Task Execute_produces_stable_preview_hash_for_identical_input()
     {

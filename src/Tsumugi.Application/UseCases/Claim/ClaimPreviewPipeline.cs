@@ -1,5 +1,6 @@
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
+using Tsumugi.Application.Dtos;
 using Tsumugi.Domain.Logic.Claim;
 using Tsumugi.Domain.ValueObjects;
 
@@ -15,7 +16,13 @@ internal sealed record ClaimPreviewComputation(
     IReadOnlyList<ClaimPreparationIssue> Issues,
     ClaimCalculationResult? Result,
     IReadOnlyList<ClaimFinalizationDetailDraft> DetailDrafts,
-    string PreviewHash);
+    string PreviewHash,
+    // 事前登録済みの将来版で必要になる項目（確定は止めない警告）。
+    IReadOnlyList<ClaimUpcomingSpecificationIssue> UpcomingSpecificationIssues = null!)
+{
+    public IReadOnlyList<ClaimUpcomingSpecificationIssue> UpcomingSpecificationIssues { get; init; } =
+        UpcomingSpecificationIssues ?? [];
+}
 
 /// <summary>
 /// snapshot読取→readiness評価→算定→snapshot envelope→PreviewHash を
@@ -50,7 +57,18 @@ internal sealed class ClaimPreviewPipeline(
         var tokens = office is null ? null : tokenProvider.Resolve(office, snapshot.Profile, serviceMonth);
         var contextResult = ClaimPreparationContextBuilder.Build(
             snapshot, office, masterVersionAvailable: release is not null);
-        var readinessResult = readiness.Evaluate(contextResult.Context);
+        // readiness は「現行版の要件」で評価する（確定時に記録する版と同じ出所）。
+        var currentVersion = specificationVersions.Current;
+        var readinessResult = readiness.Evaluate(contextResult.Context, currentVersion);
+
+        // 事前登録済みの将来版でも評価し、現行版に無い不足だけを警告として集める。
+        // IsReady には影響させない（将来版の不足で今月の確定を止めない）。
+        var currentIssues = readinessResult.Issues.ToHashSet();
+        var upcomingIssues = specificationVersions.UpcomingVersions
+            .SelectMany(version => readiness.Evaluate(contextResult.Context, version).Issues
+                .Where(issue => !currentIssues.Contains(issue))
+                .Select(issue => new ClaimUpcomingSpecificationIssue(version, issue)))
+            .ToArray();
         var requestResult = ClaimCalculationRequestBuilder.Build(snapshot, serviceMonth, tokens);
 
         var issues = Normalize(
@@ -79,12 +97,13 @@ internal sealed class ClaimPreviewPipeline(
         var result = ClaimCalculator.Calculate(masters, request);
         // 版文字列は PreviewHash に入る。プレビューと確定で同じ出所（現行版）を使わないと
         // hash が一致せず確定できない。
-        var csvSpecificationVersion = specificationVersions.Current;
+        var csvSpecificationVersion = currentVersion;
         var detailDrafts = BuildDetailDrafts(
             snapshot, serviceMonth, claimMasterVersion, request, result, csvSpecificationVersion);
         var previewHash = ClaimPreviewHashing.Compute(
             officeId, serviceMonth, claimMasterVersion, result, detailDrafts, csvSpecificationVersion);
-        return new ClaimPreviewComputation(claimMasterVersion, issues, result, detailDrafts, previewHash);
+        return new ClaimPreviewComputation(
+            claimMasterVersion, issues, result, detailDrafts, previewHash, upcomingIssues);
     }
 
     private static ClaimFinalizationDetailDraft[] BuildDetailDrafts(

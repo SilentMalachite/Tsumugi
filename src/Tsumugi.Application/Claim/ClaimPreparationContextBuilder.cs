@@ -83,9 +83,17 @@ public static class ClaimPreparationContextBuilder
     }
 
     private static Dictionary<string, ClaimPreparationValue> BuildOfficeValues(Office? office)
-    {
-        if (office is null) return new Dictionary<string, ClaimPreparationValue>(StringComparer.Ordinal);
+        => office is null
+            ? new Dictionary<string, ClaimPreparationValue>(StringComparer.Ordinal)
+            : BuildOfficeValues(new ClaimReadinessOffice(
+                office.PostalCode, office.Address, office.PhoneNumber, office.RepresentativeTitleAndName));
 
+    /// <summary>
+    /// 事業所の readiness 値。<b>path キーを書く唯一の場所</b>（確定前・確定後の両経路が通る）。
+    /// </summary>
+    internal static Dictionary<string, ClaimPreparationValue> BuildOfficeValues(ClaimReadinessOffice office)
+    {
+        ArgumentNullException.ThrowIfNull(office);
         return new Dictionary<string, ClaimPreparationValue>(StringComparer.Ordinal)
         {
             [Path(nameof(Office), nameof(Office.PostalCode))] = TextOrNotApplicable(office.PostalCode),
@@ -157,7 +165,31 @@ public static class ClaimPreparationContextBuilder
         return new ClaimPreparationRecipientContext(
             recipientId,
             BuildRecipientValues(
-                input, certificate, contractedProvider, dailyRecordAggregate, intensiveSupportEpisodeStartDate),
+                input is null
+                    ? ClaimReadinessClaimInput.Absent
+                    : new ClaimReadinessClaimInput(
+                        input.UpperLimitManagementResult,
+                        input.UpperLimitManagedAmountYen,
+                        input.MunicipalSubsidyAmountYen,
+                        input.ExceptionalUsageStartMonth,
+                        input.ExceptionalUsageEndMonth,
+                        input.ExceptionalUsageDays,
+                        input.StandardUsageDayTotal,
+                        input.SpecialVisitSupportBilledCount,
+                        input.OffsiteSupportCumulativeDays),
+                certificate is null
+                    ? ClaimReadinessCertificate.Absent
+                    : new ClaimReadinessCertificate(
+                        certificate.MunicipalityNumber,
+                        certificate.SubsidyMunicipalityNumber,
+                        certificate.UpperLimitManagementProviderNumber),
+                contractedProvider is null
+                    ? ClaimReadinessContractedProvider.Absent
+                    : new ClaimReadinessContractedProvider(
+                        contractedProvider.CertificateEntryNumber,
+                        contractedProvider.FirstServiceDate),
+                dailyRecordAggregate,
+                intensiveSupportEpisodeStartDate),
             rowScopes,
             certificateCount,
             CertificateEvidenceState(certificateCount, evidence),
@@ -165,20 +197,24 @@ public static class ClaimPreparationContextBuilder
             excludedFromReadinessBlocking);
     }
 
-    private static Dictionary<string, ClaimPreparationValue> BuildRecipientValues(
-        ClaimInput? input,
-        Certificate? certificate,
-        ContractedProvider? contractedProvider,
+    /// <summary>
+    /// 受給者の readiness 値。<b>path キーを書く唯一の場所</b>（確定前は DB 由来、確定後は
+    /// 確定 snapshot 由来の値がここへ入る。ADR 0041）。
+    /// </summary>
+    internal static Dictionary<string, ClaimPreparationValue> BuildRecipientValues(
+        ClaimReadinessClaimInput input,
+        ClaimReadinessCertificate certificate,
+        ClaimReadinessContractedProvider contractedProvider,
         ClaimDailyRecordAggregate dailyRecordAggregate,
         DateOnly? intensiveSupportEpisodeStartDate)
         => new Dictionary<string, ClaimPreparationValue>(StringComparer.Ordinal)
         {
             [Path(nameof(ClaimInput), nameof(ClaimInput.UpperLimitManagementResult))] =
-                input?.UpperLimitManagementResult is { } result
+                input.UpperLimitManagementResult is { } result
                     ? ClaimPreparationValue.Code(result.ToString())
                     : ClaimPreparationValue.NotApplicable(),
             [Path(nameof(ClaimInput), nameof(ClaimInput.UpperLimitManagedAmountYen))] =
-                NumberOrNotApplicable(input?.UpperLimitManagedAmountYen),
+                NumberOrNotApplicable(input.UpperLimitManagedAmountYen),
             // MunicipalSubsidyAmountYen（Phase 3-2 Task 7）。自己参照レグ
             // （report:benefit-claim-detail:summary:015、modelPresent(ClaimInput.MunicipalSubsidyAmountYen)）
             // 単体は恒久的にfail-open。field-mapping-r7-10.jsonのprovider:J121:04:025
@@ -191,24 +227,24 @@ public static class ClaimPreparationContextBuilder
             // と ClaimPreviewProductionWiringTests.Real_embedded_requirement_provider_requires_municipal_subsidy_amount_*
             // で固定済み。
             [Path(nameof(ClaimInput), nameof(ClaimInput.MunicipalSubsidyAmountYen))] =
-                NumberOrNotApplicable(input?.MunicipalSubsidyAmountYen),
+                NumberOrNotApplicable(input.MunicipalSubsidyAmountYen),
             [Path(nameof(ClaimInput), nameof(ClaimInput.ExceptionalUsageStartMonth))] =
-                MonthOrNotApplicable(input?.ExceptionalUsageStartMonth),
+                MonthOrNotApplicable(input.ExceptionalUsageStartMonth),
             [Path(nameof(ClaimInput), nameof(ClaimInput.ExceptionalUsageEndMonth))] =
-                MonthOrNotApplicable(input?.ExceptionalUsageEndMonth),
+                MonthOrNotApplicable(input.ExceptionalUsageEndMonth),
             [Path(nameof(ClaimInput), nameof(ClaimInput.ExceptionalUsageDays))] =
-                NumberOrNotApplicable(input?.ExceptionalUsageDays),
+                NumberOrNotApplicable(input.ExceptionalUsageDays),
             [Path(nameof(ClaimInput), nameof(ClaimInput.StandardUsageDayTotal))] =
-                NumberOrNotApplicable(input?.StandardUsageDayTotal),
+                NumberOrNotApplicable(input.StandardUsageDayTotal),
 
             // ClaimInput のグループB個別入力（Phase 3-3）。訪問支援特別加算の算定回数と施設外支援の
             // 累計日数はいずれも日次実績から導出できないため、個別入力の値をそのまま供給する。
             // どの CSV 項目がこの path を要求するか（readiness 要件）はCSV仕様JSON側の宣言が正本で、
             // ここは値の供給側のみを担う（要件が未宣言のうちは readiness の挙動は変わらない）。
             [Path(nameof(ClaimInput), nameof(ClaimInput.SpecialVisitSupportBilledCount))] =
-                NumberOrNotApplicable(input?.SpecialVisitSupportBilledCount),
+                NumberOrNotApplicable(input.SpecialVisitSupportBilledCount),
             [Path(nameof(ClaimInput), nameof(ClaimInput.OffsiteSupportCumulativeDays))] =
-                NumberOrNotApplicable(input?.OffsiteSupportCumulativeDays),
+                NumberOrNotApplicable(input.OffsiteSupportCumulativeDays),
 
             // Certificate.*（Task 9c）。MunicipalityNumberは常時必須（always）、他の2件は
             // 自己参照modelPresent（値がある時だけその値自体が要求を満たす＝実質「入力するなら
@@ -239,20 +275,20 @@ public static class ClaimPreparationContextBuilder
             // ClaimPreviewProductionWiringTests.Real_embedded_requirement_provider_requires_municipal_subsidy_amount_*
             // で固定済み）。
             [Path(nameof(Certificate), nameof(Certificate.MunicipalityNumber))] =
-                TextOrNotApplicable(certificate?.MunicipalityNumber),
+                TextOrNotApplicable(certificate.MunicipalityNumber),
             [Path(nameof(Certificate), nameof(Certificate.SubsidyMunicipalityNumber))] =
-                TextOrNotApplicable(certificate?.SubsidyMunicipalityNumber),
+                TextOrNotApplicable(certificate.SubsidyMunicipalityNumber),
             [Path(nameof(Certificate), nameof(Certificate.UpperLimitManagementProviderNumber))] =
-                TextOrNotApplicable(certificate?.UpperLimitManagementProviderNumber),
+                TextOrNotApplicable(certificate.UpperLimitManagementProviderNumber),
 
             // ContractedProvider.CertificateEntryNumber（Task 9c）。常時必須（always）。
             [Path(nameof(ContractedProvider), nameof(ContractedProvider.CertificateEntryNumber))] =
-                NumberOrNotApplicable(contractedProvider?.CertificateEntryNumber),
+                NumberOrNotApplicable(contractedProvider.CertificateEntryNumber),
 
             // ContractedProvider.FirstServiceDate（Phase 3-3）。請求CSVの開始年月日
             // （provider:J121:02:008）の正本で常時必須。契約ごとに実情が異なるため導出しない。
             [Path(nameof(ContractedProvider), nameof(ContractedProvider.FirstServiceDate))] =
-                DateOrNotApplicable(contractedProvider?.FirstServiceDate),
+                DateOrNotApplicable(contractedProvider.FirstServiceDate),
 
             // DailyRecord.*（Task 9c）。いずれも自己参照条件（modelPresent/modelNonZero/modelTrue/
             // modelIn）で、当月の実効Present日次記録から縮約した代表値を渡す

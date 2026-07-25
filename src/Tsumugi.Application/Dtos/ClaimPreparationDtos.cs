@@ -36,12 +36,16 @@ public sealed record ClaimPreviewDto(
     int TotalBenefitYen,
     int TotalBurdenYen,
     IReadOnlyList<ClaimPreparationIssue> Issues,
-    bool IsReady)
+    bool IsReady,
+    // 事前登録済みの将来の施行分（適用開始前の版）で必要になる項目。**確定は止めない**
+    // （IsReady には影響させない）。次の施行分に入る前に入力を促すための警告（ADR 0041）。
+    IReadOnlyList<ClaimUpcomingSpecificationIssue>? UpcomingSpecificationIssues = null)
 {
     public static ClaimPreviewDto NotReady(
         ServiceMonth serviceMonth,
         string claimMasterVersion,
-        IReadOnlyList<ClaimPreparationIssue> issues)
+        IReadOnlyList<ClaimPreparationIssue> issues,
+        IReadOnlyList<ClaimUpcomingSpecificationIssue>? upcomingSpecificationIssues = null)
         => new(
             serviceMonth,
             claimMasterVersion,
@@ -52,7 +56,8 @@ public sealed record ClaimPreviewDto(
             TotalBenefitYen: 0,
             TotalBurdenYen: 0,
             issues,
-            IsReady: false);
+            IsReady: false,
+            upcomingSpecificationIssues);
 }
 
 public sealed record ClaimBatchRevisionDto(Guid BatchId, int Revision, bool IsReplay);

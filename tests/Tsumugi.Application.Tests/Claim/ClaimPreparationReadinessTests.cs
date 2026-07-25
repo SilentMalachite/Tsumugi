@@ -7,6 +7,9 @@ namespace Tsumugi.Application.Tests.Claim;
 
 public sealed class ClaimPreparationReadinessTests
 {
+    /// <summary>要件は版ごとに引く（ADR 0041）。このテストは単一版のフェイクを使う。</summary>
+    private const string TestVersion = "r7-10";
+
     [Fact]
     public void Evaluate_reports_always_required_missing_field()
     {
@@ -15,7 +18,7 @@ public sealed class ClaimPreparationReadinessTests
             new ClaimRequirementCondition.Always(),
             ClaimInputDestination.Office));
 
-        var result = sut.Evaluate(Context());
+        var result = sut.Evaluate(Context(), TestVersion);
 
         result.IsReady.Should().BeFalse();
         result.Issues.Should().ContainSingle().Which.Should().Be(
@@ -48,7 +51,7 @@ public sealed class ClaimPreparationReadinessTests
             new ClaimRequirementCondition.ModelTrue("DailyRecord.Applied"),
             ClaimInputDestination.DailyRecord));
 
-        var result = sut.Evaluate(Context(recipients: [Recipient(recipientId, values)]));
+        var result = sut.Evaluate(Context(recipients: [Recipient(recipientId, values)]), TestVersion);
 
         result.IsReady.Should().Be(expectedReady);
         result.Issues.Should().HaveCount(expectedReady ? 0 : 1);
@@ -69,7 +72,7 @@ public sealed class ClaimPreparationReadinessTests
                 ClaimPreparationValue.Boolean(false),
         };
 
-        var result = sut.Evaluate(Context(recipients: [Recipient(recipientId, values)]));
+        var result = sut.Evaluate(Context(recipients: [Recipient(recipientId, values)]), TestVersion);
 
         result.IsReady.Should().BeTrue();
         result.Issues.Should().BeEmpty();
@@ -89,7 +92,7 @@ public sealed class ClaimPreparationReadinessTests
             ["ClaimInput.MunicipalSubsidyAmountYen"] = ClaimPreparationValue.Number(0),
         };
 
-        var result = sut.Evaluate(Context(recipients: [Recipient(recipientId, values)]));
+        var result = sut.Evaluate(Context(recipients: [Recipient(recipientId, values)]), TestVersion);
 
         result.IsReady.Should().BeTrue();
     }
@@ -107,7 +110,7 @@ public sealed class ClaimPreparationReadinessTests
             [target] = ClaimPreparationValue.NotApplicable(),
         };
 
-        var result = sut.Evaluate(Context(recipients: [Recipient(recipientId, values)]));
+        var result = sut.Evaluate(Context(recipients: [Recipient(recipientId, values)]), TestVersion);
 
         result.IsReady.Should().BeTrue();
         result.Issues.Should().BeEmpty();
@@ -124,7 +127,7 @@ public sealed class ClaimPreparationReadinessTests
             [target] = ClaimPreparationValue.NotApplicable(),
         };
 
-        var result = sut.Evaluate(Context(recipients: [Recipient(recipientId, values)]));
+        var result = sut.Evaluate(Context(recipients: [Recipient(recipientId, values)]), TestVersion);
 
         result.Issues.Should().ContainSingle(issue =>
             issue.Code == ClaimPreparationIssueCode.MissingRequiredField
@@ -149,7 +152,7 @@ public sealed class ClaimPreparationReadinessTests
                 new ClaimRequirementCondition.ModelPresent(
                     "Certificate.SubsidyMunicipalityNumber")));
 
-        var result = sut.Evaluate(Context(recipients: [Recipient(recipientId)]));
+        var result = sut.Evaluate(Context(recipients: [Recipient(recipientId)]), TestVersion);
 
         result.IsReady.Should().BeFalse();
         result.Issues.Should().HaveCount(3).And.OnlyContain(issue =>
@@ -163,7 +166,7 @@ public sealed class ClaimPreparationReadinessTests
         var sut = Sut();
         var recipient = Recipient(recipientId, effectiveCertificateCount: 2);
 
-        var result = sut.Evaluate(Context(recipients: [recipient]));
+        var result = sut.Evaluate(Context(recipients: [recipient]), TestVersion);
 
         result.Issues.Should().ContainSingle().Which.Should().Be(
             new ClaimPreparationIssue(
@@ -182,7 +185,7 @@ public sealed class ClaimPreparationReadinessTests
             recipientId,
             certificateEvidence: ClaimPreparationEvidenceState.InvalidHistory);
 
-        var result = sut.Evaluate(Context(recipients: [recipient]));
+        var result = sut.Evaluate(Context(recipients: [recipient]), TestVersion);
 
         result.Issues.Should().ContainSingle(issue =>
             issue.Code == ClaimPreparationIssueCode.InvalidEffectiveHistory
@@ -194,7 +197,7 @@ public sealed class ClaimPreparationReadinessTests
     public void Evaluate_rejects_missing_master_version()
     {
         var result = Sut().Evaluate(Context(evidence: Evidence(
-            masterVersion: ClaimPreparationEvidenceState.Missing)));
+            masterVersion: ClaimPreparationEvidenceState.Missing)), TestVersion);
 
         result.Issues.Should().ContainSingle().Which.Should().Be(
             new ClaimPreparationIssue(
@@ -212,7 +215,7 @@ public sealed class ClaimPreparationReadinessTests
             recipientId,
             certificateEvidence: ClaimPreparationEvidenceState.OriginalUnconfirmed);
 
-        var result = Sut().Evaluate(Context(recipients: [recipient]));
+        var result = Sut().Evaluate(Context(recipients: [recipient]), TestVersion);
 
         result.Issues.Should().ContainSingle().Which.Should().Be(
             new ClaimPreparationIssue(
@@ -234,7 +237,7 @@ public sealed class ClaimPreparationReadinessTests
     {
         var result = Sut().Evaluate(Context(evidence: Evidence(
             averageWage: averageWage,
-            officeProfile: officeProfile)));
+            officeProfile: officeProfile)), TestVersion);
 
         result.Issues.Should().ContainSingle().Which.Should().Be(
             new ClaimPreparationIssue(
@@ -252,7 +255,7 @@ public sealed class ClaimPreparationReadinessTests
             recipientId,
             upperLimitEvidence: ClaimPreparationEvidenceState.Missing);
 
-        var result = Sut().Evaluate(Context(recipients: [recipient]));
+        var result = Sut().Evaluate(Context(recipients: [recipient]), TestVersion);
 
         result.Issues.Should().ContainSingle().Which.Should().Be(
             new ClaimPreparationIssue(
@@ -266,7 +269,7 @@ public sealed class ClaimPreparationReadinessTests
     public void Evaluate_rejects_evidence_source_mismatch()
     {
         var result = Sut().Evaluate(Context(evidence: Evidence(
-            officeProfile: ClaimPreparationEvidenceState.SourceMismatch)));
+            officeProfile: ClaimPreparationEvidenceState.SourceMismatch)), TestVersion);
 
         result.Issues.Should().ContainSingle().Which.Should().Be(
             new ClaimPreparationIssue(
@@ -311,7 +314,7 @@ public sealed class ClaimPreparationReadinessTests
                 recipientId,
                 values,
                 rowScopes: new HashSet<string>(["daily"], StringComparer.Ordinal)),
-        ]));
+        ]), TestVersion);
 
         result.Issues.Select(issue => issue.FieldCode).Should().BeEquivalentTo(
             "Target.Present", "Target.Number", "Target.Boolean",
@@ -335,7 +338,7 @@ public sealed class ClaimPreparationReadinessTests
             upperLimitEvidence: ClaimPreparationEvidenceState.Missing,
             excludedFromReadinessBlocking: true);
 
-        var result = sut.Evaluate(Context(recipients: [recipient]));
+        var result = sut.Evaluate(Context(recipients: [recipient]), TestVersion);
 
         result.IsReady.Should().BeTrue();
         result.Issues.Should().BeEmpty();
@@ -347,7 +350,7 @@ public sealed class ClaimPreparationReadinessTests
         var recipientId = Guid.NewGuid();
         var recipient = Recipient(recipientId, effectiveCertificateCount: 0);
 
-        var result = Sut().Evaluate(Context(recipients: [recipient]));
+        var result = Sut().Evaluate(Context(recipients: [recipient]), TestVersion);
 
         result.IsReady.Should().BeFalse();
         result.Issues.Should().ContainSingle(issue => issue.RecipientId == recipientId);
@@ -399,6 +402,6 @@ public sealed class ClaimPreparationReadinessTests
     private sealed class FakeRequirementProvider(params ClaimInputRequirement[] requirements)
         : IClaimInputRequirementProvider
     {
-        public IReadOnlyList<ClaimInputRequirement> GetRequirements() => requirements;
+        public IReadOnlyList<ClaimInputRequirement> GetRequirements(string specificationVersion) => requirements;
     }
 }

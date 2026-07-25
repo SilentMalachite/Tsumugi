@@ -90,8 +90,10 @@ public static class CompositionRoot
 
         // Phase 3-1: 算定プレビュー→確定→取下げ→履歴（Task 9）。
         // readinessの要件はInfrastructure.Csv埋め込みcatalog（typed requirements）から供給する。
+        // 版レジストリに登録された全版分を持ち、版を指定して引く（ADR 0041）。
         services.AddSingleton<IClaimInputRequirementProvider>(
-            _ => ClaimInputRequirementProvider.LoadEmbedded());
+            sp => ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+                sp.GetRequiredService<CsvSpecificationRegistry>()));
         services.AddScoped<ClaimPreparationReadiness>();
         services.AddScoped<IOperationLocalSnapshotReader, OperationLocalSnapshotReader>();
         services.AddScoped<CalculateClaimUseCase>();

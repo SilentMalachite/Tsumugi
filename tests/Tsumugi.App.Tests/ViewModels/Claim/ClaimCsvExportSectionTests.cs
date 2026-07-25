@@ -141,6 +141,7 @@ public sealed class ClaimCsvExportSectionTests
             ClaimVerifiedBatchTestFactory.Provider(new StubBatchRepository(generator)),
             new StubOfficeContextProvider(),
             new StubSpecificationVersions(),
+            new StubRequirementProvider(),
             generator,
             new NoopExportRepository(),
             TimeProvider.System);
@@ -191,10 +192,18 @@ public sealed class ClaimCsvExportSectionTests
             Task.FromResult<ClaimBatchAggregate?>(null);
     }
 
+    /// <summary>要件は空（このテストの関心は UI 配線）。不足一覧は生成器側の失敗で検証する。</summary>
+    private sealed class StubRequirementProvider : IClaimInputRequirementProvider
+    {
+        public IReadOnlyList<ClaimInputRequirement> GetRequirements(string specificationVersion) => [];
+    }
+
     /// <summary>版解決のスタブ。fixture が確定側に書く版と同じ文字列を返す。</summary>
     private sealed class StubSpecificationVersions : IClaimCsvSpecificationVersions
     {
         public string Current => "r7-10";
+
+        public IReadOnlyList<string> UpcomingVersions => [];
 
         public string ResolveForProcessingMonth(ProcessingMonth processingMonth) => Current;
     }

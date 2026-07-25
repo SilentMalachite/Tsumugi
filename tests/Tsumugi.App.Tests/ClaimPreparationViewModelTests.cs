@@ -187,6 +187,7 @@ public sealed class ClaimPreparationViewModelTests
             verifiedBatches,
             new Kit.FixedClaimCsvOfficeContextProvider(),
             csvVersions,
+            new Kit.EmptyRequirementProvider(),
             new Kit.NoOpClaimCsvGenerator(),
             new Kit.NoOpClaimCsvExportRepository(),
             TimeProvider.System);

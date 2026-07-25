@@ -414,7 +414,7 @@ internal static class ClaimPreparationViewModelTestKit
 
     internal sealed class EmptyRequirementProvider : IClaimInputRequirementProvider
     {
-        public IReadOnlyList<ClaimInputRequirement> GetRequirements() => [];
+        public IReadOnlyList<ClaimInputRequirement> GetRequirements(string specificationVersion) => [];
     }
 
     /// <summary>
@@ -426,6 +426,8 @@ internal static class ClaimPreparationViewModelTestKit
     internal sealed class FakeCsvSpecificationVersions : IClaimCsvSpecificationVersions
     {
         public string Current => "r7-10";
+
+        public IReadOnlyList<string> UpcomingVersions => [];
 
         public string ResolveForProcessingMonth(ProcessingMonth processingMonth) => Current;
     }

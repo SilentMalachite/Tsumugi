@@ -94,6 +94,28 @@ public sealed class CsvSpecificationRegistry : IClaimCsvSpecificationVersions
         return new CsvSpecificationRegistry(entries, catalogs, clock);
     }
 
+    /// <summary>版名で仕様を引く（版ごとの readiness 要件を組むときに使う）。</summary>
+    public CsvSpecificationCatalog ResolveByVersion(string version)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(version);
+        return _catalogsByVersion.TryGetValue(version, out var catalog)
+            ? catalog
+            : throw new InvalidOperationException($"CSV仕様版 '{version}' は登録されていません。");
+    }
+
+    /// <summary>適用開始前の登録済み版（事前登録した将来の施行分）。</summary>
+    public IReadOnlyList<string> UpcomingVersions
+    {
+        get
+        {
+            var today = _clock.GetLocalNow();
+            var currentKey = MonthKey(today.Year, today.Month);
+            return [.. _entries
+                .Where(entry => MonthKey(entry.EffectiveFromProcessingMonth) > currentKey)
+                .Select(entry => entry.Version)];
+        }
+    }
+
     /// <summary>処理対象年月に適用される仕様。該当版が無ければ fail-close する。</summary>
     public CsvSpecificationCatalog Resolve(ProcessingMonth processingMonth) =>
         _catalogsByVersion[ResolveForProcessingMonth(processingMonth)];

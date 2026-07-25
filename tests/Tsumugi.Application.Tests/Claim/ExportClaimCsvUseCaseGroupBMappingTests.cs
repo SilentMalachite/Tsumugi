@@ -78,6 +78,7 @@ public sealed class ExportClaimCsvUseCaseGroupBMappingTests
             new FakeOfficeContextProvider(),
             // 版解決は確定済みヘッダが記録した版を返す（版不一致の検証は別テスト）。
             new Kit.FakeCsvSpecificationVersions(header.CsvSpecificationVersion),
+            new Kit.EmptyRequirementProvider(),
             generator,
             new FakeExportRepository(),
             TimeProvider.System);

@@ -29,7 +29,10 @@ public sealed class CalculateClaimUseCase(
         if (computation.Result is not { } result)
         {
             return ClaimPreviewDto.NotReady(
-                request.ServiceMonth, computation.ClaimMasterVersion, computation.Issues);
+                request.ServiceMonth,
+                computation.ClaimMasterVersion,
+                computation.Issues,
+                computation.UpcomingSpecificationIssues);
         }
 
         return new ClaimPreviewDto(
@@ -51,7 +54,9 @@ public sealed class CalculateClaimUseCase(
             result.TotalBenefitYen,
             result.TotalBurdenYen,
             Issues: [],
-            IsReady: true);
+            IsReady: true,
+            // 将来の施行分で必要になる項目は警告として運ぶ（IsReady は変えない。ADR 0041）。
+            UpcomingSpecificationIssues: computation.UpcomingSpecificationIssues);
     }
 }
 

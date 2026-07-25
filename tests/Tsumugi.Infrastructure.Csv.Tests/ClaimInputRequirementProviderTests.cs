@@ -1,11 +1,54 @@
 using FluentAssertions;
 using Tsumugi.Application.Claim;
 using Tsumugi.Infrastructure.Csv.Mapping;
+using Tsumugi.Infrastructure.Csv.Specifications;
 
 namespace Tsumugi.Infrastructure.Csv.Tests;
 
 public sealed class ClaimInputRequirementProviderTests
 {
+    // NOTE(teeth): 要件は版ごとに引く（ADR 0041）。未登録の版で現行版の要件を代用すると、
+    // 新版で必須になった項目を確認せずに通してしまう。
+    [Fact]
+    public void Requirements_are_available_per_registered_version()
+    {
+        var registry = CsvSpecificationRegistry.LoadEmbedded();
+        var provider = ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(registry);
+
+        provider.Versions.Should().BeEquivalentTo(registry.Versions.Select(entry => entry.Version));
+        foreach (var version in provider.Versions)
+        {
+            provider.GetRequirements(version).Should().NotBeEmpty();
+        }
+    }
+
+    [Fact]
+    public void An_unregistered_version_fails_closed()
+    {
+        var provider = ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+            CsvSpecificationRegistry.LoadEmbedded());
+
+        var act = () => provider.GetRequirements("r9-99");
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*readiness 要件が登録されていません*");
+    }
+
+    [Fact]
+    public void Report_requirements_are_shared_by_every_version()
+    {
+        // 帳票の様式は CSV 仕様版とは別の文書系列で改訂されるため、全版へ共通で合流する。
+        var provider = ClaimInputRequirementProvider.LoadEmbeddedForAllVersions(
+            CsvSpecificationRegistry.LoadEmbedded());
+
+        foreach (var version in provider.Versions)
+        {
+            provider.GetRequirements(version)
+                .SelectMany(requirement => requirement.FieldIds)
+                .Should().Contain(fieldId => fieldId.StartsWith("report:", StringComparison.Ordinal));
+        }
+    }
+
     [Fact]
     public void Provider_exposes_exact_phase31_target_set()
     {

@@ -406,7 +406,7 @@ internal static class ClaimPreparationTestKit
 
     internal sealed class EmptyRequirementProvider : IClaimInputRequirementProvider
     {
-        public IReadOnlyList<ClaimInputRequirement> GetRequirements() => [];
+        public IReadOnlyList<ClaimInputRequirement> GetRequirements(string specificationVersion) => [];
     }
 
     internal sealed class FakeSnapshotReader(ClaimCalculationSnapshot snapshot)
@@ -624,6 +624,9 @@ internal static class ClaimPreparationTestKit
         public string Current { get; } = current;
 
         public ProcessingMonth? LastResolvedMonth { get; private set; }
+
+        /// <summary>事前登録した将来版（確定前の警告経路の検証用）。</summary>
+        public IReadOnlyList<string> UpcomingVersions { get; set; } = [];
 
         /// <summary>この月だけ解決できない、という状況を作るための設定（fail-close の検証用）。</summary>
         public ProcessingMonth? UnavailableMonth { get; set; }

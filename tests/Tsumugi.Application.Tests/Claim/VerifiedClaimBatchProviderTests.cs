@@ -169,6 +169,7 @@ public sealed class VerifiedClaimBatchProviderTests
             Kit.VerifiedProvider(new ClaimBatchAggregate(header, [Detail(header)])),
             new Kit.FixedCsvOfficeContextProvider(),
             versions,
+            new Kit.EmptyRequirementProvider(),
             new Kit.ThrowingCsvGenerator(),
             new Kit.NoOpCsvExportRepository(),
             TimeProvider.System);

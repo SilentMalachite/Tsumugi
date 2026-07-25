@@ -59,6 +59,12 @@ public sealed partial class ClaimPreparationViewModel(
 
     public ObservableCollection<OfficeDto> Offices { get; } = [];
     public ObservableCollection<ClaimPreparationIssue> Issues { get; } = [];
+
+    /// <summary>
+    /// 事前登録済みの将来の施行分で必要になる項目（ADR 0041）。**確定を止めない警告**で、
+    /// 次の施行分に入る前に入力を促すためのもの。表示は項目コードと版だけ（氏名等は出さない）。
+    /// </summary>
+    public ObservableCollection<string> UpcomingSpecificationWarnings { get; } = [];
     public ObservableCollection<ClaimBatchHistoryDto> History { get; } = [];
 
     /// <summary>「帳票出力」セクション（Task 14）。確定済revisionの有無と受給者一覧は
@@ -91,6 +97,11 @@ public sealed partial class ClaimPreparationViewModel(
                 new CalculateClaimRequest(context.OfficeId, context.ServiceMonth), ct);
             Preview = preview;
             Replace(Issues, preview.Issues);
+            Replace(
+                UpcomingSpecificationWarnings,
+                (preview.UpcomingSpecificationIssues ?? [])
+                    .Select(warning =>
+                        $"次の施行分 {warning.SpecificationVersion}: {warning.Issue.FieldCode}"));
             ErrorMessage = null;
             await RefreshHistoryAsync(context, ct);
         }
@@ -118,6 +129,7 @@ public sealed partial class ClaimPreparationViewModel(
                 ct);
             Preview = null;
             Issues.Clear();
+            UpcomingSpecificationWarnings.Clear();
             ErrorMessage = null;
             await RefreshHistoryAsync(context, ct);
         }
@@ -154,6 +166,7 @@ public sealed partial class ClaimPreparationViewModel(
                 ct);
             Preview = null;
             Issues.Clear();
+            UpcomingSpecificationWarnings.Clear();
             ErrorMessage = null;
             await RefreshHistoryAsync(context, ct);
         }
@@ -181,6 +194,7 @@ public sealed partial class ClaimPreparationViewModel(
     {
         Preview = null;
         Issues.Clear();
+        UpcomingSpecificationWarnings.Clear();
         History.Clear();
         ErrorMessage = null;
         CancelCommand.NotifyCanExecuteChanged();
