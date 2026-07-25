@@ -16,9 +16,9 @@ using Tsumugi.Application.UseCases.Wage;
 using Tsumugi.Application.UseCases.WorkRecord;
 using Tsumugi.Domain.Logic.Wage;
 using Tsumugi.Infrastructure;
+using Tsumugi.Infrastructure.Csv.Generation;
 using Tsumugi.Infrastructure.Csv.Mapping;
 using Tsumugi.Infrastructure.Csv.Specifications;
-using Tsumugi.Infrastructure.Csv.Generation;
 using Tsumugi.Infrastructure.Reporting;
 
 namespace Tsumugi.App;

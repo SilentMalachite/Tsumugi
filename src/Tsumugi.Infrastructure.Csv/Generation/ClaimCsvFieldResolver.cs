@@ -82,7 +82,7 @@ internal sealed class ClaimCsvFieldResolver
 
         var raw = mapping.Status switch
         {
-            "generated" => EvaluateRule(CsvGeneratorRuleParser.Parse(mapping.GeneratorRule!), scope),
+            "generated" => EvaluateRule(ParseRule(mapping.GeneratorRule!), scope),
             "explicitInput" => EvaluateExplicitInput(mapping.InputContract!, scope),
             "existing" => ClaimCsvModelPath.Resolve(mapping.ModelPath!, scope),
             "missing" => ClaimCsvModelPath.Resolve(
@@ -383,8 +383,7 @@ internal sealed class ClaimCsvFieldResolver
     {
         ClaimCsvValue.NumberValue number => number.Value,
         ClaimCsvValue.AbsentValue => 0,
-        ClaimCsvValue.TextValue text when long.TryParse(
-            text.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) => parsed,
+        ClaimCsvValue.TextValue text when TryParseInvariant(text.Value, out var parsed) => parsed,
         _ => throw new ClaimCsvGenerationException(
             fieldId, ClaimCsvGenerationReason.UnsupportedDataType, "the value is not numeric"),
     };
@@ -562,6 +561,13 @@ internal sealed class ClaimCsvFieldResolver
             ClaimCsvGenerationReason.UnsupportedDataType,
             $"the value cannot be written to dataType '{specification.DataType}'"),
     };
+
+    // CultureInfo: 非該当（spec の DSL 構文解析であり、数値・日付の書式変換を含まない）
+    private static CsvGeneratorRule ParseRule(string generatorRule) =>
+        CsvGeneratorRuleParser.Parse(generatorRule); // CultureInfo: 非該当
+
+    private static bool TryParseInvariant(string value, out long parsed) =>
+        long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsed);
 
     private static ClaimCsvGenerationException Unresolvable(string fieldId, string detail) =>
         new(fieldId, ClaimCsvGenerationReason.UnresolvableRule, detail);

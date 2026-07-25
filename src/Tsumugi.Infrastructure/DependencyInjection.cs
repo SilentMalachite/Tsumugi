@@ -17,6 +17,8 @@ public static class DependencyInjection
         var claimMasterProvider = JsonClaimMasterProvider.LoadEmbedded();
         services.AddSingleton<IClaimMasterProvider>(claimMasterProvider);
         services.AddSingleton<IOfficeClaimProfilePolicyProvider>(claimMasterProvider);
+        services.AddSingleton<IClaimCsvOfficeContextProvider>(
+            new ClaimMasterCsvOfficeContextProvider(claimMasterProvider));
         services.TryAddSingleton(TimeProvider.System);
         services.AddDbContextFactory<TsumugiDbContext>(o => o.UseSqlite(connectionString));
         services.AddScoped<IOfficeRepository, OfficeRepository>();

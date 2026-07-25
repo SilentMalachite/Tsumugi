@@ -197,7 +197,7 @@ public static class ClaimCsvWriter
         int dataRecordCount,
         string? dataKind)
     {
-        var rule = CsvGeneratorRuleParser.Parse(generatorRule);
+        var rule = CsvGeneratorRuleParser.Parse(generatorRule); // CultureInfo: 非該当（DSL構文解析）
         return rule.Head switch
         {
             "const" => rule.Require("value") is "CRLF" ? string.Empty : rule.Require("value"),

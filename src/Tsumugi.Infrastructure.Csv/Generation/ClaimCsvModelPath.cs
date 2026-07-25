@@ -45,7 +45,12 @@ internal static class ClaimCsvModelPath
     {
         value = 0;
         if (!EnumTypeByPath.TryGetValue(path, out var enumType)) return false;
-        if (!Enum.TryParse(enumType, token, ignoreCase: false, out var parsed) || parsed is null) return false;
+        // 列挙型メンバー名の解析。CultureInfo: 非該当（書式変換を伴わない）
+        if (!Enum.TryParse(enumType, token, ignoreCase: false, out var parsed) || parsed is null) // CultureInfo: 非該当
+        {
+            return false;
+        }
+
         value = Convert.ToInt64(parsed, CultureInfo.InvariantCulture);
         return true;
     }

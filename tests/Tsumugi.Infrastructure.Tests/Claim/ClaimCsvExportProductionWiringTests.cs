@@ -117,7 +117,7 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
 
     private static ExportClaimCsvUseCase CreateUseCase(TsumugiDbContext context) => new(
         new ClaimBatchRepository(context),
-        JsonClaimMasterProvider.LoadEmbedded(),
+        new ClaimMasterCsvOfficeContextProvider(JsonClaimMasterProvider.LoadEmbedded()),
         new ClaimCsvGenerator(CsvSpecificationLoader.LoadEmbedded()),
         new ClaimCsvExportRepository(context),
         new FixedTimeProvider(FixedNow));

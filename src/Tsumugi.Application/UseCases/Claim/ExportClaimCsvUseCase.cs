@@ -29,17 +29,11 @@ namespace Tsumugi.Application.UseCases.Claim;
 /// </remarks>
 public sealed class ExportClaimCsvUseCase(
     IClaimBatchRepository batchRepository,
-    IClaimMasterProvider masterProvider,
+    IClaimCsvOfficeContextProvider officeContextProvider,
     IClaimCsvGenerator generator,
     IClaimCsvExportRepository exportRepository,
     TimeProvider clock)
 {
-    /// <summary>就労継続支援B型の単位数単価を引くサービス種別キー。</summary>
-    private const string ServiceKind = "employment-continuation-support";
-
-    /// <summary>単位数単価は1/1000円単位の整数で CSV へ書く（spec の roundDown 式が要求する尺度）。</summary>
-    private const int UnitPriceScale = 1000;
-
     public async Task<ClaimCsvExportResult> ExecuteAsync(
         Guid officeId,
         ServiceMonth serviceMonth,
@@ -88,7 +82,7 @@ public sealed class ExportClaimCsvUseCase(
         ProcessingMonth processingMonth)
     {
         var snapshots = details
-            .Select(detail => ClaimFinalizationSnapshotReader.Parse(
+            .Select(detail => ClaimFinalizationSnapshotReader.Parse( // CultureInfo: 非該当（JSON snapshot parser）
                 Encoding.UTF8.GetBytes(detail.CalculationSnapshotJson)))
             .ToArray();
         var office = snapshots[0].Office;
@@ -101,10 +95,7 @@ public sealed class ExportClaimCsvUseCase(
         return new ClaimCsvDto(
             processingMonth,
             serviceMonth,
-            new ClaimCsvOfficeDto(
-                office.OfficeNumber,
-                RegionClassificationCode(office.RegionGrade),
-                UnitPriceMilliYen(serviceMonth, office.RegionGrade)),
+            BuildOffice(office, serviceMonth),
             recipients,
             new ClaimCsvTotalsDto(
                 header.TotalUnits, header.TotalCostYen, header.TotalBenefitYen, header.TotalBurdenYen),
@@ -170,40 +161,13 @@ public sealed class ExportClaimCsvUseCase(
             ? (int)parsed
             : null;
 
-    /// <summary>
-    /// 地域区分コード。<c>RegionGrade.GradeN</c> は N 級地そのものなので、CSV の 2 桁コードは
-    /// 級地番号のゼロ詰めとする。<c>Other</c> / <c>None</c> の公式コードは本リポジトリの
-    /// 一次資料から一意に確定できないため fail-close し、<c>docs/open-questions.md</c> に起票している。
-    /// </summary>
-    private static string RegionClassificationCode(RegionGrade grade) => grade switch
+    private ClaimCsvOfficeDto BuildOffice(
+        ClaimFinalizationOfficeSnapshot office,
+        ServiceMonth serviceMonth)
     {
-        >= RegionGrade.Grade1 and <= RegionGrade.Grade7 =>
-            ((int)grade).ToString("D2", CultureInfo.InvariantCulture),
-        _ => throw new ClaimCsvExportFailedException(
-            "provider:J121:01:010",
-            "UnknownRegionClassification",
-            "the official region classification code for this grade is not determined by repository sources"),
-    };
-
-    private int UnitPriceMilliYen(ServiceMonth serviceMonth, RegionGrade grade)
-    {
-        var masters = masterProvider.ResolveCalculationMasters(serviceMonth);
-        var regionKey = grade == RegionGrade.Other
-            ? "region-other"
-            : $"region-grade-{(int)grade}";
-        var candidates = masters.RegionUnitPrices
-            .Where(row => string.Equals(row.RegionKey, regionKey, StringComparison.Ordinal)
-                && string.Equals(row.ServiceKind, ServiceKind, StringComparison.Ordinal)
-                && row.EffectiveFrom <= serviceMonth
-                && (row.EffectiveTo is null || serviceMonth <= row.EffectiveTo))
-            .ToArray();
-
-        return candidates.Length == 1
-            ? (int)decimal.Round(candidates[0].UnitPriceYen * UnitPriceScale, 0, MidpointRounding.ToZero)
-            : throw new ClaimCsvExportFailedException(
-                "provider:J121:04:011",
-                "UnitPriceUnresolved",
-                $"{candidates.Length} unit price rows matched region '{regionKey}' for the service month");
+        var context = officeContextProvider.Resolve(office.RegionGrade, serviceMonth);
+        return new ClaimCsvOfficeDto(
+            office.OfficeNumber, context.RegionClassificationCode, context.UnitPriceMilliYen);
     }
 
     private static string BuildFileName(
