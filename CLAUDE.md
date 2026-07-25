@@ -95,7 +95,7 @@ dotnet list package --vulnerable --include-transitive  # 脆弱性確認
 - **本書(Claude Code)が実装、Codexがレビュー**。Codex指摘は重大度付きで返り、Claude Code向け修正指示に**トリアージして取り込む**。
 - 不明点・公式仕様の未確定事項は推測で実装せず `docs/open-questions.md` に起票し、設計相談へ回す。
 - フェーズは 0→1→2→3 の順（基盤→記録→工賃→国保連請求）。前フェーズの受け入れ基準を満たすまで次に着手しない。
-- **現在地**: フェーズ0・1・2、Phase 3-0、Phase 3-1、Phase 3-2、Phase 3-3 は完了（Phase 3-3 は spec 駆動の国保連請求CSV生成・出力履歴・例外利用日の入力UI・契約情報の個別入力。Codex レビュー指摘を全件トリアージ済み。spec: `docs/superpowers/specs/2026-07-20-phase3-3-kokuhoren-csv-design.md`、計画: `docs/superpowers/plans/2026-07-20-phase3-3-kokuhoren-csv.md`、証跡: `docs/phase3-3-acceptance.md`）。次は Phase 4 準備。**注意**: Phase 3-3 より前に確定した請求は snapshot に契約情報を持たないため CSV 化には再確定が必要（ADR 0032）。GUI 手動貫通確認とCSVの未確定事項は open-questions に維持。
+- **現在地**: フェーズ0・1・2、Phase 3-0、Phase 3-1、Phase 3-2、Phase 3-3 は完了（Phase 3-3 は spec 駆動の国保連請求CSV生成・出力履歴・例外利用日の入力UI・契約情報の個別入力。Codex レビュー指摘を全件トリアージ済み。spec: `docs/superpowers/specs/2026-07-20-phase3-3-kokuhoren-csv-design.md`、計画: `docs/superpowers/plans/2026-07-20-phase3-3-kokuhoren-csv.md`、証跡: `docs/phase3-3-acceptance.md`）。次は Phase 4 準備。**注意**: Phase 3-3 より前に確定した請求は snapshot に契約情報・サービス利用日数を持たないため CSV 化には再確定が必要（ADR 0032・0034）。成果物（CSV・3帳票）は `VerifiedClaimBatchProvider` が返す検証済み実効 revision からのみ生成し、取消済み（Cancel が head）の月はどちらも出力しない（ADR 0035）。GUI 手動貫通確認とCSVの未確定事項は open-questions に維持。
 
 ---
 
