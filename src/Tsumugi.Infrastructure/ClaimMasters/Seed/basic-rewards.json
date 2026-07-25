@@ -3270,7 +3270,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理43-44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理43頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -3313,7 +3313,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理43-44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
+          "locator": "物理43頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -3356,7 +3356,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理43-44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
+          "locator": "物理43頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -3399,7 +3399,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理43-44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
+          "locator": "物理43頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -3442,7 +3442,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理43-44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
+          "locator": "物理43頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -3485,7 +3485,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理43-44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
+          "locator": "物理43頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -3786,7 +3786,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理44-45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -3829,7 +3829,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理44-45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
+          "locator": "物理44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -3872,7 +3872,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理44-45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
+          "locator": "物理44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -3915,7 +3915,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理44-45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
+          "locator": "物理44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -3958,7 +3958,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理44-45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
+          "locator": "物理44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4001,7 +4001,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理44-45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
+          "locator": "物理44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4044,7 +4044,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理44-45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
+          "locator": "物理44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4087,7 +4087,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理44-45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
+          "locator": "物理44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4130,7 +4130,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理44-45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（五）　平均工賃月額が２万３千円以上２万５千円未満の場合",
+          "locator": "物理44頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（五）　平均工賃月額が２万３千円以上２万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4302,7 +4302,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理45-46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4345,7 +4345,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理45-46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
+          "locator": "物理45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4388,7 +4388,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理45-46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
+          "locator": "物理45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4431,7 +4431,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理45-46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
+          "locator": "物理45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4474,7 +4474,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理45-46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
+          "locator": "物理45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4517,7 +4517,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理45-46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
+          "locator": "物理45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4560,7 +4560,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理45-46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
+          "locator": "物理45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4603,7 +4603,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理45-46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
+          "locator": "物理45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4646,7 +4646,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理45-46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（五）　平均工賃月額が２万３千円以上２万５千円未満の場合",
+          "locator": "物理45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（五）　平均工賃月額が２万３千円以上２万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4689,7 +4689,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理45-46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｅ）　平均工賃月額が２万円以上２万３千円未満の場合",
+          "locator": "物理45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｅ）　平均工賃月額が２万円以上２万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4732,7 +4732,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理45-46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（六）　平均工賃月額が１万８千円以上２万円未満の場合",
+          "locator": "物理45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（六）　平均工賃月額が１万８千円以上２万円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4775,7 +4775,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理45-46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｆ）　平均工賃月額が１万５千円以上１万８千円未満の場合",
+          "locator": "物理45頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｆ）　平均工賃月額が１万５千円以上１万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4818,7 +4818,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4861,7 +4861,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4904,7 +4904,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4947,7 +4947,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -4990,7 +4990,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -5033,7 +5033,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -5076,7 +5076,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -5119,7 +5119,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -5162,7 +5162,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（五）　平均工賃月額が２万３千円以上２万５千円未満の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（五）　平均工賃月額が２万３千円以上２万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -5205,7 +5205,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｅ）　平均工賃月額が２万円以上２万３千円未満の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｅ）　平均工賃月額が２万円以上２万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -5248,7 +5248,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（六）　平均工賃月額が１万８千円以上２万円未満の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（六）　平均工賃月額が１万８千円以上２万円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -5291,7 +5291,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｆ）　平均工賃月額が１万５千円以上１万８千円未満の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｆ）　平均工賃月額が１万５千円以上１万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -5334,7 +5334,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -5377,7 +5377,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -5420,7 +5420,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理46-47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
+          "locator": "物理46頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -5850,7 +5850,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理47-48頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -5893,7 +5893,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理47-48頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
+          "locator": "物理47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -5936,7 +5936,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理47-48頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
+          "locator": "物理47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -5979,7 +5979,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理47-48頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
+          "locator": "物理47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -6022,7 +6022,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理47-48頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
+          "locator": "物理47頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -6366,7 +6366,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理48-49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理48頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -6409,7 +6409,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理48-49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
+          "locator": "物理48頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -6452,7 +6452,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理48-49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
+          "locator": "物理48頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -6495,7 +6495,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理48-49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
+          "locator": "物理48頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -6538,7 +6538,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理48-49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
+          "locator": "物理48頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -6581,7 +6581,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理48-49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
+          "locator": "物理48頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -6624,7 +6624,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理48-49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
+          "locator": "物理48頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -6667,7 +6667,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理48-49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
+          "locator": "物理48頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -6882,7 +6882,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理49-50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -6925,7 +6925,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理49-50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
+          "locator": "物理49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -6968,7 +6968,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理49-50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
+          "locator": "物理49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7011,7 +7011,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理49-50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
+          "locator": "物理49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7054,7 +7054,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理49-50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
+          "locator": "物理49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7097,7 +7097,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理49-50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
+          "locator": "物理49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7140,7 +7140,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理49-50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
+          "locator": "物理49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7183,7 +7183,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理49-50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
+          "locator": "物理49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7226,7 +7226,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理49-50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（五）　平均工賃月額が２万３千円以上２万５千円未満の場合",
+          "locator": "物理49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（五）　平均工賃月額が２万３千円以上２万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7269,7 +7269,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理49-50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｅ）　平均工賃月額が２万円以上２万３千円未満の場合",
+          "locator": "物理49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｅ）　平均工賃月額が２万円以上２万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7312,7 +7312,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理49-50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（六）　平均工賃月額が１万８千円以上２万円未満の場合",
+          "locator": "物理49頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（六）　平均工賃月額が１万８千円以上２万円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7398,7 +7398,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理50-51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7441,7 +7441,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理50-51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
+          "locator": "物理50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7484,7 +7484,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理50-51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
+          "locator": "物理50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7527,7 +7527,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理50-51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
+          "locator": "物理50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7570,7 +7570,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理50-51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
+          "locator": "物理50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7613,7 +7613,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理50-51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
+          "locator": "物理50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7656,7 +7656,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理50-51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
+          "locator": "物理50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7699,7 +7699,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理50-51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
+          "locator": "物理50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7742,7 +7742,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理50-51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（五）　平均工賃月額が２万３千円以上２万５千円未満の場合",
+          "locator": "物理50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（五）　平均工賃月額が２万３千円以上２万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7785,7 +7785,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理50-51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｅ）　平均工賃月額が２万円以上２万３千円未満の場合",
+          "locator": "物理50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｅ）　平均工賃月額が２万円以上２万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7828,7 +7828,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理50-51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（六）　平均工賃月額が１万８千円以上２万円未満の場合",
+          "locator": "物理50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（六）　平均工賃月額が１万８千円以上２万円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7871,7 +7871,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理50-51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｆ）　平均工賃月額が１万５千円以上１万８千円未満の場合",
+          "locator": "物理50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｆ）　平均工賃月額が１万５千円以上１万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7914,7 +7914,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理50-51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -7957,7 +7957,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理50-51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
+          "locator": "物理50頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -8430,7 +8430,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理51-52頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -8473,7 +8473,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理51-52頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
+          "locator": "物理51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -8516,7 +8516,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理51-52頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
+          "locator": "物理51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -8559,7 +8559,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理51-52頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
+          "locator": "物理51頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -8946,7 +8946,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理52-53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理52頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -8989,7 +8989,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理52-53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
+          "locator": "物理52頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9032,7 +9032,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理52-53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
+          "locator": "物理52頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9075,7 +9075,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理52-53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
+          "locator": "物理52頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9118,7 +9118,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理52-53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
+          "locator": "物理52頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9161,7 +9161,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理52-53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
+          "locator": "物理52頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9204,7 +9204,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理52-53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
+          "locator": "物理52頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9462,7 +9462,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理53-54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9505,7 +9505,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理53-54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
+          "locator": "物理53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9548,7 +9548,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理53-54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
+          "locator": "物理53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9591,7 +9591,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理53-54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
+          "locator": "物理53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9634,7 +9634,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理53-54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
+          "locator": "物理53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9677,7 +9677,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理53-54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
+          "locator": "物理53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9720,7 +9720,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理53-54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
+          "locator": "物理53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9763,7 +9763,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理53-54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
+          "locator": "物理53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9806,7 +9806,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理53-54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（五）　平均工賃月額が２万３千円以上２万５千円未満の場合",
+          "locator": "物理53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（五）　平均工賃月額が２万３千円以上２万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9849,7 +9849,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理53-54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｅ）　平均工賃月額が２万円以上２万３千円未満の場合",
+          "locator": "物理53頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｅ）　平均工賃月額が２万円以上２万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -9978,7 +9978,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理54-55頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -10021,7 +10021,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理54-55頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
+          "locator": "物理54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ａ）　平均工賃月額が４万５千円以上４万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -10064,7 +10064,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理54-55頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
+          "locator": "物理54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（二）　平均工賃月額が３万８千円以上４万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -10107,7 +10107,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理54-55頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
+          "locator": "物理54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｂ）　平均工賃月額が３万５千円以上３万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -10150,7 +10150,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理54-55頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
+          "locator": "物理54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（三）　平均工賃月額が３万３千円以上３万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -10193,7 +10193,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理54-55頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
+          "locator": "物理54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｃ）　平均工賃月額が３万円以上３万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -10236,7 +10236,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理54-55頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
+          "locator": "物理54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（四）　平均工賃月額が２万８千円以上３万円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -10279,7 +10279,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理54-55頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
+          "locator": "物理54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｄ）　平均工賃月額が２万５千円以上２万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -10322,7 +10322,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理54-55頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（五）　平均工賃月額が２万３千円以上２万５千円未満の場合",
+          "locator": "物理54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（五）　平均工賃月額が２万３千円以上２万５千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -10365,7 +10365,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理54-55頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｅ）　平均工賃月額が２万円以上２万３千円未満の場合",
+          "locator": "物理54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｅ）　平均工賃月額が２万円以上２万３千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -10408,7 +10408,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理54-55頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（六）　平均工賃月額が１万８千円以上２万円未満の場合",
+          "locator": "物理54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（六）　平均工賃月額が１万８千円以上２万円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -10451,7 +10451,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理54-55頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｆ）　平均工賃月額が１万５千円以上１万８千円未満の場合",
+          "locator": "物理54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（Ｆ）　平均工賃月額が１万５千円以上１万８千円未満の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"
@@ -10494,7 +10494,7 @@
         {
           "documentId": "r8-fee-notice",
           "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
-          "locator": "物理54-55頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
+          "locator": "物理54頁（印字頁番号なし） 第14の1 （Ｒ8改定対象）（一）　平均工賃月額が４万８千円以上の場合",
           "evidenceRole": "cross-check",
           "supports": [
             "master-values"

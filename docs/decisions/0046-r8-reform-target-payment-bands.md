@@ -11,7 +11,7 @@
 
 対応する`average-wage-band`条件トークン12個（`kind: "average-wage-band"`, `effectiveFrom: "2026-06"`）と、`r8-reform-status`条件トークン1個（`kind: "r8-reform-status"`, 値は`R8ReformStatus`列挙の既存語彙をそのまま使用）を`service-codes.json`の`conditionDefinitions`へ追記する内容として確定した（`r8-reform-status`は当初2個を計画したが、`reform-exempt`は本フェーズ内に参照元を持たないため投入を見送った。詳細は「決定」節2）。
 
-**しかし、この14トークンをseedへ実際に投入すると、`ClaimMasterFileValidator.ValidateConditions`の「未使用のconditionDefinitionはfail-close」という既存不変条件に抵触し、`JsonClaimMasterProvider.LoadEmbedded()`を呼ぶ89件の既存テストが新たにRedになることが判明した**（詳細は「影響」節）。このADRの決定表自体は確定した出典由来の値であり撤回しないが、`service-codes.json`への実投入はTask 4・5とのシーケンシングが決まるまで保留する。
+条件トークンだけを先行してseedへ投入すると、`ClaimMasterFileValidator.ValidateConditions`の「未使用のconditionDefinitionはfail-close」という既存不変条件に抵触し、`JsonClaimMasterProvider.LoadEmbedded()`を呼ぶ89件の既存テストが新たにRedになることが判明した（詳細は「影響」節）。**これによりTask 3（条件トークン）を単独でコミットすることは不可能と判明したため、Task 3・4・5（条件トークン・基本報酬180行・サービスコード180行）を1コミットへ統合し、13トークン（`r8-reform-status-exempt`を除いた数。詳細は「決定」節2）で投入済みである。** `dotnet test`は2,427件全緑、`./build/ci.sh`はcoverageゲートまで緑（コミット`4c2f64b`）。
 
 ## 背景
 
@@ -30,7 +30,7 @@
 | r8-capability-202606 | 84ff0b3b34c2 | 一致 | option code↔金額境界の対応の一次証拠（別紙１-１ 242行AL列に選択番号が直接明記） |
 | r8-capability-correction | 06414c8aad4c | 一致（本ADRでは未使用。row=242は訂正対象外のため base xlsx のみで完結） | 参考（体制届選択肢の訂正確認は本区分には影響しない） |
 
-**タスク指示（`.superpowers/sdd/.../task-3-brief.md`）中の`r8-b-reward-band-guide`のSHA記載（`96b002a6aecf76cbf2141fc53aee1c803e7cf78ba2dca52dca8f...`）は、自分で取得した実ファイルのSHA-256（`96b002a6aecf76cbf2141fc53aee1c803e7cf78ba2dca52adbf755190e59ab5e`）と、先頭12桁は一致するが全体は一致しない（`dca8f`対`adbf75`以降）。`sources.json`の登録値・実ファイルのハッシュ・本ADRが引用する値の3者は完全一致しており、ブリーフ本文側の記載ゆれ（プレースホルダ的な省略）と判断した。実ファイルを自分で取得し登録値と照合したため、この不一致は値の正しさに影響しない。**
+自分で取得した実ファイルのSHA-256（`r8-b-reward-band-guide`: `96b002a6aecf76cbf2141fc53aee1c803e7cf78ba2dca52adbf755190e59ab5e`）は`sources.json`の登録値と完全一致した。`task-3-brief.md`本文の該当記載も`sources.json`と完全一致しており、記載ゆれは無かった（この点についてFix Round 1以前の記述は誤りだった。コーディネーターの調査により、当時の記述はブリーフではなく別の連絡文中のSHA記載ミスを指していたことが判明したため訂正する）。
 
 ## 抽出方式と2方式の一致確認
 

@@ -254,8 +254,9 @@ public sealed class ClaimMasterR8BoundaryTests
         var invalid = () => policy.ValidateHistory([ReformTargetProfile(Numeric(3))]);
         invalid.Should().Throw<InvalidOperationException>();
 
-        // 一方で新12区分（option 12）の宣言自体は登録可能であり、請求は上の
-        // service-code未実装の明示的失敗で停止する（暗黙請求は成立しない）。
+        // 一方で新12区分（option 12）の宣言自体は登録可能である。option 12は
+        // service-code側も解決可能（ADR 0046。Reform_target_offices_resolve_every_r8_numeric_band
+        // が12ケースを固定）であり、ここが固定するのはprofile登録の可否だけである。
         var valid = () => policy.ValidateHistory([ReformTargetProfile(Numeric(12))]);
         valid.Should().NotThrow();
     }
