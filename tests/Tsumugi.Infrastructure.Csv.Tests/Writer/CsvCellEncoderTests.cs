@@ -10,6 +10,10 @@ public sealed class CsvCellEncoderTests
     private static string Decode(ReadOnlyMemory<byte> bytes) =>
         CsvCellEncoder.Cp932.GetString(bytes.Span);
 
+    /// <summary>
+    /// 既定の属性区分は「英数」（半角）。全角の値を扱うテストは公式属性が「漢字」の項目
+    /// （摘要・備考）を模して <paramref name="officialAttribute"/> を明示する。
+    /// </summary>
     private static CsvFieldSpecification Field(
         string fieldId,
         int position = 1,
@@ -17,12 +21,14 @@ public sealed class CsvCellEncoderTests
         string dataType = "text",
         int maxBytes = 40,
         string quoteRule = CsvCellEncoder.ConditionalQuoteRule,
-        IReadOnlyList<string>? allowedCodes = null) =>
+        IReadOnlyList<string>? allowedCodes = null,
+        string officialAttribute = "英数") =>
         new(
             fieldId,
             position,
             OfficialName: "テスト項目",
             RequiredWhen: requiredWhen,
+            OfficialAttribute: officialAttribute,
             DataType: dataType,
             MaxBytes: maxBytes,
             QuoteRule: quoteRule,
@@ -40,15 +46,18 @@ public sealed class CsvCellEncoderTests
         Decode(bytes).Should().Be("1112223333");
     }
 
+    // 値は属性区分の文字種規則（共通編 1.3.2(1)③）を満たすものだけを使う。半角の英数字を含む値は
+    // 英数属性の項目、全角を含む値は漢字属性の項目（摘要・備考）に置く。
     [Theory]
-    [InlineData("つむぎ事業所", "\"つむぎ事業所\"")] // 漢字を含む
-    [InlineData("あ,い", "\"あ,い\"")] // カンマ
-    [InlineData("A B", "\"A B\"")] // 半角スペース
-    [InlineData("A　B", "\"A　B\"")] // 全角スペース
-    [InlineData("山田\"太郎\"", "\"山田\"\"太郎\"\"\"")] // 埋め込み二重引用符は二重化
-    public void EncodeCell_quotes_only_when_the_official_quote_rule_requires_it(string raw, string expected)
+    [InlineData("つむぎ事業所", "\"つむぎ事業所\"", "漢字")] // 漢字を含む
+    [InlineData("あ,い", "\"あ,い\"", "漢字")] // カンマ
+    [InlineData("A B", "\"A B\"", "英数")] // 半角スペース
+    [InlineData("あ　い", "\"あ　い\"", "漢字")] // 全角スペース
+    [InlineData("山田\"太郎\"", "\"山田\"\"太郎\"\"\"", "漢字")] // 埋め込み二重引用符は二重化
+    public void EncodeCell_quotes_only_when_the_official_quote_rule_requires_it(
+        string raw, string expected, string officialAttribute)
     {
-        var spec = Field("provider:J121:01:008", maxBytes: 40);
+        var spec = Field("provider:J121:01:008", maxBytes: 40, officialAttribute: officialAttribute);
 
         Decode(CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, raw), spec)).Should().Be(expected);
     }
@@ -63,7 +72,8 @@ public sealed class CsvCellEncoderTests
     [InlineData("Ａ")]             // 全角英字
     public void EncodeCell_quotes_every_two_byte_value(string raw)
     {
-        var spec = Field("provider:J121:01:008", maxBytes: 40);
+        // 2 バイト値を載せられるのは漢字属性の項目（摘要・備考）だけ。
+        var spec = Field("provider:J611:02:035", maxBytes: 40, officialAttribute: "漢字");
 
         Decode(CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, raw), spec))
             .Should().Be($"\"{raw}\"");
@@ -97,7 +107,7 @@ public sealed class CsvCellEncoderTests
     [Fact]
     public void EncodeCell_measures_byte_width_on_the_content_excluding_the_surrounding_quotes()
     {
-        var spec = Field("provider:J111:01:006", maxBytes: 8);
+        var spec = Field("provider:J111:01:006", maxBytes: 8, officialAttribute: "漢字");
 
         var bytes = CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, "事業所名"), spec);
 
@@ -108,7 +118,7 @@ public sealed class CsvCellEncoderTests
     [Fact]
     public void EncodeCell_fails_when_content_exceeds_the_byte_width()
     {
-        var spec = Field("provider:J111:01:006", maxBytes: 7);
+        var spec = Field("provider:J111:01:006", maxBytes: 7, officialAttribute: "漢字");
 
         var act = () => CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, "事業所名"), spec);
 
@@ -198,6 +208,100 @@ public sealed class CsvCellEncoderTests
         var spec = Field("provider:J121:04:010", dataType: dataType, maxBytes: 12);
 
         Decode(CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, raw), spec)).Should().Be(raw);
+    }
+
+    // 共通編 1.3.2(1)③ の属性区分ごとの文字種規則。
+    // NOTE(teeth): 英数属性の項目（氏名カナ・事業所番号・交換情報識別番号など）へ全角を載せると
+    // 「「英数」項目には漢字（2 バイトコード）を混在させない」に反し、取込側で弾かれる。
+    [Theory]
+    [InlineData("ヤマダタロウ")]  // 全角カナ = 2バイト
+    [InlineData("山田")]          // 漢字
+    [InlineData("１２３")]        // 全角数字
+    [InlineData("Ａ")]            // 全角英字
+    [InlineData("　")]            // 全角スペース
+    [InlineData("abc")]           // 半角英小文字は使用できない
+    [InlineData("A-1")]           // 英字・数字・カナ以外の記号
+    public void EncodeCell_fails_when_an_alphanumeric_field_receives_a_disallowed_character(string raw)
+    {
+        var spec = Field("provider:J121:01:008", maxBytes: 40, officialAttribute: "英数");
+
+        var act = () => CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, raw), spec);
+
+        act.Should().Throw<CsvEncodingException>()
+            .Which.Reason.Should().Be(CsvEncodingReason.InvalidCharacterForOfficialAttribute);
+    }
+
+    [Theory]
+    [InlineData("ﾂﾑｷﾞﾀﾛｳ", "ﾂﾑｷﾞﾀﾛｳ")]          // 半角カナ
+    [InlineData("ﾂﾑｷﾞ ﾀﾛｳ", "\"ﾂﾑｷﾞ ﾀﾛｳ\"")]   // 半角カナ＋スペース（設定例が示す形。スペースは引用対象）
+    [InlineData("J111", "J111")]                  // 半角英大文字＋数字
+    [InlineData("1312345678", "1312345678")]      // 数字
+    public void EncodeCell_accepts_single_byte_content_for_an_alphanumeric_field(
+        string raw, string expected)
+    {
+        var spec = Field("provider:J121:01:008", maxBytes: 40, officialAttribute: "英数");
+
+        Decode(CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, raw), spec)).Should().Be(expected);
+    }
+
+    // NOTE(teeth): 漢字属性の項目（摘要・備考）に半角英数字・半角カナを混ぜると仕様違反。
+    [Theory]
+    [InlineData("3日")]
+    [InlineData("A欄")]
+    [InlineData("ﾒﾓ")]
+    public void EncodeCell_fails_when_a_kanji_field_receives_single_byte_letters_digits_or_kana(string raw)
+    {
+        var spec = Field("provider:J611:02:035", maxBytes: 100, officialAttribute: "漢字");
+
+        var act = () => CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, raw), spec);
+
+        act.Should().Throw<CsvEncodingException>()
+            .Which.Reason.Should().Be(CsvEncodingReason.InvalidCharacterForOfficialAttribute);
+    }
+
+    // コード値属性は「0，1，2，～，9 の数字1桁をそれぞれ1バイトで表す」。dataType=code は従来
+    // 文字種を検証していなかったため、属性区分の側で強制する。
+    [Theory]
+    [InlineData("J121")]
+    [InlineData("4６")]
+    [InlineData("1A")]
+    public void EncodeCell_fails_when_a_code_value_field_receives_non_digits(string raw)
+    {
+        var spec = Field(
+            "provider:J121:01:014", dataType: "code", maxBytes: 4, officialAttribute: "コード値");
+
+        var act = () => CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, raw), spec);
+
+        act.Should().Throw<CsvEncodingException>()
+            .Which.Reason.Should().Be(CsvEncodingReason.InvalidCharacterForOfficialAttribute);
+    }
+
+    [Fact]
+    public void EncodeCell_fails_on_an_unknown_official_attribute()
+    {
+        var spec = Field("provider:J121:01:008", officialAttribute: "全角英数");
+
+        var act = () => CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, "1"), spec);
+
+        act.Should().Throw<CsvEncodingException>()
+            .Which.Reason.Should().Be(CsvEncodingReason.UnknownOfficialAttribute);
+    }
+
+    // NOTE(teeth): spec JSON に未知の属性区分が現れたら encoder が fail-close することを、
+    // 実データ側から固定する（公式 4 区分＋可変長ペイロードの空欄だけが現れる）。
+    [Fact]
+    public void Every_official_attribute_in_the_embedded_specification_is_known_to_the_encoder()
+    {
+        var catalog = CsvSpecificationLoader.LoadEmbedded();
+
+        var attributes = catalog.CommonRecords.Concat(catalog.ProviderRecords)
+            .SelectMany(record => record.Fields)
+            .Select(field => field.OfficialAttribute)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        attributes.Should().BeSubsetOf(["英数", "数値", "コード値", "漢字", string.Empty]);
+        attributes.Should().Contain("漢字");
     }
 
     [Fact]
@@ -294,8 +398,8 @@ public sealed class CsvCellEncoderTests
     {
         var specs = new[]
         {
-            Field("a", position: 1, dataType: "numeric", maxBytes: 4),
-            Field("b", position: 2, maxBytes: 20),
+            Field("a", position: 1, dataType: "numeric", maxBytes: 4, officialAttribute: "数値"),
+            Field("b", position: 2, maxBytes: 20, officialAttribute: "漢字"),
             Field("c", position: 3, dataType: "numeric", maxBytes: 6),
         };
         var cells = new[]

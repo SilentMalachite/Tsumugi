@@ -207,14 +207,16 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
     public async Task Real_wiring_does_not_append_history_when_generation_fails()
     {
         await using var context = _fixture.NewContext();
-        // CP932 に無い文字を氏名カナへ混ぜ、encoder の fail-close 経路を通す。
+        // 出力できない文字を氏名カナへ混ぜ、生成の fail-close 経路を通す。氏名カナ
+        // （provider:J121:01:008）の公式属性は英数＝半角 1 バイトなので、半角形を持たない文字は
+        // 半角化の段で落ちる（CP932 変換より前）。本テストの主眼は「失敗時に履歴を残さない」こと。
         var (officeId, serviceMonth) = await SeedFinalizedBatchAsync(context, month: 6, kanaName: "🍣");
 
         var act = async () => await CreateUseCase(context).ExecuteAsync(
             officeId, serviceMonth, new ProcessingMonth(2026, 8), "tester", default);
 
         (await act.Should().ThrowAsync<ClaimCsvExportFailedException>())
-            .Which.Reason.Should().Be("NonRepresentableCharacter");
+            .Which.Reason.Should().Be("UnresolvableModelPath");
 
         var history = await new ClaimCsvExportRepository(context)
             .ListByBatchAsync(await LatestBatchIdAsync(context, officeId, serviceMonth), default);

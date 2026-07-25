@@ -458,9 +458,9 @@
     {
       "fieldId": "provider:J121:01:008",
       "requiredCondition": "optional",
-      "notes": "",
+      "notes": "公式属性は英数（半角1バイト）。全角カナ入力は半角へ写して出す（ADR 0043）。",
       "status": "existing",
-      "modelPath": "Recipient.KanaName"
+      "modelPath": "Recipient.KanaName:halfWidthKana"
     },
     {
       "fieldId": "provider:J121:01:009",

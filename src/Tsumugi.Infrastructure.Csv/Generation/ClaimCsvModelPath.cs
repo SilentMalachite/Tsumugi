@@ -32,9 +32,21 @@ internal static class ClaimCsvModelPath
     /// <summary>1/100 時間単位（事業所編の「整数部2桁・小数部2桁」書式に対応する尺度）。</summary>
     internal const string HundredthsOfHourUnit = "hundredthsOfHour";
 
+    /// <summary>
+    /// 半角カナ（公式の「英数」属性＝1 バイト文字の項目へ全角カナ入力を写すための宣言）。
+    /// </summary>
+    internal const string HalfWidthKanaUnit = "halfWidthKana";
+
     /// <summary>単位接尾辞の閉じた語彙。ここに無い接尾辞を spec が宣言したら解決できない。</summary>
     internal static IReadOnlySet<string> KnownUnitSuffixes { get; } =
-        new HashSet<string>(StringComparer.Ordinal) { HundredthsOfHourUnit };
+        new HashSet<string>(StringComparer.Ordinal) { HundredthsOfHourUnit, HalfWidthKanaUnit };
+
+    /// <summary>
+    /// 支給決定者氏名カナ（事業所編 基本情報 項目8）を書く経路。公式属性が「英数」＝半角 1 バイト
+    /// なので、全角カナで入力された氏名は半角へ写してから出す（<see cref="HalfWidthKana"/>）。
+    /// </summary>
+    internal const string RecipientKanaNameHalfWidthPath =
+        "Recipient.KanaName" + UnitSuffixSeparator + HalfWidthKanaUnit;
 
     /// <summary>
     /// 訪問支援特別加算の「サービス提供時間数」（事業所編 日ごと明細情報 項目27）を書く経路。
@@ -126,6 +138,8 @@ internal static class ClaimCsvModelPath
             "Office.OfficeNumber" => ClaimCsvValue.FromText(scope.Dto.Office.OfficeNumber),
 
             "Recipient.KanaName" => ClaimCsvValue.FromText(scope.RequireRecipient(path).RecipientKanaName),
+            RecipientKanaNameHalfWidthPath =>
+                Narrowed(scope, scope.RequireRecipient(path).RecipientKanaName),
 
             "Certificate.CertificateNumber" =>
                 ClaimCsvValue.FromText(scope.RequireRecipient(path).CertificateNumber),
@@ -264,6 +278,23 @@ internal static class ClaimCsvModelPath
                 scope.FieldId,
                 ClaimCsvGenerationReason.UnresolvableModelPath,
                 "the region grade has no official region classification code");
+
+    /// <summary>
+    /// 全角カナ・全角英数字を半角へ写す（公式属性「英数」の項目）。写せない文字（ひらがな・漢字・
+    /// 康熙部首など）は丸めずに fail-close する。例外には fieldId と理由だけを載せ、値は載せない。
+    /// </summary>
+    private static ClaimCsvValue Narrowed(ClaimCsvResolutionScope scope, string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return ClaimCsvValue.Missing;
+
+        return HalfWidthKana.TryNarrow(value, out var narrowed)
+            ? ClaimCsvValue.FromText(narrowed)
+            : throw new ClaimCsvGenerationException(
+                scope.FieldId,
+                ClaimCsvGenerationReason.UnresolvableModelPath,
+                "the value contains a character that has no half-width form, but the official "
+                + "attribute of this item is 英数 (single-byte characters only)");
+    }
 
     /// <summary>真偽フラグは「該当する/しない」だけを表し、値そのものは持たない。</summary>
     private static ClaimCsvValue Flag(bool value) =>

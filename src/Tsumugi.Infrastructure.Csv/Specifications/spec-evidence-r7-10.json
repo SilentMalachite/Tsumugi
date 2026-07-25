@@ -103,6 +103,80 @@
       ]
     },
     {
+      "claimId": "rule:official-attribute-character-classes",
+      "claimKind": "rule",
+      "decision": "属性区分ごとの文字種を encoder が強制する。英数=半角英大文字・数字・半角カナ（＋1.2.2(4) のデータ設定例が示すスペースと二重引用符）／数値・コード値=ASCII 数字／漢字=半角の英字・数字・カナ文字を混在させない。属性区分は運用 spec の officialAttribute が運び、機械抽出（ADR 0037）と完全一致する（CsvOfficialAttribute / CsvCellEncoder）。",
+      "sourceRefs": [
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.10;section=1.3.2(1)③",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "character-class"
+          ],
+          "quote": "半角の英字、数字、カナ文字１文字をそれぞれ1 バイトで表す。半角の英小文字は使用できない。"
+        },
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.11;section=1.3.2(1)③",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "character-class"
+          ],
+          "quote": "「英数」項目には漢字（2 バイトコード）を混在させない。"
+        },
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.11;section=1.3.2(1)③",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "character-class"
+          ],
+          "quote": "「漢字」項目には半角の英字、数字、カナ文字（1 バイトコード）を混在させない。"
+        }
+      ]
+    },
+    {
+      "claimId": "rule:item-note-overrides-attribute-default",
+      "claimKind": "rule",
+      "decision": "属性区分の一般規則（コード値の全桁 0 は未設定・必須項目の未設定はエラー）は「特に記載が無い限り」の前置きつきで定められている。したがって項目の内容欄が設定値を明記している項目（コントロールレコードの市町村番号・都道府県番号）では内容欄が優先し、全桁ゼロを一律にエラーとする guard は置かない。",
+      "sourceRefs": [
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.10;section=1.3.2(1)③",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "rule-precedence"
+          ],
+          "quote": "特に記載が無い限り、以下の形式でデータを設定することを表す。"
+        },
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.11;section=1.3.2(1)③",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "rule-precedence"
+          ],
+          "quote": "コード値属性の項目については“0”が1 桁以上、最大桁以下で設定されている場合は未設定として取り扱う。"
+        },
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.11;section=1.3.2(1)③",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "rule-precedence"
+          ],
+          "quote": "必須項目が未設定の場合（※１により未設定として取り扱う場合を含む）はエラーとする。"
+        }
+      ]
+    },
+    {
       "claimId": "provider:J121:02:008",
       "claimKind": "field",
       "decision": "開始年月日は「平成18年4月1日以降における最初にサービス提供した日」。契約支給量の変更で変わらず当月より前になりうるため、契約日以降という制約は置かず下限を2006-04-01とする（ContractedProvider.FirstServiceDate）。",
@@ -310,6 +384,84 @@
           "supports": [
             "derived-byte-length"
           ]
+        }
+      ]
+    },
+    {
+      "claimId": "common:outer:control:006",
+      "claimKind": "field",
+      "decision": "コントロールレコードの市町村番号は 0 を設定する。事業所からの請求では送付元が事業所・送付先が国保連合会であり、送付元も送付先も市町村ではない（const(value=0)）。全桁ゼロを未設定エラーとする一般規則は当てない（rule:item-note-overrides-attribute-default）。",
+      "sourceRefs": [
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.6;item=6",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "field-semantics"
+          ],
+          "quote": "送付元または送付先が市町村の場合は市町村番号を設定、市町村以外の場合は0を設定する"
+        }
+      ]
+    },
+    {
+      "claimId": "common:outer:control:008",
+      "claimKind": "field",
+      "decision": "コントロールレコードの都道府県番号は 0 を設定する（送付元も送付先も都道府県ではない）。市町村番号と同じ規則（const(value=0)）。",
+      "sourceRefs": [
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.6;item=8",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "field-semantics"
+          ],
+          "quote": "送付元または送付先が都道府県の場合は都道府県番号を設定、都道府県以外の場合は0を設定"
+        }
+      ]
+    },
+    {
+      "claimId": "common:outer:control:007",
+      "claimKind": "field",
+      "decision": "コントロールレコードの事業所番号は自事業所の事業所番号を設定する（送付元が事業所）。0 ではない。",
+      "sourceRefs": [
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.6;item=7",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "field-semantics"
+          ],
+          "quote": "送付元または送付先が事業所の場合は事業所番号を設定、事業所以外の場合は0を設定する"
+        }
+      ]
+    },
+    {
+      "claimId": "provider:J121:01:008",
+      "claimKind": "field",
+      "decision": "支給決定者氏名カナの公式属性は英数（半角 1 バイト）。全角カナで入力された氏名は半角へ写してから出力し（modelPath 'Recipient.KanaName:halfWidthKana'）、半角形を持たない文字は丸めずに fail-close する。桁数 25（奇数）も 1 バイト／文字の項目であることを裏づける。",
+      "sourceRefs": [
+        {
+          "documentId": "provider-r7-10",
+          "sha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+          "locator": "p.20;item=8",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "character-class"
+          ],
+          "quote": "支給決定者カナ氏名"
+        },
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.11;section=1.3.2(1)③",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "character-class"
+          ],
+          "quote": "「英数」項目には漢字（2 バイトコード）を混在させない。"
         }
       ]
     }

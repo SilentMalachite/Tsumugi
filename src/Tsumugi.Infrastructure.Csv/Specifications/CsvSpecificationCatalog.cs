@@ -131,6 +131,9 @@ public sealed record CsvSpecificationCatalog
             "quote-rule", "prohibited-characters", "zero-value-rule", "file-name-rule", "data-kind",
             "code-table", "field-semantics", "count-rule", "unit-and-format", "derivability",
             "record-purpose", "derived-byte-length", "pass-through",
+            // 属性区分（英数 / 数値 / コード値 / 漢字）が定める文字種と、
+            // 一般規則と項目の内容欄が食い違うときにどちらが優先するか（共通編 1.3.2(1)③）。
+            "character-class", "rule-precedence",
         };
 
         var duplicate = EvidenceClaims

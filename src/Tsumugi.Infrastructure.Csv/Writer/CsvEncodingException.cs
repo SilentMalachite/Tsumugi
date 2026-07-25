@@ -41,6 +41,14 @@ public enum CsvEncodingReason
 
     /// <summary>仕様が使用不可と定める文字（シングルコーテーション等）が含まれる。</summary>
     ProhibitedCharacter = 13,
+
+    /// <summary>
+    /// 公式の属性区分（英数 / 数値 / コード値 / 漢字）が許さない文字が含まれる（共通編 1.3.2(1)③）。
+    /// </summary>
+    InvalidCharacterForOfficialAttribute = 14,
+
+    /// <summary>spec の officialAttribute が encoder の既知集合（公式 4 区分）に無い。</summary>
+    UnknownOfficialAttribute = 15,
 }
 
 /// <summary>

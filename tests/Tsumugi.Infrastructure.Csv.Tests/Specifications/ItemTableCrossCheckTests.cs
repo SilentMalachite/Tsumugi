@@ -61,8 +61,8 @@ public sealed class ItemTableCrossCheckTests
         };
 
     /// <summary>
-    /// 公式の属性区分（共通編 1.2.3③）と spec の <c>dataType</c> の対応。現時点で観測される組み合わせを
-    /// 固定する。日付・年月は公式には「コード値」属性である。
+    /// 公式の属性区分（共通編 1.3.2(1)③）と spec の <c>dataType</c> の対応。現時点で観測される
+    /// 組み合わせを固定する。日付・年月は公式には「コード値」属性である。
     /// </summary>
     private static readonly Dictionary<string, string[]> DataTypesByOfficialAttribute = new(StringComparer.Ordinal)
     {
@@ -171,6 +171,26 @@ public sealed class ItemTableCrossCheckTests
             .Distinct(StringComparer.Ordinal);
 
         observed.Should().BeSubsetOf(DataTypesByOfficialAttribute.Keys);
+    }
+
+    /// <remarks>
+    /// 属性区分は <see cref="Tsumugi.Infrastructure.Csv.Writer.CsvCellEncoder"/> が文字種規則を
+    /// 強制するために運用 spec が運ぶ（共通編 1.3.2(1)③）。値の出所は機械抽出なので、
+    /// <b>完全一致</b>を要求する。
+    /// NOTE(teeth): 運用 spec 側を手で書き換えると（あるいは新しい施行分で属性が変わると）ここが落ちる。
+    /// 同期は <c>build/sync_official_attributes.py</c> で行う。
+    /// </remarks>
+    [Theory]
+    [MemberData(nameof(Documents))]
+    public void Every_official_attribute_matches_the_extraction(string documentId, string fileName)
+    {
+        foreach (var (record, field, item) in JoinedFields(documentId, fileName))
+        {
+            var fieldId = $"{record.RecordId}:{field.Position:D3}";
+            field.OfficialAttribute.Should().Be(
+                item.OfficialAttribute,
+                because: $"{fieldId}（{item.OfficialName}）の属性区分");
+        }
     }
 
     // 属性区分ごとに使える dataType を固定する。単位や文字種の取り違えは

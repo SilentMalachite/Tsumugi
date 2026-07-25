@@ -101,6 +101,15 @@ public sealed class CsvSpecificationCompletenessTests
                     }
                 }
 
+                // 属性区分（共通編 1.3.2(1)③）は全項目が宣言する。公式表が属性欄を空にしている
+                // 可変長ペイロード（データレコードの「データ」）だけが空欄になる。
+                var officialAttribute = field.GetProperty("officialAttribute").GetString();
+                if (string.IsNullOrEmpty(officialAttribute)
+                    && !string.Equals(fieldId, "common:outer:data:003", StringComparison.Ordinal))
+                {
+                    failures.Add($"{fieldId}: officialAttribute is blank");
+                }
+
                 field.GetProperty("allowedCodes").ValueKind.Should().Be(JsonValueKind.Array, fieldId);
             }
         }

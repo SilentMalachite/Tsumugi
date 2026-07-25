@@ -63,8 +63,10 @@ public sealed class GoldenCsvSnapshotTests
         CsvCellEncoder.Cp932.GetBytes(text).Should().Equal(bytes);
     }
 
-    // 康熙部首（U+2F00 ブロック）は CP932 に無いため、氏名カナに混入したら fail-close する。
-    // 「読めない字が空欄で通る」ことを防ぐ歯のあるテスト。
+    // 康熙部首（U+2F00 ブロック）は半角形を持たず CP932 にも無いため、氏名カナに混入したら
+    // fail-close する。「読めない字が空欄で通る」ことを防ぐ歯のあるテスト。
+    // 氏名カナは公式属性が英数（半角）なので、半角化の段（UnresolvableModelPath）が CP932 変換より
+    // 前に立つ。文字種ごとの詳しい場合分けは OfficialAttributeConformanceTests にある。
     [Fact]
     public void A_kangxi_radical_in_a_recipient_name_fails_closed_with_the_field_id()
     {
@@ -76,7 +78,7 @@ public sealed class GoldenCsvSnapshotTests
         var act = () => new ClaimCsvGenerator(Catalog).Generate(dto);
 
         var exception = act.Should().Throw<ClaimCsvExportFailedException>().Which;
-        exception.Reason.Should().Be("NonRepresentableCharacter");
+        exception.Reason.Should().Be("UnresolvableModelPath");
         exception.FieldId.Should().StartWith("provider:J121:01:");
         // 例外に氏名そのものを載せない（CLAUDE.md §ハード制約4）。
         exception.Message.Should().NotContain("ﾀﾛｳ");
@@ -92,8 +94,9 @@ public sealed class GoldenCsvSnapshotTests
         {
             ProcessingMonth = new Domain.ValueObjects.ProcessingMonth(2026, 9),
         },
-        // 全角カナ氏名。CP932 で表現でき、引用規則（カンマ/引用符/空白/漢字）には該当しないため
-        // 引用符なしで出力される。この解釈が変わればバイトが変わり golden が RED になる。
+        // 全角カナ氏名の入力。氏名カナ（provider:J121:01:008）の公式属性は英数＝半角 1 バイトなので、
+        // 出力は半角カナへ写り（ツムギタロウ → ﾂﾑｷﾞﾀﾛｳ、濁音は基底＋濁点の 2 文字）、2 バイトコードを
+        // 含まないため引用符も付かない。この解釈が変わればバイトが変わり golden が RED になる。
         "cjk" => ClaimCsvFixtures.Normal() with
         {
             Recipients = [ClaimCsvFixtures.Recipient("1234567890", kanaName: "ツムギタロウ")],

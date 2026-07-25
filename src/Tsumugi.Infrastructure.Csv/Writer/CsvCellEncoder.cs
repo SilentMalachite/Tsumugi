@@ -146,6 +146,11 @@ public static class CsvCellEncoder
         RequireCharactersAllowedByDataType(specification, raw);
 
         var content = EncodeContent(specification, raw);
+
+        // 属性区分の検証は CP932 変換の後に置く。CP932 で表現できない文字は「属性違反」ではなく
+        // 「そもそも交換情報に載せられない文字」なので、先に NonRepresentableCharacter を返す。
+        RequireCharactersAllowedByOfficialAttribute(specification, raw);
+
         if (content.Length > specification.MaxBytes)
         {
             throw Fail(
@@ -223,6 +228,34 @@ public static class CsvCellEncoder
                 specification.FieldId,
                 CsvEncodingReason.InvalidCharacterForDataType,
                 $"dataType '{specification.DataType}' allows ASCII digits only");
+        }
+    }
+
+    /// <summary>
+    /// 公式の属性区分（<c>英数</c> / <c>数値</c> / <c>コード値</c> / <c>漢字</c>）が許す文字種を強制する
+    /// （共通編 1.3.2(1)③）。英数項目に全角カナ氏名を載せる・漢字項目に半角数字を混ぜる、といった
+    /// 違反は取込側で弾かれるため、生成時に fail-close する。
+    /// </summary>
+    private static void RequireCharactersAllowedByOfficialAttribute(
+        CsvFieldSpecification specification,
+        string raw)
+    {
+        if (!CsvOfficialAttribute.Known.Contains(specification.OfficialAttribute))
+        {
+            throw Fail(
+                specification.FieldId,
+                CsvEncodingReason.UnknownOfficialAttribute,
+                "the official attribute is not known to the encoder");
+        }
+
+        var index = CsvOfficialAttribute.IndexOfDisallowedCharacter(specification.OfficialAttribute, raw);
+        if (index >= 0)
+        {
+            throw Fail(
+                specification.FieldId,
+                CsvEncodingReason.InvalidCharacterForOfficialAttribute,
+                $"official attribute '{specification.OfficialAttribute}' does not allow the character "
+                + $"at index {index}");
         }
     }
 
