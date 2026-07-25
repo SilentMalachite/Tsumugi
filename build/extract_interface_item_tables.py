@@ -420,9 +420,14 @@ def extract_record(
     expected_last_position: int,
     caption: str | None = None,
 ) -> tuple[list[dict], list[int]]:
-    """起点ページから項番が昇順に続く限り読み進める。
+    """起点ページから、表が続く限り（項番が 1 ずつ増える限り）読み進める。
 
     `caption` を渡すと、起点ページ内で見出しに対応する表だけを読む（1 頁複数表の頁）。
+
+    運用 spec の末尾項番（`expected_last_position`）では**打ち切らない**。新しい施行分で
+    末尾に項目が追加され、それが次頁へ送られた場合、旧 spec の末尾で打ち切ると追加頁を一度も
+    見ないまま「旧 spec と同じ項目集合」を出力してしまい、突合テストも旧同士の比較で通る
+    （＝新設項目を静かに見落とす）。末尾は読み切ってから spec と比べる。
     """
     items: dict[int, dict] = {}
     pages: list[int] = []
@@ -434,8 +439,9 @@ def extract_record(
             if page_number == start_page:
                 raise SystemExit(f"物理 {start_page} 頁に項目表が見つかりません。")
             break
-        # 表が次のレコードへ移ると項番が振り直される。昇順が崩れたら打ち切る。
-        if page_items and page_items[0]["position"] <= highest:
+        # 表が次のレコードへ移ると項番が振り直される。続きの頁は「前頁の末尾 + 1」から始まる
+        # （この文書の項番はレコードごとに 1 から連番で欠番がない）。それ以外は別の表なので打ち切る。
+        if highest and (not page_items or page_items[0]["position"] != highest + 1):
             break
         fresh = [item for item in page_items if item["position"] > highest]
         if not fresh:
@@ -444,8 +450,17 @@ def extract_record(
             items[item["position"]] = item
         highest = fresh[-1]["position"]
         pages.append(page_number)
-        if highest >= expected_last_position:
-            break
+    if highest < expected_last_position:
+        raise SystemExit(
+            f"物理 {start_page} 頁の表は項番 {highest} までしか読めていません"
+            f"（運用 spec は {expected_last_position} まで宣言）。抽出の起点・見出し・"
+            "罫線検出のいずれかが崩れています。")
+    if highest > expected_last_position:
+        # 抽出結果には残す（突合テストが spec 側の不足として落ち、人が差分を見る）。
+        print(
+            f"[新設項目の可能性] 物理 {start_page} 頁の表は項番 {highest} まで続きます"
+            f"（運用 spec は {expected_last_position} まで）。追加分を spec へ反映してください。",
+            file=sys.stderr)
     return [items[key] for key in sorted(items)], pages
 
 

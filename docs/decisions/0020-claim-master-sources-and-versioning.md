@@ -230,3 +230,23 @@ CSV 仕様側の `sources.json`（厚生労働省 PDF）と制度マスタ側（
 **正本について記録済みの physical pages 233〜235 のテキスト SHA-256 を再配布 PDF が再現すること**
 （および page 数が 262 で一致すること）で確認した。テキスト SHA-256 の算出法は
 `pdftotext -layout -f N -l N` の出力を末尾空白除去して SHA-256（この算出法は今回復元して記録した）。
+
+### 追記（2026-07-25・Codex レビュー由来）: 照合済みの page と未検証の page を分ける
+
+上記の確認は **page 数 262 の一致と physical pages 233〜235 の 3 頁**に限られる。にもかかわらず
+`applicabilityNote` は「したがって以下の page 番号は正本に対しても有効」と書き、実際には再配布 PDF でしか
+読んでいない physical pages 112〜113 / 173 / 175 / 182 / 184〜186 / 197〜199 の本文を、**未検証の正本
+バイト列に帰属させていた**（両 PDF は SHA-256 と byte 数が異なるので、page 数と 3 頁の一致は他頁の本文一致を
+保証しない）。正本の live URL が 404 で再取得できないため全 page の照合は今できない。したがって:
+
+- 実際に読んだ再配布 PDF を**独立した文書**として登録する
+  （`r8-grant-decision-administration-202606-redistribution-observed-c5070de8`、`supplements: [r8-grant-decision-administration-202606]`、release bundle には含めない）。
+  既存の `*-page-observed-<sha8>` と同じ「読んだ証跡としてのみ登録する」扱い。
+- 正本の `applicabilityNote` は**照合できた範囲だけを主張**し、他の使用 page は「正本バイト列との本文一致は
+  未検証」と明記する。page 番号は再配布 PDF に対する locator として扱う。
+- 正本のバイト列を再取得できた時点で使用 page 全件を照合する（`docs/open-questions.md` に起票）。
+
+歯: `Embedded_catalog_links_the_R8_adult_burden_source_to_the_R7_September_source` が note に「未検証」を
+含むことと「正本に対しても有効」を含まないことを固定し、
+`Embedded_catalog_registers_the_redistributed_copy_that_was_actually_read` が複製の登録・関係・
+release bundle 非包含を固定する。

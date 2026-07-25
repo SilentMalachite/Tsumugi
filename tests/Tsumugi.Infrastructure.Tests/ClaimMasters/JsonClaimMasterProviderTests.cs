@@ -12,6 +12,9 @@ public sealed class JsonClaimMasterProviderTests
 {
     private const string Sha256 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
+    private const string RedistributionSourceId =
+        "r8-grant-decision-administration-202606-redistribution-observed-c5070de8";
+
     private static readonly string[] ExpectedSourceIds =
     [
         "mhlw-r6-revision-page-observed-c7b78655",
@@ -61,6 +64,7 @@ public sealed class JsonClaimMasterProviderTests
         "r6-claim-decision-202406-pdf",
         "r6-claim-decision-202406-xls",
         "r8-grant-decision-administration-202606",
+        "r8-grant-decision-administration-202606-redistribution-observed-c5070de8",
         "r8-revision-overview",
         "r8-fee-notice",
         "r8-calculation-note",
@@ -193,7 +197,7 @@ public sealed class JsonClaimMasterProviderTests
         var sourceIds = root.GetProperty("sources").EnumerateArray()
             .Select(source => source.GetProperty("documentId").GetString())
             .ToArray();
-        sourceIds.Should().HaveCount(66);
+        sourceIds.Should().HaveCount(67);
         sourceIds.Should().Equal(ExpectedSourceIds);
 
         foreach (var source in root.GetProperty("sources").EnumerateArray())
@@ -437,15 +441,41 @@ public sealed class JsonClaimMasterProviderTests
         source.GetProperty("correctionNote").GetString().Should()
             .Contain("r7-grant-decision-administration-202509");
         var note = source.GetProperty("applicabilityNote").GetString();
-        // 正本のlive URLが404であること、実際にpageを読んだ再配布PDF（URL・SHA-256）、
-        // page付けが同一であることの確認方法、使用したpage番号 — この4点が失われないよう固定する。
+        // 正本のlive URLが404であること、実際にpageを読んだ複製の文書ID、照合できている範囲
+        // （page数と233〜235のテキストSHA-256）、それ以外は未検証であること、使用page番号 —
+        // この5点が失われないよう固定する。
         note.Should().Contain("404");
-        note.Should().Contain("北九州市公式サイト");
-        note.Should().Contain("c5070de88b83528860e8dba6c4aa88ec4bd7418dea017fbbdb5cc80dc7014798");
-        note.Should().Contain("1,968,795 bytes");
+        note.Should().Contain(RedistributionSourceId);
         note.Should().Contain("pdftotext -layout");
         note.Should().Contain("physical pages 233〜235");
         note.Should().Contain("physical pages 173、175、182、184〜186");
+        // NOTE(teeth): 照合したのは3頁だけなので、それ以外のpageを「正本に対しても有効」と
+        // 言い換えてはならない（未検証のバイト列に複製の本文を帰属させることになる）。
+        note.Should().Contain("未検証");
+        note.Should().NotContain("正本に対しても有効");
+    }
+
+    // NOTE(teeth): page locator の出所（実際に読んだバイト列）を独立した文書として登録し、
+    // 正本を補完する関係で結ぶ。release bundle には入れない（制度値の根拠は正本）。
+    [Fact]
+    public void Embedded_catalog_registers_the_redistributed_copy_that_was_actually_read()
+    {
+        using var stream = OpenEmbedded(".ClaimMasters.Seed.sources.json");
+        using var document = JsonDocument.Parse(stream);
+        var copy = SourceById(document.RootElement, RedistributionSourceId);
+
+        copy.GetProperty("publisher").GetString().Should().Be("厚生労働省（北九州市公式サイト再配布）");
+        copy.GetProperty("url").GetString().Should()
+            .Be("https://www.city.kitakyushu.lg.jp/files/001215921.pdf");
+        copy.GetProperty("sha256").GetString().Should()
+            .Be("c5070de88b83528860e8dba6c4aa88ec4bd7418dea017fbbdb5cc80dc7014798");
+        copy.GetProperty("retrievedAt").GetString().Should().Be("2026-07-25");
+        RelationIds(copy, "supplements").Should().Equal("r8-grant-decision-administration-202606");
+        var note = copy.GetProperty("applicabilityNote").GetString();
+        note.Should().Contain("1,968,795 bytes");
+        note.Should().Contain("未検証");
+        document.RootElement.GetProperty("releases").EnumerateArray()
+            .Should().OnlyContain(release => !ReleaseSourceIds(release).Contains(RedistributionSourceId));
     }
 
     [Fact]

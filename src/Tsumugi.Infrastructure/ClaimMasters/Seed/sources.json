@@ -776,8 +776,25 @@
       ],
       "corrects": null,
       "supplements": null,
-      "applicabilityNote": "正本は厚生労働省が発出したPDF（1,998,305 bytes・262 pages）。live URLは2026-07-10時点でHTTP 404のためバイト列をhistoricalとして保持する（CSV仕様側のsources.jsonにも同一SHA-256で登録）。physical page番号は、同一文書を再配布する北九州市公式サイトのPDF（https://www.city.kitakyushu.lg.jp/files/001215921.pdf、SHA-256 c5070de88b83528860e8dba6c4aa88ec4bd7418dea017fbbdb5cc80dc7014798、1,968,795 bytes・262 pages。2026-07-25に再取得しSHA-256一致を確認）で読み取った。両者はpage数が一致し、正本について記録済みのphysical pages 233〜235のテキストSHA-256（算出法: pdftotext -layout の出力を末尾空白除去してSHA-256）を再配布PDFが再現するため、page付けは同一と確認した。したがって以下のpage番号は正本に対しても有効。physical pages 112〜113の受給者証上限の認定・適用期間、physical pages 173、175、182、184〜186の成人上限額管理概要、指定就労継続支援B型、結果票、結果区分1〜3、優先徴収順、金額項目、管理結果後利用者負担額と配分、physical pages 197〜199の月次給付単位数、総費用額、1割相当額、決定利用者負担額、給付費に使用。page 112は制度額を別資料参照とするため制度額そのものの根拠にせず、令和8年5月以前に遡及適用しない",
+      "applicabilityNote": "正本は厚生労働省が発出したPDF（1,998,305 bytes・262 pages）。live URLは2026-07-10時点でHTTP 404のためバイト列をhistoricalとして保持する（CSV仕様側のsources.jsonにも同一SHA-256で登録）。本文を実際に読んだのは同一文書を再配布する北九州市公式サイトのPDF（r8-grant-decision-administration-202606-redistribution-observed-c5070de8）であり、physical page番号はそちらで読み取ったlocatorである。正本と再配布PDFの間で照合できているのはpage数262の一致と、正本について記録済みのphysical pages 233〜235のテキストSHA-256（算出法: pdftotext -layout の出力を末尾空白除去してSHA-256）のみで、下記のそれ以外の使用pageについては正本バイト列との本文一致は未検証である（正本のバイト列を再取得できた時点で使用page全件を照合する。docs/open-questions.md に起票）。使用page（再配布PDFで読んだもの）: physical pages 112〜113の受給者証上限の認定・適用期間、physical pages 173、175、182、184〜186の成人上限額管理概要、指定就労継続支援B型、結果票、結果区分1〜3、優先徴収順、金額項目、管理結果後利用者負担額と配分、physical pages 197〜199の月次給付単位数、総費用額、1割相当額、決定利用者負担額、給付費。page 112は制度額を別資料参照とするため制度額そのものの根拠にせず、令和8年5月以前に遡及適用しない",
       "correctionNote": "2026-06からr7-grant-decision-administration-202509を置換する。2026-05以前へ遡及しない"
+    },
+    {
+      "documentId": "r8-grant-decision-administration-202606-redistribution-observed-c5070de8",
+      "title": "介護給付費等に係る支給決定事務等について（事務処理要領・最終改正令和8年6月／北九州市公式サイト再配布）",
+      "publisher": "厚生労働省（北九州市公式サイト再配布）",
+      "effectiveAt": "2026-06-01",
+      "publishedAt": null,
+      "retrievedAt": "2026-07-25",
+      "url": "https://www.city.kitakyushu.lg.jp/files/001215921.pdf",
+      "sha256": "c5070de88b83528860e8dba6c4aa88ec4bd7418dea017fbbdb5cc80dc7014798",
+      "supersedes": null,
+      "corrects": null,
+      "supplements": [
+        "r8-grant-decision-administration-202606"
+      ],
+      "applicabilityNote": "r8-grant-decision-administration-202606 の再配布複製で、**実際にphysical pageを読んだのはこのバイト列**（1,968,795 bytes・262 pages。2026-07-25に再取得しSHA-256一致を確認）。正本のlive URLがHTTP 404で再取得できないため、page locatorの出所をこの文書として明示する。正本との照合はpage数262の一致と正本記録済みのphysical pages 233〜235のテキストSHA-256の再現までで、他の使用pageの本文一致は未検証。制度値そのものの根拠は正本（r8-grant-decision-administration-202606）であり、この文書はrelease bundleに含めない（読んだ証跡としてのみ登録する）",
+      "correctionNote": "r8-grant-decision-administration-202606を補足（同一文書の再配布複製。制度値の根拠は正本で、この文書はphysical page locatorを実際に読んだバイト列としてのみ用いる。正本を置換しない）"
     },
     {
       "documentId": "r8-revision-overview",
