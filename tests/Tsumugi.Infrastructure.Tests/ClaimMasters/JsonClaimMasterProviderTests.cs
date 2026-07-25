@@ -25,6 +25,7 @@ public sealed class JsonClaimMasterProviderTests
         "mhlw-r8-structure-page-observed-9bc71ce6",
         "mhlw-r8-structure-page-observed-13da3c44",
         "mhlw-unit-price-notice-observed-946c3d96",
+        "mhlw-unit-price-notice-post-r8-observed-946c3d96",
         "r6-disability-support-guide-202404",
         "r6-claim-handbook-202405",
         "r6-grant-decision-administration-202404",
@@ -198,7 +199,7 @@ public sealed class JsonClaimMasterProviderTests
         var sourceIds = root.GetProperty("sources").EnumerateArray()
             .Select(source => source.GetProperty("documentId").GetString())
             .ToArray();
-        sourceIds.Should().HaveCount(68);
+        sourceIds.Should().HaveCount(69);
         sourceIds.Should().Equal(ExpectedSourceIds);
 
         foreach (var source in root.GetProperty("sources").EnumerateArray())
@@ -1155,7 +1156,8 @@ public sealed class JsonClaimMasterProviderTests
 
     private static readonly string[] ExpectedR806Sources =
     [
-        "mhlw-unit-price-notice-observed-946c3d96", "r6-revision-overview", "r8-revision-overview",
+        "mhlw-unit-price-notice-observed-946c3d96", "mhlw-unit-price-notice-post-r8-observed-946c3d96",
+        "r6-revision-overview", "r8-revision-overview",
         "r8-fee-notice", "r8-calculation-note", "r8-b-reward-band-guide",
         "r8-employment-transition-guide", "r8-qa-v1", "r8-amendment-qa", "r8-capability-202606",
         "r8-capability-correction", "r8-reward-structure", "r8-service-codes-2-pdf",

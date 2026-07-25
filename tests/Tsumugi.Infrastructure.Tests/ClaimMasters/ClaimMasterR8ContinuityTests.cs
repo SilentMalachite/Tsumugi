@@ -1,6 +1,5 @@
 using System.Text.Json;
 using FluentAssertions;
-using Tsumugi.Infrastructure.ClaimMasters;
 
 namespace Tsumugi.Infrastructure.Tests.ClaimMasters;
 
@@ -34,7 +33,13 @@ public sealed class ClaimMasterR8ContinuityTests
         "r8-capability-202606", // 令和8年6月版の体制状況一覧表（R8-06時点で有効な体制項目を収載）
 
         // --- 地域区分単価・負担上限額向け（報酬改定資料束とは別の法令・通知系統） ---
-        "mhlw-unit-price-notice-observed-946c3d96", // 2026-07-26（R8施行後）に再取得しSHA-256が完全一致。現行条文がR8-06でも改正されていないことを直接観測した
+        // 注意: mhlw-unit-price-notice-observed-946c3d96（原観測・2026-07-10取得）は
+        // region-unit-pricesの全entryが既にauthoritativeで引いているため、これをここに
+        // 加えるとentry側のcross-check refを1件も追加しなくてもテストが無条件で通ってしまう
+        // （歯が立たない。Fix Round 2で発見）。R8-06適用性を独立に立証する出典は、
+        // R8施行後に行った「別の観測イベント」でなければならないため、別documentIdとして
+        // 登録したR8後再観測（下記）だけをここに載せ、原観測は載せない。
+        "mhlw-unit-price-notice-post-r8-observed-946c3d96", // R8-06施行後（2026-07-26）に独立再取得した観測。retrievedAtがR8施行後である点が、原観測（2026-07-10）と違いR8適用性の直接証拠になる
         "r8-burden-recognition-guide-202606", // 版そのものが令和8年6月版（2026-06-05公開）。表の値がburden-caps.jsonの現行値と完全一致することを確認した
     ];
 
@@ -53,9 +58,9 @@ public sealed class ClaimMasterR8ContinuityTests
 
     [Theory]
     [MemberData(nameof(ValueBearingSeedFiles))]
-    public void Every_entry_reaching_june_2026_is_backed_by_an_r8_source(string fileName)
+    public void Every_entry_reaching_june_2026_is_backed_by_an_applied_source(string fileName)
     {
-        var r8Sources = R8AppliedDocumentIds.ToHashSet(StringComparer.Ordinal);
+        var appliedSources = R8AppliedDocumentIds.ToHashSet(StringComparer.Ordinal);
         using var document = OpenSeed(fileName);
 
         var unbacked = new List<string>();
@@ -65,7 +70,7 @@ public sealed class ClaimMasterR8ContinuityTests
                 continue;
 
             var backed = entry.GetProperty("sourceRefs").EnumerateArray().Any(
-                sourceRef => r8Sources.Contains(sourceRef.GetProperty("documentId").GetString()!));
+                sourceRef => appliedSources.Contains(sourceRef.GetProperty("documentId").GetString()!));
 
             if (!backed)
                 unbacked.Add(entry.GetProperty("key").GetString()!);
