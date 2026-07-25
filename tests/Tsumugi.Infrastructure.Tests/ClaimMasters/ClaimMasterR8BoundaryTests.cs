@@ -214,6 +214,32 @@ public sealed class ClaimMasterR8BoundaryTests
             .Should().Contain(Numeric(officialOptionCode));
     }
 
+    /// <summary>
+    /// Fix Round 1 I-1: <c>ClaimCalculatorGoldenCaseTests.Matches_adr_0046_worked_example_reform_target_office_in_june_2026</c>
+    /// （golden case 2）がテストファイル内に再掲する基本報酬行（cap-20-or-less × band-48000-plus
+    /// (option 11) × staff-6-1 = 837単位/日、サービスコード463340）を、production seedから解決した
+    /// 実データで名指しでpinする。<see cref="Reform_target_offices_resolve_every_r8_numeric_band"/>は
+    /// <c>UnitsPerDay.Should().BePositive()</c>までしか確認しないため、golden case 2の金額を最も
+    /// 支配するこの単位数837自体には同等の防護が無かった（production seed側が837→738等に変わっても、
+    /// あるいはgolden case側の再掲が転記ミスをしても、どちらも機械的に検出されない）。
+    /// 期待値の唯一の出典はADR 0046決定表（Task 4、サービス費（Ⅰ（６：１））先頭行）である。
+    /// </summary>
+    [Fact]
+    public void Reform_target_option_11_resolves_to_the_service_code_and_units_from_adr_0046()
+    {
+        var juneMasters = Provider.ResolveCalculationMasters(June2026);
+
+        var resolved = ServiceCodeResolver.ResolveBasicReward(
+            juneMasters, June2026,
+            Context(Numeric(11), R8ReformStatus.ReformTarget));
+
+        // ADR 0046決定表（Task 4、サービス費（Ⅰ（６：１））先頭行）が唯一の出典。
+        resolved.ServiceCode.Should().Be(
+            "463340", "golden case 2が再掲する基本報酬行のサービスコード（ADR 0046決定表）");
+        resolved.UnitsPerDay.Should().Be(
+            837, "golden case 2が再掲する基本報酬行の単位数（ADR 0046決定表）");
+    }
+
     // Task 5 ブリーフは本テストを ServiceCodeResolver.ResolveBasicReward への直接呼び出しで
     // 書いていたが、実装を調査したところ ServiceCodeResolver 自体は
     // AverageWageBandOption と R8ReformStatus の整合性を検査しない（R6行はr8-reform-status
@@ -356,22 +382,28 @@ public sealed class ClaimMasterR8BoundaryTests
     }
 
     /// <summary>
-    /// Task 6（ADR 0044・AC3-4-4）: 地域単価・負担上限はR8出典に裏付けられて2026-06でも解決する
-    /// （Task 1の分岐(a): 継続。分岐(c)＝確定できず閉じる、を採らなかったことを固定する）。
-    /// これが空/未解決のまま2026-06の請求を通すと、給付単位数は算定できても総費用額・利用者負担額
-    /// が確定できず、静かな誤請求（0円扱い等）に繋がるため、ここで「解決できる」こと自体を機械的に
-    /// pinする。
+    /// Task 6（ADR 0044・AC3-4-4）: 地域単価・負担上限はR8出典に裏付けられて2026-06でも
+    /// **R6行のまま無変更で継続する**（Task 1の分岐(a)。分岐(c)＝確定できず閉じる、を
+    /// 採らなかったことを固定する）。これが空/未解決のまま2026-06の請求を通すと、給付単位数は
+    /// 算定できても総費用額・利用者負担額が確定できず、静かな誤請求（0円扱い等）に繋がる。
+    /// Fix Round 1 I-2: 当初は<c>NotBeEmpty</c>だけだったが、これでは7級地のうち6級地を閉じても
+    /// 単価を書き換えても通ってしまい、ADR 0044の決定内容（「非空」ではなく「継続」）を弱くしか
+    /// 固定できていなかった。<see cref="Basic_reward_rows_continue_unchanged_across_the_r8_boundary"/>
+    /// と同じ形（may/juneの行集合が完全一致）へ強化する。
     /// </summary>
     [Fact]
     public void Region_unit_prices_and_burden_caps_resolve_in_june_2026()
     {
-        // ADR 0044: 地域単価・負担上限はR8出典に裏付けられて2026-06でも解決する。
+        // ADR 0044: 地域単価・負担上限は2026-06もR6行のまま無変更で継続する。
+        var may = Provider.ResolveCalculationMasters(May2026);
         var june = Provider.ResolveCalculationMasters(June2026);
 
-        june.RegionUnitPrices.Should().NotBeEmpty(
-            "地域単価が解決できなければ総費用額を算出できない");
-        june.BurdenCaps.Should().NotBeEmpty(
-            "負担上限が解決できなければ利用者負担を確定できない");
+        june.RegionUnitPrices.Should().BeEquivalentTo(
+            may.RegionUnitPrices,
+            "地域単価はADR 0044によりR8-06でも無変更で継続する（新規行の追加・既存行の変更いずれも無い）");
+        june.BurdenCaps.Should().BeEquivalentTo(
+            may.BurdenCaps,
+            "負担上限はADR 0044によりR8-06でも無変更で継続する（新規行の追加・既存行の変更いずれも無い）");
     }
 
     private static OfficeClaimProfile ReformTargetProfile(AverageWageBandOption option)

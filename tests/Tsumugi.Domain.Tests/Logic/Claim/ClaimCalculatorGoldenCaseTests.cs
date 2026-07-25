@@ -286,10 +286,16 @@ public sealed class ClaimCalculatorGoldenCaseTests
 
     /// <summary>
     /// ADR 0045 worked example: 改定対象外事業所（<see cref="R8ReformStatus.ReformExempt"/>）×
-    /// 2026-06。R6基本報酬行462049（ADR 0027決定6により2026-06以降も継続。r8-reform-status条件を
-    /// 一切持たず、いずれのR8ReformStatusでも無条件に一致する）＋ R8処遇改善(Ⅰ)イ
+    /// 2026-06。R6基本報酬行462049（ADR 0027決定6により2026-06以降も継続）＋ R8処遇改善(Ⅰ)イ
     /// （ADR 0045決定表、465120＠105/1000）。期待値の算出過程はADR 0045の
     /// 「手計算検証ケース」節に記載する。
+    /// Fix Round 1 M-2: 本ケースが固定するのは金額の算術であり、462049はr8-reform-status条件を
+    /// 一切持たないため（本テストが再掲するマスタでも、production seedでも）
+    /// <see cref="AverageWageBandOption"/>・<see cref="R8ReformStatus"/>のいずれも解決に一切
+    /// 参加しない。したがって本テストはこの2つの入力をどの値に変えても同じ結果になり、
+    /// 「r8-reform-status条件が無いために無条件に一致する」という性質自体は判別しない
+    /// （その性質は<c>Tsumugi.Infrastructure.Tests.ClaimMasters.ClaimMasterR8BoundaryTests.Exempt_offices_resolve_the_same_code_and_units_across_the_boundary</c>が
+    /// production seedに対して固定している）。
     /// </summary>
     [Fact]
     public void Matches_adr_0045_worked_example_reform_exempt_office_in_june_2026()
