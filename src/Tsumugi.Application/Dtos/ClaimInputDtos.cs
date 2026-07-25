@@ -185,13 +185,21 @@ public sealed class ClaimInputSaveException : Exception
 {
     public ClaimInputSaveException(
         ClaimInputSaveErrorCode code,
-        ClaimInputFieldCode fieldCode)
+        ClaimInputFieldCode fieldCode,
+        string? userMessage = null)
         : base($"Claim input save failed: {code} ({fieldCode}).")
     {
         Code = code;
         FieldCode = fieldCode;
+        UserMessage = userMessage;
     }
 
     public ClaimInputSaveErrorCode Code { get; }
     public ClaimInputFieldCode FieldCode { get; }
+
+    /// <summary>
+    /// 利用者に見せる理由。値の検証で落ちたときだけ入る（どの欄をどう直せばよいかを失わないため）。
+    /// 氏名・受給者証番号は含めない（CLAUDE.md §ハード制約4）。
+    /// </summary>
+    public string? UserMessage { get; }
 }

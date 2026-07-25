@@ -1,4 +1,5 @@
 using Tsumugi.Application.Dtos.Claim.Csv;
+using Tsumugi.Infrastructure.Csv.Specifications;
 
 namespace Tsumugi.Infrastructure.Csv.Generation;
 
@@ -69,27 +70,20 @@ internal static class ClaimCsvRowPlanner
 
     private static IEnumerable<ClaimCsvRowPlan> PlanRecord(ClaimCsvDto dto, string recordId)
     {
-        switch (recordId)
+        // 行スコープは CsvRecordRowScopes が単一の正本（汎用入力の宣言可否も同じ表で判定する）。
+        switch (CsvRecordRowScopes.Of(recordId))
         {
-            case "provider:J111:01":
-            case "provider:J111:02":
-                // 就労継続支援B型のみを scope とするため、給付種別×サービス種類は単一グループ。
+            case CsvRecordRowScope.File:
                 yield return ClaimCsvRowPlan.File(recordId);
                 break;
-            case "provider:J121:01":
-            case "provider:J121:02":
-            case "provider:J121:04":
-            // provider:J121:05 は「契約情報」レコード（契約支給量・契約開始年月日・事業者記入欄番号）。
-            // 受給者ごとに 1 行必須であり、省略できない。
-            case "provider:J121:05":
-            case "provider:J611:01":
+            case CsvRecordRowScope.Recipient:
                 for (var index = 0; index < dto.Recipients.Count; index++)
                 {
                     yield return ClaimCsvRowPlan.Recipient(recordId, index);
                 }
 
                 break;
-            case "provider:J121:03":
+            case CsvRecordRowScope.ServiceLine:
                 for (var index = 0; index < dto.Recipients.Count; index++)
                 {
                     for (var line = 0; line < dto.Recipients[index].ServiceLines.Count; line++)
@@ -99,7 +93,7 @@ internal static class ClaimCsvRowPlanner
                 }
 
                 break;
-            case "provider:J611:02":
+            case CsvRecordRowScope.DailyRecord:
                 for (var index = 0; index < dto.Recipients.Count; index++)
                 {
                     for (var day = 0; day < dto.Recipients[index].DailyRecords.Count; day++)

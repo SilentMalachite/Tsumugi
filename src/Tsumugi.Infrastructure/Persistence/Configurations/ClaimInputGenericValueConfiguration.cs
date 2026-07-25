@@ -21,8 +21,11 @@ public sealed class ClaimInputGenericValueConfiguration : IEntityTypeConfigurati
         // 列長はどの項目でも収まる上限として置く（仕様の実値を DB へ持ち込まない）。
         builder.Property(value => value.Value).IsRequired().HasMaxLength(256);
         builder.HasIndex(value => new { value.ClaimInputId, value.Name }).IsUnique();
+        // 親にナビゲーションを持たせない（明細行と同じ片方向 FK）。ナビゲーションを張ると EF の
+        // relationship fix-up が不変コレクションへ子要素を追加しようとして読込が落ちる
+        // （`ClaimInput.GenericValues` は record の値セマンティクスを保つため不変のままにする）。
         builder.HasOne<ClaimInput>()
-            .WithMany(input => input.GenericValues)
+            .WithMany()
             .HasForeignKey(value => value.ClaimInputId)
             .OnDelete(DeleteBehavior.Cascade);
     }

@@ -80,7 +80,10 @@ public sealed class SetClaimInputUseCase(
 
         if (request.Kind == RecordKind.Cancel)
         {
-            throw new InvalidOperationException("取消レコードは請求入力値を持てません。");
+            throw new ClaimInputSaveException(
+                ClaimInputSaveErrorCode.InvalidValue,
+                ClaimInputFieldCode.Values,
+                "取消は請求入力値を持てません。値を消してから取消してください。");
         }
 
         var version = specificationVersions.Current;
@@ -90,7 +93,19 @@ public sealed class SetClaimInputUseCase(
             {
                 var value = pair.Value!.Trim();
                 // 宣言の有無・型・桁数の判定は仕様を所有する層に委ねる（未宣言の名前もここで弾かれる）。
-                genericFieldCatalog.ValidateValue(version, pair.Key, value);
+                // 検証理由は利用者向けなので、履歴競合（再読込）ではなく値のエラーとして返す。
+                try
+                {
+                    genericFieldCatalog.ValidateValue(version, pair.Key, value);
+                }
+                catch (ClaimGenericValueInvalidException invalid)
+                {
+                    throw new ClaimInputSaveException(
+                        ClaimInputSaveErrorCode.InvalidValue,
+                        ClaimInputFieldCode.Values,
+                        invalid.Message);
+                }
+
                 return ClaimInputGenericValue.Create(Guid.NewGuid(), claimInputId, pair.Key, value);
             })];
     }

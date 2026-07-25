@@ -465,8 +465,9 @@ public sealed class SetClaimInputUseCaseTests
             "tester",
             CancellationToken.None);
 
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*宣言されていません*");
+        var exception = await act.Should().ThrowAsync<ClaimInputSaveException>();
+        exception.Which.Code.Should().Be(ClaimInputSaveErrorCode.InvalidValue);
+        exception.Which.UserMessage.Should().Contain("宣言されていません");
     }
 
     [Fact]
@@ -501,20 +502,23 @@ public sealed class SetClaimInputUseCaseTests
                 "tester",
                 CancellationToken.None);
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        var cancelException = await act.Should().ThrowAsync<ClaimInputSaveException>();
+        cancelException.Which.Code.Should().Be(ClaimInputSaveErrorCode.InvalidValue);
+        cancelException.Which.UserMessage.Should().Contain("取消");
     }
 
     /// <summary>1 項目だけ宣言し、検証は名前の存在だけを見るフェイク。</summary>
     private sealed class DeclaringGenericFields : IClaimGenericFieldCatalog
     {
         public IReadOnlyList<ClaimGenericFieldDeclaration> GetDeclarations(string specificationVersion) =>
-            [new("DemoDays", "provider:J121:04:009", "実証用", "実証用", "numeric", 2, "ClaimInputView")];
+            [new("DemoDays", ["provider:J121:04:009"], "実証用", "実証用", "numeric", 2, "ClaimInputView")];
 
         public void ValidateValue(string specificationVersion, string name, string value)
         {
             if (GetDeclarations(specificationVersion).All(declaration => declaration.Name != name))
             {
-                throw new InvalidOperationException($"汎用請求入力 '{name}' は宣言されていません。");
+                throw new ClaimGenericValueInvalidException(
+                    $"汎用請求入力 '{name}' は宣言されていません。");
             }
         }
     }

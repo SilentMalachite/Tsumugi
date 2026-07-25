@@ -26,6 +26,7 @@ public sealed class TsumugiDbContext(DbContextOptions<TsumugiDbContext> options)
     public DbSet<ClaimBatch> ClaimBatches => Set<ClaimBatch>();
     public DbSet<ClaimDetail> ClaimDetails => Set<ClaimDetail>();
     public DbSet<ClaimInput> ClaimInputs => Set<ClaimInput>();
+    public DbSet<ClaimInputGenericValue> ClaimInputGenericValues => Set<ClaimInputGenericValue>();
     public DbSet<IntensiveSupportEpisode> IntensiveSupportEpisodes => Set<IntensiveSupportEpisode>();
     public DbSet<AverageWageAnnualEvidence> AverageWageAnnualEvidences => Set<AverageWageAnnualEvidence>();
     public DbSet<OfficeClaimProfile> OfficeClaimProfiles => Set<OfficeClaimProfile>();

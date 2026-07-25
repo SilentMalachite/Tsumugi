@@ -12,7 +12,7 @@ using Tsumugi.Infrastructure.Persistence;
 namespace Tsumugi.Infrastructure.Migrations
 {
     [DbContext(typeof(TsumugiDbContext))]
-    [Migration("20260725120038_Phase33ClaimInputGenericValues")]
+    [Migration("20260725125235_Phase33ClaimInputGenericValues")]
     partial class Phase33ClaimInputGenericValues
     {
         /// <inheritdoc />
@@ -2339,7 +2339,7 @@ namespace Tsumugi.Infrastructure.Migrations
             modelBuilder.Entity("Tsumugi.Domain.Entities.ClaimInputGenericValue", b =>
                 {
                     b.HasOne("Tsumugi.Domain.Entities.ClaimInput", null)
-                        .WithMany("GenericValues")
+                        .WithMany()
                         .HasForeignKey("ClaimInputId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2443,11 +2443,6 @@ namespace Tsumugi.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_UpperLimitManagementStatementLines_UpperLimitManagementStatements_StatementId");
-                });
-
-            modelBuilder.Entity("Tsumugi.Domain.Entities.ClaimInput", b =>
-                {
-                    b.Navigation("GenericValues");
                 });
 #pragma warning restore 612, 618
         }

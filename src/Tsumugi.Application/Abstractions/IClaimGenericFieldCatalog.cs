@@ -5,7 +5,7 @@ namespace Tsumugi.Application.Abstractions;
 /// fieldId やラベルをハードコードせずこのポート経由で参照する。
 /// </summary>
 /// <param name="Name">値の名前（readiness path は <c>ClaimGenericInput.{Name}</c>）。</param>
-/// <param name="FieldId">この値を要求する CSV 項目。</param>
+/// <param name="FieldIds">この値を運ぶ CSV 項目（同じ値を複数の項目が運ぶ宣言はまとめる）。</param>
 /// <param name="Label">入力欄の表示名。</param>
 /// <param name="Help">補助文。</param>
 /// <param name="DataType">値の型（text / numeric / code / date / yearMonth）。</param>
@@ -13,7 +13,7 @@ namespace Tsumugi.Application.Abstractions;
 /// <param name="UiSurface">どの画面で入力するか。</param>
 public sealed record ClaimGenericFieldDeclaration(
     string Name,
-    string FieldId,
+    IReadOnlyList<string> FieldIds,
     string Label,
     string Help,
     string DataType,
@@ -35,3 +35,9 @@ public interface IClaimGenericFieldCatalog
     /// </summary>
     void ValidateValue(string specificationVersion, string name, string value);
 }
+
+/// <summary>
+/// 汎用入力の値が宣言（名前・型・桁数）に適合しないことを示す。<b>利用者に見せる理由</b>を運ぶので、
+/// 呼び出し側は履歴競合（再読込）ではなく入力内容のエラーとして扱う。
+/// </summary>
+public sealed class ClaimGenericValueInvalidException(string message) : Exception(message);

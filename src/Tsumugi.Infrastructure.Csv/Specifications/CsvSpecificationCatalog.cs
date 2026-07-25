@@ -360,6 +360,8 @@ public sealed record CsvSpecificationCatalog
             ValidateMapping(field, mapping);
         }
 
+        ValidateGenericInputNames();
+
         var fieldIds = fields.Select(field => field.FieldId).ToHashSet(StringComparer.Ordinal);
         var orphanMappingId = MappingByFieldId.Keys.FirstOrDefault(id => !fieldIds.Contains(id));
         if (orphanMappingId is not null)
@@ -381,6 +383,12 @@ public sealed record CsvSpecificationCatalog
 
     /// <summary>汎用入力の宣言モデル名。この model 名の値は算定入力へは一切渡さない。</summary>
     internal const string GenericInputModel = "ClaimGenericInput";
+
+    /// <summary>
+    /// 汎用入力を実装している画面。宣言だけで欄が出るのはこの画面に限る
+    /// （他の画面を宣言しても入力欄が無く、確定できないまま fail-close するだけになる）。
+    /// </summary>
+    private const string GenericInputSurface = "ClaimInputView";
 
     internal static bool IsGenericStorage(CsvFieldMapping mapping) =>
         string.Equals(mapping.Storage, "generic", StringComparison.Ordinal);
@@ -428,6 +436,49 @@ public sealed record CsvSpecificationCatalog
             throw new InvalidDataException(
                 $"fieldId '{field.FieldId}' genericInput must carry a label, a help text and the "
                 + "same dataType and maxBytes as the official field definition.");
+        }
+
+        // 保存は受給者×サービス提供年月で1個・入力は1画面だけ実装している。日ごと明細やサービス明細に
+        // 宣言すると同じ値が全行へ複製され、ファイル単位のレコードでは受給者行が無く生成が落ちる。
+        // 対応済みスコープ以外は「動くように見えて誤った CSV を作る」ので読み込み時に拒否する。
+        if (CsvRecordRowScopes.Of(CsvRecordRowScopes.RecordIdOf(field.FieldId))
+            != CsvRecordRowScope.Recipient)
+        {
+            throw new InvalidDataException(
+                $"fieldId '{field.FieldId}' may declare storage 'generic' only on a record whose rows "
+                + "occur once per recipient and service month (ADR 0042 supports the monthly scope only).");
+        }
+
+        if (!string.Equals(mapping.UiSurface, GenericInputSurface, StringComparison.Ordinal))
+        {
+            throw new InvalidDataException(
+                $"fieldId '{field.FieldId}' declares storage 'generic' for the unsupported uiSurface "
+                + $"'{mapping.UiSurface}' (only '{GenericInputSurface}' renders declared generic inputs).");
+        }
+    }
+
+    /// <summary>
+    /// 汎用入力名（<c>targetProperty</c>）の一貫性。複数の項目が同じ値を運ぶ宣言は許すが、
+    /// <b>見せ方・型・桁数が食い違う宣言は拒否する</b>（同名の欄が2つ並び、保存時に重複キーで落ちる）。
+    /// </summary>
+    private void ValidateGenericInputNames()
+    {
+        foreach (var group in MappingByFieldId.Values
+            .Where(IsGenericStorage)
+            .GroupBy(mapping => mapping.TargetProperty!, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1))
+        {
+            var declarations = group
+                .Select(mapping => (mapping.GenericInput!, mapping.UiSurface))
+                .Distinct()
+                .ToArray();
+            if (declarations.Length > 1)
+            {
+                throw new InvalidDataException(
+                    $"generic input name '{group.Key}' is declared with conflicting labels, data types, "
+                    + $"byte lengths or surfaces by fieldIds "
+                    + $"{string.Join(", ", group.Select(mapping => mapping.FieldId).Order(StringComparer.Ordinal))}.");
+            }
         }
     }
 

@@ -21,6 +21,9 @@ public sealed class ClaimInputConfiguration : IEntityTypeConfiguration<ClaimInpu
             table => table.HasCheckConstraint(
                 "CK_ClaimInputs_UpperLimitManagementResult_ClosedSet",
                 "\"UpperLimitManagementResult\" IS NULL OR \"UpperLimitManagementResult\" IN (1, 2, 3)"));
+        // 汎用 pass-through 入力（ADR 0042）は子テーブル。リポジトリが別クエリで読んで詰め替えるため、
+        // ここではナビゲーションとして写像しない（規約による再発見も止める）。
+        builder.Ignore(x => x.GenericValues);
         builder.Property(x => x.OfficeId).IsRequired();
         builder.Property(x => x.RecipientId).IsRequired();
         builder.Property(x => x.ServiceMonth)

@@ -77,6 +77,51 @@ public sealed class ClaimInputRepositoryTests : IClassFixture<SqliteFixture>
         }
     }
 
+    // NOTE(teeth): 汎用 pass-through 入力（ADR 0042）を 1 件でも保存した revision を読めること。
+    // ナビゲーションが不変コレクションだと EF の relationship fix-up が子要素を追加できず、
+    // 保存直後から workspace・プレビュー・訂正がすべて読めなくなる。
+    [Fact]
+    public async Task Generic_pass_through_values_round_trip_and_stay_empty_on_cancel()
+    {
+        await using var connection = await OpenDatabaseAsync();
+        var officeId = Guid.NewGuid();
+        var recipientId = Guid.NewGuid();
+        var month = new ServiceMonth(2026, 7);
+        var root = ClaimRows.Input(ClaimRows.EarlyRootId, officeId, recipientId, month);
+        root = root with
+        {
+            GenericValues =
+            [
+                ClaimInputGenericValue.Create(Guid.NewGuid(), root.Id, "DemoDays", "12"),
+                ClaimInputGenericValue.Create(Guid.NewGuid(), root.Id, "AnotherDays", "3"),
+            ],
+        };
+        var cancellation = ClaimRows.CancelInput(root);
+
+        await using (var context = NewContext(connection))
+        {
+            context.AddRange(ClaimRows.Office(officeId), ClaimRows.Recipient(recipientId));
+            await context.SaveChangesAsync();
+            var repository = new ClaimInputRepository(context);
+            await repository.AddAsync(root, default);
+            await repository.AddAsync(cancellation, default);
+            // 親 1 行 + 子 2 行 + 取消 1 行。子行はナビゲーションではなくリポジトリが明示的に追加する。
+            (await new EfUnitOfWork(context).SaveChangesAsync(default)).Should().Be(4);
+        }
+
+        await using (var verification = NewContext(connection))
+        {
+            var history = await new ClaimInputRepository(verification)
+                .ListHistoryAsync(officeId, recipientId, month, default);
+
+            history.Should().HaveCount(2);
+            history[0].GenericValues.Select(value => (value.Name, value.Value))
+                .Should().BeEquivalentTo(new[] { ("DemoDays", "12"), ("AnotherDays", "3") });
+            history[1].Kind.Should().Be(RecordKind.Cancel);
+            history[1].GenericValues.Should().BeEmpty();
+        }
+    }
+
     [Fact]
     public async Task Cancel_rows_carrying_group_b_addition_inputs_are_rejected_by_the_database_check()
     {

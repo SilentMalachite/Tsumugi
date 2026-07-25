@@ -902,7 +902,8 @@ public sealed partial class ClaimInputViewModel(
                 ClaimInputSaveErrorCode.ExpectedHeadMismatch
                     or ClaimInputSaveErrorCode.InvalidHistory => ReloadMessage,
                 ClaimInputSaveErrorCode.MasterUnavailable => MasterUnavailableMessage,
-                _ => InvalidMessage,
+                // 値の検証で落ちたときは、どの欄をどう直すかを保持したまま見せる。
+                _ => ex.UserMessage ?? InvalidMessage,
             };
             await ReloadAfterFailureAsync(message);
         }
