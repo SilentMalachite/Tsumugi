@@ -210,9 +210,10 @@ public sealed class CsvSpecificationCompletenessTests
             .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal)
             .Should().BeEquivalentTo(new Dictionary<string, int>
             {
-                ["generated"] = 375,
+                // provider:J121:02:008 を導出から個別入力へ移した（Phase 3-3 / ADR 0032）。
+                ["generated"] = 374,
                 ["existing"] = 28,
-                ["missing"] = 30,
+                ["missing"] = 31,
                 ["explicitInput"] = 10,
             });
         AssertMapping(mappings, "provider:J121:01:008", "existing", "Recipient.KanaName");
@@ -430,6 +431,8 @@ public sealed class CsvSpecificationCompletenessTests
             }
         }
 
+        var mappingsById = mapping.RootElement.GetProperty("mappings").EnumerateArray()
+            .ToDictionary(item => item.GetProperty("fieldId").GetString()!, StringComparer.Ordinal);
         var generated = mapping.RootElement.GetProperty("mappings").EnumerateArray()
             .Where(item => item.GetProperty("status").GetString() == "generated")
             .ToArray();
@@ -442,9 +445,13 @@ public sealed class CsvSpecificationCompletenessTests
         generated.Single(item => item.GetProperty("fieldId").GetString() == "provider:J111:01:006")
             .GetProperty("generatorRule").GetString().Should()
             .ContainAll("provider:J111:01:020", "provider:J111:01:021", "provider:J111:01:023", "sum(");
-        generated.Single(item => item.GetProperty("fieldId").GetString() == "provider:J121:02:008")
-            .GetProperty("generatorRule").GetString().Should()
-            .ContainAll("min(", "DailyRecord.ServiceDate", "p23:B-type-setting");
+        // provider:J121:02:008（開始年月日）は Phase 3-3 で導出をやめ、契約ごとの個別入力に移した
+        // （ADR 0032）。当月の日次記録から min で推測すると継続契約で誤値になる。
+        mappingsById["provider:J121:02:008"].GetProperty("status").GetString().Should().Be("missing");
+        mappingsById["provider:J121:02:008"].GetProperty("targetModel").GetString()
+            .Should().Be("ContractedProvider");
+        mappingsById["provider:J121:02:008"].GetProperty("targetProperty").GetString()
+            .Should().Be("FirstServiceDate");
         generated.Single(item => item.GetProperty("fieldId").GetString() == "provider:J121:04:012")
             .GetProperty("generatorRule").GetString().Should()
             .ContainAll("const(", "value=0", "serviceProvisionMonthFrom201204");

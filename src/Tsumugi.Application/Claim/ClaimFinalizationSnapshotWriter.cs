@@ -34,6 +34,7 @@ public static class ClaimFinalizationSnapshotWriter
             WriteRecipient(writer, snapshot.Recipient);
             WriteCertificate(writer, snapshot.Certificate);
             WriteClaimInput(writer, snapshot.ClaimInput);
+            WriteContractedProvider(writer, snapshot.ContractedProvider);
             WriteDailyRecords(writer, snapshot.DailyRecords);
             WriteIntensiveSupportEpisode(writer, snapshot.IntensiveSupportEpisode);
             WriteClaimLines(writer, snapshot.ClaimLines);
@@ -95,6 +96,24 @@ public static class ClaimFinalizationSnapshotWriter
         WriteMonthOrNull(writer, "exceptionalUsageEndMonth", claimInput.ExceptionalUsageEndMonth);
         WriteNumberOrNull(writer, "exceptionalUsageDays", claimInput.ExceptionalUsageDays);
         WriteNumberOrNull(writer, "standardUsageDayTotal", claimInput.StandardUsageDayTotal);
+        writer.WriteEndObject();
+    }
+
+    private static void WriteContractedProvider(
+        Utf8JsonWriter writer, ClaimFinalizationContractedProviderSnapshot? contractedProvider)
+    {
+        if (contractedProvider is null)
+        {
+            writer.WriteNull("contractedProvider");
+            return;
+        }
+
+        writer.WriteStartObject("contractedProvider");
+        writer.WriteNumber("contractedSupplyDays", contractedProvider.ContractedSupplyDays);
+        writer.WriteString("contractDate", FormatDate(contractedProvider.ContractDate));
+        WriteDateOrNull(writer, "terminationDate", contractedProvider.TerminationDate);
+        WriteNumberOrNull(writer, "certificateEntryNumber", contractedProvider.CertificateEntryNumber);
+        WriteDateOrNull(writer, "firstServiceDate", contractedProvider.FirstServiceDate);
         writer.WriteEndObject();
     }
 
@@ -180,6 +199,12 @@ public static class ClaimFinalizationSnapshotWriter
     private static void WriteMonthOrNull(Utf8JsonWriter writer, string propertyName, ServiceMonth? value)
     {
         if (value is { } month) writer.WriteString(propertyName, month.ToString());
+        else writer.WriteNull(propertyName);
+    }
+
+    private static void WriteDateOrNull(Utf8JsonWriter writer, string propertyName, DateOnly? value)
+    {
+        if (value is { } date) writer.WriteString(propertyName, FormatDate(date));
         else writer.WriteNull(propertyName);
     }
 

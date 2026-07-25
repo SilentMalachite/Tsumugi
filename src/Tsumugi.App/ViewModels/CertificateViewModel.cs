@@ -116,6 +116,12 @@ public sealed partial class CertificateViewModel(
     [ObservableProperty] private DateOnly? _providerTerminationDate;
     [ObservableProperty] private string _providerNotes = string.Empty;
     [ObservableProperty] private int? _providerCertificateEntryNumber;
+
+    /// <summary>
+    /// この契約における初回サービス提供日。請求CSVの開始年月日（provider:J121:02:008）の正本で、
+    /// 契約ごとに実情が異なるため導出せず個別に入力する。
+    /// </summary>
+    [ObservableProperty] private DateOnly? _providerFirstServiceDate;
     [ObservableProperty] private ContractedProviderDto? _selectedProvider;
     [ObservableProperty] private string? _providerSaveErrorMessage;
     [ObservableProperty] private bool _providerContextLoaded;
@@ -153,6 +159,7 @@ public sealed partial class CertificateViewModel(
         ProviderTerminationDate = value.TerminationDate;
         ProviderNotes = value.Notes ?? string.Empty;
         ProviderCertificateEntryNumber = value.CertificateEntryNumber;
+        ProviderFirstServiceDate = value.FirstServiceDate;
     }
 
     /// <summary>View の Loaded から呼ばれる初期化フック。利用者一覧を読み込む。</summary>
@@ -384,6 +391,7 @@ public sealed partial class CertificateViewModel(
                 ProviderSupplyDays, ProviderContractDate, ProviderTerminationDate,
                 NullIfEmpty(ProviderNotes),
                 ProviderCertificateEntryNumber,
+                ProviderFirstServiceDate,
                 Environment.UserName, default);
             ProviderSaveErrorMessage = null;
             // フォームを初期化
@@ -392,6 +400,8 @@ public sealed partial class CertificateViewModel(
             ProviderNotes = string.Empty;
             ProviderTerminationDate = null;
             ProviderCertificateEntryNumber = null;
+            ProviderFirstServiceDate = null;
+            ProviderFirstServiceDate = null;
             await ReloadProvidersAsync();
         }
         catch (ArgumentException ex)
@@ -446,6 +456,7 @@ public sealed partial class CertificateViewModel(
                 ProviderTerminationDate,
                 NullIfEmpty(ProviderNotes),
                 ProviderCertificateEntryNumber,
+                ProviderFirstServiceDate,
                 Environment.UserName,
                 default);
             ProviderSaveErrorMessage = null;
@@ -512,6 +523,7 @@ public sealed partial class CertificateViewModel(
         ProviderTerminationDate = null;
         ProviderNotes = string.Empty;
         ProviderCertificateEntryNumber = null;
+        ProviderFirstServiceDate = null;
         ProviderContextLoaded = false;
         _loadedProviderCertificateId = Guid.Empty;
         if (clearError) ProviderSaveErrorMessage = null;

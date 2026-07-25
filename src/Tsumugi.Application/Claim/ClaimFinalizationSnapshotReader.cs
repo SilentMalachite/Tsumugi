@@ -62,6 +62,9 @@ public static class ClaimFinalizationSnapshotReader
             Recipient: ParseRecipient(RequireObject(root, "recipient")),
             Certificate: ParseCertificate(RequireObject(root, "certificate")),
             ClaimInput: ParseClaimInput(RequireObject(root, "claimInput")),
+            // Phase 3-3 で追加。これより前に確定した snapshot は本プロパティを持たないため任意扱いにし、
+            // 契約情報を要する CSV 項目は生成側で fail-close させる（黙って空欄で出さない）。
+            ContractedProvider: ParseContractedProvider(root),
             DailyRecords: ParseDailyRecords(RequireArray(root, "dailyRecords")),
             IntensiveSupportEpisode: ParseIntensiveSupportEpisode(RequireProperty(root, "intensiveSupportEpisode")),
             ClaimLines: ParseClaimLines(RequireArray(root, "claimLines")),
@@ -121,6 +124,22 @@ public static class ClaimFinalizationSnapshotReader
         IntensiveSupportApplied: RequireBool(record, "intensiveSupportApplied"),
         EmergencyAdmissionApplied: RequireBool(record, "emergencyAdmissionApplied"),
         RecipientConfirmation: RequireBool(record, "recipientConfirmation"));
+
+    private static ClaimFinalizationContractedProviderSnapshot? ParseContractedProvider(JsonElement root)
+    {
+        if (!root.TryGetProperty("contractedProvider", out var contractedProvider)
+            || contractedProvider.ValueKind == JsonValueKind.Null)
+        {
+            return null;
+        }
+
+        return new ClaimFinalizationContractedProviderSnapshot(
+            ContractedSupplyDays: RequireInt(contractedProvider, "contractedSupplyDays"),
+            ContractDate: ParseDate(RequireString(contractedProvider, "contractDate")),
+            TerminationDate: OptionalDate(contractedProvider, "terminationDate"),
+            CertificateEntryNumber: OptionalInt(contractedProvider, "certificateEntryNumber"),
+            FirstServiceDate: OptionalDate(contractedProvider, "firstServiceDate"));
+    }
 
     private static ClaimFinalizationIntensiveSupportEpisodeSnapshot? ParseIntensiveSupportEpisode(
         JsonElement episode)
@@ -210,6 +229,12 @@ public static class ClaimFinalizationSnapshotReader
         return property.ValueKind == JsonValueKind.Number && property.TryGetInt32(out var value)
             ? value
             : throw new InvalidOperationException($"フィールド '{propertyName}' は整数でなければなりません。");
+    }
+
+    private static DateOnly? OptionalDate(JsonElement obj, string propertyName)
+    {
+        var value = OptionalString(obj, propertyName);
+        return value is null ? null : ParseDate(value);
     }
 
     private static int? OptionalInt(JsonElement obj, string propertyName)

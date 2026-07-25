@@ -14,4 +14,5 @@ public sealed record ContractedProviderDto(
     DateOnly? TerminationDate,
     string? Notes,
     Guid ConcurrencyToken,
-    int? CertificateEntryNumber = null);
+    int? CertificateEntryNumber = null,
+    DateOnly? FirstServiceDate = null);

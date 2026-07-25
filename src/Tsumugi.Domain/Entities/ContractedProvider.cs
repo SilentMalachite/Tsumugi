@@ -24,6 +24,12 @@ public sealed record ContractedProvider : Entity
     /// <summary>サービス提供事業者記入欄の番号（J121:05:011、0～99）。</summary>
     public int? CertificateEntryNumber { get; init; }
 
+    /// <summary>
+    /// この契約における初回サービス提供日（J121:02:008 開始年月日）。契約ごとに実情が異なるため
+    /// 導出せず個別に入力する。当月の日次記録から推測すると、前月以前から継続する契約で誤値になる。
+    /// </summary>
+    public DateOnly? FirstServiceDate { get; init; }
+
     public static ContractedProvider Create(
         Guid id,
         Guid certificateId,
@@ -37,12 +43,16 @@ public sealed record ContractedProvider : Entity
         Guid concurrencyToken,
         DateOnly? terminationDate = null,
         string? notes = null,
-        int? certificateEntryNumber = null)
+        int? certificateEntryNumber = null,
+        DateOnly? firstServiceDate = null)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(contractedSupplyDays);
         if (certificateEntryNumber is < 0 or > 99)
             throw new ArgumentOutOfRangeException(
                 nameof(certificateEntryNumber), "証書記入欄番号は0から99の範囲で指定してください。");
+        if (firstServiceDate is { } first && first < contractDate)
+            throw new ArgumentOutOfRangeException(
+                nameof(firstServiceDate), "初回サービス提供日は契約日以降の日付を指定してください。");
         return new()
         {
             Id = id,
@@ -55,6 +65,7 @@ public sealed record ContractedProvider : Entity
             TerminationDate = terminationDate,
             Notes = notes,
             CertificateEntryNumber = certificateEntryNumber,
+            FirstServiceDate = firstServiceDate,
             CreatedBy = createdBy,
             CreatedAt = createdAt,
             ConcurrencyToken = concurrencyToken,

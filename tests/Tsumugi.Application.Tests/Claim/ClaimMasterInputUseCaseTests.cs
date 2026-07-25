@@ -114,7 +114,7 @@ public sealed class ClaimMasterInputUseCaseTests
         var dto = await sut.ExecuteAsync(
             Guid.NewGuid(), "1234567890", "つむぎ", "就労継続支援B型", 22,
             ContractDate, terminationDate: null, notes: null,
-            certificateEntryNumber: entryNumber, actor: "tester", ct: default);
+            certificateEntryNumber: entryNumber, firstServiceDate: null, actor: "tester", ct: default);
 
         repo.Stored.Should().NotBeNull();
         repo.Stored!.CertificateEntryNumber.Should().Be(entryNumber);
@@ -130,7 +130,7 @@ public sealed class ClaimMasterInputUseCaseTests
         await sut.ExecuteAsync(
             Guid.NewGuid(), "1234567890", "つむぎ", "就労継続支援B型", 22,
             ContractDate, terminationDate: null, notes: null,
-            certificateEntryNumber: null, actor: "tester", ct: default);
+            certificateEntryNumber: null, firstServiceDate: null, actor: "tester", ct: default);
 
         repo.Stored!.CertificateEntryNumber.Should().BeNull();
     }
@@ -146,7 +146,7 @@ public sealed class ClaimMasterInputUseCaseTests
         var act = () => sut.ExecuteAsync(
             Guid.NewGuid(), "1234567890", "つむぎ", "就労継続支援B型", 22,
             ContractDate, terminationDate: null, notes: null,
-            certificateEntryNumber: entryNumber, actor: "tester", ct: default);
+            certificateEntryNumber: entryNumber, firstServiceDate: null, actor: "tester", ct: default);
 
         await act.Should().ThrowAsync<ArgumentOutOfRangeException>();
     }
@@ -161,7 +161,7 @@ public sealed class ClaimMasterInputUseCaseTests
         await sut.ExecuteAsync(
             current.Id, current.ConcurrencyToken, current.ProviderNumber, current.ProviderName,
             current.ServiceCategory, current.ContractedSupplyDays, current.ContractDate,
-            current.TerminationDate, current.Notes, certificateEntryNumber: 0,
+            current.TerminationDate, current.Notes, certificateEntryNumber: 0, firstServiceDate: null,
             actor: "tester", ct: default);
 
         repo.Stored!.CertificateEntryNumber.Should().Be(0);
@@ -177,7 +177,7 @@ public sealed class ClaimMasterInputUseCaseTests
         var act = () => sut.ExecuteAsync(
             current.Id, Guid.NewGuid(), current.ProviderNumber, current.ProviderName,
             current.ServiceCategory, current.ContractedSupplyDays, current.ContractDate,
-            current.TerminationDate, current.Notes, certificateEntryNumber: 99,
+            current.TerminationDate, current.Notes, certificateEntryNumber: 99, firstServiceDate: null,
             actor: "tester", ct: default);
 
         await act.Should().ThrowAsync<Tsumugi.Application.OptimisticConcurrencyException>();

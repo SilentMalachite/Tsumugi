@@ -29,10 +29,68 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
 
     public ClaimCsvExportProductionWiringTests(SqliteFixture fixture) => _fixture = fixture;
 
-    // Phase 3-3 コードレビューで判明: 明細書「契約情報」レコード（provider:J121:05）が要求する
-    // 契約支給量・契約開始年月日・事業者記入欄番号、および開始年月日（provider:J121:02:008）は
-    // finalization snapshot v2 に含まれない。当月の日次記録から推測せず fail-close する。
-    // snapshot が契約情報を持つようになれば、ここは生成成功の証跡へ置き換える。
+    // 契約情報（サービス事業者記入欄）が確定 snapshot に入っていれば、実データから CSV が出る。
+    [Fact]
+    public async Task Real_wiring_generates_cp932_csv_and_appends_the_export_history()
+    {
+        await using var context = _fixture.NewContext();
+        var (officeId, serviceMonth) = await SeedFinalizedBatchAsync(context, month: 7, withContract: true);
+
+        var result = await CreateUseCase(context).ExecuteAsync(
+            officeId, serviceMonth, new ProcessingMonth(2026, 8), "tester", default);
+
+        result.Bytes.Should().NotBeEmpty();
+        result.Sha256.Should().Be(Convert.ToHexStringLower(SHA256.HashData(result.Bytes)));
+        result.SuggestedFileName.Should().Match("kokuho_1312345678_202608_*.csv");
+
+        var text = CsvCellEncoder.Cp932.GetString(result.Bytes);
+        text.Should().EndWith("\r\n");
+        var lines = text.Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
+        lines[0].Should().StartWith("1,");
+        lines[^1].Should().StartWith("3,");
+        // 明細書「契約情報」レコードが出ていること（契約支給量 22 / 契約開始年月日 20260401）。
+        lines.Should().ContainSingle(line => line.Contains(",J121,05,", StringComparison.Ordinal))
+            .Which.Should().ContainAll("22", "20260401");
+
+        var history = await new ClaimCsvExportRepository(context)
+            .ListByBatchAsync(await LatestBatchIdAsync(context, officeId, serviceMonth), default);
+        history.Should().ContainSingle();
+        history[0].Sha256.Should().Be(result.Sha256);
+        history[0].ByteLength.Should().Be(result.Bytes.Length);
+    }
+
+    // AC3-7: 処理対象年月はサービス提供年月と独立した入力。
+    [Fact]
+    public async Task Real_wiring_writes_the_processing_month_independently_from_the_service_month()
+    {
+        await using var context = _fixture.NewContext();
+        var (officeId, serviceMonth) = await SeedFinalizedBatchAsync(context, month: 9, withContract: true);
+
+        var result = await CreateUseCase(context).ExecuteAsync(
+            officeId, serviceMonth, new ProcessingMonth(2026, 11), "tester", default);
+
+        var control = CsvCellEncoder.Cp932.GetString(result.Bytes).Split("\r\n")[0].Split(',');
+        control[9].Should().Be("202611");
+        control.Should().NotContain("202609");
+    }
+
+    [Fact]
+    public async Task Real_wiring_is_byte_deterministic_for_the_same_finalized_batch()
+    {
+        await using var context = _fixture.NewContext();
+        var (officeId, serviceMonth) = await SeedFinalizedBatchAsync(context, month: 10, withContract: true);
+        var useCase = CreateUseCase(context);
+
+        var first = await useCase.ExecuteAsync(
+            officeId, serviceMonth, new ProcessingMonth(2026, 11), "tester", default);
+        var second = await useCase.ExecuteAsync(
+            officeId, serviceMonth, new ProcessingMonth(2026, 11), "tester", default);
+
+        second.Bytes.Should().Equal(first.Bytes);
+    }
+
+    // NOTE(teeth): 契約情報が未入力の確定分（Phase 3-3 より前に確定した snapshot を含む）は、
+    // 当月の日次記録から推測せず fail-close する。
     [Fact]
     public async Task Real_wiring_fails_closed_when_the_finalized_snapshot_has_no_contract_information()
     {
@@ -146,7 +204,8 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
         TsumugiDbContext context,
         int month,
         string kanaName = "ﾂﾑｷﾞ ﾀﾛｳ",
-        string csvSpecificationVersion = "r7-10")
+        string csvSpecificationVersion = "r7-10",
+        bool withContract = false)
     {
         var officeId = Guid.NewGuid();
         var serviceMonth = new ServiceMonth(2026, month);
@@ -156,7 +215,7 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
             "master-v1", csvSpecificationVersion, "report-v1", "snapshot-app-v1", "operation-app-v1",
             Guid.NewGuid(), ClaimBatch.CurrentOperationPayloadSchemaVersion, new string('a', 64),
             "tester", FixedNow);
-        var snapshot = BuildSnapshot(serviceMonth, kanaName);
+        var snapshot = BuildSnapshot(serviceMonth, kanaName, withContract);
         var detail = ClaimDetail.Create(
             Guid.NewGuid(), batch.Id, snapshot.RecipientId, "claim-snapshot-v2",
             "master-v1", "r7-10", "report-v1", "snapshot-app-v1",
@@ -172,7 +231,8 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
         return (officeId, serviceMonth);
     }
 
-    private static ClaimFinalizationSnapshot BuildSnapshot(ServiceMonth serviceMonth, string kanaName) => new(
+    private static ClaimFinalizationSnapshot BuildSnapshot(
+        ServiceMonth serviceMonth, string kanaName, bool withContract) => new(
         RecipientId: Guid.Parse("11111111-1111-1111-1111-111111111111"),
         ServiceMonth: serviceMonth,
         ClaimMasterVersion: "master-v1",
@@ -202,7 +262,15 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
         TotalUnits: 3000,
         TotalCostYen: 30000,
         BenefitYen: 27000,
-        BurdenYen: 3000);
+        BurdenYen: 3000,
+        ContractedProvider: withContract
+            ? new ClaimFinalizationContractedProviderSnapshot(
+                ContractedSupplyDays: 22,
+                ContractDate: new DateOnly(2026, 4, 1),
+                TerminationDate: null,
+                CertificateEntryNumber: 1,
+                FirstServiceDate: new DateOnly(2026, 4, 1))
+            : null);
 
     private static ClaimFinalizationDailyRecordSnapshot Day(ServiceMonth month, int day) => new(
         new DateOnly(month.Year, month.Month, day),

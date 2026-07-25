@@ -134,9 +134,17 @@ public sealed class ExportClaimCsvUseCase(
         ExceptionalUsageDays: snapshot.ClaimInput.ExceptionalUsageDays,
         StandardUsageDayTotal: snapshot.ClaimInput.StandardUsageDayTotal,
         IntensiveSupportEpisodeStartDate: snapshot.IntensiveSupportEpisode?.StartDate,
-        // 契約情報（provider:J121:05 / 開始年月日）は finalization snapshot v2 に含まれない。
-        // 当月の日次記録から推測せず null を渡し、必須項目として fail-close させる。
-        Contract: null,
+        // 契約情報（provider:J121:05 / 開始年月日）は確定時点の「サービス事業者記入欄」から採る。
+        // 受給者証に自事業所の行が無い、または初回サービス提供日が未入力なら null のまま渡し、
+        // 必須項目として fail-close させる（推測で埋めない）。
+        Contract: snapshot.ContractedProvider is { } contract
+            ? new ClaimCsvContractDto(
+                contract.ContractedSupplyDays,
+                contract.ContractDate,
+                contract.TerminationDate,
+                contract.CertificateEntryNumber,
+                contract.FirstServiceDate)
+            : null,
         ServiceLines: [.. snapshot.ClaimLines
             .OrderBy(line => line.ServiceCode, StringComparer.Ordinal)
             .Select(line => new ClaimCsvServiceLineDto(line.ServiceCode, line.Unit, line.Count))],

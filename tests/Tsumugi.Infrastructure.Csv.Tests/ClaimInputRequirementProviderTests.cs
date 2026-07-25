@@ -12,9 +12,10 @@ public sealed class ClaimInputRequirementProviderTests
         var requirements = ClaimInputRequirementProvider.LoadEmbedded().GetRequirements();
 
         requirements.Select(requirement => requirement.TargetPath).Should()
-            .HaveCount(26).And.OnlyHaveUniqueItems();
+            // Phase 3-3 で ContractedProvider.FirstServiceDate（開始年月日の個別入力）を追加した。
+            .HaveCount(27).And.OnlyHaveUniqueItems();
         requirements.SelectMany(requirement => requirement.FieldIds).Should()
-            .HaveCount(51).And.OnlyHaveUniqueItems();
+            .HaveCount(52).And.OnlyHaveUniqueItems();
         requirements.Should().OnlyContain(requirement =>
             requirement.Destination != ClaimInputDestination.Unknown);
     }

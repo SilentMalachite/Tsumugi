@@ -68,8 +68,8 @@ public sealed record ClaimCsvContractDto(
     int ContractedSupplyDays,
     DateOnly ContractDate,
     DateOnly? TerminationDate,
-    int CertificateEntryNumber,
-    DateOnly FirstServiceDate);
+    int? CertificateEntryNumber,
+    DateOnly? FirstServiceDate);
 
 /// <param name="Unit">1回あたり単位数。</param>
 /// <param name="Count">回数。</param>

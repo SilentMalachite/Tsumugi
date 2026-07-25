@@ -22,7 +22,8 @@ public sealed class OperationLocalSnapshotReader(
     ICertificateRepository certificateRepository,
     IDailyRecordRepository dailyRecordRepository,
     IIntensiveSupportEpisodeRepository intensiveSupportEpisodeRepository,
-    IClaimInputRepository claimInputRepository) : IOperationLocalSnapshotReader
+    IClaimInputRepository claimInputRepository,
+    IContractedProviderRepository contractedProviderRepository) : IOperationLocalSnapshotReader
 {
     public async Task<ClaimFinalizationSnapshot> ReadAsync(
         Guid officeId,
@@ -68,6 +69,15 @@ public sealed class OperationLocalSnapshotReader(
             ?? throw new InvalidOperationException(
                 $"recipientId={recipientId} のserviceMonth={serviceMonth}時点で実効なCertificateが存在しない。");
 
+        // 「サービス事業者記入欄」から自事業所の契約行を採る。受給者証に記録が無ければ null のまま
+        // 確定を通し、契約情報を要する CSV 項目は生成側で fail-close させる（確定は妨げない）。
+        var contractedProviders = await contractedProviderRepository.ListByCertificateAsync(certificate.Id, ct);
+        var ownContract = contractedProviders
+            .Where(provider => string.Equals(
+                provider.ProviderNumber, office.OfficeNumber, StringComparison.Ordinal))
+            .OrderByDescending(provider => provider.ContractDate)
+            .FirstOrDefault();
+
         var claimInput = ClaimInputPolicy.Effective(claimInputHistoryTask.Result);
         var intensiveSupportEpisode = IntensiveSupportEpisodePolicy.Effective(intensiveSupportHistoryTask.Result);
         var dailyRecordSnapshots = DailyRecordPolicy.EffectiveByDate(dailyRecordsTask.Result)
@@ -95,7 +105,15 @@ public sealed class OperationLocalSnapshotReader(
             calculationResult.TotalUnits,
             calculationResult.TotalCostYen,
             calculationResult.BenefitYen,
-            calculationResult.BurdenYen);
+            calculationResult.BurdenYen,
+            ownContract is null
+                ? null
+                : new ClaimFinalizationContractedProviderSnapshot(
+                    ownContract.ContractedSupplyDays,
+                    ownContract.ContractDate,
+                    ownContract.TerminationDate,
+                    ownContract.CertificateEntryNumber,
+                    ownContract.FirstServiceDate));
     }
 
     private static ClaimFinalizationOfficeSnapshot BuildOfficeSnapshot(Office office)

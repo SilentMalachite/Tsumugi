@@ -295,14 +295,30 @@ public sealed class OperationLocalSnapshotReaderTests
         Certificate? certificate,
         IReadOnlyList<DailyRecord> dailyRecords,
         IReadOnlyList<IntensiveSupportEpisode> episodes,
-        IReadOnlyList<ClaimInput> claimInputs)
+        IReadOnlyList<ClaimInput> claimInputs,
+        IReadOnlyList<ContractedProvider>? contractedProviders = null)
         => new(
             new FakeOfficeRepository(office),
             new FakeRecipientRepository(recipient),
             new FakeCertificateRepository(certificate),
             new FakeDailyRecordRepository(dailyRecords),
             new FakeIntensiveSupportEpisodeRepository(episodes),
-            new FakeClaimInputRepository(claimInputs));
+            new FakeClaimInputRepository(claimInputs),
+            new FakeContractedProviderRepository(contractedProviders ?? []));
+
+    private sealed class FakeContractedProviderRepository(IReadOnlyList<ContractedProvider> providers)
+        : IContractedProviderRepository
+    {
+        public Task AddAsync(ContractedProvider provider, CancellationToken ct) => Task.CompletedTask;
+
+        public Task<ContractedProvider?> FindByIdAsync(Guid id, CancellationToken ct) =>
+            Task.FromResult<ContractedProvider?>(null);
+
+        public Task UpdateAsync(ContractedProvider provider, CancellationToken ct) => Task.CompletedTask;
+
+        public Task<IReadOnlyList<ContractedProvider>> ListByCertificateAsync(
+            Guid certificateId, CancellationToken ct) => Task.FromResult(providers);
+    }
 
     private sealed class FakeOfficeRepository(Office? office) : IOfficeRepository
     {

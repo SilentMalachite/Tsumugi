@@ -7,10 +7,10 @@
 
 ---
 
-> **状態（2026-07-25 Codex レビュー後）**: AC3-7 の 7 項目は CSV 生成器のレベルで充足しているが、
-> **確定済み請求からの実出力は blocked**。明細書「契約情報」レコード（`provider:J121:05`）と
-> 開始年月日（`provider:J121:02:008`）が要求する契約情報が finalization snapshot v2 に無いため、
-> 実データでは fail-close する。詳細は §9-3。
+> **状態（2026-07-25）**: AC3-7 の 7 項目を達成。Codex レビューの指摘を全件トリアージし、
+> 明細書「契約情報」レコード（`provider:J121:05`）と開始年月日（`provider:J121:02:008`）は
+> **受給者証「サービス事業者記入欄」の個別入力**を正本とする方式（ADR 0032）で解消した。
+> 契約情報が未入力・または Phase 3-3 より前に確定した分は fail-close する（推測で埋めない）。
 
 ## 1. AC3-7 の判定
 
@@ -21,7 +21,7 @@
 | 3 | 外側3レコード（control=1 / data=2..n / end=3） | ✅ | `ClaimCsvGeneratorTests.Generate_writes_the_outer_three_record_frame` / `..._numbers_records_from_one_and_ends_at_data_count_plus_two` |
 | 4 | 公式の内側レコード順 | ✅ | `ClaimCsvGeneratorTests.Generate_emits_inner_records_in_the_official_record_order` |
 | 5 | バイトスナップショット一致 | ✅ | `GoldenCsvSnapshotTests.Generated_csv_matches_the_golden_fixture_byte_for_byte`（normal / correction / cjk / multi） |
-| 6 | CSV は確定済み実効 `ClaimBatch` のみから | ✅ | `ClaimCsvExportProductionWiringTests.Real_wiring_fails_closed_when_no_finalized_batch_exists`（`ClaimBatchNotFinalizedException`）。`ExportClaimCsvUseCase` は `IClaimBatchRepository` の履歴から `Kind != Cancel` の最大 revision だけを採る |
+| 6 | CSV は確定済み実効 `ClaimBatch` のみから | ✅ | `ClaimCsvExportProductionWiringTests.Real_wiring_fails_closed_when_no_finalized_batch_exists` / `..._refuses_to_export_when_the_head_revision_is_a_cancellation`。head は Cancel を含む最大 revision（`ClaimBatchPolicy.Head` と同じ規則）で解決し、head が Cancel なら拒否する |
 | 7 | 決定論 | ✅ | `GoldenCsvSnapshotTests.Generated_csv_is_deterministic_for_the_same_input` / `ClaimCsvExportProductionWiringTests.Real_wiring_is_byte_deterministic_for_the_same_finalized_batch` |
 
 ---
@@ -123,7 +123,7 @@ DSL の語彙は `CsvGeneratorRuleParserTests.The_embedded_specification_uses_ex
 
 1. **R8.6 サービスコード表の独立 seed は見送り**: CSV writer はサービスコードを確定済み snapshot の `ClaimLines[].ServiceCode` からコピーするだけで、独立カタログを必要としない。一次資料（URL / SHA256 / 取得日）が未入手のため、`service-code-r8-06.json` は作らない（ADR 0031）。
 2. **地域区分コードの「その他」**: `RegionGrade.Grade1..Grade7` は級地番号のゼロ詰め（`01`..`07`）とした。`Other` / `None` の公式コードはリポジトリ内の一次資料から確定できないため fail-close する。
-3. **`provider:J121:02:008`（開始年月日）と `provider:J121:05`（契約情報）**: 契約情報が finalization snapshot v2 に無いため、実データでは fail-close する（推測しない）。**解消には snapshot へ契約支給量・契約開始/終了年月日・事業者記入欄番号・初回サービス提供日を追加する必要があり、これは Phase 3-2 の snapshot 契約の変更（版上げ＋既存確定分の再確定）を伴う。**
+3. **`provider:J121:02:008`（開始年月日）と `provider:J121:05`（契約情報）**: 受給者証「サービス事業者記入欄」の個別入力を正本とし（ADR 0032）、確定時に snapshot へ焼き込む。**Phase 3-3 より前に確定した請求は snapshot に契約情報を持たないため、CSV 化には再確定が必要**（該当分は fail-close する）。自事業所の行が受給者証に無い場合も fail-close する。
 4. **`provider:J121:02:009`（終了年月日）**: 契約終了は snapshot v2 に含まれないため常に空欄。任意項目のため spec 上の不整合は生じない。
 5. **`provider:J611:01:052`（`measure=billableOccurrences`）/ `:054`（`window=official180DayWindow`）**: 算定回数・180日窓の意味論が確定できないため、該当データが存在するときだけ fail-close する。該当なしの場合は条件が偽になり空欄で通る。
 6. **`provider:J611:01:070`〜`072`（初期加算）/ `ClaimServiceLine.SummaryNote` / `DailyRecord.Note` / `ContractedProvider.*`**: finalization snapshot v2 に含まれない。いずれも条件付き項目のため空欄が正しい出力になる。`provider:J121:05`（経過措置）は 0 レコードで出力する。
@@ -193,6 +193,34 @@ Codex（読み取り専用レビュー）から CRITICAL 1 / HIGH 9 / MEDIUM 1�
 
 ---
 
+## 9-4. 契約情報の個別入力（ADR 0032・2026-07-25）
+
+Codex レビューの CRITICAL（契約情報レコードの欠落）と HIGH（開始年月日の推測）は、いずれも
+「契約ごとに実情が異なる値を導出しようとしていた」ことが原因だった。導出をやめ、個別入力を正本にした。
+
+| CSV 項目 | 正本 | 入力面 |
+|---|---|---|
+| `provider:J121:05:008` 契約支給量 | `ContractedProvider.ContractedSupplyDays` | `CertificateView`（既存） |
+| `provider:J121:05:009` 契約開始年月日 | `ContractedProvider.ContractDate` | `CertificateView`（既存） |
+| `provider:J121:05:010` 契約終了年月日 | `ContractedProvider.TerminationDate` | `CertificateView`（既存） |
+| `provider:J121:05:011` 事業者記入欄番号 | `ContractedProvider.CertificateEntryNumber` | `CertificateView`（既存） |
+| `provider:J121:02:008` 開始年月日 | `ContractedProvider.FirstServiceDate`（**新規追加**） | `CertificateView` |
+
+- `field-mapping-r7-10.json` の `provider:J121:02:008` を `generated`（min 導出）から
+  `missing`（`ContractedProvider.FirstServiceDate`）へ変更。これで readiness gate が確定前に未入力を検出する。
+  generatorRule 375→374 件、missing 30→31 件、readiness target 26→27 path。
+- 確定時に `OperationLocalSnapshotReader` が「サービス事業者記入欄」から**自事業所（事業所番号一致）の行**を
+  選び、`ClaimFinalizationContractedProviderSnapshot` として焼き込む。該当行が無ければ null のまま確定を通し、
+  CSV 側で fail-close する（確定操作は妨げない）。
+- `min(selector=...)` の評価器は撤去した。導出への逆戻りは fail-close する。
+
+証跡: `ClaimCsvExportProductionWiringTests.Real_wiring_generates_cp932_csv_and_appends_the_export_history`
+（契約情報あり → 実データから生成成功・J121:05 レコードを検証）/
+`..._fails_closed_when_the_finalized_snapshot_has_no_contract_information`（未入力 → fail-close）/
+`ViewInputWiringTests`（`CertificateView` の入力欄）。
+
+---
+
 ## 10. `./build/ci.sh` 実行証跡
 
 2026-07-25 実行、**全ゲート緑**。
@@ -207,14 +235,14 @@ Codex（読み取り専用レビュー）から CRITICAL 1 / HIGH 9 / MEDIUM 1�
 成功!  失敗: 0、合格:   183 - Tsumugi.Infrastructure.Csv.Tests.dll
 成功!  失敗: 0、合格:    30 - Tsumugi.Infrastructure.Reporting.Tests.dll
 成功!  失敗: 0、合格:   254 - Tsumugi.App.Tests.dll
-成功!  失敗: 0、合格:   637 - Tsumugi.Infrastructure.Tests.dll
+成功!  失敗: 0、合格:   640 - Tsumugi.Infrastructure.Tests.dll
 ==> coverage threshold gate
 Tsumugi.Domain      Line 95.63% / Branch 88.29% / Method 93.89%  (floor 95%)
 Tsumugi.Application Line 90.57% / Branch 84.26% / Method 84.28%  (floor 70%)
 ==> CI OK
 ```
 
-合計 2,192 テスト（Codex レビュー対応で 22 追加）（Phase 3-3 で追加した主なテストクラス: `ClaimCsvExportTests` 11 /
+合計 2,195 テスト（Codex レビュー対応と契約情報の個別入力で 25 追加）（Phase 3-3 で追加した主なテストクラス: `ClaimCsvExportTests` 11 /
 `ClaimCsvExportRepositoryTests` 6 / `CsvCellEncoderTests` 29 / `CsvGeneratorRuleParserTests` 14 /
 `ClaimCsvGeneratorTests` 10 / `GoldenCsvSnapshotTests` 13 / `ClaimCsvRowScopeTests` 4 / `ExceptionalUsageCrossFieldTests` 5 /
 `Tsumugi.Infrastructure.Csv.Tests.ArchitectureTests` 6 / `ClaimCsvExportProductionWiringTests` 5 /

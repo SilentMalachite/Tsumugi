@@ -240,6 +240,11 @@ public static class ClaimPreparationContextBuilder
             [Path(nameof(ContractedProvider), nameof(ContractedProvider.CertificateEntryNumber))] =
                 NumberOrNotApplicable(contractedProvider?.CertificateEntryNumber),
 
+            // ContractedProvider.FirstServiceDate（Phase 3-3）。請求CSVの開始年月日
+            // （provider:J121:02:008）の正本で常時必須。契約ごとに実情が異なるため導出しない。
+            [Path(nameof(ContractedProvider), nameof(ContractedProvider.FirstServiceDate))] =
+                DateOrNotApplicable(contractedProvider?.FirstServiceDate),
+
             // DailyRecord.*（Task 9c）。いずれも自己参照条件（modelPresent/modelNonZero/modelTrue/
             // modelIn）で、当月の実効Present日次記録から縮約した代表値を渡す
             // （ClaimDailyRecordAggregateの縮約規則はそのdoc-comment参照）。

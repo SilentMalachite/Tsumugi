@@ -715,9 +715,12 @@
     {
       "fieldId": "provider:J121:02:008",
       "requiredCondition": "always",
-      "notes": "",
-      "status": "generated",
-      "generatorRule": "min(target=provider:J121:02:008;selector=DailyRecord.ServiceDate;filter=first-service-date-in-effective-continuous-contract;lowerBound=20060401;source=provider-r7-10:p22:item8+p23:B-type-setting)"
+      "notes": "Phase 3-3: 当月の日次記録から推測すると継続契約で誤値になるため、導出をやめて契約ごとの個別入力にした（ADR 0032）",
+      "status": "missing",
+      "targetModel": "ContractedProvider",
+      "targetProperty": "FirstServiceDate",
+      "migrationRequired": true,
+      "uiSurface": "CertificateView"
     },
     {
       "fieldId": "provider:J121:02:009",

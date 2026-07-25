@@ -141,6 +141,8 @@ internal static class ClaimCsvModelPath
                 scope.RequireRecipient(path).Contract?.TerminationDate, ClaimCsvValue.FromDate),
             "ContractedProvider.CertificateEntryNumber" => ClaimCsvValue.FromOptionalNumber(
                 scope.RequireRecipient(path).Contract?.CertificateEntryNumber),
+            "ContractedProvider.FirstServiceDate" => ClaimCsvValue.FromOptional(
+                scope.RequireRecipient(path).Contract?.FirstServiceDate, ClaimCsvValue.FromDate),
 
             "DailyRecord.ServiceDate" => ClaimCsvValue.FromDate(scope.RequireDay(path).ServiceDate),
             "DailyRecord.Attendance" => ClaimCsvValue.FromNumber(scope.RequireDay(path).AttendanceCode),

@@ -28,7 +28,12 @@ public sealed record ClaimFinalizationSnapshot(
     int TotalUnits,
     int TotalCostYen,
     int BenefitYen,
-    int BurdenYen);
+    int BurdenYen,
+    /// <summary>
+    /// 確定時点の「サービス事業者記入欄」（自事業所との契約）。Phase 3-3 で追加したため、
+    /// これより前に確定した snapshot では null になる。canonical JSON 上の位置は Writer が決める。
+    /// </summary>
+    ClaimFinalizationContractedProviderSnapshot? ContractedProvider = null);
 
 public sealed record ClaimFinalizationOfficeSnapshot(
     string OfficeNumber,
@@ -48,6 +53,18 @@ public sealed record ClaimFinalizationCertificateSnapshot(
     int MonthlyCostCap,
     string? UpperLimitManagementProviderNumber,
     string? UpperLimitManagementProviderName);
+
+/// <summary>
+/// 確定時点の「サービス事業者記入欄」（自事業所との契約）。明細書 契約情報レコード
+/// （<c>provider:J121:05</c>）と開始年月日（<c>provider:J121:02:008</c>）の正本。
+/// 自事業所の行が受給者証に記録されていない場合は null で、CSV 生成側が fail-close する。
+/// </summary>
+public sealed record ClaimFinalizationContractedProviderSnapshot(
+    int ContractedSupplyDays,
+    DateOnly ContractDate,
+    DateOnly? TerminationDate,
+    int? CertificateEntryNumber,
+    DateOnly? FirstServiceDate);
 
 public sealed record ClaimFinalizationClaimInputSnapshot(
     string? UpperLimitManagementResult,

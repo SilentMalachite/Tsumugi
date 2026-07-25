@@ -291,6 +291,10 @@
                                 <TextBlock Text="契約終了日" />
                                 <TextBox Text="{Binding ProviderTerminationDate, Converter={x:Static conv:DateOnlyConverter.Instance}}" />
                             </StackPanel>
+                            <StackPanel Spacing="2" Width="140">
+                                <TextBlock Text="初回サービス提供日" />
+                                <TextBox Text="{Binding ProviderFirstServiceDate, Converter={x:Static conv:DateOnlyConverter.Instance}}" />
+                            </StackPanel>
                         </StackPanel>
                         <StackPanel Spacing="2">
                             <TextBlock Text="備考" />

@@ -17,6 +17,7 @@ public sealed class UpdateContractedProviderUseCase(
         DateOnly? terminationDate,
         string? notes,
         int? certificateEntryNumber,
+        DateOnly? firstServiceDate,
         string actor,
         CancellationToken ct)
     {
@@ -42,6 +43,7 @@ public sealed class UpdateContractedProviderUseCase(
             throw new ArgumentException(
                 "契約終了日は契約日以後である必要があります。", nameof(terminationDate));
         RegisterContractedProviderUseCase.ValidateCertificateEntryNumber(certificateEntryNumber);
+        RegisterContractedProviderUseCase.ValidateFirstServiceDate(firstServiceDate, contractDate);
 
         var updated = existing with
         {
@@ -53,6 +55,7 @@ public sealed class UpdateContractedProviderUseCase(
             TerminationDate = terminationDate,
             Notes = notes,
             CertificateEntryNumber = certificateEntryNumber,
+            FirstServiceDate = firstServiceDate,
         };
 
         await repo.UpdateAsync(updated, ct);

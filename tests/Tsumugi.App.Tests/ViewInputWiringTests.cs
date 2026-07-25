@@ -41,6 +41,8 @@ public sealed class ViewInputWiringTests
         certificate.Should().Contain("{Binding SubsidyMunicipalityNumber}");
         certificate.Should().Contain("{Binding UpperLimitManagementProviderNumber}");
         certificate.Should().Contain("{Binding ProviderCertificateEntryNumber}");
+        // Phase 3-3: 請求CSVの開始年月日（provider:J121:02:008）は契約ごとの個別入力（ADR 0032）。
+        certificate.Should().Contain("{Binding ProviderFirstServiceDate,");
         certificate.Should().Contain("{Binding SelectedProvider}");
         certificate.Should().NotContain("CertificateClaimEvidence");
         certificate.Should().NotContain("Article31");

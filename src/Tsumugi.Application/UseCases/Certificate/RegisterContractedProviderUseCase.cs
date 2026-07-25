@@ -10,7 +10,7 @@ namespace Tsumugi.Application.UseCases.Certificate;
 public sealed class RegisterContractedProviderUseCase(
     IContractedProviderRepository repo, IUnitOfWork uow, TimeProvider clock)
 {
-    public async Task<ContractedProviderDto> ExecuteAsync(
+    public Task<ContractedProviderDto> ExecuteAsync(
         Guid certificateId,
         string providerNumber,
         string providerName,
@@ -21,10 +21,10 @@ public sealed class RegisterContractedProviderUseCase(
         string? notes,
         string actor,
         CancellationToken ct)
-        => await ExecuteAsync(
+        => ExecuteAsync(
             certificateId, providerNumber, providerName, serviceCategory,
             contractedSupplyDays, contractDate, terminationDate, notes,
-            certificateEntryNumber: null, actor, ct);
+            certificateEntryNumber: null, firstServiceDate: null, actor, ct);
 
     public async Task<ContractedProviderDto> ExecuteAsync(
         Guid certificateId,
@@ -36,6 +36,7 @@ public sealed class RegisterContractedProviderUseCase(
         DateOnly? terminationDate,
         string? notes,
         int? certificateEntryNumber,
+        DateOnly? firstServiceDate,
         string actor,
         CancellationToken ct)
     {
@@ -51,6 +52,7 @@ public sealed class RegisterContractedProviderUseCase(
         if (terminationDate is { } t && t < contractDate)
             throw new ArgumentException("契約終了日は契約日以後である必要があります。", nameof(terminationDate));
         ValidateCertificateEntryNumber(certificateEntryNumber);
+        ValidateFirstServiceDate(firstServiceDate, contractDate);
 
         var entity = ContractedProvider.Create(
             id: Guid.NewGuid(),
@@ -65,7 +67,8 @@ public sealed class RegisterContractedProviderUseCase(
             concurrencyToken: Guid.NewGuid(),
             terminationDate: terminationDate,
             notes: notes,
-            certificateEntryNumber: certificateEntryNumber);
+            certificateEntryNumber: certificateEntryNumber,
+            firstServiceDate: firstServiceDate);
 
         await repo.AddAsync(entity, ct);
         await uow.SaveChangesAsync(ct);
@@ -76,7 +79,15 @@ public sealed class RegisterContractedProviderUseCase(
     internal static ContractedProviderDto ToDto(ContractedProvider e) => new(
         e.Id, e.CertificateId, e.ProviderNumber, e.ProviderName, e.ServiceCategory,
         e.ContractedSupplyDays, e.ContractDate, e.TerminationDate, e.Notes, e.ConcurrencyToken,
-        e.CertificateEntryNumber);
+        e.CertificateEntryNumber, e.FirstServiceDate);
+
+    /// <summary>初回サービス提供日は契約日以降。請求CSVの開始年月日（J121:02:008）の正本になる。</summary>
+    internal static void ValidateFirstServiceDate(DateOnly? firstServiceDate, DateOnly contractDate)
+    {
+        if (firstServiceDate is { } first && first < contractDate)
+            throw new ArgumentException(
+                "初回サービス提供日は契約日以後である必要があります。", nameof(firstServiceDate));
+    }
 
     internal static void ValidateCertificateEntryNumber(int? certificateEntryNumber)
     {

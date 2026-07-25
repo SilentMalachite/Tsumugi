@@ -333,23 +333,11 @@ internal sealed class ClaimCsvFieldResolver
                 AsNumber(value, fields[index])).Min());
         }
 
-        // 「有効な継続契約における最初のサービス提供日」。当月の日次記録から推測すると、前月以前から
-        // 継続している契約で誤った開始年月日を出してしまう。確定時点の契約が持つ初回サービス提供日
-        // だけを正本にし、無ければ Missing（必須項目なので encoder が fail-close する）。
-        if (scope.RequireRecipient(rule.Require("selector")).Contract is not { } contract)
-        {
-            return ClaimCsvValue.Missing;
-        }
-
-        var earliest = contract.FirstServiceDate;
-        if (rule.Find("lowerBound") is { } lowerBound
-            && DateOnly.TryParseExact(lowerBound, "yyyyMMdd", CultureInfo.InvariantCulture, default, out var floor)
-            && earliest < floor)
-        {
-            earliest = floor;
-        }
-
-        return ClaimCsvValue.FromDate(earliest);
+        // selector 形式の min は spec 上「有効な継続契約における最初のサービス提供日」だけだったが、
+        // 当月の日次記録から推測すると継続契約で誤値になるため、個別入力へ移した（ADR 0032）。
+        // 残る min は fields 形式のみ。
+        throw Unresolvable(
+            scope.FieldId, "min with a selector is no longer derived; the value is entered per contract");
     }
 
     private static ClaimCsvValue EvaluateMax(CsvGeneratorRule rule, ClaimCsvResolutionScope scope)

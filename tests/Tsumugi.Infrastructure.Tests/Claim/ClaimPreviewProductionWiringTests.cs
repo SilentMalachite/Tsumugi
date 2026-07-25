@@ -586,7 +586,8 @@ public sealed class ClaimPreviewProductionWiringTests
                 new CertificateRepository(closeContext),
                 new DailyRecordRepository(closeContext),
                 new IntensiveSupportEpisodeRepository(closeContext),
-                new ClaimInputRepository(closeContext));
+                new ClaimInputRepository(closeContext),
+                new ContractedProviderRepository(closeContext));
             var closeUseCase = new CloseClaimUseCase(
                 new FakeSnapshotReader(snapshot),
                 JsonClaimMasterProvider.LoadEmbedded(),
@@ -890,7 +891,9 @@ public sealed class ClaimPreviewProductionWiringTests
             "tester",
             Now,
             Guid.NewGuid(),
-            certificateEntryNumber: 5);
+            certificateEntryNumber: 5,
+            // Phase 3-3: 請求CSVの開始年月日（provider:J121:02:008）は契約ごとの個別入力。
+            firstServiceDate: new DateOnly(2024, 4, 1));
 
         var dailyRecordAggregate = dailyRecordAggregateOverride ?? new ClaimDailyRecordAggregate(
             ServiceStartTime: new TimeOnly(9, 0),
