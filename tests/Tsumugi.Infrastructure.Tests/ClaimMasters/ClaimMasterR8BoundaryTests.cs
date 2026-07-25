@@ -390,6 +390,11 @@ public sealed class ClaimMasterR8BoundaryTests
     /// 単価を書き換えても通ってしまい、ADR 0044の決定内容（「非空」ではなく「継続」）を弱くしか
     /// 固定できていなかった。<see cref="Basic_reward_rows_continue_unchanged_across_the_r8_boundary"/>
     /// と同じ形（may/juneの行集合が完全一致）へ強化する。
+    /// Fix Wave I-1（最終レビュー）: may/juneの等価性だけでは、両方が同じ誤った値へ書き換わっても
+    /// 検出できない（値そのものを問わない）。ADR 0044「決定表（seed実値。これが値の唯一の出典）」
+    /// （地域単価8件・負担上限4件）から**ADR本文を読んで書き写した**数値で、2026-06に解決される
+    /// 実値そのものをpinする（seedを読んでseedと突き合わせる空転を避けるため、配列はADRの表から
+    /// 独立に作成した）。
     /// </summary>
     [Fact]
     public void Region_unit_prices_and_burden_caps_resolve_in_june_2026()
@@ -404,6 +409,178 @@ public sealed class ClaimMasterR8BoundaryTests
         june.BurdenCaps.Should().BeEquivalentTo(
             may.BurdenCaps,
             "負担上限はADR 0044によりR8-06でも無変更で継続する（新規行の追加・既存行の変更いずれも無い）");
+
+        // ADR 0044「決定表」（region-unit-prices.json）: 級地ごとの単価（円）。
+        var expectedRegionUnitPricesYen = new Dictionary<string, decimal>(StringComparer.Ordinal)
+        {
+            ["region-grade-1"] = 11.14m,
+            ["region-grade-2"] = 10.91m,
+            ["region-grade-3"] = 10.86m,
+            ["region-grade-4"] = 10.68m,
+            ["region-grade-5"] = 10.57m,
+            ["region-grade-6"] = 10.34m,
+            ["region-grade-7"] = 10.17m,
+            ["region-other"] = 10.00m,
+        };
+        var actualRegionUnitPricesYen = june.RegionUnitPrices.ToDictionary(
+            row => row.RegionKey, row => row.UnitPriceYen, StringComparer.Ordinal);
+        actualRegionUnitPricesYen.Keys.Should().BeEquivalentTo(
+            expectedRegionUnitPricesYen.Keys,
+            "ADR 0044決定表の8級地すべてがseedされていなければならない");
+        foreach (var (regionKey, expected) in expectedRegionUnitPricesYen)
+            actualRegionUnitPricesYen[regionKey].Should().Be(
+                expected, $"{regionKey} の単価はADR 0044決定表の値と一致しなければならない");
+
+        // ADR 0044「決定表」（burden-caps.json）: 負担区分ごとの上限額（円）。
+        var expectedBurdenCapsYen = new Dictionary<string, int>(StringComparer.Ordinal)
+        {
+            ["welfare"] = 0,
+            ["low-income"] = 0,
+            ["general-1"] = 9300,
+            ["general-2"] = 37200,
+        };
+        var actualBurdenCapsYen = june.BurdenCaps.ToDictionary(
+            row => row.BurdenCategory, row => row.CapYen, StringComparer.Ordinal);
+        actualBurdenCapsYen.Keys.Should().BeEquivalentTo(
+            expectedBurdenCapsYen.Keys,
+            "ADR 0044決定表の4区分すべてがseedされていなければならない");
+        foreach (var (burdenCategory, expected) in expectedBurdenCapsYen)
+            actualBurdenCapsYen[burdenCategory].Should().Be(
+                expected, $"{burdenCategory} の上限額はADR 0044決定表の値と一致しなければならない");
+    }
+
+    /// <summary>
+    /// Fix Wave I-1（最終レビュー）: R8改定対象の新12区分180行のうち、production seed経由で
+    /// 名指しで値をpinしていたのは
+    /// <see cref="Reform_target_option_11_resolves_to_the_service_code_and_units_from_adr_0046"/>
+    /// が固定する463340/837の1行だけだった。<see cref="Reform_target_offices_resolve_every_r8_numeric_band"/>
+    /// は<c>UnitsPerDay.Should().BePositive()</c>までしか見ないため、残り179行の単位数は
+    /// production seedを書き換えても全テストが緑のままだった。
+    ///
+    /// 15系列（定員5×人員配置3）それぞれについて、12区分（option 11〜22。band-48000-plus→
+    /// band-15000-18000の順＝ADR 0046決定表の列順）の単位数を配列でpinする。期待値の唯一の出典は
+    /// ADR 0046「決定表（180行。これが値の唯一の出典）」（Task 4節、サービス費（Ⅰ（６：１））・
+    /// （Ⅱ（７．５：１））・（Ⅲ（１０：１）の3表）であり、**ADR本文を読んで書き写した**
+    /// （production seedから生成した配列ではない。空転防止）。
+    ///
+    /// 180個をハッシュ1本へ畳み込む方式（案B）も検討したが、失敗時にどの系列のどの区分が
+    /// 壊れたか分からず診断性が低いため不採用。15配列に分ける方式（案A）は、テーマ引数
+    /// （capacityKey/staffingKey）と配列indexだけで壊れた箇所が一意に特定できる。
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(ExpectedR8BasicRewardUnitsBySeries))]
+    public void R8_basic_reward_units_match_adr_0046_decision_table(
+        string capacityKey, string staffingKey, int[] expectedUnitsInOptionOrder)
+    {
+        var june = Provider.ResolveCalculationMasters(June2026);
+
+        var actualUnitsInOptionOrder = BandsInOfficialOptionOrder
+            .Select(band => june.BasicRewards.Single(row =>
+                    row.EffectiveFrom == June2026
+                    && row.CapacityKey == capacityKey
+                    && row.StaffingKey == staffingKey
+                    && row.PaymentBand == band)
+                .BaseUnits)
+            .ToArray();
+
+        actualUnitsInOptionOrder.Should().Equal(
+            expectedUnitsInOptionOrder,
+            $"{capacityKey}/{staffingKey} の12区分（option 11〜22）の単位数はADR 0046決定表と一致しなければならない");
+    }
+
+    // option 11(band-48000-plus)→22(band-15000-18000)の順。ADR 0046決定表の列順と同じ
+    // （このADR自身がキー命名をADR 0027決定1の`band-<下限>-<上限>`規約に従うと定めている）。
+    private static readonly string[] BandsInOfficialOptionOrder =
+    [
+        "band-48000-plus", "band-45000-48000", "band-38000-45000", "band-35000-38000",
+        "band-33000-35000", "band-30000-33000", "band-28000-30000", "band-25000-28000",
+        "band-23000-25000", "band-20000-23000", "band-18000-20000", "band-15000-18000",
+    ];
+
+    // ADR 0046「決定表（180行。これが値の唯一の出典）」Task 4節の3表（サービス費 Ⅰ/Ⅱ/Ⅲ）を
+    // 目視で書き写した15系列（capacityKey × staffingKey）× 12区分（option 11〜22の単位数）。
+    public static IEnumerable<object[]> ExpectedR8BasicRewardUnitsBySeries()
+    {
+        // サービス費（Ⅰ（６：１））
+        yield return
+        [
+            "cap-20-or-less", "staff-6-1",
+            new[] { 837, 812, 805, 781, 758, 738, 738, 726, 726, 705, 703, 682 },
+        ];
+        yield return
+        [
+            "cap-21-40", "staff-6-1",
+            new[] { 746, 724, 717, 696, 676, 660, 660, 641, 637, 624, 624, 606 },
+        ];
+        yield return
+        [
+            "cap-41-60", "staff-6-1",
+            new[] { 700, 679, 674, 654, 636, 620, 620, 602, 600, 586, 586, 569 },
+        ];
+        yield return
+        [
+            "cap-61-80", "staff-6-1",
+            new[] { 688, 668, 662, 643, 625, 609, 609, 591, 589, 575, 575, 558 },
+        ];
+        yield return
+        [
+            "cap-81-plus", "staff-6-1",
+            new[] { 666, 647, 640, 621, 605, 590, 590, 573, 570, 557, 557, 541 },
+        ];
+
+        // サービス費（Ⅱ（７．５：１））
+        yield return
+        [
+            "cap-20-or-less", "staff-7.5-1",
+            new[] { 748, 726, 716, 695, 669, 649, 649, 637, 637, 618, 614, 596 },
+        ];
+        yield return
+        [
+            "cap-21-40", "staff-7.5-1",
+            new[] { 666, 647, 637, 618, 596, 580, 580, 563, 557, 544, 544, 528 },
+        ];
+        yield return
+        [
+            "cap-41-60", "staff-7.5-1",
+            new[] { 625, 607, 599, 582, 561, 545, 545, 529, 525, 511, 511, 496 },
+        ];
+        yield return
+        [
+            "cap-61-80", "staff-7.5-1",
+            new[] { 614, 596, 588, 571, 551, 535, 535, 519, 515, 501, 501, 486 },
+        ];
+        yield return
+        [
+            "cap-81-plus", "staff-7.5-1",
+            new[] { 594, 577, 568, 551, 533, 518, 518, 503, 498, 485, 485, 471 },
+        ];
+
+        // サービス費（Ⅲ（１０：１）
+        yield return
+        [
+            "cap-20-or-less", "staff-10-1",
+            new[] { 682, 662, 653, 634, 611, 594, 594, 577, 572, 557, 557, 541 },
+        ];
+        yield return
+        [
+            "cap-21-40", "staff-10-1",
+            new[] { 609, 591, 584, 567, 547, 532, 532, 517, 511, 497, 497, 483 },
+        ];
+        yield return
+        [
+            "cap-41-60", "staff-10-1",
+            new[] { 564, 548, 541, 525, 508, 493, 493, 479, 474, 461, 461, 448 },
+        ];
+        yield return
+        [
+            "cap-61-80", "staff-10-1",
+            new[] { 554, 538, 530, 515, 498, 484, 483, 469, 465, 452, 452, 439 },
+        ];
+        yield return
+        [
+            "cap-81-plus", "staff-10-1",
+            new[] { 535, 519, 512, 497, 480, 467, 467, 453, 449, 437, 437, 424 },
+        ];
     }
 
     private static OfficeClaimProfile ReformTargetProfile(AverageWageBandOption option)
