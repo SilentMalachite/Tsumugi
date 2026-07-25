@@ -758,6 +758,234 @@
           ]
         }
       ]
+    },
+    {
+      "key": "capability-treatment-improvement-r8-i-i",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "kind": "office-capability",
+      "operator": "equals",
+      "value": "mhlw.b46.capability.treatment-improvement.2",
+      "sourceRefs": [
+        {
+          "documentId": "r8-capability-202606",
+          "sha256": "84ff0b3b34c2ef857a1bcec221b8c276c177678b403ca6e171b2a08a6d8a150b",
+          "locator": "別紙１-１ 260行 福祉・介護職員等処遇改善加算対象（AL列選択肢「２．Ⅰ・イ」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-capability-correction",
+          "sha256": "06414c8aad4c014f44fd211dac141d152f30135fb622cdd32874e1c6bccbd980",
+          "locator": "物理9頁 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「２．Ⅰ・イ」を含む）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 イ 区分）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "capability-treatment-improvement-r8-i-ro",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "kind": "office-capability",
+      "operator": "equals",
+      "value": "mhlw.b46.capability.treatment-improvement.7",
+      "sourceRefs": [
+        {
+          "documentId": "r8-capability-202606",
+          "sha256": "84ff0b3b34c2ef857a1bcec221b8c276c177678b403ca6e171b2a08a6d8a150b",
+          "locator": "別紙１-１ 260行 福祉・介護職員等処遇改善加算対象（AL列選択肢「７．Ⅰ・ロ」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-capability-correction",
+          "sha256": "06414c8aad4c014f44fd211dac141d152f30135fb622cdd32874e1c6bccbd980",
+          "locator": "物理9頁 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「７．Ⅰ・ロ」を含む）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ロ 区分）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "capability-treatment-improvement-r8-ii-i",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "kind": "office-capability",
+      "operator": "equals",
+      "value": "mhlw.b46.capability.treatment-improvement.3",
+      "sourceRefs": [
+        {
+          "documentId": "r8-capability-202606",
+          "sha256": "84ff0b3b34c2ef857a1bcec221b8c276c177678b403ca6e171b2a08a6d8a150b",
+          "locator": "別紙１-１ 260行 福祉・介護職員等処遇改善加算対象（AL列選択肢「３．Ⅱ・イ」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-capability-correction",
+          "sha256": "06414c8aad4c014f44fd211dac141d152f30135fb622cdd32874e1c6bccbd980",
+          "locator": "物理9頁 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「３．Ⅱ・イ」を含む）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ハ 区分）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "capability-treatment-improvement-r8-ii-ro",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "kind": "office-capability",
+      "operator": "equals",
+      "value": "mhlw.b46.capability.treatment-improvement.8",
+      "sourceRefs": [
+        {
+          "documentId": "r8-capability-202606",
+          "sha256": "84ff0b3b34c2ef857a1bcec221b8c276c177678b403ca6e171b2a08a6d8a150b",
+          "locator": "別紙１-１ 260行 福祉・介護職員等処遇改善加算対象（AL列選択肢「８．Ⅱ・ロ」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-capability-correction",
+          "sha256": "06414c8aad4c014f44fd211dac141d152f30135fb622cdd32874e1c6bccbd980",
+          "locator": "物理9頁 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「８．Ⅱ・ロ」を含む）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ニ 区分）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "capability-treatment-improvement-r8-iii",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "kind": "office-capability",
+      "operator": "equals",
+      "value": "mhlw.b46.capability.treatment-improvement.4",
+      "sourceRefs": [
+        {
+          "documentId": "r8-capability-202606",
+          "sha256": "84ff0b3b34c2ef857a1bcec221b8c276c177678b403ca6e171b2a08a6d8a150b",
+          "locator": "別紙１-１ 260行 福祉・介護職員等処遇改善加算対象（AL列選択肢「４．Ⅲ」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-capability-correction",
+          "sha256": "06414c8aad4c014f44fd211dac141d152f30135fb622cdd32874e1c6bccbd980",
+          "locator": "物理9頁 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「４．Ⅲ」を含む）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ホ 区分）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "capability-treatment-improvement-r8-iv",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "kind": "office-capability",
+      "operator": "equals",
+      "value": "mhlw.b46.capability.treatment-improvement.5",
+      "sourceRefs": [
+        {
+          "documentId": "r8-capability-202606",
+          "sha256": "84ff0b3b34c2ef857a1bcec221b8c276c177678b403ca6e171b2a08a6d8a150b",
+          "locator": "別紙１-１ 260行 福祉・介護職員等処遇改善加算対象（AL列選択肢「５．Ⅳ」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-capability-correction",
+          "sha256": "06414c8aad4c014f44fd211dac141d152f30135fb622cdd32874e1c6bccbd980",
+          "locator": "物理9頁 就労継続支援Ｂ型 福祉・介護職員等処遇改善加算対象（訂正後選択肢一覧「５．Ⅳ」を含む）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ヘ 区分）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
     }
   ],
   "entries": [
@@ -9569,6 +9797,540 @@
           {
             "masterKind": "additions",
             "key": "addition.treatment-improvement.unified.iv",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r8-06.treatment-improvement.i-i",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2261",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 イ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-value"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "465120",
+        "officialLabel": "福祉・介護職員等処遇改善加算(Ⅰ)イ",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r8-06.treatment-improvement.i-i"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-treatment-improvement-r8-i-i"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.treatment-improvement.r8.i-i",
+          "amount": {
+            "kind": "percentage-of-target",
+            "percentage": "0.105",
+            "applicationKind": "add",
+            "percentageBaseScope": "monthly-target-unit-sum",
+            "targetSelector": "target.b46.items-1-to-16-4.v1",
+            "calculationOrder": 1
+          },
+          "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+          "roundingRuleId": "claim.rounding.units.half-up.v1",
+          "billingUnit": "per-month"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.treatment-improvement.r8.i-i",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r8-06.treatment-improvement.i-ro",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2263",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ロ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-value"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "465174",
+        "officialLabel": "福祉・介護職員等処遇改善加算(Ⅰ)ロ",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r8-06.treatment-improvement.i-ro"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-treatment-improvement-r8-i-ro"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.treatment-improvement.r8.i-ro",
+          "amount": {
+            "kind": "percentage-of-target",
+            "percentage": "0.109",
+            "applicationKind": "add",
+            "percentageBaseScope": "monthly-target-unit-sum",
+            "targetSelector": "target.b46.items-1-to-16-4.v1",
+            "calculationOrder": 2
+          },
+          "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+          "roundingRuleId": "claim.rounding.units.half-up.v1",
+          "billingUnit": "per-month"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.treatment-improvement.r8.i-ro",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r8-06.treatment-improvement.ii-i",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2265",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ハ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-value"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "465121",
+        "officialLabel": "福祉・介護職員等処遇改善加算(Ⅱ)イ",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r8-06.treatment-improvement.ii-i"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-treatment-improvement-r8-ii-i"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.treatment-improvement.r8.ii-i",
+          "amount": {
+            "kind": "percentage-of-target",
+            "percentage": "0.103",
+            "applicationKind": "add",
+            "percentageBaseScope": "monthly-target-unit-sum",
+            "targetSelector": "target.b46.items-1-to-16-4.v1",
+            "calculationOrder": 3
+          },
+          "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+          "roundingRuleId": "claim.rounding.units.half-up.v1",
+          "billingUnit": "per-month"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.treatment-improvement.r8.ii-i",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r8-06.treatment-improvement.ii-ro",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2267",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ニ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-value"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "465175",
+        "officialLabel": "福祉・介護職員等処遇改善加算(Ⅱ)ロ",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r8-06.treatment-improvement.ii-ro"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-treatment-improvement-r8-ii-ro"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.treatment-improvement.r8.ii-ro",
+          "amount": {
+            "kind": "percentage-of-target",
+            "percentage": "0.107",
+            "applicationKind": "add",
+            "percentageBaseScope": "monthly-target-unit-sum",
+            "targetSelector": "target.b46.items-1-to-16-4.v1",
+            "calculationOrder": 4
+          },
+          "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+          "roundingRuleId": "claim.rounding.units.half-up.v1",
+          "billingUnit": "per-month"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.treatment-improvement.r8.ii-ro",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r8-06.treatment-improvement.iii",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2269",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ホ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-value"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "465122",
+        "officialLabel": "福祉・介護職員等処遇改善加算(Ⅲ)",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r8-06.treatment-improvement.iii"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-treatment-improvement-r8-iii"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.treatment-improvement.r8.iii",
+          "amount": {
+            "kind": "percentage-of-target",
+            "percentage": "0.088",
+            "applicationKind": "add",
+            "percentageBaseScope": "monthly-target-unit-sum",
+            "targetSelector": "target.b46.items-1-to-16-4.v1",
+            "calculationOrder": 5
+          },
+          "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+          "roundingRuleId": "claim.rounding.units.half-up.v1",
+          "billingUnit": "per-month"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.treatment-improvement.r8.iii",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r8-06.treatment-improvement.iv",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2271",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ヘ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-value"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "465123",
+        "officialLabel": "福祉・介護職員等処遇改善加算(Ⅳ)",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r8-06.treatment-improvement.iv"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-treatment-improvement-r8-iv"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.treatment-improvement.r8.iv",
+          "amount": {
+            "kind": "percentage-of-target",
+            "percentage": "0.074",
+            "applicationKind": "add",
+            "percentageBaseScope": "monthly-target-unit-sum",
+            "targetSelector": "target.b46.items-1-to-16-4.v1",
+            "calculationOrder": 6
+          },
+          "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+          "roundingRuleId": "claim.rounding.units.half-up.v1",
+          "billingUnit": "per-month"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.treatment-improvement.r8.iv",
             "role": "adjustment"
           }
         ]

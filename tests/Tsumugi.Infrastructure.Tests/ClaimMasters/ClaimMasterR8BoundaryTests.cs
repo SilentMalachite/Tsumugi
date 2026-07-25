@@ -210,24 +210,43 @@ public sealed class ClaimMasterR8BoundaryTests
     }
 
     [Fact]
-    public void Treatment_improvement_additions_lapse_at_june_2026_until_their_r8_values_land()
+    public void Treatment_improvement_additions_switch_generations_at_june_2026()
     {
-        // ADR 0028補記: 処遇改善系の率・コードはR8-06で改定されるため、R6行はeffectiveTo
-        // 2026-05で閉じており、R8実値は別ADR確定まで投入しない（docs/open-questions.md）。
-        // 2026-06に当該加算が「存在しない」ことが現時点の正しい算定挙動である。
+        // ADR 0045: R6統一処遇改善(Ⅰ)〜(Ⅳ)は2026-05で失効し、2026-06からR8の区分へ入れ替わる。
+        // 「R6行が消える」ことと「R8行が現れる」ことの両方を固定する（片方だけでは
+        // 沈黙して加算が消える退行を検出できない）。
         var may = Provider.ResolveCalculationMasters(May2026);
         var june = Provider.ResolveCalculationMasters(June2026);
 
-        var mayAdditionKeys = may.UnitAdjustments.Select(row => row.Key).ToHashSet();
-        var juneAdditionKeys = june.UnitAdjustments.Select(row => row.Key).ToHashSet();
-        juneAdditionKeys.Should().BeSubsetOf(mayAdditionKeys);
-        mayAdditionKeys.Except(juneAdditionKeys).Should().HaveCount(
-            4, "処遇改善(Ⅰ)〜(Ⅳ)の4行だけが2026-05で失効する");
+        var mayKeys = may.UnitAdjustments.Select(row => row.Key).ToHashSet(StringComparer.Ordinal);
+        var juneKeys = june.UnitAdjustments.Select(row => row.Key).ToHashSet(StringComparer.Ordinal);
 
-        var mayServiceCodeKeys = may.ServiceCodes.Select(row => row.Key).ToHashSet();
-        var juneServiceCodeKeys = june.ServiceCodes.Select(row => row.Key).ToHashSet();
-        juneServiceCodeKeys.Should().BeSubsetOf(mayServiceCodeKeys);
-        mayServiceCodeKeys.Except(juneServiceCodeKeys).Should().HaveCount(4);
+        // R6世代は2026-06に存在しない。
+        var r6TreatmentImprovement = mayKeys
+            .Where(key => key.Contains("treatment-improvement.unified", StringComparison.Ordinal))
+            .ToArray();
+        r6TreatmentImprovement.Should().NotBeEmpty("2026-05にはR6統一処遇改善行が存在する");
+        r6TreatmentImprovement.Should().OnlyContain(
+            key => !juneKeys.Contains(key), "R6統一処遇改善は2026-05で失効する");
+
+        // R8世代が2026-06に存在する。
+        var juneTreatmentImprovement = juneKeys
+            .Where(key => key.Contains("treatment-improvement.r8", StringComparison.Ordinal))
+            .ToArray();
+        juneTreatmentImprovement.Should().NotBeEmpty(
+            "R8の処遇改善行が入っていなければ、2026-06以降は全事業所で当該加算を算定できない");
+
+        // 対応するサービスコード行も同じ世代交代をする。
+        // サービスコード行のkeyは「b-addition.r8-06.treatment-improvement.<区分>」（R6の
+        // 「b-addition.r6-06.treatment-improvement.unified.<区分>」と同形）で、世代タグ
+        // 「r8-06」はtreatment-improvementの前に置かれる（addition行の
+        // 「addition.treatment-improvement.r8.<区分>」とは並び順が異なる）。
+        var juneServiceCodeKeys = june.ServiceCodes
+            .Select(row => row.Key).ToHashSet(StringComparer.Ordinal);
+        foreach (var additionKey in juneTreatmentImprovement)
+            juneServiceCodeKeys.Should().Contain(
+                key => key.Contains("r8-06.treatment-improvement", StringComparison.Ordinal),
+                $"加算行 {additionKey} に対応するサービスコード行が必要");
     }
 
     private static OfficeClaimProfile ReformTargetProfile(AverageWageBandOption option)
