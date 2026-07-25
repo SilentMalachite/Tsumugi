@@ -33,6 +33,9 @@ public sealed class TsumugiDbContext(DbContextOptions<TsumugiDbContext> options)
     public DbSet<UpperLimitManagementStatement> UpperLimitManagementStatements => Set<UpperLimitManagementStatement>();
     public DbSet<UpperLimitManagementStatementLine> UpperLimitManagementStatementLines => Set<UpperLimitManagementStatementLine>();
 
+    // Phase 3-3 - 国保連CSV出力履歴
+    public DbSet<ClaimCsvExport> ClaimCsvExports => Set<ClaimCsvExport>();
+
     // Phase 4 - KouchinModule
     public DbSet<WageAdjustment> WageAdjustments => Set<WageAdjustment>();
     public DbSet<RecipientHourlyRate> RecipientHourlyRates => Set<RecipientHourlyRate>();

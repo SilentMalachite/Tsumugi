@@ -32,6 +32,7 @@ public static class AppendOnlyGuard
         typeof(CertificateClaimEvidence),
         typeof(UpperLimitManagementStatement),
         typeof(UpperLimitManagementStatementLine),
+        typeof(ClaimCsvExport),
         typeof(WageAdjustment),
         typeof(RecipientHourlyRate),
     };
