@@ -12,15 +12,24 @@ namespace Tsumugi.Infrastructure.Csv.Generation;
 /// <c>provider-claim-r7-10.json</c> の <c>order</c>（J111:01 → J111:02 → J121:01..05 →
 /// J611:01 → J611:02）で並べ、各項目の値は <c>field-mapping-r7-10.json</c> のマッピングだけから決める。
 /// </summary>
-public sealed class ClaimCsvGenerator(CsvSpecificationCatalog catalog) : IClaimCsvGenerator
+public sealed class ClaimCsvGenerator : IClaimCsvGenerator
 {
     /// <summary>共通編 1.2.1 が定める CSV 形式の拡張子。</summary>
     private const string FileNameExtension = ".CSV";
 
-    private readonly CsvSpecificationCatalog _catalog =
-        catalog ?? throw new ArgumentNullException(nameof(catalog));
+    private readonly CsvSpecificationCatalog? _catalog;
+    private readonly CsvSpecificationRegistry? _registry;
 
-    public string SpecificationVersion => _catalog.Version;
+    /// <summary>単一版で生成する（テストや診断用）。処理対象年月による版選択は行わない。</summary>
+    public ClaimCsvGenerator(CsvSpecificationCatalog catalog)
+        => _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
+
+    /// <summary>
+    /// 版レジストリから<b>処理対象年月に適用される版</b>で生成する（production 経路）。
+    /// 該当版が無ければ生成に入らず fail-close する。
+    /// </summary>
+    public ClaimCsvGenerator(CsvSpecificationRegistry registry)
+        => _registry = registry ?? throw new ArgumentNullException(nameof(registry));
 
     public ClaimCsvDocument Generate(ClaimCsvDto dto)
     {
@@ -54,9 +63,10 @@ public sealed class ClaimCsvGenerator(CsvSpecificationCatalog catalog) : IClaimC
     {
         ArgumentNullException.ThrowIfNull(dto);
 
-        var records = _catalog.ProviderRecords.OrderBy(record => record.Order).ToArray();
+        var catalog = ResolveCatalog(dto.ProcessingMonth);
+        var records = catalog.ProviderRecords.OrderBy(record => record.Order).ToArray();
         var rows = ClaimCsvRowPlanner.Plan(dto, [.. records.Select(record => record.RecordId)]);
-        var resolver = new ClaimCsvFieldResolver(dto, _catalog, rows);
+        var resolver = new ClaimCsvFieldResolver(dto, catalog, rows);
         var byRecordId = records.ToDictionary(record => record.RecordId, StringComparer.Ordinal);
 
         var innerRecords = rows
@@ -65,13 +75,19 @@ public sealed class ClaimCsvGenerator(CsvSpecificationCatalog catalog) : IClaimC
 
         var dataKind = DataKind(rows, byRecordId);
         var bytes = ClaimCsvWriter.WriteAll(
-            _catalog,
+            catalog,
             dto.ProcessingMonth,
             dto.Office.OfficeNumber,
             dataKind,
             innerRecords);
         return new ClaimCsvDocument(bytes, BuildFileName(dataKind, dto.ProcessingMonth, bytes));
     }
+
+    /// <summary>
+    /// 生成に使う仕様。registry 構成なら処理対象年月で選び、単一 catalog 構成ならそれを使う。
+    /// </summary>
+    private CsvSpecificationCatalog ResolveCatalog(Tsumugi.Domain.ValueObjects.ProcessingMonth processingMonth)
+        => _catalog ?? _registry!.Resolve(processingMonth);
 
     /// <summary>
     /// 共通編 1.2.1 の CSV 形式ファイル名規則（英字で始まる半角英数字 8 桁以内 ＋ ".CSV"）に従う。

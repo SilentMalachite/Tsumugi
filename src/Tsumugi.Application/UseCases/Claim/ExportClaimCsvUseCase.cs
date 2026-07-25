@@ -30,6 +30,7 @@ namespace Tsumugi.Application.UseCases.Claim;
 public sealed class ExportClaimCsvUseCase(
     VerifiedClaimBatchProvider verifiedBatchProvider,
     IClaimCsvOfficeContextProvider officeContextProvider,
+    IClaimCsvSpecificationVersions specificationVersions,
     IClaimCsvGenerator generator,
     IClaimCsvExportRepository exportRepository,
     TimeProvider clock)
@@ -50,15 +51,31 @@ public sealed class ExportClaimCsvUseCase(
             ?? throw new ClaimBatchNotFinalizedException(officeId, serviceMonth.ToString());
 
         var dto = BuildDto(latest.Header, latest.Details, serviceMonth, processingMonth);
-        // 確定時に記録した CSV 仕様版と、生成に使う仕様版が一致しないと、同じ確定請求から
-        // 別のバイト列が出る。版が動いたことに気付かないまま出力しない。
-        if (!string.Equals(
-                latest.Header.CsvSpecificationVersion, generator.SpecificationVersion, StringComparison.Ordinal))
+
+        // 出力に使う仕様版は「処理対象年月に適用される版」（施行分は提出時点で決まる）。
+        // 該当版が無ければ推測で現行版を使わず fail-close する。
+        string resolvedVersion;
+        try
+        {
+            resolvedVersion = specificationVersions.ResolveForProcessingMonth(processingMonth);
+        }
+        catch (InvalidOperationException exception)
+        {
+            throw new ClaimCsvExportFailedException(
+                fieldId: string.Empty,
+                reason: "CsvSpecificationVersionUnavailable",
+                detail: exception.Message);
+        }
+
+        // 確定時に記録した版と、出力に使う版が一致しないと、同じ確定請求から別のバイト列が出る。
+        // 版が動いたことに気付かないまま出力しない（確定し直しを促す）。
+        if (!string.Equals(latest.Header.CsvSpecificationVersion, resolvedVersion, StringComparison.Ordinal))
         {
             throw new ClaimCsvExportFailedException(
                 fieldId: string.Empty,
                 reason: "CsvSpecificationVersionMismatch",
-                detail: "the finalized CSV specification version differs from the one available at export time");
+                detail: "the finalized CSV specification version differs from the one that applies to the "
+                    + "processing month");
         }
 
         var document = generator.Generate(dto);
@@ -70,7 +87,8 @@ public sealed class ExportClaimCsvUseCase(
                 Guid.CreateVersion7(),
                 latest.Header.Id,
                 processingMonth,
-                latest.Header.CsvSpecificationVersion,
+                // 出力履歴には「実際に使った版」を記録する。
+                resolvedVersion,
                 latest.Header.ClaimMasterVersion,
                 sha256,
                 bytes.Length,

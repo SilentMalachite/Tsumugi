@@ -265,5 +265,6 @@ public sealed class CalculateClaimUseCaseTests
             masterProvider ?? new Kit.FakeMasterProvider(Kit.Release(), Kit.SyntheticMasters()),
             new Kit.FakeOfficeRepository(officeMissing ? null : office ?? Kit.Office()),
             new Kit.FakeTokenProvider(tokens ?? Kit.Tokens()),
-            Kit.Readiness());
+            Kit.Readiness(),
+            new Kit.FakeCsvSpecificationVersions());
 }

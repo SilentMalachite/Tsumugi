@@ -27,7 +27,8 @@ internal static class ClaimPreviewHashing
         ServiceMonth serviceMonth,
         string claimMasterVersion,
         ClaimCalculationResult result,
-        IReadOnlyList<ClaimFinalizationDetailDraft> details)
+        IReadOnlyList<ClaimFinalizationDetailDraft> details,
+        string csvSpecificationVersion)
         => new ClaimFinalizationOperationV1().Canonicalize(new ClaimFinalizationDraft(
             PreviewFinalizationOperationId,
             RecordKind.New,
@@ -38,7 +39,7 @@ internal static class ClaimPreviewHashing
             PreviewCreatedBy,
             ClaimFinalizationVersions.OperationApplicationVersion,
             claimMasterVersion,
-            ClaimFinalizationVersions.CsvSpecificationVersion,
+            csvSpecificationVersion,
             ClaimFinalizationVersions.ReportSpecificationVersion,
             ClaimFinalizationVersions.SnapshotApplicationVersion,
             result.TotalUnits,

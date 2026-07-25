@@ -86,8 +86,13 @@ condition := always | optional | never
 | r8-grant-decision-administration-202607 | 最終改正令和8年7月 | 2026-07-10 | https://www.mhlw.go.jp/content/12200000/001721666.pdf | 1a94220c99986f353e4c63c095c156448271ecad1d7bf0d9e197d3b8ca06de65 | 1999016 |
 | r8-calculation-note | 令和8年6月版（現行） | 2026-07-10 | https://www.mhlw.go.jp/content/001705650.pdf | 0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99 | 2677112 |
 | r6-employment-guidance | 令和6年3月29日通知（現行） | 2026-07-10 | https://www.mhlw.go.jp/content/001473458.pdf | 185fa99281ea97b5724297041f8bcbb50c92f9d3882496d3d9a3227328b17481 | 428615 |
+| interface-index-r8-06-page-observed-30bf116b | 2026-07-25 observed bytes | 2026-07-25 | https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000174643_00025.html | 30bf116b916f7c1a9d5133d52531ee91179ca7753a5e61b1160ac6e2fbf9dcf8 | 50588 |
 
-> 末尾 2 件（留意事項通知・就労系留意事項通知）は ADR 0038 の証跡台帳（`spec-evidence-r7-10.json`）が
+> 末尾の令和8年6月施行分の掲載ページは ADR 0039 の版レジストリが「同施行分では
+> インタフェース仕様書（都道府県編）だけが改訂され、共通編・事業所編は令和7年10月施行分が現行」と
+> 判断した根拠。取得日はこの1件だけ 2026-07-25（他は ADR 0024 当時の一括取得日）。
+>
+> 留意事項通知・就労系留意事項通知の 2 件は ADR 0038 の証跡台帳（`spec-evidence-r7-10.json`）が
 > 「導出可否の判断」の根拠として参照するため、CSV 仕様側の出典カタログにも登録した
 > （制度マスタ側の `sources.json` にも同一 SHA-256 で登録済み。両者の一致は
 > `SourceRegistryConsistencyTests` が固定する）。

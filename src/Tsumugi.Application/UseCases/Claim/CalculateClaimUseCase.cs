@@ -15,10 +15,11 @@ public sealed class CalculateClaimUseCase(
     IClaimMasterProvider masterProvider,
     IOfficeRepository officeRepository,
     IClaimBillingTokenProvider tokenProvider,
-    ClaimPreparationReadiness readiness)
+    ClaimPreparationReadiness readiness,
+    IClaimCsvSpecificationVersions specificationVersions)
 {
     private readonly ClaimPreviewPipeline _pipeline = new(
-        snapshotReader, masterProvider, officeRepository, tokenProvider, readiness);
+        snapshotReader, masterProvider, officeRepository, tokenProvider, readiness, specificationVersions);
 
     public async Task<ClaimPreviewDto> ExecuteAsync(CalculateClaimRequest request, CancellationToken ct)
     {

@@ -27,11 +27,12 @@ public sealed class CloseClaimUseCase(
     IClaimBillingTokenProvider tokenProvider,
     ClaimPreparationReadiness readiness,
     IClaimBatchRepository batchRepository,
+    IClaimCsvSpecificationVersions specificationVersions,
     IClaimFinalizationStore finalizationStore,
     IOperationLocalSnapshotReader operationSnapshotReader)
 {
     private readonly ClaimPreviewPipeline _pipeline = new(
-        snapshotReader, masterProvider, officeRepository, tokenProvider, readiness);
+        snapshotReader, masterProvider, officeRepository, tokenProvider, readiness, specificationVersions);
 
     // ClaimPreviewPipelineと同じ直接インスタンス化パターン（Task 2で確立）。単一固定codecの
     // envelope化にDI registry解決は不要。
@@ -67,7 +68,7 @@ public sealed class CloseClaimUseCase(
             actor,
             ClaimFinalizationVersions.OperationApplicationVersion,
             computation.ClaimMasterVersion,
-            ClaimFinalizationVersions.CsvSpecificationVersion,
+            specificationVersions.Current,
             ClaimFinalizationVersions.ReportSpecificationVersion,
             ClaimFinalizationVersions.SnapshotApplicationVersion,
             result.TotalUnits,
@@ -104,7 +105,7 @@ public sealed class CloseClaimUseCase(
                 serviceMonth,
                 calculationResult,
                 computation.ClaimMasterVersion,
-                ClaimFinalizationVersions.CsvSpecificationVersion,
+                specificationVersions.Current,
                 ClaimFinalizationVersions.ReportSpecificationVersion,
                 ct);
             var finalizationBytes = ClaimFinalizationSnapshotWriter.Write(finalizationSnapshot);

@@ -16,12 +16,11 @@ public sealed record ClaimCsvDocument(byte[] Bytes, string FileName);
 
 public interface IClaimCsvGenerator
 {
-    /// <summary>生成に使う CSV 仕様の版。確定済み請求が記録した版との一致確認に使う。</summary>
-    string SpecificationVersion { get; }
-
     /// <summary>
     /// CP932 / CRLF の請求CSV全体（外側3レコード＋内側レコード群）と、仕様準拠のファイル名を返す。
     /// ファイル名の規則は CSV 仕様（共通編）に属するため生成側が組み立てる。
+    /// 使用する仕様版は <see cref="ClaimCsvDto.ProcessingMonth"/> から決まる
+    /// （版の解決は <see cref="IClaimCsvSpecificationVersions"/>。generator に版の property は置かない）。
     /// </summary>
     ClaimCsvDocument Generate(ClaimCsvDto dto);
 }

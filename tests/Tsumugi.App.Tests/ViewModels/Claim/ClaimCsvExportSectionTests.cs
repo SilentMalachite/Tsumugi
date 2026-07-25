@@ -140,6 +140,7 @@ public sealed class ClaimCsvExportSectionTests
         var useCase = new ExportClaimCsvUseCase(
             ClaimVerifiedBatchTestFactory.Provider(new StubBatchRepository(generator)),
             new StubOfficeContextProvider(),
+            new StubSpecificationVersions(),
             generator,
             new NoopExportRepository(),
             TimeProvider.System);
@@ -148,7 +149,6 @@ public sealed class ClaimCsvExportSectionTests
 
     private sealed class RecordingGenerator : IClaimCsvGenerator
     {
-        public string SpecificationVersion => "r7-10";
 
         public ClaimCsvDto? LastDto { get; private set; }
         public ClaimCsvExportFailedException? Failure { get; set; }
@@ -186,6 +186,14 @@ public sealed class ClaimCsvExportSectionTests
 
         public Task<ClaimBatchAggregate?> FindByOperationIdAsync(Guid id, CancellationToken ct) =>
             Task.FromResult<ClaimBatchAggregate?>(null);
+    }
+
+    /// <summary>版解決のスタブ。fixture が確定側に書く版と同じ文字列を返す。</summary>
+    private sealed class StubSpecificationVersions : IClaimCsvSpecificationVersions
+    {
+        public string Current => "r7-10";
+
+        public string ResolveForProcessingMonth(ProcessingMonth processingMonth) => Current;
     }
 
     private sealed class StubOfficeContextProvider : IClaimCsvOfficeContextProvider

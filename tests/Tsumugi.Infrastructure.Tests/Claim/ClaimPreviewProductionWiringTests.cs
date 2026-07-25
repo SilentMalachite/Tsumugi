@@ -12,7 +12,9 @@ using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.Logic.Claim.Models;
 using Tsumugi.Domain.ValueObjects;
 using Tsumugi.Infrastructure.ClaimMasters;
+using Tsumugi.Infrastructure.Csv.Generation;
 using Tsumugi.Infrastructure.Csv.Mapping;
+using Tsumugi.Infrastructure.Csv.Specifications;
 using Tsumugi.Infrastructure.Persistence;
 using Tsumugi.Infrastructure.Reporting;
 using UglyToad.PdfPig;
@@ -114,6 +116,12 @@ public sealed class ClaimPreviewProductionWiringTests
     // 組み合わせに一意対応し、serviceCode=463004・baseUnits=726（b-basic.r6.cap-20-or-less
     // .band-20000-25000.staff-6-1）を持つ。region-unit-prices.jsonのregion-grade-1は
     // unitPriceYen=11.14。
+    /// <summary>
+    /// 受給者証番号。CSV の <c>provider:J121:01:006</c> は英数 10 桁なので、CSV 出力まで通す fixture では
+    /// 仕様に収まる値を使う（"certificate-no-1" は 16 バイトで OverByteWidth になる）。
+    /// </summary>
+    private const string CertificateNumber = "1234567890";
+
     private const string ExpectedServiceCode = "463004";
     private const int ExpectedBaseUnitsPerDay = 726;
     private const decimal ExpectedRegionUnitPriceYen = 11.14m;
@@ -589,10 +597,11 @@ public sealed class ClaimPreviewProductionWiringTests
                 "tester",
                 Now,
                 Guid.NewGuid()));
+            var seededCertificateId = Guid.NewGuid();
             seedContext.Add(Certificate.Create(
-                Guid.NewGuid(),
+                seededCertificateId,
                 RecipientId,
-                "certificate-no-1",
+                CertificateNumber,
                 new DateRange(new DateOnly(2024, 4, 1), null),
                 supplyDays: 23,
                 monthlyCostCap: 37_200,
@@ -604,6 +613,22 @@ public sealed class ClaimPreviewProductionWiringTests
                 subsidyMunicipalityNumber: "132000",
                 upperLimitManagementProviderNumber: "1310000099",
                 paymentBurden: PaymentBurdenCategory.General1));
+            // 請求CSVの契約情報（provider:J121:05）と開始年月日（provider:J121:02:008）は
+            // 受給者証「サービス事業者記入欄」の個別入力から採る（ADR 0032）。実DB経路で CSV まで
+            // 出すには、自事業所の行が DB に必要（無ければ CSV は fail-close する）。
+            seedContext.Add(ContractedProvider.Create(
+                Guid.NewGuid(),
+                seededCertificateId,
+                providerNumber: "1310000001",
+                providerName: "テスト事業所",
+                serviceCategory: "就労継続支援B型",
+                contractedSupplyDays: 23,
+                contractDate: new DateOnly(2024, 4, 1),
+                "tester",
+                Now,
+                Guid.NewGuid(),
+                certificateEntryNumber: 5,
+                firstServiceDate: new DateOnly(2024, 4, 1)));
             seedContext.AddRange(
                 BuildFinalizationDailyRecord(new DateOnly(2025, 4, 1)),
                 BuildFinalizationDailyRecord(new DateOnly(2025, 4, 2)));
@@ -652,6 +677,7 @@ public sealed class ClaimPreviewProductionWiringTests
                 new OfficeClaimBillingTokenProvider(),
                 new ClaimPreparationReadiness(new EmptyRequirementProvider()),
                 new ClaimBatchRepository(closeContext),
+                CsvSpecificationRegistry.LoadEmbedded(),
                 new ClaimFinalizationStore(
                     contextFactory,
                     new ClaimFinalizationOperationRegistry(),
@@ -695,6 +721,33 @@ public sealed class ClaimPreviewProductionWiringTests
             preview.TotalBenefitYen.ToString("N0", CultureInfo.InvariantCulture), because: "給付費請求額 = TotalBenefitYen");
         invoiceText.Should().Contain(
             preview.TotalBurdenYen.ToString("N0", CultureInfo.InvariantCulture), because: "利用者負担合計 = TotalBurdenYen");
+
+        // NOTE(teeth): 実 CloseClaimUseCase が記録した CSV 仕様版で、実 ExportClaimCsvUseCase が
+        // CSV を出せること。確定側と生成側の版識別子が別物（例: 確定が "field-mapping-r7-10"、
+        // 生成が "r7-10"）だと、production では常に CsvSpecificationVersionMismatch になる。
+        // 版の同一性は fixture ではなく実経路で固定する（seed した行では検出できない）。
+        await using (var csvContext = fixture.NewContext())
+        {
+            var exportUseCase = new ExportClaimCsvUseCase(
+                new VerifiedClaimBatchProvider(
+                    new ClaimBatchRepository(csvContext),
+                    new ClaimHistoryVerifier(
+                        new ClaimFinalizationOperationRegistry(),
+                        new ProductionClaimSnapshotValidationCodecRegistry())),
+                new ClaimMasterCsvOfficeContextProvider(JsonClaimMasterProvider.LoadEmbedded()),
+                CsvSpecificationRegistry.LoadEmbedded(),
+                new ClaimCsvGenerator(CsvSpecificationRegistry.LoadEmbedded()),
+                new ClaimCsvExportRepository(csvContext),
+                TimeProvider.System);
+
+            var csv = await exportUseCase.ExecuteAsync(
+                // 処理対象年月は r7-10 の適用期間（2025-10 以降）内であること。サービス提供年月
+                // （2025-04）より後の提出は正常な運用（遅れ請求）。
+                OfficeId, Month, new ProcessingMonth(2025, 11), "closer", CancellationToken.None);
+
+            csv.Bytes.Should().NotBeEmpty();
+            csv.SuggestedFileName.Should().MatchRegex("^[A-Za-z][A-Za-z0-9]{0,7}\\.CSV$");
+        }
 
         // Optional extension: 同一close revisionをsetupし直さず、残り2帳票（サービス提供実績記録票・
         // 請求明細書）へもwriter/readerのproperty-name driftが波及していないことを確認する
@@ -794,7 +847,8 @@ public sealed class ClaimPreviewProductionWiringTests
             JsonClaimMasterProvider.LoadEmbedded(),
             new FakeOfficeRepository(BuildOffice()),
             new OfficeClaimBillingTokenProvider(),
-            new ClaimPreparationReadiness(requirementProvider));
+            new ClaimPreparationReadiness(requirementProvider),
+            CsvSpecificationRegistry.LoadEmbedded());
 
     private static Office BuildOffice() => Office.Create(
         OfficeId,
@@ -934,7 +988,7 @@ public sealed class ClaimPreviewProductionWiringTests
         var certificate = Certificate.Create(
             certificateId,
             RecipientId,
-            "certificate-no-1",
+            CertificateNumber,
             new DateRange(new DateOnly(2024, 4, 1), null),
             supplyDays: 23,
             monthlyCostCap: 37_200,

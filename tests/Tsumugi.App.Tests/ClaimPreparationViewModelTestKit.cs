@@ -342,8 +342,6 @@ internal static class ClaimPreparationViewModelTestKit
     /// <c>ClaimCsvExportProductionWiringTests</c>で別途検証済み）。</summary>
     internal sealed class NoOpClaimCsvGenerator : IClaimCsvGenerator
     {
-        public string SpecificationVersion => "csv-v1";
-
         public ClaimCsvDocument Generate(Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvDto dto) =>
             new([], "J110000A.CSV");
     }
@@ -421,6 +419,14 @@ internal static class ClaimPreparationViewModelTestKit
     /// CommitAsync で受け取ったdraftをそのままheader/detailへ写像して蓄積することで、
     /// 「確定→履歴照会」がVM経由で一貫することを検証できるようにする。
     /// </summary>
+    /// <summary>CSV仕様版の解決フェイク。プレビューと確定で同じ版文字列を使うことが要件。</summary>
+    internal sealed class FakeCsvSpecificationVersions : IClaimCsvSpecificationVersions
+    {
+        public string Current => "r7-10";
+
+        public string ResolveForProcessingMonth(ProcessingMonth processingMonth) => Current;
+    }
+
     internal sealed class FakeClaimBatchStore : IClaimBatchRepository, IClaimFinalizationStore
     {
         private readonly List<ClaimBatchAggregate> _aggregates = [];

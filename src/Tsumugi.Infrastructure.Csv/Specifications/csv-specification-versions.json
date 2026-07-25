@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "specificationVersion": "csv-specification-versions",
+  "versions": [
+    {
+      "version": "r7-10",
+      "label": "令和7年10月施行分（インタフェース仕様書 共通編・事業所編）",
+      "effectiveFromProcessingMonth": "2025-10",
+      "effectiveToProcessingMonth": null,
+      "sourceRefs": [
+        {
+          "documentId": "interface-index-r7-10",
+          "sha256": "921c9eaba31b0a005b442154f0a04362bbff84481cddf3e10245a02c1397151a",
+          "locator": "section=インタフェース仕様書索引;entry=令和７年10月施行分",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "applicability-period"
+          ],
+          "quote": "令和７年10月施行分"
+        },
+        {
+          "documentId": "interface-index-r8-06-page-observed-30bf116b",
+          "sha256": "30bf116b916f7c1a9d5133d52531ee91179ca7753a5e61b1160ac6e2fbf9dcf8",
+          "locator": "page=令和8年6月施行分の掲載ページ",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "applicability-period"
+          ],
+          "quote": "（２）インタフェース仕様書（都道府県編）"
+        }
+      ],
+      "applicabilityNote": "後続の令和8年6月施行分の掲載ページには「インタフェース仕様書（都道府県編）」とその修正履歴だけが載っており、共通編・事業所編は改訂されていない。したがって事業所からの請求に用いる共通編・事業所編は令和7年10月施行分が現行（effectiveTo は null）。次の施行分で共通編・事業所編が改訂されたら、この版に effectiveTo を入れて新版を追加する（差し替えではなく追記）。"
+    }
+  ]
+}

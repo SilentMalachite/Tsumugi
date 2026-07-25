@@ -8,6 +8,12 @@ public sealed class CsvSpecificationLoader
 {
     private const int SupportedSchemaVersion = 1;
 
+    /// <summary>
+    /// 版を明示しない読み込みで使う既定版。並存する版のうち現行版であり、
+    /// <see cref="CsvSpecificationRegistry.Current"/> と一致する（一致は registry の読み込み時に検証）。
+    /// </summary>
+    private const string DefaultVersion = "r7-10";
+
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         AllowDuplicateProperties = false,
@@ -22,17 +28,31 @@ public sealed class CsvSpecificationLoader
     {
     }
 
-    public static CsvSpecificationCatalog LoadEmbedded()
+    /// <summary>既定（現行）版を読み込む。版を明示する場合は <see cref="LoadEmbedded(string)"/>。</summary>
+    public static CsvSpecificationCatalog LoadEmbedded() => LoadEmbedded(DefaultVersion);
+
+    /// <summary>
+    /// 指定した仕様版を読み込む。仕様ファイルは版接尾辞で並存させる
+    /// （<c>common-{version}.json</c> / <c>provider-claim-{version}.json</c> /
+    /// <c>field-mapping-{version}.json</c> / <c>spec-evidence-{version}.json</c>）。
+    /// 出典カタログ（<c>sources.json</c>）は版をまたいで共有する。
+    /// </summary>
+    public static CsvSpecificationCatalog LoadEmbedded(string version)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(version);
         var assembly = typeof(CsvSpecificationLoader).Assembly;
-        using var common = OpenEmbedded(assembly, "common-r7-10.json");
-        using var provider = OpenEmbedded(assembly, "provider-claim-r7-10.json");
-        using var mapping = OpenEmbedded(assembly, "field-mapping-r7-10.json");
+        using var common = OpenEmbedded(assembly, $"common-{version}.json");
+        using var provider = OpenEmbedded(assembly, $"provider-claim-{version}.json");
+        using var mapping = OpenEmbedded(assembly, $"field-mapping-{version}.json");
         using var sources = OpenEmbedded(assembly, "sources.json");
-        using var evidence = OpenEmbedded(assembly, "spec-evidence-r7-10.json");
+        using var evidence = OpenEmbedded(assembly, $"spec-evidence-{version}.json");
 
         return Load(common, provider, mapping, sources, evidence);
     }
+
+    /// <summary>版レジストリが版一覧を読むための入口。</summary>
+    internal static Stream OpenEmbeddedFile(Assembly assembly, string fileName)
+        => OpenEmbedded(assembly, fileName);
 
     internal static CsvSpecificationCatalog Load(
         Stream common,
@@ -102,6 +122,8 @@ public sealed class CsvSpecificationLoader
                 ?? throw new InvalidDataException(
                     $"Embedded CSV specification '{fileName}' could not be opened.");
     }
+
+    internal static JsonSerializerOptions SerializerOptionsForRegistry => SerializerOptions;
 
     private static T Deserialize<T>(Stream stream, string documentName) =>
         JsonSerializer.Deserialize<T>(stream, SerializerOptions)

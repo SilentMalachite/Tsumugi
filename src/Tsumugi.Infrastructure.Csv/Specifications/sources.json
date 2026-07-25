@@ -208,6 +208,22 @@
       "url": "https://www.mhlw.go.jp/content/001473458.pdf",
       "sha256": "185fa99281ea97b5724297041f8bcbb50c92f9d3882496d3d9a3227328b17481",
       "sizeBytes": 428615
+    },
+    {
+      "sourceDocumentId": "interface-index-r8-06-page-observed-30bf116b",
+      "title": "障害者総合支援給付審査支払等システム関係資料 インタフェース仕様書 令和8年6月施行分（掲載ページ）",
+      "version": "2026-07-25 observed bytes",
+      "retrievedAt": "2026-07-25",
+      "url": "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000174643_00025.html",
+      "sha256": "30bf116b916f7c1a9d5133d52531ee91179ca7753a5e61b1160ac6e2fbf9dcf8",
+      "sizeBytes": 50588,
+      "availability": "live; page lists only インタフェース仕様書（都道府県編）and its 修正履歴 for 令和8年6月施行分",
+      "liveCheck": {
+        "checkedAt": "2026-07-25",
+        "httpStatus": 200,
+        "responseSha256": "30bf116b916f7c1a9d5133d52531ee91179ca7753a5e61b1160ac6e2fbf9dcf8",
+        "responseSizeBytes": 50588
+      }
     }
   ]
 }

@@ -182,7 +182,8 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
                 new ClaimFinalizationOperationRegistry(),
                 new ProductionClaimSnapshotValidationCodecRegistry())),
         new ClaimMasterCsvOfficeContextProvider(JsonClaimMasterProvider.LoadEmbedded()),
-        new ClaimCsvGenerator(CsvSpecificationLoader.LoadEmbedded()),
+        CsvSpecificationRegistry.LoadEmbedded(),
+        new ClaimCsvGenerator(CsvSpecificationRegistry.LoadEmbedded()),
         new ClaimCsvExportRepository(context),
         new FixedTimeProvider(FixedNow));
 

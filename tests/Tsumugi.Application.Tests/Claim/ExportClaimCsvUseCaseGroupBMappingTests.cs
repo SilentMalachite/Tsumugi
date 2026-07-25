@@ -76,6 +76,8 @@ public sealed class ExportClaimCsvUseCaseGroupBMappingTests
         return new ExportClaimCsvUseCase(
             Kit.VerifiedProvider(new ClaimBatchAggregate(header, [Detail(header, snapshot)])),
             new FakeOfficeContextProvider(),
+            // 版解決は確定済みヘッダが記録した版を返す（版不一致の検証は別テスト）。
+            new Kit.FakeCsvSpecificationVersions(header.CsvSpecificationVersion),
             generator,
             new FakeExportRepository(),
             TimeProvider.System);
@@ -106,7 +108,6 @@ public sealed class ExportClaimCsvUseCaseGroupBMappingTests
         public ClaimCsvDto? Captured { get; private set; }
 
         // 確定 header が記録した版と一致させる（不一致は本番同様に fail-close するため）。
-        public string SpecificationVersion => Kit.Batch().CsvSpecificationVersion;
 
         public ClaimCsvDocument Generate(ClaimCsvDto dto)
         {

@@ -26,7 +26,8 @@ internal sealed class ClaimPreviewPipeline(
     IClaimMasterProvider masterProvider,
     IOfficeRepository officeRepository,
     IClaimBillingTokenProvider tokenProvider,
-    ClaimPreparationReadiness readiness)
+    ClaimPreparationReadiness readiness,
+    IClaimCsvSpecificationVersions specificationVersions)
 {
     private static readonly ClaimSnapshotValidationCodecV2 SnapshotCodec = new();
 
@@ -76,10 +77,13 @@ internal sealed class ClaimPreviewPipeline(
         }
 
         var result = ClaimCalculator.Calculate(masters, request);
+        // 版文字列は PreviewHash に入る。プレビューと確定で同じ出所（現行版）を使わないと
+        // hash が一致せず確定できない。
+        var csvSpecificationVersion = specificationVersions.Current;
         var detailDrafts = BuildDetailDrafts(
-            snapshot, serviceMonth, claimMasterVersion, request, result);
+            snapshot, serviceMonth, claimMasterVersion, request, result, csvSpecificationVersion);
         var previewHash = ClaimPreviewHashing.Compute(
-            officeId, serviceMonth, claimMasterVersion, result, detailDrafts);
+            officeId, serviceMonth, claimMasterVersion, result, detailDrafts, csvSpecificationVersion);
         return new ClaimPreviewComputation(claimMasterVersion, issues, result, detailDrafts, previewHash);
     }
 
@@ -88,7 +92,8 @@ internal sealed class ClaimPreviewPipeline(
         ServiceMonth serviceMonth,
         string claimMasterVersion,
         ClaimCalculationRequest request,
-        ClaimCalculationResult result)
+        ClaimCalculationResult result,
+        string csvSpecificationVersion)
     {
         var sourceByRecipient = request.Recipients.ToDictionary(source => source.RecipientId);
         return result.Details
@@ -107,7 +112,7 @@ internal sealed class ClaimPreviewPipeline(
                     detail.RecipientId,
                     ClaimSnapshotValidationCodecV2.SchemaVersionValue,
                     claimMasterVersion,
-                    ClaimFinalizationVersions.CsvSpecificationVersion,
+                    csvSpecificationVersion,
                     ClaimFinalizationVersions.ReportSpecificationVersion,
                     ClaimFinalizationVersions.SnapshotApplicationVersion,
                     inputEnvelope,

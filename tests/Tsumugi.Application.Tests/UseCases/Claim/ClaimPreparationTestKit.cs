@@ -586,6 +586,55 @@ internal static class ClaimPreparationTestKit
         },
         aggregate.Details);
 
+    /// <summary>
+    /// CSV 仕様版の解決フェイク。既定は現行版 1 本だけを持ち、処理対象年月に関わらずそれを返す。
+    /// 版の期間解決そのものは <c>CsvSpecificationRegistryTests</c>（Infrastructure.Csv.Tests）が検証する。
+    /// </summary>
+    /// <summary>版が解決できない場合は生成に入らないことを示すための generator（呼ばれたら失敗）。</summary>
+    internal sealed class ThrowingCsvGenerator : IClaimCsvGenerator
+    {
+        public global::Tsumugi.Application.Abstractions.ClaimCsvDocument Generate(
+            global::Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvDto dto)
+            => throw new InvalidOperationException("版が解決できないときに generator を呼んではいけない。");
+    }
+
+    internal sealed class FixedCsvOfficeContextProvider : IClaimCsvOfficeContextProvider
+    {
+        public ClaimCsvOfficeContext Resolve(
+            global::Tsumugi.Domain.Enums.RegionGrade regionGrade,
+            ServiceMonth serviceMonth) => new(10_000);
+    }
+
+    internal sealed class NoOpCsvExportRepository : IClaimCsvExportRepository
+    {
+        public Task AppendAsync(global::Tsumugi.Domain.Entities.ClaimCsvExport csvExport, CancellationToken ct)
+            => Task.CompletedTask;
+
+        public Task<IReadOnlyList<global::Tsumugi.Domain.Entities.ClaimCsvExport>> ListByBatchAsync(
+            Guid claimBatchId, CancellationToken ct)
+            => Task.FromResult<IReadOnlyList<global::Tsumugi.Domain.Entities.ClaimCsvExport>>([]);
+    }
+
+    internal sealed class FakeCsvSpecificationVersions(string current = "r7-10")
+        : IClaimCsvSpecificationVersions
+    {
+        public string Current { get; } = current;
+
+        public ProcessingMonth? LastResolvedMonth { get; private set; }
+
+        /// <summary>この月だけ解決できない、という状況を作るための設定（fail-close の検証用）。</summary>
+        public ProcessingMonth? UnavailableMonth { get; set; }
+
+        public string ResolveForProcessingMonth(ProcessingMonth processingMonth)
+        {
+            LastResolvedMonth = processingMonth;
+            return UnavailableMonth == processingMonth
+                ? throw new InvalidOperationException(
+                    $"処理対象年月 {processingMonth} に適用されるCSV仕様版が登録されていません。")
+                : Current;
+        }
+    }
+
     internal sealed class FakeBatchRepository(IReadOnlyList<ClaimBatchAggregate> aggregates)
         : IClaimBatchRepository
     {

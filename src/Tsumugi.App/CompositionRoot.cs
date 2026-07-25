@@ -108,9 +108,13 @@ public static class CompositionRoot
 
         // Phase 3-3: 国保連請求CSV。Generatorは埋め込みspecだけを読むstateless実装なのでSingleton、
         // 出力履歴を書くUseCaseはDbContextに依存するためScoped。
-        services.AddSingleton(_ => CsvSpecificationLoader.LoadEmbedded());
+        // 版レジストリ（施行分ごとの仕様を並存させ、処理対象年月で選ぶ。ADR 0039）。
+        // 確定時に記録する版もここから取るため、確定側と生成側の版識別子が食い違わない。
+        services.AddSingleton(_ => CsvSpecificationRegistry.LoadEmbedded());
+        services.AddSingleton<IClaimCsvSpecificationVersions>(
+            sp => sp.GetRequiredService<CsvSpecificationRegistry>());
         services.AddSingleton<IClaimCsvGenerator>(
-            sp => new ClaimCsvGenerator(sp.GetRequiredService<CsvSpecificationCatalog>()));
+            sp => new ClaimCsvGenerator(sp.GetRequiredService<CsvSpecificationRegistry>()));
         services.AddScoped<ExportClaimCsvUseCase>();
 
         // Phase 2: 工賃計算戦略（4 方式並存; D3 CalculateWagesUseCase が IReadOnlyList<IWageMethodStrategy> を要求）

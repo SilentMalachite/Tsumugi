@@ -267,7 +267,10 @@ public sealed class CsvSpecificationCompletenessTests
             var id = source.GetProperty("sourceDocumentId").GetString()!;
             source.GetProperty("url").GetString().Should().StartWith("https://www.mhlw.go.jp/", id);
             source.GetProperty("version").GetString().Should().NotBeNullOrWhiteSpace(id);
-            source.GetProperty("retrievedAt").GetString().Should().Be("2026-07-10", id);
+            // 取得日は文書ごと（ADR 0024 当時の一括取得は 2026-07-10、その後に追加した出典は取得日が異なる）。
+            // 形式（yyyy-MM-dd）と、ADR 0024 の表と一致することは別テストで固定する。
+            source.GetProperty("retrievedAt").GetString().Should().MatchRegex(
+                @"^\d{4}-\d{2}-\d{2}$", id);
             var sha256 = source.GetProperty("sha256").GetString();
             if (sha256 is null || sha256.Length != 64 || !sha256.All(Uri.IsHexDigit))
             {
@@ -290,8 +293,9 @@ public sealed class CsvSpecificationCompletenessTests
         var items = sources.RootElement.GetProperty("sources").EnumerateArray().ToDictionary(
             source => source.GetProperty("sourceDocumentId").GetString()!, StringComparer.Ordinal);
 
-        // 14 件（ADR 0024 当時）＋ 留意事項通知 2 件（ADR 0038 の証跡台帳が導出可否の根拠に使う）。
-        items.Should().HaveCount(16);
+        // 14 件（ADR 0024 当時）＋ 留意事項通知 2 件（ADR 0038）＋ 令和8年6月施行分の掲載ページ 1 件
+        // （ADR 0039 の版レジストリが「共通編・事業所編は改訂されていない」根拠に使う）。
+        items.Should().HaveCount(17);
         var historical = items["r8-grant-decision-administration-202606"];
         historical.GetProperty("supersededBy").GetString().Should()
             .Be("r8-grant-decision-administration-202607");

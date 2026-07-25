@@ -5,6 +5,7 @@ using Tsumugi.Application.Claim;
 using Tsumugi.Application.UseCases.Claim;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
+using Tsumugi.Domain.ValueObjects;
 using Xunit;
 using Kit = Tsumugi.Application.Tests.UseCases.Claim.ClaimPreparationTestKit;
 
@@ -151,6 +152,31 @@ public sealed class VerifiedClaimBatchProviderTests
 
         parameterTypes.Should().Contain(typeof(VerifiedClaimBatchProvider));
         parameterTypes.Should().NotContain(typeof(IClaimBatchRepository));
+    }
+
+    // NOTE(teeth): 処理対象年月に適用される CSV 仕様版が無ければ、推測で現行版を使わず出力しない
+    // （ADR 0039）。版が解決できない月を出力に使わせないための入口の歯。
+    [Fact]
+    public async Task Exporting_for_a_processing_month_without_an_applicable_specification_fails_closed()
+    {
+        var header = Kit.Batch(revision: 1, kind: RecordKind.New);
+        var unavailable = new ProcessingMonth(2020, 1);
+        var versions = new Kit.FakeCsvSpecificationVersions(header.CsvSpecificationVersion)
+        {
+            UnavailableMonth = unavailable,
+        };
+        var useCase = new ExportClaimCsvUseCase(
+            Kit.VerifiedProvider(new ClaimBatchAggregate(header, [Detail(header)])),
+            new Kit.FixedCsvOfficeContextProvider(),
+            versions,
+            new Kit.ThrowingCsvGenerator(),
+            new Kit.NoOpCsvExportRepository(),
+            TimeProvider.System);
+
+        await FluentActions.Invoking(() => useCase.ExecuteAsync(
+                Kit.OfficeId, Kit.Month, unavailable, "tester", CancellationToken.None))
+            .Should().ThrowAsync<ClaimCsvExportFailedException>()
+            .Where(exception => exception.Reason == "CsvSpecificationVersionUnavailable");
     }
 
     private static ClaimDetail Detail(ClaimBatch header) => ClaimDetail.Create(
