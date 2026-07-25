@@ -53,14 +53,16 @@ public static class ClaimCsvWriter
         var data = Record(catalog, DataRecordId);
         var end = Record(catalog, EndRecordId);
 
+        var mappings = catalog.MappingByFieldId;
         using var buffer = new MemoryStream();
-        buffer.Write(WriteControl(control, processingMonth, officeNumber, dataKind, innerRecords.Count).Span);
+        buffer.Write(
+            WriteControl(control, mappings, processingMonth, officeNumber, dataKind, innerRecords.Count).Span);
         for (var index = 0; index < innerRecords.Count; index++)
         {
-            WriteDataRecord(buffer, data, index, innerRecords[index]);
+            WriteDataRecord(buffer, data, mappings, index, innerRecords[index]);
         }
 
-        buffer.Write(WriteEnd(end, innerRecords.Count).Span);
+        buffer.Write(WriteEnd(end, mappings, innerRecords.Count).Span);
         return buffer.ToArray();
     }
 
@@ -74,6 +76,7 @@ public static class ClaimCsvWriter
 
     private static ReadOnlyMemory<byte> WriteControl(
         CsvRecordSpecification control,
+        IReadOnlyDictionary<string, CsvFieldMapping> mappings,
         ProcessingMonth processingMonth,
         string officeNumber,
         string dataKind,
@@ -84,6 +87,7 @@ public static class ClaimCsvWriter
                 field.FieldId,
                 FrameValue(
                     field,
+                    mappings,
                     sequenceNumber: ControlSequenceNumber,
                     dataRecordCount,
                     processingMonth,
@@ -93,13 +97,17 @@ public static class ClaimCsvWriter
         return CsvCellEncoder.EncodeFields(cells, control.Fields);
     }
 
-    private static ReadOnlyMemory<byte> WriteEnd(CsvRecordSpecification end, int dataRecordCount)
+    private static ReadOnlyMemory<byte> WriteEnd(
+        CsvRecordSpecification end,
+        IReadOnlyDictionary<string, CsvFieldMapping> mappings,
+        int dataRecordCount)
     {
         var cells = end.Fields
             .Select(field => new CsvCell(
                 field.FieldId,
                 FrameValue(
                     field,
+                    mappings,
                     sequenceNumber: dataRecordCount + 2,
                     dataRecordCount,
                     processingMonth: null,
@@ -116,6 +124,7 @@ public static class ClaimCsvWriter
     private static void WriteDataRecord(
         Stream sink,
         CsvRecordSpecification data,
+        IReadOnlyDictionary<string, CsvFieldMapping> mappings,
         int dataRecordIndex,
         ReadOnlyMemory<byte> innerRecord)
     {
@@ -144,6 +153,7 @@ public static class ClaimCsvWriter
 
             var raw = FrameValue(
                 field,
+                mappings,
                 sequenceNumber: dataRecordIndex + 2,
                 dataRecordCount: 0,
                 processingMonth: null,
@@ -153,9 +163,11 @@ public static class ClaimCsvWriter
         }
     }
 
+    /// <summary>データレコードの「データ」項目（内側レコードをそのまま載せる唯一の項目）。</summary>
+    private const string PayloadFieldId = DataRecordId + ":003";
+
     private static bool IsPayloadField(CsvFieldSpecification field) =>
-        field.FieldId.EndsWith(":003", StringComparison.Ordinal)
-        && field.FieldId.StartsWith(DataRecordId, StringComparison.Ordinal);
+        string.Equals(field.FieldId, PayloadFieldId, StringComparison.Ordinal);
 
     /// <summary>
     /// 外側レコードの 1 項目を、mapping の generatorRule / modelPath / inputContract から決める。
@@ -163,6 +175,7 @@ public static class ClaimCsvWriter
     /// </summary>
     private static string FrameValue(
         CsvFieldSpecification field,
+        IReadOnlyDictionary<string, CsvFieldMapping> mappings,
         int sequenceNumber,
         int dataRecordCount,
         ProcessingMonth? processingMonth,
@@ -174,7 +187,9 @@ public static class ClaimCsvWriter
             return string.Empty;
         }
 
-        var mapping = OuterMapping(field);
+        var mapping = mappings.TryGetValue(field.FieldId, out var found)
+            ? found
+            : throw Unresolvable(field, "the outer field has no mapping");
         return mapping.Status switch
         {
             "explicitInput" when string.Equals(mapping.InputContract, "ProcessingMonth", StringComparison.Ordinal)
@@ -208,14 +223,6 @@ public static class ClaimCsvWriter
             _ => throw Unresolvable(field, $"generator rule '{rule.Head}' is not supported in the frame"),
         };
     }
-
-    private static CsvFieldMapping OuterMapping(CsvFieldSpecification field) =>
-        OuterMappings.Value.TryGetValue(field.FieldId, out var mapping)
-            ? mapping
-            : throw Unresolvable(field, "the outer field has no mapping");
-
-    private static readonly Lazy<IReadOnlyDictionary<string, CsvFieldMapping>> OuterMappings =
-        new(() => CsvSpecificationLoader.LoadEmbedded().MappingByFieldId);
 
     private static ClaimCsvGenerationException Unresolvable(CsvFieldSpecification field, string detail) =>
         new(field.FieldId, ClaimCsvGenerationReason.UnresolvableRule, detail);

@@ -30,9 +30,25 @@ internal sealed record ClaimCsvResolutionScope(string FieldId, ClaimCsvDto Dto, 
                 ClaimCsvGenerationReason.MissingRow,
                 $"model path '{path}' requires a daily record row but the record '{Row.RecordId}' has none");
 
-    /// <summary>集約規則の対象になる日次記録（受給者スコープならその受給者、ファイルスコープなら全件）。</summary>
-    internal IEnumerable<ClaimCsvDailyRecordDto> DailyRecordsInScope =>
-        Recipient is { } recipient
-            ? recipient.DailyRecords
-            : Dto.Recipients.SelectMany(item => item.DailyRecords);
+    /// <summary>
+    /// 集約規則の対象になる日次記録を、行スコープ付きで列挙する（受給者スコープならその受給者、
+    /// ファイルスコープなら全受給者）。各要素は当該日を指す解決スコープであり、
+    /// 呼び出し側が日次記録の位置を探し直す必要がない。
+    /// </summary>
+    internal IEnumerable<ClaimCsvResolutionScope> EnumerateDailyRecordScopes()
+    {
+        if (Row.RecipientIndex is { } recipientIndex)
+        {
+            return DailyRecordScopesFor(recipientIndex);
+        }
+
+        return Enumerable.Range(0, Dto.Recipients.Count).SelectMany(DailyRecordScopesFor);
+    }
+
+    private IEnumerable<ClaimCsvResolutionScope> DailyRecordScopesFor(int recipientIndex) =>
+        Enumerable.Range(0, Dto.Recipients[recipientIndex].DailyRecords.Count)
+            .Select(dayIndex => this with
+            {
+                Row = Row with { RecipientIndex = recipientIndex, DailyRecordIndex = dayIndex },
+            });
 }

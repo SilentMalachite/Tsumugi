@@ -133,6 +133,33 @@ public sealed class ClaimCsvGeneratorTests
 
         var act = () => new ClaimCsvGenerator(Catalog).Generate(dto);
 
-        act.Should().Throw<Exception>();
+        act.Should().Throw<Tsumugi.Application.Claim.ClaimCsvExportFailedException>()
+            .Which.Reason.Should().Be(nameof(ClaimCsvGenerationReason.MissingRow));
+    }
+
+    // NOTE(teeth): 生成器は引数で受け取った catalog だけを使う（埋め込みspecを裏で読み直さない）。
+    // 外側フレームの項目値が別インスタンスから解決されると、この差し替えが効かず RED になる。
+    [Fact]
+    public void Generate_resolves_outer_frame_values_from_the_supplied_catalog()
+    {
+        var relabelled = RelabelDataKindSource(Catalog);
+
+        var bytes = new ClaimCsvGenerator(relabelled).Generate(ClaimCsvFixtures.Normal());
+
+        Lines(bytes)[0].Split(',')[4].Should().Be("Z99");
+    }
+
+    /// <summary>データ種別が「先頭の内側レコードの交換情報識別番号の先頭3文字」であることを、
+    /// catalog を差し替えて確かめるためのヘルパー。</summary>
+    private static CsvSpecificationCatalog RelabelDataKindSource(CsvSpecificationCatalog source)
+    {
+        var providerRecords = source.ProviderRecords
+            .Select(record => record.Order == 1
+                ? record with { ExchangeInformationId = "Z999" }
+                : record)
+            .ToArray();
+        return new CsvSpecificationCatalog(
+            source.Version, source.CommonRecords, providerRecords,
+            source.MappingByFieldId, source.SourcesById);
     }
 }

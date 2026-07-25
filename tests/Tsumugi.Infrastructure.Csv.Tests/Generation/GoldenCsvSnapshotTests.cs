@@ -20,7 +20,7 @@ public sealed class GoldenCsvSnapshotTests
 {
     private static readonly CsvSpecificationCatalog Catalog = CsvSpecificationLoader.LoadEmbedded();
 
-    public static TheoryData<string> Scenarios => new("normal", "correction", "cjk");
+    public static TheoryData<string> Scenarios => new("normal", "correction", "cjk", "multi");
 
     [Theory]
     [MemberData(nameof(Scenarios))]
@@ -97,6 +97,17 @@ public sealed class GoldenCsvSnapshotTests
         "cjk" => ClaimCsvFixtures.Normal() with
         {
             Recipients = [ClaimCsvFixtures.Recipient("1234567890", kanaName: "ツムギタロウ")],
+        },
+        // NOTE(teeth): 受給者 2 名。請求書の集計行が受給者ごとの明細項目を参照する経路
+        // （`fieldNonZero(provider:J121:01:031)` 等）は、受給者が 1 名のときだけ
+        // 「候補が 1 行なら採用」のフォールバックで偶然通っていた。複数名を常設で固定する。
+        "multi" => ClaimCsvFixtures.Normal() with
+        {
+            Recipients =
+            [
+                ClaimCsvFixtures.Recipient("1000000001"),
+                ClaimCsvFixtures.Recipient("1000000002", kanaName: "ﾂﾑｷﾞ ﾊﾅｺ"),
+            ],
         },
         _ => throw new ArgumentOutOfRangeException(nameof(scenario)),
     };

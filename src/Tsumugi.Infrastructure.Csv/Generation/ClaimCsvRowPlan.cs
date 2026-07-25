@@ -17,13 +17,18 @@ internal sealed record ClaimCsvRowPlan(
     /// <summary>ファイル全体を 1 行で表す（請求書 総括・集計）。</summary>
     internal const string FileRowKey = "";
 
-    internal static string RecipientKey(int recipientIndex) => $"R{recipientIndex:D4}";
+    /// <remarks>
+    /// スコープ判定は接頭辞一致で行うため、受給者キーは必ず区切り文字で終える。
+    /// 区切りが無いと、受給者 1000 のキー "R1000" が受給者 10000 の "R10000" の接頭辞になり、
+    /// 集約が別の受給者の行を巻き込む。
+    /// </remarks>
+    internal static string RecipientKey(int recipientIndex) => $"R{recipientIndex:D4}/";
 
     internal static string ServiceLineKey(int recipientIndex, int lineIndex) =>
-        $"{RecipientKey(recipientIndex)}/L{lineIndex:D4}";
+        $"{RecipientKey(recipientIndex)}L{lineIndex:D4}";
 
     internal static string DailyRecordKey(int recipientIndex, int dayIndex) =>
-        $"{RecipientKey(recipientIndex)}/D{dayIndex:D4}";
+        $"{RecipientKey(recipientIndex)}D{dayIndex:D4}";
 
     internal static ClaimCsvRowPlan File(string recordId) =>
         new(recordId, FileRowKey, null, null, null);

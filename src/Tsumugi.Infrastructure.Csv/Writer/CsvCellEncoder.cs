@@ -129,7 +129,16 @@ public static class CsvCellEncoder
 
         if (!RequiresQuoting(raw)) return content;
 
+        // 二重引用符を含む値はエスケープで内容が伸びる。伸びた後の内容も幅上限に収める。
         var escaped = EncodeContent(specification, raw.Replace("\"", "\"\"", StringComparison.Ordinal));
+        if (escaped.Length > specification.MaxBytes)
+        {
+            throw Fail(
+                specification.FieldId,
+                CsvEncodingReason.OverByteWidth,
+                $"escaped content byte length {escaped.Length} exceeds max {specification.MaxBytes}");
+        }
+
         var quoted = new byte[escaped.Length + 2];
         quoted[0] = Quote;
         escaped.CopyTo(quoted.AsSpan(1));

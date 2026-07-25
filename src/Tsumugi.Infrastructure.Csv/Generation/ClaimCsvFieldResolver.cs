@@ -173,6 +173,31 @@ internal sealed class ClaimCsvFieldResolver
         return ClaimCsvModelPath.Resolve(rule.Require("selector"), scope);
     }
 
+    /// <summary>
+    /// <c>sum(field=...)</c> が受け付ける絞り込み。就労継続支援B型のみを serviceScope とするため
+    /// 給付種別×サービス種類は単一グループになり、いずれも「対象行のスコープ内にある元レコード行を
+    /// すべて畳み込む」と同義になる。<c>requiredCondition</c> を含む値は、対象項目自身の
+    /// <c>requiredWhen</c> が同じ条件で空欄化するため、ここでは追加の絞り込みを要しない。
+    /// </summary>
+    private static readonly HashSet<string> SupportedSumFilters = new(StringComparer.Ordinal)
+    {
+        "benefitType1",
+        "benefitType1-and-requiredCondition",
+        "all-benefit-types",
+        "requiredCondition",
+    };
+
+    /// <summary>
+    /// <c>sum(field=...)</c> が受け付ける集約軸。いずれも対象行のスコープ（ファイル or 受給者）内で
+    /// 単一グループになる。
+    /// </summary>
+    private static readonly HashSet<string> SupportedSumGroupings = new(StringComparer.Ordinal)
+    {
+        "benefitType,serviceType",
+        "serviceType",
+        "recipient",
+    };
+
     private ClaimCsvValue EvaluateSum(CsvGeneratorRule rule, ClaimCsvResolutionScope scope)
     {
         if (rule.Find("fields") is not null)
@@ -180,9 +205,17 @@ internal sealed class ClaimCsvFieldResolver
             return Arithmetic(rule.RequireList("fields"), scope, (left, right) => left + right);
         }
 
-        // filter / groupBy はいずれも「対象行のスコープ内にある元レコード行」を畳み込む指示。
-        // 就労継続支援B型のみを serviceScope とするため給付種別×サービス種類は単一グループになり、
-        // benefitType1 と all-benefit-types は同じ集合を指す。
+        // 未知の絞り込み・集約軸を黙って無視すると、請求金額が静かに誤る。fail-close する。
+        if (rule.Find("filter") is { } filter && !SupportedSumFilters.Contains(filter))
+        {
+            throw Unresolvable(scope.FieldId, $"sum filter '{filter}' is not defined by the specification");
+        }
+
+        if (rule.Find("groupBy") is { } groupBy && !SupportedSumGroupings.Contains(groupBy))
+        {
+            throw Unresolvable(scope.FieldId, $"sum groupBy '{groupBy}' is not defined by the specification");
+        }
+
         var field = rule.Require("field");
         var total = RowsInScope(field, scope).Sum(row => AsNumber(Resolve(field, row), field));
         return ClaimCsvValue.FromNumber(total);
@@ -193,8 +226,7 @@ internal sealed class ClaimCsvFieldResolver
         var selector = rule.Require("selector");
 
         // 明細レコードそのものを数える（請求書 集計の件数）。
-        if (_recordIdByFieldId.Values.Contains(selector, StringComparer.Ordinal)
-            || _catalog.ProviderRecords.Any(record =>
+        if (_catalog.ProviderRecords.Any(record =>
                 string.Equals(record.RecordId, selector, StringComparison.Ordinal)))
         {
             return ClaimCsvValue.FromNumber(
@@ -229,18 +261,16 @@ internal sealed class ClaimCsvFieldResolver
             throw Unresolvable(scope.FieldId, $"count measure '{measure}' is not defined by the specification");
         }
 
-        var matches = scope.DailyRecordsInScope
-            .Count(day => DayMatchesCountRule(rule, selector, day, scope));
+        var matches = scope.EnumerateDailyRecordScopes()
+            .Count(dayScope => DayMatchesCountRule(rule, selector, dayScope));
         return ClaimCsvValue.FromNumber(matches);
     }
 
     private static bool DayMatchesCountRule(
         CsvGeneratorRule rule,
         string selector,
-        ClaimCsvDailyRecordDto day,
-        ClaimCsvResolutionScope scope)
+        ClaimCsvResolutionScope dayScope)
     {
-        var dayScope = scope with { Row = scope.Row with { DailyRecordIndex = IndexOf(day, scope) } };
         var value = ClaimCsvModelPath.Resolve(selector, dayScope);
 
         if (rule.Find("directions") is { } directions)
@@ -256,29 +286,27 @@ internal sealed class ClaimCsvFieldResolver
         return rule.Find("value") switch
         {
             "true" or "present" or null => !value.IsAbsent,
-            _ => throw Unresolvable(scope.FieldId, $"count value '{rule.Find("value")}' is not supported"),
+            _ => throw Unresolvable(dayScope.FieldId, $"count value '{rule.Find("value")}' is not supported"),
         };
-    }
-
-    private static int IndexOf(ClaimCsvDailyRecordDto day, ClaimCsvResolutionScope scope)
-    {
-        var recipient = scope.Recipient;
-        if (recipient is not null)
-        {
-            var index = recipient.DailyRecords.ToList().IndexOf(day);
-            if (index >= 0) return index;
-        }
-
-        throw new ClaimCsvGenerationException(
-            scope.FieldId, ClaimCsvGenerationReason.MissingRow, "daily record is outside the current scope");
     }
 
     private ClaimCsvValue EvaluateMin(CsvGeneratorRule rule, ClaimCsvResolutionScope scope)
     {
         if (rule.Find("fields") is not null)
         {
-            var values = rule.RequireList("fields").Select(field => Number(field, scope)).ToArray();
-            return ClaimCsvValue.FromNumber(values.Min());
+            // 欠損を 0 とみなすと最小値が 0 になり、負担上限のような項目が静かに 0 円になる。
+            var fields = rule.RequireList("fields");
+            var values = fields
+                .Select(field => Resolve(field, ReferenceRow(field, scope)))
+                .ToArray();
+            if (Array.Exists(values, value => value.IsAbsent))
+            {
+                throw Unresolvable(
+                    scope.FieldId, "min requires every operand to have a value");
+            }
+
+            return ClaimCsvValue.FromNumber(values.Select((value, index) =>
+                AsNumber(value, fields[index])).Min());
         }
 
         // 「有効な継続契約における最初のサービス提供日」。確定 snapshot は当月分の日次記録だけを
@@ -363,12 +391,19 @@ internal sealed class ClaimCsvFieldResolver
             accumulator = operators[index] switch
             {
                 '*' => accumulator * right,
-                '/' when right != 0 => (long)Math.Floor(accumulator / (double)right),
+                // 金額計算のため浮動小数点を経由しない。整数の切り捨て除算で閉じる。
+                '/' when right != 0 => FloorDivide(accumulator, right),
                 _ => throw Unresolvable(scope.FieldId, $"expression '{expression}' divides by zero"),
             };
         }
 
         return accumulator;
+    }
+
+    private static long FloorDivide(long dividend, long divisor)
+    {
+        var quotient = dividend / divisor;
+        return dividend % divisor != 0 && (dividend < 0) != (divisor < 0) ? quotient - 1 : quotient;
     }
 
     private long Operand(string token, ClaimCsvResolutionScope scope) =>
@@ -468,13 +503,17 @@ internal sealed class ClaimCsvFieldResolver
 
         if (TryUnwrap(condition, "fieldPresent", out var fieldPresent))
         {
-            return SelfOrReference(fieldPresent, scope, selfValue) is var value && !value.IsAbsent;
+            return string.Equals(fieldPresent, scope.FieldId, StringComparison.Ordinal)
+                ? !selfValue.IsAbsent
+                : ReferenceValues(fieldPresent, scope).Any(value => !value.IsAbsent);
         }
 
         if (TryUnwrap(condition, "fieldNonZero", out var fieldNonZero))
         {
-            return SelfOrReference(fieldNonZero, scope, selfValue)
-                is ClaimCsvValue.NumberValue { Value: not 0 };
+            return string.Equals(fieldNonZero, scope.FieldId, StringComparison.Ordinal)
+                ? selfValue is ClaimCsvValue.NumberValue { Value: not 0 }
+                : ReferenceValues(fieldNonZero, scope)
+                    .Any(value => value is ClaimCsvValue.NumberValue { Value: not 0 });
         }
 
         if (TryUnwrap(condition, "serviceProvisionMonthBefore", out var serviceBefore))
@@ -492,13 +531,19 @@ internal sealed class ClaimCsvFieldResolver
         throw Unresolvable(scope.FieldId, $"condition '{condition}' has no evaluator");
     }
 
-    private ClaimCsvValue SelfOrReference(
-        string fieldId,
-        ClaimCsvResolutionScope scope,
-        ClaimCsvValue selfValue) =>
-        string.Equals(fieldId, scope.FieldId, StringComparison.Ordinal)
-            ? selfValue
-            : Resolve(fieldId, ReferenceRow(fieldId, scope));
+    /// <summary>
+    /// 条件式が参照する別項目の値。参照先が対象行より細かいスコープに複数行あるとき
+    /// （請求書の集計行から受給者ごとの明細項目を見るとき等）は、そのすべてを返して
+    /// 「スコープ内のいずれかが満たすか」で判定できるようにする。細かいスコープに無い場合は
+    /// 祖先スコープの 1 行へ落とす。
+    /// </summary>
+    private IEnumerable<ClaimCsvValue> ReferenceValues(string fieldId, ClaimCsvResolutionScope scope)
+    {
+        var rows = RowsInScope(fieldId, scope).ToArray();
+        return rows.Length > 0
+            ? rows.Select(row => Resolve(fieldId, row))
+            : [Resolve(fieldId, ReferenceRow(fieldId, scope))];
+    }
 
     private static bool MatchesToken(
         string path,

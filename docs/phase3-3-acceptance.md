@@ -15,7 +15,7 @@
 | 2 | CP932 / CRLF | ✅ | `CsvCellEncoderTests.Cp932_is_registered_and_round_trips_japanese_text` / `GoldenCsvSnapshotTests.Golden_fixtures_are_valid_cp932_with_crlf_line_endings` |
 | 3 | 外側3レコード（control=1 / data=2..n / end=3） | ✅ | `ClaimCsvGeneratorTests.Generate_writes_the_outer_three_record_frame` / `..._numbers_records_from_one_and_ends_at_data_count_plus_two` |
 | 4 | 公式の内側レコード順 | ✅ | `ClaimCsvGeneratorTests.Generate_emits_inner_records_in_the_official_record_order` |
-| 5 | バイトスナップショット一致 | ✅ | `GoldenCsvSnapshotTests.Generated_csv_matches_the_golden_fixture_byte_for_byte`（normal / correction / cjk） |
+| 5 | バイトスナップショット一致 | ✅ | `GoldenCsvSnapshotTests.Generated_csv_matches_the_golden_fixture_byte_for_byte`（normal / correction / cjk / multi） |
 | 6 | CSV は確定済み実効 `ClaimBatch` のみから | ✅ | `ClaimCsvExportProductionWiringTests.Real_wiring_fails_closed_when_no_finalized_batch_exists`（`ClaimBatchNotFinalizedException`）。`ExportClaimCsvUseCase` は `IClaimBatchRepository` の履歴から `Kind != Cancel` の最大 revision だけを採る |
 | 7 | 決定論 | ✅ | `GoldenCsvSnapshotTests.Generated_csv_is_deterministic_for_the_same_input` / `ClaimCsvExportProductionWiringTests.Real_wiring_is_byte_deterministic_for_the_same_finalized_batch` |
 
@@ -143,6 +143,24 @@ DSL の語彙は `CsvGeneratorRuleParserTests.The_embedded_specification_uses_ex
 
 ---
 
+## 9-2. 実装後コードレビューで見つけた欠陥と修正（2026-07-25）
+
+| 重大度 | 欠陥 | 修正 |
+|---|---|---|
+| **Critical** | **受給者が2人以上だとCSV生成が失敗**。請求書の集計項目（`provider:J111:02:012` / `:014`）の `fieldNonZero(provider:J121:01:0xx)` は、ファイルスコープの行から受給者スコープの項目を参照する。受給者が1人のときだけ「候補行が1つなら採用」というフォールバックで偶然通っており、2人以上で `UnresolvableFieldReference` になっていた。golden が全て1人だったため未検出 | 条件式の項目参照を行スコープ対応にし、対象行のスコープ内にある全行を「いずれかが満たすか」で判定（`ClaimCsvFieldResolver.ReferenceValues`）。受給者2人の golden `csv-golden-multi.csv` と `ClaimCsvRowScopeTests` 4件で恒久固定 |
+| Important | `ClaimCsvWriter` が引数の catalog ではなく、埋め込み spec を裏で再ロードした別インスタンスからマッピングを引いていた（差し替え不能・二重parse） | 引数の `catalog.MappingByFieldId` を渡す。`ClaimCsvGeneratorTests.Generate_resolves_outer_frame_values_from_the_supplied_catalog` で固定 |
+| Important | 例外利用日 4 項目を一度入力すると画面から解除できない（保存時に空なら旧値へフォールバックしていた）。cross-field readiness が永久に外れなくなる | フォールバックを削除。`ClaimInputViewModelTests.Correcting_claim_input_can_clear_the_exceptional_usage_fields` で固定 |
+| Important | `sum(field=...)` が未知の `filter` / `groupBy` を黙って無視し、請求金額が静かに誤りうる | 既知値の閉じた集合を用意し、外れたら fail-close |
+| Important | `roundDown` の除算が `double` を経由していた（金額計算） | 整数の切り捨て除算（`FloorDivide`）へ |
+| Important | 行スコープキーが区切り文字で終わらず、受給者 1000 のキーが受給者 10000 の接頭辞になりうる（集約の混線） | 受給者キーを区切り文字終端に。`ClaimCsvRowScopeTests` で固定 |
+| Medium | `count` の日次走査が日次記録を線形探索し直しており、ファイルスコープでは `MissingRow` になる潜在バグがあった | 行スコープごと列挙する（`EnumerateDailyRecordScopes`） |
+| Medium | `min(fields=...)` が欠損を 0 とみなし、負担上限が静かに 0 円になりうる | 欠損があれば fail-close |
+| Minor | 二重引用符のエスケープで内容が伸びた後の幅を検査していなかった / 生成器のテストが `Throw<Exception>` と緩かった / データ項目の判定が接頭辞・接尾辞ヒューリスティックだった | それぞれ修正 |
+
+**未修正（意図的）**: `ClaimCsvExportSection` の `ProcessingMonth` プロパティ（`int`）が `ProcessingMonth` 型と同名。C# の color-color 規則で曖昧さは生じず全経路テスト済みのため、XAML とテストへの波及を避けて据え置く。
+
+---
+
 ## 10. `./build/ci.sh` 実行証跡
 
 2026-07-25 実行、**全ゲート緑**。
@@ -154,9 +172,9 @@ DSL の語彙は `CsvGeneratorRuleParserTests.The_embedded_specification_uses_ex
 ==> test + coverage (gate #3, arch=gate#4, offline=gate#5)
 成功!  失敗: 0、合格:   677 - Tsumugi.Domain.Tests.dll
 成功!  失敗: 0、合格:   411 - Tsumugi.Application.Tests.dll
-成功!  失敗: 0、合格:   153 - Tsumugi.Infrastructure.Csv.Tests.dll
+成功!  失敗: 0、合格:   161 - Tsumugi.Infrastructure.Csv.Tests.dll
 成功!  失敗: 0、合格:    30 - Tsumugi.Infrastructure.Reporting.Tests.dll
-成功!  失敗: 0、合格:   252 - Tsumugi.App.Tests.dll
+成功!  失敗: 0、合格:   254 - Tsumugi.App.Tests.dll
 成功!  失敗: 0、合格:   637 - Tsumugi.Infrastructure.Tests.dll
 ==> coverage threshold gate
 Tsumugi.Domain      Line 95.63% / Branch 88.29% / Method 93.89%  (floor 95%)
@@ -164,9 +182,9 @@ Tsumugi.Application Line 90.57% / Branch 84.26% / Method 84.28%  (floor 70%)
 ==> CI OK
 ```
 
-合計 2,160 テスト（Phase 3-3 で追加した主なテストクラス: `ClaimCsvExportTests` 11 /
+合計 2,170 テスト（うちレビュー後追加 10）（Phase 3-3 で追加した主なテストクラス: `ClaimCsvExportTests` 11 /
 `ClaimCsvExportRepositoryTests` 6 / `CsvCellEncoderTests` 29 / `CsvGeneratorRuleParserTests` 14 /
-`ClaimCsvGeneratorTests` 10 / `GoldenCsvSnapshotTests` 10 / `ExceptionalUsageCrossFieldTests` 5 /
+`ClaimCsvGeneratorTests` 10 / `GoldenCsvSnapshotTests` 13 / `ClaimCsvRowScopeTests` 4 / `ExceptionalUsageCrossFieldTests` 5 /
 `Tsumugi.Infrastructure.Csv.Tests.ArchitectureTests` 6 / `ClaimCsvExportProductionWiringTests` 5 /
 `ClaimCsvExportSectionTests` 7）。
 

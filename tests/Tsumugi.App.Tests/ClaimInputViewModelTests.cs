@@ -73,7 +73,7 @@ public sealed class ClaimInputViewModelTests
     }
 
     [Fact]
-    public async Task Correcting_claim_input_preserves_the_four_non_owned_values_and_saves_the_edited_subsidy_amount()
+    public async Task Correcting_claim_input_round_trips_the_exceptional_usage_values_and_saves_the_edited_subsidy_amount()
     {
         var fixture = CreateFixture(withActiveClaimInput: true);
         await fixture.Sut.LoadAsync();
@@ -90,10 +90,63 @@ public sealed class ClaimInputViewModelTests
         // MunicipalSubsidyAmountYen is now owned by ClaimInputView: the edited value (750) is
         // saved, not the previously loaded value (500) that "preserve" would have carried over.
         saved.MunicipalSubsidyAmountYen.Should().Be(750);
+        // Phase 3-3: 例外利用日の 4 項目は本画面が所有する編集可能項目になった。読み込み時に
+        // ViewModel へ反映された実効値がそのまま往復するため、編集しなければ値は変わらない。
         saved.ExceptionalUsageStartMonth.Should().Be(Month);
         saved.ExceptionalUsageEndMonth.Should().Be(Month);
         saved.ExceptionalUsageDays.Should().Be(10);
         saved.StandardUsageDayTotal.Should().Be(22);
+    }
+
+    [Fact]
+    public async Task Exceptional_usage_fields_are_editable_and_reach_the_save_payload()
+    {
+        var fixture = CreateFixture(withActiveClaimInput: false);
+        await fixture.Sut.LoadAsync();
+        fixture.Sut.UpperLimitManagementResult = UpperLimitManagementResult.Result1;
+        fixture.Sut.UpperLimitManagedAmountYen = 100;
+        fixture.Sut.ExceptionalUsageStartYear = 2026;
+        fixture.Sut.ExceptionalUsageStartMonth = 4;
+        fixture.Sut.ExceptionalUsageEndYear = 2026;
+        fixture.Sut.ExceptionalUsageEndMonth = 6;
+        fixture.Sut.ExceptionalUsageDays = 3;
+        fixture.Sut.StandardUsageDayTotal = 22;
+
+        await fixture.Sut.SaveClaimInputAsync();
+
+        var created = fixture.ClaimInput.Items.Should().ContainSingle().Subject;
+        created.ExceptionalUsageStartMonth.Should().Be(new ServiceMonth(2026, 4));
+        created.ExceptionalUsageEndMonth.Should().Be(new ServiceMonth(2026, 6));
+        created.ExceptionalUsageDays.Should().Be(3);
+        created.StandardUsageDayTotal.Should().Be(22);
+    }
+
+    // NOTE(teeth): 入力済みの値を画面から消せることを固定する。保存時に「空ならDTOの旧値へ
+    // フォールバック」する実装に戻ると、誤入力した例外利用日を二度と解除できなくなり、
+    // cross-field readiness（4項目セット必須）が永久に外れなくなる。
+    [Fact]
+    public async Task Correcting_claim_input_can_clear_the_exceptional_usage_fields()
+    {
+        var fixture = CreateFixture(withActiveClaimInput: true);
+        await fixture.Sut.LoadAsync();
+        fixture.Sut.ExceptionalUsageStartYear.Should().Be(Month.Year);
+        fixture.Sut.ExceptionalUsageDays.Should().Be(10);
+
+        fixture.Sut.ExceptionalUsageStartYear = null;
+        fixture.Sut.ExceptionalUsageStartMonth = null;
+        fixture.Sut.ExceptionalUsageEndYear = null;
+        fixture.Sut.ExceptionalUsageEndMonth = null;
+        fixture.Sut.ExceptionalUsageDays = null;
+        fixture.Sut.StandardUsageDayTotal = null;
+
+        await fixture.Sut.SaveClaimInputAsync();
+
+        var saved = fixture.ClaimInput.Items[^1];
+        saved.Kind.Should().Be(RecordKind.Correct);
+        saved.ExceptionalUsageStartMonth.Should().BeNull();
+        saved.ExceptionalUsageEndMonth.Should().BeNull();
+        saved.ExceptionalUsageDays.Should().BeNull();
+        saved.StandardUsageDayTotal.Should().BeNull();
     }
 
     [Fact]

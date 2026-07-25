@@ -311,7 +311,9 @@ public sealed partial class ClaimInputViewModel(
         }
 
         var kind = ClaimInputCurrentHeadId is null ? RecordKind.New : RecordKind.Correct;
-        var preserve = ClaimInputEffectiveHeadId is not null ? _loadedClaimInput : null;
+        // 例外利用日の4項目は画面の値をそのまま送る。読み込み時に ApplyClaimInputValues が
+        // 実効revisionの値を各プロパティへ反映しているため、直近値の引き継ぎは既に済んでいる。
+        // ここで「空ならDTOの旧値へフォールバック」すると、一度入力した値を画面から消せなくなる。
         await SaveAndReloadAsync(() => _setClaimInput.ExecuteAsync(
             new SetClaimInputRequest(OfficeId, RecipientId, CurrentServiceMonth(), kind,
                 ClaimInputCurrentHeadId)
@@ -320,13 +322,11 @@ public sealed partial class ClaimInputViewModel(
                 UpperLimitManagedAmountYen = UpperLimitManagedAmountYen,
                 MunicipalSubsidyAmountYen = MunicipalSubsidyAmountYen,
                 ExceptionalUsageStartMonth = ToServiceMonth(
-                    ExceptionalUsageStartYear, ExceptionalUsageStartMonth)
-                    ?? preserve?.ExceptionalUsageStartMonth,
+                    ExceptionalUsageStartYear, ExceptionalUsageStartMonth),
                 ExceptionalUsageEndMonth = ToServiceMonth(
-                    ExceptionalUsageEndYear, ExceptionalUsageEndMonth)
-                    ?? preserve?.ExceptionalUsageEndMonth,
-                ExceptionalUsageDays = ExceptionalUsageDays ?? preserve?.ExceptionalUsageDays,
-                StandardUsageDayTotal = StandardUsageDayTotal ?? preserve?.StandardUsageDayTotal,
+                    ExceptionalUsageEndYear, ExceptionalUsageEndMonth),
+                ExceptionalUsageDays = ExceptionalUsageDays,
+                StandardUsageDayTotal = StandardUsageDayTotal,
             }, Environment.UserName, default));
     }
 
