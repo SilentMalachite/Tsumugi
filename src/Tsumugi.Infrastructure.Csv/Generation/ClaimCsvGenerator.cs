@@ -1,4 +1,5 @@
 using Tsumugi.Application.Abstractions;
+using Tsumugi.Application.Claim;
 using Tsumugi.Application.Dtos.Claim.Csv;
 using Tsumugi.Infrastructure.Csv.Specifications;
 using Tsumugi.Infrastructure.Csv.Writer;
@@ -16,6 +17,34 @@ public sealed class ClaimCsvGenerator(CsvSpecificationCatalog catalog) : IClaimC
         catalog ?? throw new ArgumentNullException(nameof(catalog));
 
     public byte[] Generate(ClaimCsvDto dto)
+    {
+        // spec 側の fail-close 例外は Application が catch できる契約例外へ翻訳する
+        // （Application は Tsumugi.Infrastructure.Csv を参照しないため）。
+        try
+        {
+            return GenerateCore(dto);
+        }
+        catch (CsvEncodingException exception)
+        {
+            throw new ClaimCsvExportFailedException(
+                exception.FieldId, exception.Reason.ToString(), exception.Detail);
+        }
+        catch (ClaimCsvGenerationException exception)
+        {
+            throw new ClaimCsvExportFailedException(
+                exception.FieldId,
+                exception.Reason.ToString(),
+                exception.Detail,
+                exception.RecipientReferenceCode);
+        }
+        catch (CsvGeneratorRuleException exception)
+        {
+            throw new ClaimCsvExportFailedException(
+                exception.Target, "GeneratorRuleMalformed", exception.Detail);
+        }
+    }
+
+    private byte[] GenerateCore(ClaimCsvDto dto)
     {
         ArgumentNullException.ThrowIfNull(dto);
 

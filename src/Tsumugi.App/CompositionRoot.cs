@@ -17,6 +17,8 @@ using Tsumugi.Application.UseCases.WorkRecord;
 using Tsumugi.Domain.Logic.Wage;
 using Tsumugi.Infrastructure;
 using Tsumugi.Infrastructure.Csv.Mapping;
+using Tsumugi.Infrastructure.Csv.Specifications;
+using Tsumugi.Infrastructure.Csv.Generation;
 using Tsumugi.Infrastructure.Reporting;
 
 namespace Tsumugi.App;
@@ -103,6 +105,13 @@ public static class CompositionRoot
         services.AddSingleton<IClaimReportGenerator>(
             sp => new ClaimReportGenerator(sp.GetRequiredService<TimeProvider>()));
         services.AddScoped<GenerateClaimReportsUseCase>();
+
+        // Phase 3-3: 国保連請求CSV。Generatorは埋め込みspecだけを読むstateless実装なのでSingleton、
+        // 出力履歴を書くUseCaseはDbContextに依存するためScoped。
+        services.AddSingleton(_ => CsvSpecificationLoader.LoadEmbedded());
+        services.AddSingleton<IClaimCsvGenerator>(
+            sp => new ClaimCsvGenerator(sp.GetRequiredService<CsvSpecificationCatalog>()));
+        services.AddScoped<ExportClaimCsvUseCase>();
 
         // Phase 2: 工賃計算戦略（4 方式並存; D3 CalculateWagesUseCase が IReadOnlyList<IWageMethodStrategy> を要求）
         services.AddSingleton<IReadOnlyList<IWageMethodStrategy>>(_ => new IWageMethodStrategy[]
