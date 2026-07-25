@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "extractorVersion": 1,
+  "sourceDocumentId": "common-r7-10",
+  "sourceSha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+  "records": [
+    {
+      "recordId": "common:outer:control",
+      "sourcePages": [
+        6
+      ],
+      "items": [
+        {
+          "position": 1,
+          "sourcePage": 6,
+          "officialName": "レコード種別",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "コントロールレコードを示す1を設定",
+          "remark": ""
+        },
+        {
+          "position": 2,
+          "sourcePage": 6,
+          "officialName": "レコード番号（連番）",
+          "officialAttribute": "数値",
+          "byteLength": 9,
+          "officialNote": "ファイル内の先頭レコードからの連番（1から始まる通番）を設定",
+          "remark": ""
+        },
+        {
+          "position": 3,
+          "sourcePage": 6,
+          "officialName": "ボリュ－ム通番",
+          "officialAttribute": "数値",
+          "byteLength": 3,
+          "officialNote": "0を設定",
+          "remark": ""
+        },
+        {
+          "position": 4,
+          "sourcePage": 6,
+          "officialName": "レコード件数",
+          "officialAttribute": "数値",
+          "byteLength": 9,
+          "officialNote": "データレコードの件数を設定（コントロールレコードおよびエンドレコードの件数は加算しない）",
+          "remark": ""
+        },
+        {
+          "position": 5,
+          "sourcePage": 6,
+          "officialName": "データ種別",
+          "officialAttribute": "英数",
+          "byteLength": 3,
+          "officialNote": "「１．６データ種別一覧」参照",
+          "remark": ""
+        },
+        {
+          "position": 6,
+          "sourcePage": 6,
+          "officialName": "市町村番号",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "送付元または送付先が市町村の場合は市町村番号を設定、市町村以外の場合は0を設定する",
+          "remark": ""
+        },
+        {
+          "position": 7,
+          "sourcePage": 6,
+          "officialName": "事業所番号",
+          "officialAttribute": "英数",
+          "byteLength": 10,
+          "officialNote": "送付元または送付先が事業所の場合は事業所番号を設定、事業所以外の場合は0を設定する",
+          "remark": ""
+        },
+        {
+          "position": 8,
+          "sourcePage": 6,
+          "officialName": "都道府県番号",
+          "officialAttribute": "コード値",
+          "byteLength": 2,
+          "officialNote": "送付元または送付先が都道府県の場合は都道府県番号を設定、都道府県以外の場合は0を設定",
+          "remark": ""
+        },
+        {
+          "position": 9,
+          "sourcePage": 6,
+          "officialName": "媒体区分",
+          "officialAttribute": "英数",
+          "byteLength": 1,
+          "officialNote": "1（伝送）を設定",
+          "remark": ""
+        },
+        {
+          "position": 10,
+          "sourcePage": 6,
+          "officialName": "処理対象年月",
+          "officialAttribute": "コード値",
+          "byteLength": 6,
+          "officialNote": "データの処理対象年月を設定する（注１）(例)2018年5月の場合、201805を設定する",
+          "remark": ""
+        },
+        {
+          "position": 11,
+          "sourcePage": 6,
+          "officialName": "予備",
+          "officialAttribute": "数値",
+          "byteLength": 6,
+          "officialNote": "設定しない",
+          "remark": ""
+        },
+        {
+          "position": 12,
+          "sourcePage": 6,
+          "officialName": "ブランク",
+          "officialAttribute": "英数",
+          "byteLength": 2,
+          "officialNote": "改行（16進ｺｰﾄﾞ…0x0D0A）を設定",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "recordId": "common:outer:data",
+      "sourcePages": [
+        6
+      ],
+      "items": [
+        {
+          "position": 1,
+          "sourcePage": 6,
+          "officialName": "レコード種別",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "データレコードを示す2を設定",
+          "remark": ""
+        },
+        {
+          "position": 2,
+          "sourcePage": 6,
+          "officialName": "レコード番号（連番）",
+          "officialAttribute": "数値",
+          "byteLength": 9,
+          "officialNote": "ファイル内の先頭レコードからの連番（1から始まる通番）を設定",
+          "remark": ""
+        },
+        {
+          "position": 3,
+          "sourcePage": 6,
+          "officialName": "データ",
+          "officialAttribute": "",
+          "byteLength": null,
+          "officialNote": "交換情報ごとに、CSV形式でデータを設定設定する内容は、各交換情報の「項目説明」を参照",
+          "remark": ""
+        },
+        {
+          "position": 4,
+          "sourcePage": 6,
+          "officialName": "ブランク",
+          "officialAttribute": "英数",
+          "byteLength": 2,
+          "officialNote": "改行（16進ｺｰﾄﾞ…0x0D0A）を設定",
+          "remark": ""
+        }
+      ]
+    },
+    {
+      "recordId": "common:outer:end",
+      "sourcePages": [
+        6
+      ],
+      "items": [
+        {
+          "position": 1,
+          "sourcePage": 6,
+          "officialName": "レコード種別",
+          "officialAttribute": "コード値",
+          "byteLength": 1,
+          "officialNote": "エンドレコードを示す3を設定",
+          "remark": ""
+        },
+        {
+          "position": 2,
+          "sourcePage": 6,
+          "officialName": "レコード番号（連番）",
+          "officialAttribute": "数値",
+          "byteLength": 9,
+          "officialNote": "ファイル内の先頭レコードからの連番（1から始まる通番）を設定",
+          "remark": ""
+        },
+        {
+          "position": 3,
+          "sourcePage": 6,
+          "officialName": "ブランク",
+          "officialAttribute": "英数",
+          "byteLength": 2,
+          "officialNote": "改行（16進ｺｰﾄﾞ…0x0D0A）を設定",
+          "remark": ""
+        }
+      ]
+    }
+  ]
+}

@@ -130,7 +130,7 @@ public sealed record CsvSpecificationCatalog
         {
             "quote-rule", "prohibited-characters", "zero-value-rule", "file-name-rule", "data-kind",
             "code-table", "field-semantics", "count-rule", "unit-and-format", "derivability",
-            "record-purpose",
+            "record-purpose", "derived-byte-length",
         };
 
         var duplicate = EvidenceClaims

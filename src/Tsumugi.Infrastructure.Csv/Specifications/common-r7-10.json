@@ -11,6 +11,7 @@
       "order": 1,
       "sourceDocumentId": "common-r7-10",
       "sourcePage": 6,
+      "sourceTableCaption": "・コントロールレコードフォーマット",
       "fields": [
         {
           "fieldId": "common:outer:control:001",
@@ -172,6 +173,7 @@
       "order": 2,
       "sourceDocumentId": "common-r7-10",
       "sourcePage": 6,
+      "sourceTableCaption": "・データレコードフォーマット",
       "fields": [
         {
           "fieldId": "common:outer:data:001",
@@ -233,6 +235,7 @@
       "order": 3,
       "sourceDocumentId": "common-r7-10",
       "sourcePage": 6,
+      "sourceTableCaption": "・エンドレコードフォーマット",
       "fields": [
         {
           "fieldId": "common:outer:end:001",

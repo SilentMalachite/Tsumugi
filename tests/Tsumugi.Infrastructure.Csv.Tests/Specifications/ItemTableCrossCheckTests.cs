@@ -28,9 +28,37 @@ namespace Tsumugi.Infrastructure.Csv.Tests.Specifications;
 /// スクリプトの出力だけを入れること（`sourceSha256` が登録文書と一致することもここで固定する）。
 /// </para>
 /// </remarks>
-public sealed class ProviderItemTableCrossCheckTests
+public sealed class ItemTableCrossCheckTests
 {
-    private const string DocumentId = "provider-r7-10";
+    /// <summary>突合対象の文書と、その抽出結果ファイル。</summary>
+    public static TheoryData<string, string> Documents => new()
+    {
+        { "provider-r7-10", "provider-r7-10-item-tables.json" },
+        { "common-r7-10", "common-r7-10-item-tables.json" },
+    };
+
+    /// <summary>
+    /// 抽出結果と運用 spec が一致しないことが<b>分かっていて理由がある</b>項目。
+    /// 黙って無視せず、理由つきで宣言する（文書が変わればこの前提も再確認する）。
+    /// </summary>
+    private static readonly Dictionary<string, string> DeclaredNameDifferences = new(StringComparer.Ordinal)
+    {
+        ["common:outer:control:003"] =
+            "公式表は「ボリュ－ム通番」と全角ハイフンマイナス(U+FF0D)で組まれている。"
+            + "spec は長音符(U+30FC)の「ボリューム通番」へ正規化している。",
+    };
+
+    /// <summary>
+    /// 桁数が公式表に<b>記載されていない</b>項目（spec 側は構造から導出した値を持つ）。
+    /// 根拠は証跡台帳（<c>spec-evidence-r7-10.json</c>）に置く。
+    /// </summary>
+    private static readonly Dictionary<string, string> DeclaredMissingByteLengths =
+        new(StringComparer.Ordinal)
+        {
+            ["common:outer:data:003"] =
+                "データレコードのペイロードは可変長で、公式表は属性・ﾊﾞｲﾄ数を空欄にしている。"
+                + "spec の 822 は内側レコードの項目長とカンマ数から導出した値（ADR 0038 の証跡台帳を参照）。",
+        };
 
     /// <summary>
     /// 公式の属性区分（共通編 1.2.3③）と spec の <c>dataType</c> の対応。現時点で観測される組み合わせを
@@ -50,47 +78,58 @@ public sealed class ProviderItemTableCrossCheckTests
     // 後ろに置くと LoadExtraction 実行時に null が渡り、既定の大文字小文字区別で全項目が未束縛になる）。
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
 
-    private static readonly ItemTableExtraction Extraction = LoadExtraction();
-
     private static readonly CsvSpecificationCatalog Catalog = CsvSpecificationLoader.LoadEmbedded();
 
-    [Fact]
-    public void The_extraction_is_tied_to_the_registered_source_document()
+    [Theory]
+    [MemberData(nameof(Documents))]
+    public void The_extraction_is_tied_to_the_registered_source_document(string documentId, string fileName)
     {
-        Extraction.SourceDocumentId.Should().Be(DocumentId);
-        Extraction.SourceSha256.Should().Be(RegisteredSha256(DocumentId));
+        var extraction = LoadExtraction(fileName);
+
+        extraction.SourceDocumentId.Should().Be(documentId);
+        extraction.SourceSha256.Should().Be(RegisteredSha256(documentId));
     }
 
-    [Fact]
-    public void Every_provider_record_in_the_operational_spec_is_covered_by_the_extraction()
+    [Theory]
+    [MemberData(nameof(Documents))]
+    public void Every_record_in_the_operational_spec_is_covered_by_the_extraction(
+        string documentId, string fileName)
     {
-        var operational = ProviderRecords().Select(record => record.RecordId).ToArray();
-        var extracted = Extraction.Records.Select(record => record.RecordId).ToArray();
+        var operational = RecordsOf(documentId).Select(record => record.RecordId).ToArray();
+        var extracted = LoadExtraction(fileName).Records.Select(record => record.RecordId).ToArray();
 
         extracted.Should().BeEquivalentTo(operational);
     }
 
-    [Fact]
-    public void Every_field_position_matches_the_official_item_numbers()
+    [Theory]
+    [MemberData(nameof(Documents))]
+    public void Every_field_position_matches_the_official_item_numbers(string documentId, string fileName)
     {
-        foreach (var record in ProviderRecords())
+        foreach (var record in RecordsOf(documentId))
         {
-            var extracted = RecordFor(record.RecordId);
+            var extracted = RecordFor(LoadExtraction(fileName), record.RecordId);
             extracted.Items.Select(item => item.Position).Should().BeEquivalentTo(
                 record.Fields.Select(field => field.Position),
                 because: $"{record.RecordId} の項番集合は公式の項目表と一致しなければならない");
         }
     }
 
-    // NOTE(teeth): 桁数の書き起こし誤りはここで落ちる。424 項目すべてが対象。
-    [Fact]
-    public void Every_max_byte_length_matches_the_official_byte_length()
+    // NOTE(teeth): 桁数の書き起こし誤りはここで落ちる（事業所編 424 項目＋共通編 19 項目）。
+    [Theory]
+    [MemberData(nameof(Documents))]
+    public void Every_max_byte_length_matches_the_official_byte_length(string documentId, string fileName)
     {
-        foreach (var (record, field, item) in JoinedFields())
+        foreach (var (record, field, item) in JoinedFields(documentId, fileName))
         {
+            var fieldId = $"{record.RecordId}:{field.Position:D3}";
+            if (DeclaredMissingByteLengths.TryGetValue(fieldId, out var reason))
+            {
+                item.ByteLength.Should().BeNull(because: reason);
+                continue;
+            }
+
             field.MaxBytes.Should().Be(
-                item.ByteLength,
-                because: $"{record.RecordId}:{field.Position:D3}（{item.OfficialName}）の桁数");
+                item.ByteLength, because: $"{fieldId}（{item.OfficialName}）の桁数");
         }
     }
 
@@ -99,23 +138,36 @@ public sealed class ProviderItemTableCrossCheckTests
     /// 無い（群ラベルは行結合された縦書きセル）。そのため抽出側は<b>個別名だけ</b>を持ち、
     /// 突合は「個別名が運用 spec の項目名に含まれるか」で行う。
     /// </remarks>
-    [Fact]
-    public void Every_official_name_contains_the_extracted_item_name()
+    [Theory]
+    [MemberData(nameof(Documents))]
+    public void Every_official_name_contains_the_extracted_item_name(string documentId, string fileName)
     {
-        foreach (var (record, field, item) in JoinedFields())
+        foreach (var (record, field, item) in JoinedFields(documentId, fileName))
         {
+            var fieldId = $"{record.RecordId}:{field.Position:D3}";
+            if (DeclaredNameDifferences.TryGetValue(fieldId, out var reason))
+            {
+                Compact(field.OfficialName).Should().NotBe(
+                    Compact(item.OfficialName), because: reason);
+                continue;
+            }
+
             Compact(field.OfficialName).Should().Contain(
-                Compact(item.OfficialName),
-                because: $"{record.RecordId}:{field.Position:D3} の項目名");
+                Compact(item.OfficialName), because: $"{fieldId} の項目名");
         }
     }
 
-    [Fact]
-    public void Every_official_attribute_is_one_of_the_four_official_classes()
+    [Theory]
+    [MemberData(nameof(Documents))]
+    public void Every_official_attribute_is_one_of_the_four_official_classes(
+        string documentId, string fileName)
     {
-        var observed = Extraction.Records
+        _ = documentId;
+        var observed = LoadExtraction(fileName).Records
             .SelectMany(record => record.Items)
             .Select(item => item.OfficialAttribute)
+            // 属性が空欄の項目（可変長ペイロード）は公式表に属性の記載が無い。
+            .Where(attribute => attribute.Length > 0)
             .Distinct(StringComparer.Ordinal);
 
         observed.Should().BeSubsetOf(DataTypesByOfficialAttribute.Keys);
@@ -123,33 +175,39 @@ public sealed class ProviderItemTableCrossCheckTests
 
     // 属性区分ごとに使える dataType を固定する。単位や文字種の取り違えは
     // ここで一段目の網にかかる（例: コード値属性の項目を numeric として扱う等）。
-    [Fact]
-    public void Every_data_type_agrees_with_the_official_attribute()
+    [Theory]
+    [MemberData(nameof(Documents))]
+    public void Every_data_type_agrees_with_the_official_attribute(string documentId, string fileName)
     {
-        foreach (var (record, field, item) in JoinedFields())
+        foreach (var (record, field, item) in JoinedFields(documentId, fileName))
         {
+            if (item.OfficialAttribute.Length == 0) continue;
+
             DataTypesByOfficialAttribute[item.OfficialAttribute].Should().Contain(
                 field.DataType,
                 because: $"{record.RecordId}:{field.Position:D3} は公式属性 '{item.OfficialAttribute}'");
         }
     }
 
-    [Fact]
-    public void Every_extracted_item_carries_the_official_description()
+    [Theory]
+    [MemberData(nameof(Documents))]
+    public void Every_extracted_item_carries_the_official_description(string documentId, string fileName)
     {
+        _ = documentId;
         // 項目の説明（単位・カウント規則・設定値の根拠）が空の行があると、次の施行分で
         // 「差分を見る」運用が成立しない。
-        Extraction.Records.SelectMany(record => record.Items)
+        LoadExtraction(fileName).Records.SelectMany(record => record.Items)
             .Where(item => item.OfficialNote.Length == 0)
             .Should().BeEmpty();
     }
 
     private static IEnumerable<(CsvRecordSpecification Record, CsvFieldSpecification Field, ExtractedItem Item)>
-        JoinedFields()
+        JoinedFields(string documentId, string fileName)
     {
-        foreach (var record in ProviderRecords())
+        var extraction = LoadExtraction(fileName);
+        foreach (var record in RecordsOf(documentId))
         {
-            var extracted = RecordFor(record.RecordId).Items
+            var extracted = RecordFor(extraction, record.RecordId).Items
                 .ToDictionary(item => item.Position);
             foreach (var field in record.Fields)
             {
@@ -159,11 +217,13 @@ public sealed class ProviderItemTableCrossCheckTests
         }
     }
 
-    private static IEnumerable<CsvRecordSpecification> ProviderRecords() => Catalog.ProviderRecords
-        .Where(record => string.Equals(record.SourceDocumentId, DocumentId, StringComparison.Ordinal));
+    private static IEnumerable<CsvRecordSpecification> RecordsOf(string documentId) =>
+        Catalog.CommonRecords.Concat(Catalog.ProviderRecords)
+            .Where(record => string.Equals(record.SourceDocumentId, documentId, StringComparison.Ordinal));
 
-    private static ExtractedRecord RecordFor(string recordId) => Extraction.Records
-        .Single(record => string.Equals(record.RecordId, recordId, StringComparison.Ordinal));
+    private static ExtractedRecord RecordFor(ItemTableExtraction extraction, string recordId) =>
+        extraction.Records.Single(
+            record => string.Equals(record.RecordId, recordId, StringComparison.Ordinal));
 
     /// <summary>空白を落として比較する（PDF の項目名は字間が空くことがある）。</summary>
     private static string Compact(string value) =>
@@ -177,9 +237,8 @@ public sealed class ProviderItemTableCrossCheckTests
             .GetProperty("sha256").GetString()!;
     }
 
-    private static ItemTableExtraction LoadExtraction() => JsonSerializer.Deserialize<ItemTableExtraction>(
-        ReadResource("provider-r7-10-item-tables.json"),
-        SerializerOptions)!;
+    private static ItemTableExtraction LoadExtraction(string fileName) =>
+        JsonSerializer.Deserialize<ItemTableExtraction>(ReadResource(fileName), SerializerOptions)!;
 
     private static string ReadResource(string fileName)
     {
@@ -229,7 +288,7 @@ public sealed class ProviderItemTableCrossCheckTests
         }
     }
 
-    static ProviderItemTableCrossCheckTests()
+    static ItemTableCrossCheckTests()
     {
         // 比較は序数のみ。カルチャ依存の大小比較・書式化を使わない。
         _ = CultureInfo.InvariantCulture;

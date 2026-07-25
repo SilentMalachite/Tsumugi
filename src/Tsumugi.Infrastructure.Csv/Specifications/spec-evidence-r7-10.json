@@ -286,14 +286,35 @@
           "quote": "毎年4月1日に始まり翌年3月31日をもって終わる1年間に180日間を限度として算定する。この「180日間」とは利用者が実際に利用した日数の合計数"
         }
       ]
+    },
+    {
+      "claimId": "common:outer:data:003",
+      "claimKind": "field",
+      "decision": "データレコードのペイロード長 822 は公式表に記載が無く、内側レコードの項目長から導出した値。就労継続支援B型明細情報（provider:J611:01）の maxBytes 合計＋区切りカンマ数が 822 と一致することで確認した。この一致は「maxBytes は引用符を除いた内容のバイト数」という解釈の根拠にもなっている（CsvCellEncoder）。",
+      "sourceRefs": [
+        {
+          "documentId": "common-r7-10",
+          "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+          "locator": "p.6;section=（２）レコードフォーマット;table=・データレコードフォーマット;item=3",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "derived-byte-length"
+          ],
+          "quote": "交換情報ごとに、CSV形式でデータを設定"
+        },
+        {
+          "documentId": "provider-r7-10",
+          "sha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+          "locator": "p.60;record=就労継続支援Ｂ型明細情報",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "derived-byte-length"
+          ]
+        }
+      ]
     }
   ],
   "knownGaps": [
-    {
-      "claimId": "common:outer:*",
-      "reason": "共通編は1頁に3表（コントロール／データ／エンド）が並ぶため項目表の機械抽出が未対応（ADR 0037）。外側レコード19項目の項目名・桁数・属性は書き起こしのままで、行単位の出典も未付与。",
-      "trackedIn": "docs/open-questions.md"
-    },
     {
       "claimId": "provider:J121:04:030..033",
       "reason": "例外利用日4項目を crossFieldGroup で一括必須にした判断（ADR 0030・Phase 3-2 由来）の出典を一次資料で特定していない。",

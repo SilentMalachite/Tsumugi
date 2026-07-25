@@ -66,6 +66,7 @@ EXTRACTOR_VERSION = 1
 HEADER_TOKENS = {
     "項番": "position",
     "項目名": "officialName",
+    "項目": "officialName",  # 共通編の表は「項目」、事業所編の表は「項目名」
     "属性": "officialAttribute",
     "ﾊﾞｲﾄ": "byteLength",
     "説明": "officialNote",
@@ -153,17 +154,36 @@ def header_columns(
     """
     columns: dict[str, tuple[float, float]] = {}
     for left, right in zip(vertical, vertical[1:]):
-        text = cell_text(words, (left, right), header_band)
+        text = normalize(cell_text(words, (left, right), header_band))
         if not text:
             continue
         for token, name in HEADER_TOKENS.items():
-            if token in text and name not in columns:
+            if name not in columns and MatchesHeaderToken(token, name, text):
                 columns[name] = (left, right)
                 break
     # 項番・項目名・説明（内容）が揃っていなければ対象表ではない。
     if not {"position", "officialName", "officialNote"} <= columns.keys():
         return None
     return columns
+
+
+def has_header_token(words, vertical: list[float], band: tuple[float, float]) -> bool:
+    """行帯のどこかに表ヘッダの見出し語があるか（ヘッダの開始帯かどうかの判定）。"""
+    for left, right in zip(vertical, vertical[1:]):
+        text = normalize(cell_text(words, (left, right), band))
+        if any(token in text for token in HEADER_TOKENS):
+            return True
+    return False
+
+
+def MatchesHeaderToken(token: str, name: str, text: str) -> bool:
+    """ヘッダ列の判定。
+
+    項番列だけは<b>完全一致</b>を要求する。表の境界をまたぐ広い band を試すと、次の表のヘッダを
+    巻き込んで「１２項番」のような文字列になり、境界がヘッダだと誤検出される（1 頁に複数表がある頁で
+    実際に起きた）。他の列は「属性（※Z）」のように注記が付くため含有判定のままにする。
+    """
+    return text == token if name == "position" else token in text
 
 
 def cell_text(words, x_range: tuple[float, float], y_range: tuple[float, float]) -> str:
@@ -202,6 +222,28 @@ def cluster_by_x(words, tolerance: float = 3.0) -> list[list]:
     return clusters
 
 
+def caption_position(words, caption: str) -> float | None:
+    """表の見出し（キャプション）の y 位置。
+
+    見出しの<b>全文</b>を含む語だけを採る。部分一致を許すと、節見出し（例「レコードフォーマット」）に
+    引っかかって別の表を選んでしまう（実際に 3 表すべてが最初の表になる誤りが出た）。
+    行内で語が分割されている場合に備え、同一行の語を連結してからも判定する。
+    """
+    target = normalize(caption)
+    for _x0, y0, _x1, _y1, text, *_ in words:
+        if target in normalize(text):
+            return y0
+
+    by_line: dict[float, list[tuple[float, str]]] = {}
+    for x0, y0, _x1, _y1, text, *_ in words:
+        by_line.setdefault(round(y0, 1), []).append((x0, text))
+    for y0, line in sorted(by_line.items()):
+        joined = normalize("".join(text for _x, text in sorted(line)))
+        if target in joined:
+            return y0
+    return None
+
+
 def normalize(text: str) -> str:
     """空白だけを落とす（文字幅は公式表記のまま保つ）。
 
@@ -226,8 +268,13 @@ def parse_byte_length(text: str) -> int | None:
     return to_int(normalize(text))
 
 
-def extract_page(page, page_number: int) -> list[dict] | None:
+def extract_page(page, page_number: int, caption: str | None = None) -> list[dict] | None:
     """1 ページから項目行を抽出する。対象表でなければ None。
+
+    <b>1 頁に複数の表が並ぶ頁</b>（共通編のレコードフォーマットはコントロール／データ／エンドの
+    3 表が同じ頁にある）では、`caption` に表の見出し（例「・コントロールレコードフォーマット」）を
+    渡して対象表を選ぶ。見出しの直下にあるヘッダ行から、次のヘッダ行の手前までを 1 表として読む。
+    `caption` を渡さない頁は従来どおり「最初のヘッダ行から頁末まで」を 1 表として読む。
 
     項目名欄が「群ラベル｜個別名」に分かれている表（請求書・明細書の集計欄など）では、
     群ラベルが複数行にまたがる。spec の `officialName` は「群ラベル＋個別名」の連結なので、
@@ -239,25 +286,52 @@ def extract_page(page, page_number: int) -> list[dict] | None:
     if len(horizontal) < 2 or len(vertical) < 3:
         return None
 
+    # 頁内のヘッダ行を<b>全部</b>見つける（1 頁に複数表がある頁のため）。
     # ヘッダ行は 1 行帯で収まる表（就労継続支援の項目表）と 2〜3 行帯に割れる表
     # （請求書・明細書の項目表。属性/ﾊﾞｲﾄ数の見出しが上下に分かれる）がある。
-    # 狭い候補から試し、必要な列が揃った最初の band をヘッダとして採る。
-    columns = None
-    header_end = 0
-    for candidate in (1, 2, 3):
-        if candidate >= len(horizontal):
-            break
-        columns = header_columns(words, vertical, (horizontal[0], horizontal[candidate]))
-        if columns is not None:
-            header_end = candidate
-            break
-    if columns is None:
+    headers: list[tuple[int, int, dict[str, tuple[float, float]]]] = []
+    scan = 0
+    while scan < len(horizontal) - 1:
+        found = None
+        # ヘッダ候補は「先頭の行帯に見出し語がある」ことを要求する。表と表の間の空き帯を
+        # 起点にすると、次の表のヘッダを巻き込んで<b>ヘッダ位置が 1 帯早くずれる</b>
+        # （キャプションで表を選べなくなる。1 頁 3 表の頁で実際に起きた）。
+        if has_header_token(words, vertical, (horizontal[scan], horizontal[scan + 1])):
+            for span in (1, 2, 3):
+                if scan + span >= len(horizontal):
+                    break
+                candidate = header_columns(
+                    words, vertical, (horizontal[scan], horizontal[scan + span]))
+                if candidate is not None:
+                    found = (scan, scan + span, candidate)
+                    break
+        if found is None:
+            scan += 1
+            continue
+        headers.append(found)
+        scan = found[1]
+
+    if not headers:
         return None
+
+    if caption is None:
+        _start, header_end, columns = headers[0]
+        row_end = len(horizontal) - 1
+    else:
+        caption_y = caption_position(words, caption)
+        if caption_y is None:
+            return None
+        below = [entry for entry in headers if horizontal[entry[0]] > caption_y]
+        if not below:
+            return None
+        start, header_end, columns = below[0]
+        following = [entry[0] for entry in headers if entry[0] > start]
+        row_end = following[0] if following else len(horizontal) - 1
 
     band_cache: dict[tuple[float, float], list[tuple[float, float]]] = {}
 
     items: list[dict] = []
-    for top, bottom in zip(horizontal[header_end:], horizontal[header_end + 1:]):
+    for top, bottom in zip(horizontal[header_end:row_end], horizontal[header_end + 1:row_end + 1]):
         if bottom - top < 4:
             continue
         band = (top, bottom)
@@ -340,13 +414,22 @@ def band_index(
     return list(zip(crossing, crossing[1:]))
 
 
-def extract_record(document, start_page: int, expected_last_position: int) -> tuple[list[dict], list[int]]:
-    """起点ページから項番が昇順に続く限り読み進める。"""
+def extract_record(
+    document,
+    start_page: int,
+    expected_last_position: int,
+    caption: str | None = None,
+) -> tuple[list[dict], list[int]]:
+    """起点ページから項番が昇順に続く限り読み進める。
+
+    `caption` を渡すと、起点ページ内で見出しに対応する表だけを読む（1 頁複数表の頁）。
+    """
     items: dict[int, dict] = {}
     pages: list[int] = []
     highest = 0
     for page_number in range(start_page, document.page_count + 1):
-        page_items = extract_page(document[page_number - 1], page_number)
+        page_items = extract_page(
+            document[page_number - 1], page_number, caption if page_number == start_page else None)
         if page_items is None:
             if page_number == start_page:
                 raise SystemExit(f"物理 {start_page} 頁に項目表が見つかりません。")
@@ -390,7 +473,8 @@ def main() -> int:
         if record.get("sourceDocumentId") != args.document_id:
             continue
         last_position = record["fields"][-1]["position"]
-        items, pages = extract_record(document, record["sourcePage"], last_position)
+        items, pages = extract_record(
+            document, record["sourcePage"], last_position, record.get("sourceTableCaption"))
         records.append(
             {
                 "recordId": record["recordId"],
