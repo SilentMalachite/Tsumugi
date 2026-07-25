@@ -109,3 +109,49 @@ condition := always | optional | never
 - CSV loader、writer、validatorは443項目のID、position、最大バイト数、requiredWhenを変更せず読む。
 - 帳票生成は113項目の独立inventoryを使い、同義CSV項目は相互参照に限定する。
 - 公式資料の差替え時は既存sourceDocumentIdを上書きせず、新しいID、版、取得日、SHA-256を追加する。
+
+---
+
+## 補足: Phase 3-3 の CSV 生成方式（2026-07-25 追記）
+
+### 決定
+
+CSV バイト列の生成は **spec 駆動**とする。`field-mapping-r7-10.json` の宣言（`generatorRule` /
+`modelPath` / `inputContract` / `targetModel.targetProperty`）だけを根拠に 443 項目を解決し、
+fieldId・定数・コード値を C# 側へ書かない。
+
+- `CsvGeneratorRuleParser` — `generatorRule` DSL（17 種の head）の構文解析。語彙は閉じており、未知の head は fail-close。
+- `ClaimCsvFieldResolver` — 遅延・メモ化つきの項目解決。レコード間の依存（明細→集計→請求書）を
+  呼び出し側が並べ替える必要がない。循環参照は fail-close。
+- `CsvCellEncoder` — 引用規則・バイト幅・CP932 変換・許容コード検証の一元化。
+- `ClaimCsvWriter` — 外側 3 レコードの組み立て。
+- `IClaimCsvGenerator`（Application 抽象）— Application は `Tsumugi.Infrastructure.Csv` を参照しない。
+  `IClaimReportGenerator`（Phase 3-2）と同じ責務境界。
+
+### spec JSON から導出した構造（推測ではない）
+
+- **データレコードの「データ」項目には内側 provider レコード 1 件が入る**:
+  `provider:J611:01` の `sum(maxBytes) + 区切りカンマ数 = 822` が `common:outer:data:003`（822）と完全一致する。
+- **`maxBytes` は引用符を除いた内容のバイト数の上限**: 上の一致は、引用符を内容長に含める解釈では成立しない。
+- **行終端は末尾の「ブランク」項目**（`quoteRule: "crlf"`）: 各外側レコードの最終項目だけがこの規則を持つ。
+- **レコード番号**: control=1 / data=2..n+1 / end=n+2（`common:outer:end:002` の
+  `sequence(value=outerDataRecordCountPlus2)`）。
+
+### 引用規則
+
+spec の文言「quote when comma, double quote, space, or kanji is present; double embedded double quote」を
+literal に実装する（カンマ / 二重引用符 / 空白（半角・全角）/ 漢字）。
+全角カナ・全角記号のみの値を引用するかは公式資料から確定できないため引用しない側に寄せ、
+`docs/open-questions.md` に未確定事項として残す。
+
+### コード値
+
+列挙型 → 公式コードの対応表を C# に置かない。`allowedCodes` が 1 個ならその値、空かつ条件が同一性判定
+（`modelIn` / `modelEquals`）なら該当回数 `1`、それ以外はモデルの数値をそのまま出して `allowedCodes` で検証する。
+この規則により、spec が許容コードを持たない列挙値（例: `MedicalCoordinationType.TypeV`）は自動的に fail-close する。
+
+### 新キー `crossFieldGroup`
+
+「いずれか 1 つでも入力されたら組の全項目を必須にする」入力要件を、公式出典に紐づく `requiredWhen` を
+書き換えずに追加宣言するためのキー。`status: "missing"` の項目だけが持てる（`CsvSpecificationCatalog` が検証）。
+Phase 3-3 では例外利用日 4 項目（`provider:J121:04:030`〜`033`）が唯一の利用箇所。

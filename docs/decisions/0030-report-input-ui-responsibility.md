@@ -49,3 +49,16 @@ readiness gate側では、`report:service-performance:intensive-support:001`（�
 - `MunicipalSubsidyAmountYen`（Task 7）と`IntensiveSupportEpisode.StartDate`（Task 8）は、いずれも「クロスフィールド規則を持つが、値そのものの自己参照条件は意図的にfail-openのまま」という同型のパターンであり、fail-closedの実効性は`Any(...)`合流（クロスフィールドレグ）または`rowPresent`単独条件（行スコープレグ）のいずれかが担う。今後同種のフィールドを追加する際は、まず「本当に自己参照条件だけで十分か（spec §10が値そのものの有無以外の条件を課していないか）」を確認し、クロスフィールド/行スコープ条件が必要なら本ADRのTask 4/7/8と同じ二段構造（`ClaimPreparationContextBuilder`のrowScope/Values母集団化＋`report-field-mapping-r8-06.json`のbare条件）を踏襲する。
 - 本ADRは`status: "missing"`の21項目のみを対象とする。`status: "existing"`のまま`ClaimPreparationView`をuiSurfaceに持つ項目（例: `ClaimInput.ExceptionalUsageStartMonth`等）は別contract（既存モデルの値をそのまま参照するだけで新規入力欄を要しない）であり、本ADRのスコープ外。
 - CSV側（field-mapping-r7-10.json）の`provider:J611:01:156`等、Phase 3-3のCSV生成スコープに属するフィールドは本ADRの対象外（帳票UI入力責務のみを扱う）。
+
+---
+
+## 補足: Phase 3-3 の `provider:*` 入力（2026-07-25 追記）
+
+CSV 固有の `provider:*` 入力も本 ADR の方針どおり **`ClaimInputView` に集約**する。
+
+- 例外利用日 4 項目（`provider:J121:04:030`〜`033`）の `uiSurface` を `ClaimPreparationView` から
+  `ClaimInputView` へ変更した。受給者単位で編集する項目であり、`provider:J121:04:025`
+  （`MunicipalSubsidyAmountYen`）で確立済みの前例に合わせる。
+- CSV 出力そのものの操作面（確定済み請求の選択・`ProcessingMonth` の入力・エラー表示・保存）は
+  `ClaimPreparationView` の子セクション `ClaimCsvExportSection` に置く。既存の `ClaimReportSection`
+  （3 帳票の保存）と同じ「親から状態を押し込む子セクション」パターンで、入力の補完は行わない。

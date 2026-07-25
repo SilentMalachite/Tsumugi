@@ -95,7 +95,7 @@ dotnet list package --vulnerable --include-transitive  # 脆弱性確認
 - **本書(Claude Code)が実装、Codexがレビュー**。Codex指摘は重大度付きで返り、Claude Code向け修正指示に**トリアージして取り込む**。
 - 不明点・公式仕様の未確定事項は推測で実装せず `docs/open-questions.md` に起票し、設計相談へ回す。
 - フェーズは 0→1→2→3 の順（基盤→記録→工賃→国保連請求）。前フェーズの受け入れ基準を満たすまで次に着手しない。
-- **現在地**: フェーズ0・1・2、Phase 3-0、Phase 3-1、Phase 3-2 は完了（Phase 3-2 は snapshot v2 + 3帳票、spec: `docs/superpowers/specs/2026-07-20-phase3-2-reports-redesign-design.md`、計画: `docs/superpowers/plans/2026-07-20-phase3-2-reports.md`、受け入れ証跡: `docs/phase3-2-acceptance.md`）。次は Phase 3-3 CSV 生成（30 `provider:*` フィールドの入力UI補完 + CSV writer + close 統合）。GUI 手動貫通確認（プレビュー→確定→帳票保存×3）は残課題として open-questions に維持。
+- **現在地**: フェーズ0・1・2、Phase 3-0、Phase 3-1、Phase 3-2、Phase 3-3 は完了（Phase 3-3 は spec 駆動の国保連請求CSV生成＋出力履歴＋例外利用日の入力UI、spec: `docs/superpowers/specs/2026-07-20-phase3-3-kokuhoren-csv-design.md`、計画: `docs/superpowers/plans/2026-07-20-phase3-3-kokuhoren-csv.md`、受け入れ証跡: `docs/phase3-3-acceptance.md`）。次は Phase 4 準備。GUI 手動貫通確認と、CSV の未確定事項（地域区分「その他」コード・開始年月日の継続契約範囲・算定意味論2件・引用規則・データ種別）は open-questions に維持。
 
 ---
 
@@ -116,6 +116,9 @@ dotnet list package --vulnerable --include-transitive  # 脆弱性確認
 - `docs/superpowers/specs/2026-07-20-phase3-2-reports-redesign-design.md` — Phase 3-2再設計spec（正本）
 - `docs/superpowers/plans/2026-07-20-phase3-2-reports.md` — Phase 3-2実装計画（進捗はチェックボックスが正）
 - `docs/phase3-2-acceptance.md` — Phase 3-2 受け入れ証跡
+- `docs/superpowers/specs/2026-07-20-phase3-3-kokuhoren-csv-design.md` — Phase 3-3設計spec（正本）
+- `docs/superpowers/plans/2026-07-20-phase3-3-kokuhoren-csv.md` — Phase 3-3実装計画（進捗はチェックボックスが正）
+- `docs/phase3-3-acceptance.md` — Phase 3-3 受け入れ証跡（spec/planからの逸脱と理由もここ）
 - `docs/decisions/` — ADR / `docs/open-questions.md` — 未確定事項
 
 > Codex レビューのフォーマット（重大度・観点カテゴリ・該当行・推奨アクション・根拠）は本書のワークフロー節に従う。

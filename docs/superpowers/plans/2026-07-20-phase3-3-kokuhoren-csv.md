@@ -8,6 +8,33 @@
 
 **Tech Stack:** .NET 10 / C# 14 / Avalonia 11.x / EF Core 10.x / xUnit / FluentAssertions / SQLite
 
+## 実装結果（2026-07-25 追記・本節が進捗の正本）
+
+実装は完了した。ただし**着手時にコードベースと計画の食い違いが複数見つかり、設計を変更している**。
+各 Step のチェックボックスは「計画時点の記録」としてそのまま残す（書かれたとおりに実行していない
+Step があるため、機械的に `[x]` へ倒すと事実と食い違う）。**何を作ったか・なぜ計画から外れたかの正本は
+`docs/phase3-3-acceptance.md`（特に §9 spec/plan からの主な逸脱と理由）とする。**
+
+| 計画 Task | 状態 | 実装 |
+|---|---|---|
+| Task 1 `ClaimCsvExport` | ✅ | `Entity` 基底に合わせて実装（`CreatedAt`/`ConcurrencyToken`）。列は `CsvSpecificationVersion` / `ClaimMasterVersion` / `Sha256` / `ByteLength`。migration `Phase33ClaimCsvExport` |
+| Task 2 `CsvCellEncoder` | ✅ | 引用規則は spec の散文（条件付き引用）を literal 実装。`CsvFieldSpecification` の実シグネチャに合わせた |
+| Task 3 R8.6 サービスコード seed | ❌ 見送り | ADR 0031。CSV はサービスコードを解決せず確定 snapshot からコピーするため不要。創作値の seed は投入しない |
+| Task 4 `ClaimCsvWriter` | ✅ | 外側レコードは `common:outer:control` / `data` / `end`（計画の `provider:control` は spec に存在しない） |
+| Task 5 `RecordIdRouter` | 🔄 置換 | `ClaimCsvRowPlanner`（行スコープ計画）+ `ClaimCsvFieldResolver`（遅延解決）へ |
+| Task 6-9 9 個の builder | 🔄 置換 | `generatorRule` DSL 解釈器による spec 駆動生成。424 fieldId を C# へ書くとハード制約3 に抵触するため |
+| Task 10 `ClaimInput` provider:* 追加 | ✅ 不要と判明 | 30 件の対象プロパティは Phase 3-1 で追加済み。migration 不要 |
+| Task 11 cross-field readiness | ✅ | 新キー `crossFieldGroup` で宣言（公式出典に紐づく `requiredWhen` は書き換えない） |
+| Task 12 `ClaimInputView` セクション | ✅ | 「例外利用日」Expander（4 項目 = 6 プロパティ） |
+| Task 13 `ExportClaimCsvUseCase` | ✅ | Application 抽象 `IClaimCsvGenerator` 経由（計画どおりだと循環参照で compile 不能だった）。readiness は確定時に判定済みのため再判定しない |
+| Task 14 production wiring | ✅ | `ClaimCsvExportProductionWiringTests`（5 テスト） |
+| Task 15 `CsvExportView` | 🔄 置換 | `ClaimPreparationView` の子セクション `ClaimCsvExportSection`（既存 `ClaimReportSection` と同じパターン） |
+| Task 16 golden CSV 3 種 | ✅ | `GoldenCsvSnapshotTests` + `Fixtures/csv-golden-{normal,correction,cjk}.csv`（`.gitattributes` で binary 固定） |
+| Task 17 依存方向・オフライン | ✅ | `Tsumugi.Infrastructure.Csv.Tests.ArchitectureTests`（6 テスト）+ 既存検査 |
+| Task 18 ドキュメント | ✅ | `docs/phase3-3-acceptance.md` / ADR 0031 新規 / ADR 0024・0030 補足 / open-questions 更新 / CLAUDE.md 現在地 |
+
+---
+
 ## Global Constraints
 
 - .NET SDK 10.0（`net10.0`）、C# 14（`<LangVersion>` 下げ禁止）
