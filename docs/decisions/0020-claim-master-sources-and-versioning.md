@@ -177,7 +177,7 @@ supersedes、corrects、supplementsはdocumentIdの配列またはnullだけを�
 
 | documentId | title | publisher | effectiveAt | publishedAt | retrievedAt | url | sha256 | supersedes | corrects | supplements | applicabilityNote | correctionNote |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| r8-grant-decision-administration-202606 | 介護給付費等に係る支給決定事務等について（事務処理要領・最終改正令和8年6月） | 厚生労働省（北九州市公式サイト再配布） | 2026-06-01 | null | 2026-07-11 | https://www.city.kitakyushu.lg.jp/files/001215921.pdf | c5070de88b83528860e8dba6c4aa88ec4bd7418dea017fbbdb5cc80dc7014798 | [r7-grant-decision-administration-202509] | null | null | 厚生労働省の旧原URL https://www.mhlw.go.jp/content/12200000/001470632.pdf は現在HTTP 404。厚生労働省発出文書を北九州市公式サイトが再配布するlive PDFから再現可能な1,968,795 bytes・262 pagesを取得。physical pages 112〜113の受給者証上限、173、175、182〜186の成人上限額管理概要、B型、結果票、結果1〜3、優先順、金額項目、管理結果後額と配分、197〜199の月次給付単位数、総費用額、1割相当額、法31条、同一事業所内調整、上限額管理結果、決定利用者負担額、給付費に使用。R8以前へ遡及しない | 2026-06からr7-grant-decision-administration-202509を置換し、過去月へ遡及しない |
+| r8-grant-decision-administration-202606 | 介護給付費等に係る支給決定事務等について（事務処理要領・最終改正令和8年6月） | 厚生労働省 | 2026-06-01 | null | 2026-07-10 | https://www.mhlw.go.jp/content/12200000/001470632.pdf | d6e1672245370d2d7bb9a4258622ae3e631d0a6144c8e0c9ea51e2018a146f1e | [r7-grant-decision-administration-202509] | null | null | 正本は厚生労働省発出PDF（1,998,305 bytes・262 pages）。live URLは2026-07-10時点でHTTP 404のためバイト列をhistoricalとして保持。physical page番号は同一文書を再配布する北九州市公式サイトのPDF（https://www.city.kitakyushu.lg.jp/files/001215921.pdf、SHA-256 c5070de88b83528860e8dba6c4aa88ec4bd7418dea017fbbdb5cc80dc7014798、1,968,795 bytes・262 pages。2026-07-25再取得でSHA一致）で読み取り、正本について記録済みのphysical pages 233〜235のテキストSHA-256（pdftotext -layout 出力の末尾空白除去）を再配布PDFが再現するためpage付け同一と確認。physical pages 112〜113の受給者証上限、173、175、182〜186の成人上限額管理概要、B型、結果票、結果1〜3、優先順、金額項目、管理結果後額と配分、197〜199の月次給付単位数、総費用額、1割相当額、法31条、同一事業所内調整、上限額管理結果、決定利用者負担額、給付費に使用。R8以前へ遡及しない | 2026-06からr7-grant-decision-administration-202509を置換し、過去月へ遡及しない |
 | r8-revision-overview | 令和8年度障害福祉サービス等報酬改定における改定事項について | 厚生労働省 | 2026-06-01 | 2026-02-18 | 2026-07-10 | https://www.mhlw.go.jp/content/001680064.pdf | 91bb6b34e19617ff7deac20406875fa977e3788cabfe2ed0ef7e95a79cd23900 | null | null | null | 告示・通知で確定値を照合 | null |
 | r8-fee-notice | 指定障害福祉サービス等及び基準該当障害福祉サービスに要する費用の額の算定に関する基準等の一部を改正する告示（令和8年こども家庭庁・厚生労働省告示第5号） | こども家庭庁・厚生労働省 | 2026-06-01 | 2026-03-31 | 2026-07-10 | https://www.mhlw.go.jp/content/001684450.pdf | f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c | [r6-fee-notice] | null | null | 通知・構造表と相互照合 | r6-fee-noticeを置換（通知・構造表と相互照合） |
 | r8-calculation-note | 指定障害福祉サービス等の費用算定基準等の制定に伴う実施上の留意事項について | 厚生労働省 | 2026-06-01 | 2026-05-28 | 2026-07-10 | https://www.mhlw.go.jp/content/001705650.pdf | 0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99 | [r6-calculation-note] | null | [r8-fee-notice] | 2026-05-28改正を含む現行ファイル | r6-calculation-noteを置換。r8-fee-noticeを補足（2026-05-28改正を含む現行ファイル） |
@@ -218,3 +218,15 @@ supersedes、corrects、supplementsはdocumentIdの配列またはnullだけを�
 - B型の基本報酬区分、加算・減算、サービスコード、体制コードを実装する際は、PDFの目視転記ではなく、同版Excelと告示・構造表の照合結果を外部JSONへ格納する。
 - 公式資料の新しい正誤、差替え、または施行日が公表された場合は、既存版を上書きせず、新documentId・新SHA-256・新しい適用期間を追記する。
 - 取得物はリポジトリに含めないため、アプリの配布物・本番アセンブリは引き続きオフラインで完結する。
+
+## 追記（2026-07-25）: `r8-grant-decision-administration-202606` の正本
+
+CSV 仕様側の `sources.json`（厚生労働省 PDF）と制度マスタ側（北九州市の再配布 PDF）が
+**同じ documentId で別ファイルを指していた**（ADR 0038 の両レジストリ一致チェックで検出）。
+利用者判断により**正本は厚生労働省発出 PDF** に統一した。
+
+再配布 PDF は正本の live URL が HTTP 404 であるため「実際に page を読んだ・再取得できる複製」として
+`applicabilityNote` に URL と SHA-256 を残す。page 付けが同一であることは推測ではなく、
+**正本について記録済みの physical pages 233〜235 のテキスト SHA-256 を再配布 PDF が再現すること**
+（および page 数が 262 で一致すること）で確認した。テキスト SHA-256 の算出法は
+`pdftotext -layout -f N -l N` の出力を末尾空白除去して SHA-256（この算出法は今回復元して記録した）。

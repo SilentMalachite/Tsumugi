@@ -423,23 +423,29 @@ public sealed class JsonClaimMasterProviderTests
         using var document = JsonDocument.Parse(stream);
         var source = SourceById(document.RootElement, "r8-grant-decision-administration-202606");
 
-        source.GetProperty("publisher").GetString().Should().Be("厚生労働省（北九州市公式サイト再配布）");
+        // 正本は厚生労働省が発出したPDF（利用者判断・2026-07-25）。CSV仕様側のsources.jsonと
+        // 同一のURL・SHA-256を指す（SpecEvidenceLedgerTests が両レジストリの一致を固定する）。
+        source.GetProperty("publisher").GetString().Should().Be("厚生労働省");
         source.GetProperty("effectiveAt").GetString().Should().Be("2026-06-01");
-        source.GetProperty("retrievedAt").GetString().Should().Be("2026-07-11");
+        source.GetProperty("retrievedAt").GetString().Should().Be("2026-07-10");
         source.GetProperty("url").GetString().Should()
-            .Be("https://www.city.kitakyushu.lg.jp/files/001215921.pdf");
+            .Be("https://www.mhlw.go.jp/content/12200000/001470632.pdf");
         source.GetProperty("sha256").GetString().Should()
-            .Be("c5070de88b83528860e8dba6c4aa88ec4bd7418dea017fbbdb5cc80dc7014798");
+            .Be("d6e1672245370d2d7bb9a4258622ae3e631d0a6144c8e0c9ea51e2018a146f1e");
         RelationIds(source, "supersedes").Should().Equal("r7-grant-decision-administration-202509");
         source.GetProperty("correctionNote").GetString().Should().Contain("2026-06");
         source.GetProperty("correctionNote").GetString().Should()
             .Contain("r7-grant-decision-administration-202509");
         var note = source.GetProperty("applicabilityNote").GetString();
-        note.Should().Contain("北九州市公式サイト");
-        note.Should().Contain("1,968,795 bytes");
-        note.Should().Contain("physical pages 173、175、182、184〜186");
-        note.Should().Contain("https://www.mhlw.go.jp/content/12200000/001470632.pdf");
+        // 正本のlive URLが404であること、実際にpageを読んだ再配布PDF（URL・SHA-256）、
+        // page付けが同一であることの確認方法、使用したpage番号 — この4点が失われないよう固定する。
         note.Should().Contain("404");
+        note.Should().Contain("北九州市公式サイト");
+        note.Should().Contain("c5070de88b83528860e8dba6c4aa88ec4bd7418dea017fbbdb5cc80dc7014798");
+        note.Should().Contain("1,968,795 bytes");
+        note.Should().Contain("pdftotext -layout");
+        note.Should().Contain("physical pages 233〜235");
+        note.Should().Contain("physical pages 173、175、182、184〜186");
     }
 
     [Fact]

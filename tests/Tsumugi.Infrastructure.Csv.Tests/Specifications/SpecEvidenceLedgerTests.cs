@@ -162,24 +162,16 @@ public sealed partial class SpecEvidenceLedgerTests
         Catalog.EvidenceGaps.Should().HaveCountLessThanOrEqualTo(3);
     }
 
-    /// <summary>
-    /// 同一 documentId が別ファイルを指していることが判明している対象。
-    /// <c>r8-grant-decision-administration-202606</c> は CSV 側が厚労省の PDF（現在 404・historical として
-    /// バイト列を保持）、claim-master 側が北九州市のミラーを指しており、**同じ ID で別ファイルを検証している**。
-    /// どちらを正本にするか（または ID を分けるか）は `docs/open-questions.md` で追跡する。
-    /// </summary>
-    private static readonly string[] KnownDivergentDocumentIds = ["r8-grant-decision-administration-202606"];
-
     [Fact]
     public void Documents_registered_in_both_registries_agree()
     {
         // 同じ一次資料が claim-master 側と CSV 側の両方に登録されている。SHA-256 と URL が
         // 食い違うと「どちらの版で検証したのか」が不明になる。
+        // NOTE(teeth): 2026-07-25 に r8-grant-decision-administration-202606 の正本を厚生労働省版へ
+        // 統一した（それまでは claim-master 側が北九州市の再配布PDFを指しており、同じ ID で別ファイルを
+        // 検証していた）。除外リストは持たない。相違が生じたら必ずここで落とす。
         var claimMaster = ReadClaimMasterSources();
-        var shared = Catalog.SourcesById.Keys
-            .Where(claimMaster.ContainsKey)
-            .Where(documentId => !KnownDivergentDocumentIds.Contains(documentId, StringComparer.Ordinal))
-            .ToArray();
+        var shared = Catalog.SourcesById.Keys.Where(claimMaster.ContainsKey).ToArray();
 
         shared.Should().NotBeEmpty();
         foreach (var documentId in shared)
@@ -187,22 +179,6 @@ public sealed partial class SpecEvidenceLedgerTests
             var (sha256, url) = claimMaster[documentId];
             Catalog.SourcesById[documentId].Sha256.Should().Be(sha256, because: documentId);
             Catalog.SourcesById[documentId].Url.Should().Be(url, because: documentId);
-        }
-    }
-
-    // NOTE(teeth): 既知の相違が解消されたら（ID を分ける／正本を揃える）ここが RED になり、
-    // 許容リストから外すことを強制する。
-    [Fact]
-    public void The_known_registry_divergence_still_exists_and_stays_declared()
-    {
-        var claimMaster = ReadClaimMasterSources();
-        foreach (var documentId in KnownDivergentDocumentIds)
-        {
-            claimMaster.Should().ContainKey(documentId);
-            Catalog.SourcesById.Should().ContainKey(documentId);
-            Catalog.SourcesById[documentId].Sha256.Should().NotBe(
-                claimMaster[documentId].Sha256,
-                because: "解消済みなら KnownDivergentDocumentIds から外すこと");
         }
     }
 
