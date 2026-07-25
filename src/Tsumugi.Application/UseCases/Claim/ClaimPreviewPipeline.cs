@@ -61,13 +61,13 @@ internal sealed class ClaimPreviewPipeline(
         var currentVersion = specificationVersions.Current;
         var readinessResult = readiness.Evaluate(contextResult.Context, currentVersion);
 
-        // 事前登録済みの将来版でも評価し、現行版に無い不足だけを警告として集める。
-        // IsReady には影響させない（将来版の不足で今月の確定を止めない）。
-        var currentIssues = readinessResult.Issues.ToHashSet();
+        // 事前登録済みの将来版でも評価し、現行版との差だけを情報として集める。
+        // IsReady には影響させない（将来版の要求で今月の確定を止めない／緩めない）。
+        // 比較は (受給者, 項目) 単位。同じ項目で issue code だけが変わる場合は「変化なし」として扱う
+        // （両方向に出して二重に見せない）。
         var upcomingIssues = specificationVersions.UpcomingVersions
-            .SelectMany(version => readiness.Evaluate(contextResult.Context, version).Issues
-                .Where(issue => !currentIssues.Contains(issue))
-                .Select(issue => new ClaimUpcomingSpecificationIssue(version, issue)))
+            .SelectMany(version => DiffAgainstUpcoming(
+                version, readinessResult.Issues, readiness.Evaluate(contextResult.Context, version).Issues))
             .ToArray();
         var requestResult = ClaimCalculationRequestBuilder.Build(snapshot, serviceMonth, tokens);
 
@@ -78,7 +78,10 @@ internal sealed class ClaimPreviewPipeline(
         var claimMasterVersion = release?.Version.Value ?? "";
         if (issues.Length > 0 || requestResult.Request is not { } request || release is null)
         {
-            return new ClaimPreviewComputation(claimMasterVersion, issues, null, [], "");
+            // 算定不成立でも「次の施行分での変更」は運ぶ。緩む方向はまさに not-ready のときに出るため、
+            // ここで落とすと運用者が気付けない。
+            return new ClaimPreviewComputation(
+                claimMasterVersion, issues, null, [], "", upcomingIssues);
         }
 
         var masters = masterProvider.ResolveCalculationMasters(serviceMonth);
@@ -91,7 +94,7 @@ internal sealed class ClaimPreviewPipeline(
         if (transitionIssues.Count > 0)
         {
             return new ClaimPreviewComputation(
-                claimMasterVersion, Normalize(transitionIssues), null, [], "");
+                claimMasterVersion, Normalize(transitionIssues), null, [], "", upcomingIssues);
         }
 
         var result = ClaimCalculator.Calculate(masters, request);
@@ -105,6 +108,35 @@ internal sealed class ClaimPreviewPipeline(
         return new ClaimPreviewComputation(
             claimMasterVersion, issues, result, detailDrafts, previewHash, upcomingIssues);
     }
+
+    /// <summary>
+    /// 現行版と将来版の readiness 結果を突き合わせ、<b>両方向</b>の変化を返す。
+    /// 「次の施行分で必要になる項目」（締まる方向）だけでなく、
+    /// 「次の施行分では不要になる項目」（緩む方向）も示す。緩む方向を伏せると、運用者は
+    /// 次の施行分まで待てば入力不要な項目のために入力させられていることに気付けない。
+    /// </summary>
+    private static IEnumerable<ClaimUpcomingSpecificationIssue> DiffAgainstUpcoming(
+        string upcomingVersion,
+        IReadOnlyList<ClaimPreparationIssue> currentIssues,
+        IReadOnlyList<ClaimPreparationIssue> upcomingVersionIssues)
+    {
+        var currentTargets = currentIssues.Select(Target).ToHashSet();
+        var upcomingTargets = upcomingVersionIssues.Select(Target).ToHashSet();
+
+        var becomesRequired = upcomingVersionIssues
+            .Where(issue => !currentTargets.Contains(Target(issue)))
+            .Select(issue => new ClaimUpcomingSpecificationIssue(
+                upcomingVersion, ClaimUpcomingSpecificationChange.BecomesRequired, issue));
+        var becomesOptional = currentIssues
+            .Where(issue => !upcomingTargets.Contains(Target(issue)))
+            .Select(issue => new ClaimUpcomingSpecificationIssue(
+                upcomingVersion, ClaimUpcomingSpecificationChange.BecomesOptional, issue));
+
+        return becomesRequired.Concat(becomesOptional);
+    }
+
+    private static (Guid? RecipientId, string FieldCode) Target(ClaimPreparationIssue issue) =>
+        (issue.RecipientId, issue.FieldCode);
 
     private static ClaimFinalizationDetailDraft[] BuildDetailDrafts(
         ClaimCalculationSnapshot snapshot,

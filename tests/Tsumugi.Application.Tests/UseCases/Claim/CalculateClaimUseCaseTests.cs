@@ -130,7 +130,110 @@ public sealed class CalculateClaimUseCaseTests
         var warning = dto.UpcomingSpecificationIssues.Should().NotBeNull()
             .And.ContainSingle().Subject;
         warning.SpecificationVersion.Should().Be("r9-04");
+        warning.Change.Should().Be(ClaimUpcomingSpecificationChange.BecomesRequired);
         warning.Issue.FieldCode.Should().Be("ContractedProvider.FirstServiceDate");
+    }
+
+    // NOTE(teeth): 条件が緩む方向（現行版では必須だが次の施行分では不要）も示す。伏せると運用者は
+    // 「次の施行分まで待てば入力不要な項目」のために入力させられていることに気付けない。
+    // ただし**今月の確定は止め続ける**（現行版の適用期間内に提出するなら必要な項目のため。
+    // 自動で緩めると提出先で弾かれる）。
+    [Fact]
+    public async Task Execute_reports_requirements_that_the_upcoming_version_drops()
+    {
+        var currentOnlyRequirement = new ClaimInputRequirement(
+            "ContractedProvider.FirstServiceDate",
+            ["provider:J121:02:008"],
+            new ClaimRequirementCondition.Always(),
+            ClaimInputDestination.Certificate);
+        var readiness = new ClaimPreparationReadiness(
+            new VersionedRequirementProvider(current: [currentOnlyRequirement], upcoming: []));
+        var versions = new Kit.FakeCsvSpecificationVersions { UpcomingVersions = ["r9-04"] };
+
+        var dto = await new CalculateClaimUseCase(
+                new Kit.FakeSnapshotReader(Kit.Snapshot()),
+                new Kit.FakeMasterProvider(Kit.Release(), Kit.SyntheticMasters()),
+                new Kit.FakeOfficeRepository(Kit.Office()),
+                new Kit.FakeTokenProvider(Kit.Tokens()),
+                readiness,
+                versions)
+            .ExecuteAsync(new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeFalse("現行版で必須な項目が欠けている間は確定させない");
+        dto.Issues.Should().Contain(issue =>
+            issue.FieldCode == "ContractedProvider.FirstServiceDate");
+        var change = dto.UpcomingSpecificationIssues.Should().NotBeNull()
+            .And.ContainSingle().Subject;
+        change.SpecificationVersion.Should().Be("r9-04");
+        change.Change.Should().Be(ClaimUpcomingSpecificationChange.BecomesOptional);
+        change.Issue.FieldCode.Should().Be("ContractedProvider.FirstServiceDate");
+    }
+
+    [Fact]
+    public async Task Execute_reports_both_directions_of_an_upcoming_change()
+    {
+        // 同じ月で「新版で必要になる項目」と「新版では不要になる項目」が同時に起きる形。
+        var droppedByUpcoming = new ClaimInputRequirement(
+            "ContractedProvider.FirstServiceDate",
+            ["provider:J121:02:008"],
+            new ClaimRequirementCondition.Always(),
+            ClaimInputDestination.Certificate);
+        var addedByUpcoming = new ClaimInputRequirement(
+            "ClaimInput.OffsiteSupportCumulativeDays",
+            ["provider:J611:01:054"],
+            new ClaimRequirementCondition.Always(),
+            ClaimInputDestination.ClaimInput);
+        var readiness = new ClaimPreparationReadiness(
+            new VersionedRequirementProvider(current: [droppedByUpcoming], upcoming: [addedByUpcoming]));
+        var versions = new Kit.FakeCsvSpecificationVersions { UpcomingVersions = ["r9-04"] };
+
+        var dto = await new CalculateClaimUseCase(
+                new Kit.FakeSnapshotReader(Kit.Snapshot()),
+                new Kit.FakeMasterProvider(Kit.Release(), Kit.SyntheticMasters()),
+                new Kit.FakeOfficeRepository(Kit.Office()),
+                new Kit.FakeTokenProvider(Kit.Tokens()),
+                readiness,
+                versions)
+            .ExecuteAsync(new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.UpcomingSpecificationIssues.Should().NotBeNull();
+        dto.UpcomingSpecificationIssues!.Select(change => (change.Change, change.Issue.FieldCode))
+            .Should().BeEquivalentTo(new[]
+            {
+                (ClaimUpcomingSpecificationChange.BecomesRequired, "ClaimInput.OffsiteSupportCumulativeDays"),
+                (ClaimUpcomingSpecificationChange.BecomesOptional, "ContractedProvider.FirstServiceDate"),
+            });
+    }
+
+    // NOTE(teeth): 同じ項目で issue code だけが変わる場合は「変化なし」として扱う（両方向に出さない）。
+    [Fact]
+    public async Task Execute_does_not_report_a_change_when_only_the_issue_code_differs()
+    {
+        var sameTargetDifferentCondition = new ClaimInputRequirement(
+            "ContractedProvider.FirstServiceDate",
+            ["provider:J121:02:008"],
+            // 条件の参照先が値辞書に無い path なので Unresolved 側の code になる。
+            new ClaimRequirementCondition.ModelPresent("ClaimInput.NotAPath"),
+            ClaimInputDestination.Certificate);
+        var alwaysRequired = new ClaimInputRequirement(
+            "ContractedProvider.FirstServiceDate",
+            ["provider:J121:02:008"],
+            new ClaimRequirementCondition.Always(),
+            ClaimInputDestination.Certificate);
+        var readiness = new ClaimPreparationReadiness(new VersionedRequirementProvider(
+            current: [alwaysRequired], upcoming: [sameTargetDifferentCondition]));
+        var versions = new Kit.FakeCsvSpecificationVersions { UpcomingVersions = ["r9-04"] };
+
+        var dto = await new CalculateClaimUseCase(
+                new Kit.FakeSnapshotReader(Kit.Snapshot()),
+                new Kit.FakeMasterProvider(Kit.Release(), Kit.SyntheticMasters()),
+                new Kit.FakeOfficeRepository(Kit.Office()),
+                new Kit.FakeTokenProvider(Kit.Tokens()),
+                readiness,
+                versions)
+            .ExecuteAsync(new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.UpcomingSpecificationIssues.Should().BeEmpty();
     }
 
     /// <summary>現行版は要件なし、将来版だけ要件を返すフェイク。</summary>

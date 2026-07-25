@@ -60,8 +60,8 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <!-- 次の施行分（事前登録済みの将来版）で必要になる項目。確定は止めない警告。 -->
-            <TextBlock Text="次の施行分で必要になる項目（今月の確定は止めません）" FontWeight="Bold"
+            <!-- 次の施行分（事前登録済みの将来版）での要求の変化。確定は止めない情報。 -->
+            <TextBlock Text="次の施行分での変更（今月の確定には影響しません）" FontWeight="Bold"
                        IsVisible="{Binding UpcomingSpecificationWarnings.Count, Converter={x:Static conv:CountGreaterThanZeroConverter.Instance}}" />
             <ItemsControl ItemsSource="{Binding UpcomingSpecificationWarnings}"
                           IsVisible="{Binding UpcomingSpecificationWarnings.Count, Converter={x:Static conv:CountGreaterThanZeroConverter.Instance}}">

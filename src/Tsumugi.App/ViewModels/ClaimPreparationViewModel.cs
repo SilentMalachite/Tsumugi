@@ -61,8 +61,9 @@ public sealed partial class ClaimPreparationViewModel(
     public ObservableCollection<ClaimPreparationIssue> Issues { get; } = [];
 
     /// <summary>
-    /// 事前登録済みの将来の施行分で必要になる項目（ADR 0041）。**確定を止めない警告**で、
-    /// 次の施行分に入る前に入力を促すためのもの。表示は項目コードと版だけ（氏名等は出さない）。
+    /// 事前登録済みの将来の施行分での要求の変化（ADR 0041）。**確定を止めない情報**で、
+    /// 「次の施行分で必要になる項目」と「次の施行分では不要になる項目」の両方を示す。
+    /// 表示は項目コードと版だけ（氏名・受給者証番号は出さない）。
     /// </summary>
     public ObservableCollection<string> UpcomingSpecificationWarnings { get; } = [];
     public ObservableCollection<ClaimBatchHistoryDto> History { get; } = [];
@@ -99,9 +100,7 @@ public sealed partial class ClaimPreparationViewModel(
             Replace(Issues, preview.Issues);
             Replace(
                 UpcomingSpecificationWarnings,
-                (preview.UpcomingSpecificationIssues ?? [])
-                    .Select(warning =>
-                        $"次の施行分 {warning.SpecificationVersion}: {warning.Issue.FieldCode}"));
+                (preview.UpcomingSpecificationIssues ?? []).Select(FormatUpcomingChange));
             ErrorMessage = null;
             await RefreshHistoryAsync(context, ct);
         }
@@ -279,6 +278,21 @@ public sealed partial class ClaimPreparationViewModel(
         ClaimInputSaveException => GenericFailureMessage,
         _ => GenericFailureMessage,
     };
+
+    /// <summary>
+    /// 次の施行分での変化の表示文言。緩む方向は「今月の確定は止まったままである」ことが伝わる言い方にする
+    /// （自動で緩めると、現行版の適用期間内に提出したときに提出先で弾かれる）。
+    /// </summary>
+    private static string FormatUpcomingChange(ClaimUpcomingSpecificationIssue change) =>
+        change.Change switch
+        {
+            ClaimUpcomingSpecificationChange.BecomesRequired =>
+                $"次の施行分 {change.SpecificationVersion} で必要になります: {change.Issue.FieldCode}",
+            ClaimUpcomingSpecificationChange.BecomesOptional =>
+                $"次の施行分 {change.SpecificationVersion} では不要になります"
+                + $"（この施行分で提出する場合は今も必要）: {change.Issue.FieldCode}",
+            _ => $"次の施行分 {change.SpecificationVersion}: {change.Issue.FieldCode}",
+        };
 
     private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> source)
     {
