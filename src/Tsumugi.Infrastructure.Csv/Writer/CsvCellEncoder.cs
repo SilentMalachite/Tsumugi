@@ -16,10 +16,16 @@ namespace Tsumugi.Infrastructure.Csv.Writer;
 /// 引用符を内容長に含める解釈ではこの一致が成立しない。
 /// </para>
 /// <para>
-/// <b>引用規則</b>: spec の文言「quote when comma, double quote, space, or kanji is present;
-/// double embedded double quote」を literal に実装する（カンマ / 二重引用符 / 空白 / 漢字）。
-/// 全角カナ・全角記号のみの値を引用するかは公式資料から一意に確定できないため引用しない側に寄せ、
-/// 未確定事項として <c>docs/open-questions.md</c> に起票している。
+/// <b>引用規則</b>: 共通編 1.2.2(4)（物理6頁）は「英数属性、数値属性、コード値属性および漢字属性の
+/// 項目はデータの両側をダブルコーテーションで囲む。ただし、各項目の内容に『カンマ』
+/// 『ダブルコーテーション』『スペース(0x20)』および<b>漢字（2 バイトコード）</b>を含まない場合は、
+/// データの両側のダブルコーテーションを省略することができる」と定める。
+/// <b>「漢字」は 2 バイトコードとして定義されている</b>ため、全角カナ・全角記号も引用対象になる
+/// （表意文字だけを見ると全角カナ氏名が引用されず仕様違反になる）。
+/// </para>
+/// <para>
+/// <b>使用不可能文字</b>: 共通編 1.2.2(3)① はシングルコーテーション（0x27）を交換情報で使用不可と
+/// 定める。制御文字（0x00〜0x1F）も同 (4) で禁止されている。
 /// </para>
 /// </remarks>
 public static class CsvCellEncoder
@@ -32,6 +38,7 @@ public static class CsvCellEncoder
     public const string CrlfQuoteRule = "crlf";
 
     private const byte Comma = (byte)',';
+    private const char SingleQuote = '\'';
     private const byte Quote = (byte)'"';
     private const int Cp932CodePage = 932;
 
@@ -99,13 +106,22 @@ public static class CsvCellEncoder
                 "the value contains CR or LF");
         }
 
-        // 制御文字（TAB・BS・DEL 等）は行構造を壊さないが、取込側で拒否されうるため通さない。
+        // 制御文字（0x00〜0x1F）は共通編 1.2.2(4) で使用不可。DEL 等も安全側で弾く。
         if (raw.Any(char.IsControl))
         {
             throw Fail(
                 specification.FieldId,
                 CsvEncodingReason.ControlCharacter,
                 "the value contains a control character");
+        }
+
+        // 共通編 1.2.2(3)① の使用不可能文字。
+        if (raw.Contains(SingleQuote, StringComparison.Ordinal))
+        {
+            throw Fail(
+                specification.FieldId,
+                CsvEncodingReason.ProhibitedCharacter,
+                "the value contains a single quotation mark, which the specification forbids");
         }
 
         if (raw.Length == 0)
@@ -226,29 +242,36 @@ public static class CsvCellEncoder
     }
 
     /// <summary>
-    /// 「カンマ / 二重引用符 / 空白 / 漢字」のいずれかを含むなら引用する。
-    /// 空白は半角(U+0020)と全角(U+3000)の両方を対象にする。
+    /// 「カンマ / 二重引用符 / スペース(0x20) / 漢字（2 バイトコード）」のいずれかを含むなら引用する
+    /// （共通編 1.2.2(4)）。仕様は「漢字」を<b>2 バイトコード</b>として定義しているため、
+    /// 表意文字に限らず全角カナ・全角記号・全角スペースも引用対象になる。
+    /// 表意文字だけを見ると、全角カナ氏名が引用されず仕様違反の行を出してしまう。
     /// </summary>
     private static bool RequiresQuoting(string value)
     {
         foreach (var character in value)
         {
-            if (character is ',' or '"' or ' ' or '　') return true;
-            if (IsKanji(character)) return true;
+            if (character is ',' or '"' or ' ') return true;
+            if (IsTwoByteInCp932(character)) return true;
         }
 
         return false;
     }
 
-    /// <summary>
-    /// 漢字判定。表意文字ブロックと、氏名で漢字として扱われる繰り返し記号（々〆〇）を対象にする。
-    /// CP932 で表現できない拡張ブロックは <see cref="EncodeContent"/> 側で fail-close する。
-    /// </summary>
-    private static bool IsKanji(char character) => character
-        is (>= '々' and <= '〇') // 々 〆 〇
-        or (>= '㐀' and <= '䶿') // CJK 統合漢字 拡張A
-        or (>= '一' and <= '鿿') // CJK 統合漢字
-        or (>= '豈' and <= '﫿'); // CJK 互換漢字
+    /// <summary>CP932 で 2 バイトになる文字か（＝仕様のいう「漢字（2 バイトコード）」）。</summary>
+    private static bool IsTwoByteInCp932(char character)
+    {
+        if (char.IsAscii(character)) return false;
+        try
+        {
+            return Cp932.GetByteCount([character]) > 1;
+        }
+        catch (EncoderFallbackException)
+        {
+            // CP932 で表現できない文字は EncodeContent 側で fail-close する。
+            return false;
+        }
+    }
 
     private static CsvEncodingException Fail(string fieldId, CsvEncodingReason reason, string detail) =>
         new(fieldId, reason, detail);

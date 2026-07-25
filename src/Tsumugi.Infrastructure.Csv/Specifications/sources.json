@@ -18,7 +18,13 @@
       "url": "https://www.mhlw.go.jp/content/12200000/001565560.pdf",
       "sha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
       "sizeBytes": 482854,
-      "pageCount": 63
+      "pageCount": 63,
+      "liveCheck": {
+        "checkedAt": "2026-07-25",
+        "httpStatus": 200,
+        "responseSha256": "f6932c52a4fd1044cbdd5aa752baf52e1c2e1eda106d9fa54991423fbd04a9a9",
+        "responseSizeBytes": 482854
+      }
     },
     {
       "sourceDocumentId": "provider-r7-10",
@@ -28,7 +34,13 @@
       "url": "https://www.mhlw.go.jp/content/12200000/001565561.pdf",
       "sha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
       "sizeBytes": 1725930,
-      "pageCount": 340
+      "pageCount": 340,
+      "liveCheck": {
+        "checkedAt": "2026-07-25",
+        "httpStatus": 200,
+        "responseSha256": "44e94a7817bde2b9c324701e40ca703f4d4b372164460e7ebba6d906c840def1",
+        "responseSizeBytes": 1725930
+      }
     },
     {
       "sourceDocumentId": "r1-structure-page-observed-a814e583",

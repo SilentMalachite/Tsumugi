@@ -14,7 +14,7 @@ public sealed class ClaimCsvAmountAndCountTests
     private static readonly CsvSpecificationCatalog Catalog = CsvSpecificationLoader.LoadEmbedded();
 
     private static string[] Tokens(ClaimCsvDto dto, string exchangeId, string recordType) =>
-        CsvCellEncoder.Cp932.GetString(new ClaimCsvGenerator(Catalog).Generate(dto))
+        CsvCellEncoder.Cp932.GetString(new ClaimCsvGenerator(Catalog).Generate(dto).Bytes)
             .Split("\r\n", StringSplitOptions.RemoveEmptyEntries)
             .Select(line => line.Split(','))
             .Single(parts => parts.Length > 3 && parts[2] == exchangeId && parts[3] == recordType);
@@ -47,7 +47,7 @@ public sealed class ClaimCsvAmountAndCountTests
     [Fact]
     public void A_zero_burden_recipient_does_not_fail_the_export()
     {
-        var act = () => new ClaimCsvGenerator(Catalog).Generate(ZeroBurden());
+        var act = () => new ClaimCsvGenerator(Catalog).Generate(ZeroBurden()).Bytes;
 
         act.Should().NotThrow();
     }
@@ -89,7 +89,7 @@ public sealed class ClaimCsvAmountAndCountTests
             ],
         };
 
-        var lines = CsvCellEncoder.Cp932.GetString(new ClaimCsvGenerator(Catalog).Generate(dto))
+        var lines = CsvCellEncoder.Cp932.GetString(new ClaimCsvGenerator(Catalog).Generate(dto).Bytes)
             .Split("\r\n", StringSplitOptions.RemoveEmptyEntries)
             .Select(line => line.Split(','))
             .ToArray();

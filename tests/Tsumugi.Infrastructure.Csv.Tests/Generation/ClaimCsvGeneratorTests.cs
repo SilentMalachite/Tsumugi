@@ -15,7 +15,7 @@ public sealed class ClaimCsvGeneratorTests
     [Fact]
     public void Generate_writes_the_outer_three_record_frame()
     {
-        var bytes = new ClaimCsvGenerator(Catalog).Generate(ClaimCsvFixtures.Normal());
+        var bytes = new ClaimCsvGenerator(Catalog).Generate(ClaimCsvFixtures.Normal()).Bytes;
 
         var lines = Lines(bytes);
         lines[0].Should().StartWith("1,");
@@ -28,7 +28,7 @@ public sealed class ClaimCsvGeneratorTests
     [Fact]
     public void Generate_writes_the_processing_month_into_the_control_record()
     {
-        var bytes = new ClaimCsvGenerator(Catalog).Generate(ClaimCsvFixtures.Normal());
+        var bytes = new ClaimCsvGenerator(Catalog).Generate(ClaimCsvFixtures.Normal()).Bytes;
 
         var control = Lines(bytes)[0].Split(',');
         var processingMonthPosition = Catalog.CommonRecords
@@ -44,7 +44,7 @@ public sealed class ClaimCsvGeneratorTests
     [Fact]
     public void Generate_numbers_records_from_one_and_ends_at_data_count_plus_two()
     {
-        var bytes = new ClaimCsvGenerator(Catalog).Generate(ClaimCsvFixtures.Normal());
+        var bytes = new ClaimCsvGenerator(Catalog).Generate(ClaimCsvFixtures.Normal()).Bytes;
 
         var lines = Lines(bytes);
         var dataCount = lines.Length - 2;
@@ -58,7 +58,7 @@ public sealed class ClaimCsvGeneratorTests
     [Fact]
     public void Generate_emits_inner_records_in_the_official_record_order()
     {
-        var bytes = new ClaimCsvGenerator(Catalog).Generate(ClaimCsvFixtures.Normal());
+        var bytes = new ClaimCsvGenerator(Catalog).Generate(ClaimCsvFixtures.Normal()).Bytes;
 
         var exchangeIds = Lines(bytes)[1..^1]
             .Select(line => line.Split(',')[2].Trim('"'))
@@ -76,7 +76,7 @@ public sealed class ClaimCsvGeneratorTests
     [Fact]
     public void Generate_derives_the_data_kind_from_the_first_inner_exchange_information_id()
     {
-        var bytes = new ClaimCsvGenerator(Catalog).Generate(ClaimCsvFixtures.Normal());
+        var bytes = new ClaimCsvGenerator(Catalog).Generate(ClaimCsvFixtures.Normal()).Bytes;
 
         Lines(bytes)[0].Split(',')[4].Should().Be("J11");
     }
@@ -84,7 +84,7 @@ public sealed class ClaimCsvGeneratorTests
     [Fact]
     public void Generate_writes_the_office_number_into_the_control_record()
     {
-        var bytes = new ClaimCsvGenerator(Catalog).Generate(ClaimCsvFixtures.Normal());
+        var bytes = new ClaimCsvGenerator(Catalog).Generate(ClaimCsvFixtures.Normal()).Bytes;
 
         Lines(bytes)[0].Split(',')[6].Should().Be("1312345678");
     }
@@ -94,8 +94,8 @@ public sealed class ClaimCsvGeneratorTests
     {
         var generator = new ClaimCsvGenerator(Catalog);
 
-        var first = generator.Generate(ClaimCsvFixtures.Normal());
-        var second = generator.Generate(ClaimCsvFixtures.Normal());
+        var first = generator.Generate(ClaimCsvFixtures.Normal()).Bytes;
+        var second = generator.Generate(ClaimCsvFixtures.Normal()).Bytes;
 
         second.Should().Equal(first);
     }
@@ -105,7 +105,7 @@ public sealed class ClaimCsvGeneratorTests
     {
         var dto = ClaimCsvFixtures.Normal();
 
-        var lines = Lines(new ClaimCsvGenerator(Catalog).Generate(dto));
+        var lines = Lines(new ClaimCsvGenerator(Catalog).Generate(dto).Bytes);
 
         var serviceLineRecords = lines[1..^1]
             .Where(line => line.Split(',')[2].Trim('"') == "J121" && line.Split(',')[3].Trim('"') == "03")
@@ -118,7 +118,7 @@ public sealed class ClaimCsvGeneratorTests
     {
         var dto = ClaimCsvFixtures.Normal();
 
-        var lines = Lines(new ClaimCsvGenerator(Catalog).Generate(dto));
+        var lines = Lines(new ClaimCsvGenerator(Catalog).Generate(dto).Bytes);
 
         var dailyRecords = lines[1..^1]
             .Where(line => line.Split(',')[2].Trim('"') == "J611" && line.Split(',')[3].Trim('"') == "02")
@@ -144,7 +144,7 @@ public sealed class ClaimCsvGeneratorTests
     {
         var relabelled = RelabelDataKindSource(Catalog);
 
-        var bytes = new ClaimCsvGenerator(relabelled).Generate(ClaimCsvFixtures.Normal());
+        var bytes = new ClaimCsvGenerator(relabelled).Generate(ClaimCsvFixtures.Normal()).Bytes;
 
         Lines(bytes)[0].Split(',')[4].Should().Be("Z99");
     }

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "specificationVersion": "region-classification-r7-10",
+  "sourceDocumentId": "common-r7-10",
+  "sourcePage": 21,
+  "note": "指定事業所等の地域区分コード（コード値2桁）。共通編 1.4 コード一覧の該当行から転記。級地番号のゼロ詰めではないため、コードは必ず本表から解決する。",
+  "codes": [
+    { "code": "01", "officialName": "特別区", "regionGrade": null },
+    { "code": "02", "officialName": "特甲地", "regionGrade": null },
+    { "code": "03", "officialName": "甲地", "regionGrade": null },
+    { "code": "04", "officialName": "乙地", "regionGrade": null },
+    { "code": "05", "officialName": "丙地", "regionGrade": null },
+    { "code": "11", "officialName": "一級地", "regionGrade": "Grade1" },
+    { "code": "12", "officialName": "二級地", "regionGrade": "Grade2" },
+    { "code": "13", "officialName": "三級地", "regionGrade": "Grade3" },
+    { "code": "14", "officialName": "四級地", "regionGrade": "Grade4" },
+    { "code": "15", "officialName": "五級地", "regionGrade": "Grade5" },
+    { "code": "16", "officialName": "六級地", "regionGrade": "Grade6" },
+    { "code": "17", "officialName": "七級地", "regionGrade": "Grade7" },
+    { "code": "18", "officialName": "八級地", "regionGrade": null },
+    { "code": "19", "officialName": "九級地", "regionGrade": null },
+    { "code": "20", "officialName": "十級地", "regionGrade": null },
+    { "code": "21", "officialName": "十一級地", "regionGrade": null },
+    { "code": "22", "officialName": "十二級地", "regionGrade": null },
+    { "code": "23", "officialName": "その他", "regionGrade": "Other" }
+  ]
+}

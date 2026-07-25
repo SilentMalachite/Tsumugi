@@ -11,7 +11,7 @@ internal static class ClaimCsvFixtures
         ServiceMonth: new ServiceMonth(2026, 7),
         Office: new ClaimCsvOfficeDto(
             OfficeNumber: "1312345678",
-            RegionClassificationCode: "06",
+            RegionGrade: Tsumugi.Domain.Enums.RegionGrade.Grade6,
             UnitPriceMilliYen: 10_000),
         Recipients: [Recipient("1234567890")],
         Totals: new ClaimCsvTotalsDto(

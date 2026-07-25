@@ -48,7 +48,7 @@ public sealed class ClaimCsvRowScopeTests
         var dto = TwoRecipients();
 
         var lines = CsvCellEncoder.Cp932
-            .GetString(new ClaimCsvGenerator(Catalog).Generate(dto))
+            .GetString(new ClaimCsvGenerator(Catalog).Generate(dto).Bytes)
             .Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
 
         var aggregates = lines
@@ -72,7 +72,7 @@ public sealed class ClaimCsvRowScopeTests
         var dto = TwoRecipients();
 
         var lines = CsvCellEncoder.Cp932
-            .GetString(new ClaimCsvGenerator(Catalog).Generate(dto))
+            .GetString(new ClaimCsvGenerator(Catalog).Generate(dto).Bytes)
             .Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
 
         var invoiceTotals = lines.Single(line => line.Split(',') is [_, _, "J111", "02", ..]).Split(',');

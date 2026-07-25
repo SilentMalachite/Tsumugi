@@ -38,6 +38,9 @@ public enum CsvEncodingReason
 
     /// <summary>spec の dataType が許す文字集合から外れている。</summary>
     InvalidCharacterForDataType = 12,
+
+    /// <summary>仕様が使用不可と定める文字（シングルコーテーション等）が含まれる。</summary>
+    ProhibitedCharacter = 13,
 }
 
 /// <summary>

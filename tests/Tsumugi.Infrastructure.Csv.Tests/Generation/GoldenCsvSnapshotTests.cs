@@ -26,7 +26,7 @@ public sealed class GoldenCsvSnapshotTests
     [MemberData(nameof(Scenarios))]
     public void Generated_csv_matches_the_golden_fixture_byte_for_byte(string scenario)
     {
-        var actual = new ClaimCsvGenerator(Catalog).Generate(Build(scenario));
+        var actual = new ClaimCsvGenerator(Catalog).Generate(Build(scenario)).Bytes;
         var path = GoldenPath(scenario);
 
         if (Environment.GetEnvironmentVariable("UPDATE_GOLDEN") == "1")
@@ -47,7 +47,7 @@ public sealed class GoldenCsvSnapshotTests
     {
         var generator = new ClaimCsvGenerator(Catalog);
 
-        generator.Generate(Build(scenario)).Should().Equal(generator.Generate(Build(scenario)));
+        generator.Generate(Build(scenario)).Bytes.Should().Equal(generator.Generate(Build(scenario)).Bytes);
     }
 
     [Theory]

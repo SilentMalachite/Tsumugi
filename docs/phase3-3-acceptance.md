@@ -122,13 +122,13 @@ DSL の語彙は `CsvGeneratorRuleParserTests.The_embedded_specification_uses_ex
 いずれも「推測で埋めない」方針に従い、値を捏造せず限界として記録する。詳細は `docs/open-questions.md`。
 
 1. **R8.6 サービスコード表の独立 seed は見送り**: CSV writer はサービスコードを確定済み snapshot の `ClaimLines[].ServiceCode` からコピーするだけで、独立カタログを必要としない。一次資料（URL / SHA256 / 取得日）が未入手のため、`service-code-r8-06.json` は作らない（ADR 0031）。
-2. **地域区分コードの「その他」**: `RegionGrade.Grade1..Grade7` は級地番号のゼロ詰め（`01`..`07`）とした。`Other` / `None` の公式コードはリポジトリ内の一次資料から確定できないため fail-close する。
+2. **地域区分コード**: 共通編 1.4 から確定（ADR 0033）。`11`〜`17` / その他 `23`。`RegionGrade.None` のみ fail-close する。
 3. **`provider:J121:02:008`（開始年月日）と `provider:J121:05`（契約情報）**: 受給者証「サービス事業者記入欄」の個別入力を正本とし（ADR 0032）、確定時に snapshot へ焼き込む。**Phase 3-3 より前に確定した請求は snapshot に契約情報を持たないため、CSV 化には再確定が必要**（該当分は fail-close する）。自事業所の行が受給者証に無い場合も fail-close する。
 4. **`provider:J121:02:009`（終了年月日）**: 契約終了は snapshot v2 に含まれないため常に空欄。任意項目のため spec 上の不整合は生じない。
 5. **`provider:J611:01:052`（`measure=billableOccurrences`）/ `:054`（`window=official180DayWindow`）**: 算定回数・180日窓の意味論が確定できないため、該当データが存在するときだけ fail-close する。該当なしの場合は条件が偽になり空欄で通る。
 6. **`provider:J611:01:070`〜`072`（初期加算）/ `ClaimServiceLine.SummaryNote` / `DailyRecord.Note` / `ContractedProvider.*`**: finalization snapshot v2 に含まれない。いずれも条件付き項目のため空欄が正しい出力になる。`provider:J121:05`（経過措置）は 0 レコードで出力する。
-7. **引用規則の解釈**: 公式文言「comma, double quote, space, or kanji」を literal に実装した。全角カナ・全角記号のみの値を引用するかは確定できないため引用しない側に寄せている。
-8. **データ種別（`common:outer:control:005`）**: 先頭の内側レコードの交換情報識別番号の先頭3文字（本スライスでは常に `J11`）。1ファイルに J111 / J121 / J611 が混在するときの公式解釈は未確定。
+7. **引用規則**: 共通編 1.2.2(4) から確定（ADR 0033）。「漢字」= 2 バイトコードのため全角カナ・全角記号も引用する。残る未確定は属性区分（英数/漢字）に紐づく文字種検証で、`dataType` が公式の属性区分と 1 対 1 でないため未実装。
+8. **データ種別（`common:outer:control:005`）**: 共通編 1.6 から確定（ADR 0033）。混在時も最初のデータレコードの交換情報識別番号の上3桁で、実装は正しい。ただし同節の例外対応表（物理44頁）がテキスト抽出できず、B型請求が例外に該当するかは目視確認が残る。
 9. **GUI 手動貫通確認 未実施**: `ClaimInputView`（例外利用日セクション）と `ClaimPreparationView`（国保連CSV出力セクション）の実機確認は未実施。Phase 1 からの継続課題として `docs/open-questions.md` に残す。
 10. **golden CSV は自前生成**: 公式サンプルとの突合ではないため「仕様に対する正しさ」は担保しない。意図しないバイト変化の検出が役割で、仕様適合は `CsvCellEncoderTests` / `ClaimCsvGeneratorTests` が担う。
 
@@ -221,6 +221,30 @@ Codex レビューの CRITICAL（契約情報レコードの欠落）と HIGH（
 
 ---
 
+## 9-5. 登録済み一次資料からの仕様適合確定（ADR 0033・2026-07-25）
+
+`sources.json` 登録済みの共通編・事業所編を再取得し（登録 SHA-256 と一致・`liveCheck` 記録済み）、
+推測に頼っていた 5 点を条文から確定した。**うち 3 点は実装が公式仕様に違反していた。**
+
+| 項目 | 出典 | 結果 |
+|---|---|---|
+| 地域区分コード | 共通編 1.4（物理21頁） | **修正**: `11:一級地`〜`17:七級地` / `23:その他`。実装は `01`〜`07` を出力していた（`06` は公式コードに存在しない） |
+| 引用規則 | 共通編 1.2.2(4) | **修正**: 「漢字」は**2 バイトコード**の意。全角カナ・全角記号も引用対象。実装は表意文字のみ判定で全角カナ氏名を引用していなかった |
+| ファイル名 | 共通編 1.2.1 | **修正**: 英字始まり・半角英数字 8 桁以内 ＋ `.CSV`。Codex 指摘どおり不適合だった |
+| 使用不可能文字 | 共通編 1.2.2(3)① | **追加**: シングルコーテーション（0x27）を拒否 |
+| 開始年月日の意味 | 事業所編 開始年月日の設定方法 | ADR 0032 の個別入力が正しいと確認。「平成18年4月1日以降の最初のサービス提供日」で契約変更に影響されないため、**誤っていた「契約日以降」検証を下限 2006-04-01 へ修正** |
+
+実装が既に正しかったことも確認できた: データ種別（混在時も先頭データレコードの上3桁）／単位数単価
+（整数部2桁・小数部3桁＝1/1000円尺度）／数値ゼロは `"0"`／制御文字 0x00〜0x1F 禁止／
+年月日 `YYYYMMDD`・年月 `YYYYMM`／レコード構成・連番・件数・CRLF。
+
+証跡: `RegionClassificationCodeCatalogTests`（8+3 テスト）/
+`CsvCellEncoderTests.EncodeCell_quotes_every_two_byte_value` /
+`..._does_not_quote_single_byte_values` / `..._fails_on_a_single_quotation_mark` /
+`ClaimCsvExportProductionWiringTests`（ファイル名の正規表現）/ golden CSV 4 種を再生成。
+
+---
+
 ## 10. `./build/ci.sh` 実行証跡
 
 2026-07-25 実行、**全ゲート緑**。
@@ -232,7 +256,7 @@ Codex レビューの CRITICAL（契約情報レコードの欠落）と HIGH（
 ==> test + coverage (gate #3, arch=gate#4, offline=gate#5)
 成功!  失敗: 0、合格:   677 - Tsumugi.Domain.Tests.dll
 成功!  失敗: 0、合格:   411 - Tsumugi.Application.Tests.dll
-成功!  失敗: 0、合格:   183 - Tsumugi.Infrastructure.Csv.Tests.dll
+成功!  失敗: 0、合格:   199 - Tsumugi.Infrastructure.Csv.Tests.dll
 成功!  失敗: 0、合格:    30 - Tsumugi.Infrastructure.Reporting.Tests.dll
 成功!  失敗: 0、合格:   254 - Tsumugi.App.Tests.dll
 成功!  失敗: 0、合格:   640 - Tsumugi.Infrastructure.Tests.dll
@@ -242,7 +266,7 @@ Tsumugi.Application Line 90.57% / Branch 84.26% / Method 84.28%  (floor 70%)
 ==> CI OK
 ```
 
-合計 2,195 テスト（Codex レビュー対応と契約情報の個別入力で 25 追加）（Phase 3-3 で追加した主なテストクラス: `ClaimCsvExportTests` 11 /
+合計 2,211 テスト（Codex レビュー対応・契約情報の個別入力・公式仕様適合で 41 追加）（Phase 3-3 で追加した主なテストクラス: `ClaimCsvExportTests` 11 /
 `ClaimCsvExportRepositoryTests` 6 / `CsvCellEncoderTests` 29 / `CsvGeneratorRuleParserTests` 14 /
 `ClaimCsvGeneratorTests` 10 / `GoldenCsvSnapshotTests` 13 / `ClaimCsvRowScopeTests` 4 / `ExceptionalUsageCrossFieldTests` 5 /
 `Tsumugi.Infrastructure.Csv.Tests.ArchitectureTests` 6 / `ClaimCsvExportProductionWiringTests` 5 /

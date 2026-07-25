@@ -7,6 +7,12 @@ namespace Tsumugi.Domain.Entities;
 /// </summary>
 public sealed record ContractedProvider : Entity
 {
+    /// <summary>
+    /// 障害者自立支援法の施行日。初回サービス提供日の下限（事業所編の設定方法および
+    /// CSV 仕様の <c>lowerBound=20060401</c> と一致する）。
+    /// </summary>
+    private static readonly DateOnly SelfSupportActStartDate = new(2006, 4, 1);
+
     public required Guid CertificateId { get; init; }
     /// <summary>事業所番号（10桁）。</summary>
     public required string ProviderNumber { get; init; }
@@ -25,8 +31,10 @@ public sealed record ContractedProvider : Entity
     public int? CertificateEntryNumber { get; init; }
 
     /// <summary>
-    /// この契約における初回サービス提供日（J121:02:008 開始年月日）。契約ごとに実情が異なるため
-    /// 導出せず個別に入力する。当月の日次記録から推測すると、前月以前から継続する契約で誤値になる。
+    /// 初回サービス提供日（J121:02:008 開始年月日）。事業所編の設定方法により、就労継続支援B型では
+    /// 「自立支援法へ移行した平成18年4月1日以降における最初にサービス提供した日」を設定する。
+    /// <b>契約支給量の変更があっても変わらず、当月でなく過去月の日付になりうる</b>ため、
+    /// 契約日との前後関係は制約にしない（例: 9/1契約→9/15契約変更でも初回提供日は9/3）。
     /// </summary>
     public DateOnly? FirstServiceDate { get; init; }
 
@@ -50,9 +58,10 @@ public sealed record ContractedProvider : Entity
         if (certificateEntryNumber is < 0 or > 99)
             throw new ArgumentOutOfRangeException(
                 nameof(certificateEntryNumber), "証書記入欄番号は0から99の範囲で指定してください。");
-        if (firstServiceDate is { } first && first < contractDate)
+        if (firstServiceDate is { } first && first < SelfSupportActStartDate)
             throw new ArgumentOutOfRangeException(
-                nameof(firstServiceDate), "初回サービス提供日は契約日以降の日付を指定してください。");
+                nameof(firstServiceDate),
+                "初回サービス提供日は2006年4月1日以降の日付を指定してください。");
         return new()
         {
             Id = id,

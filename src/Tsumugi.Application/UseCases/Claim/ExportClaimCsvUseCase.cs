@@ -70,7 +70,8 @@ public sealed class ExportClaimCsvUseCase(
                 detail: "the finalized CSV specification version differs from the one available at export time");
         }
 
-        var bytes = generator.Generate(dto);
+        var document = generator.Generate(dto);
+        var bytes = document.Bytes;
 
         var sha256 = Convert.ToHexStringLower(SHA256.HashData(bytes));
         await exportRepository.AppendAsync(
@@ -86,7 +87,7 @@ public sealed class ExportClaimCsvUseCase(
                 clock.GetUtcNow()),
             ct);
 
-        return new ClaimCsvExportResult(bytes, BuildFileName(dto, processingMonth, sha256), sha256);
+        return new ClaimCsvExportResult(bytes, document.FileName, sha256);
     }
 
     private ClaimCsvDto BuildDto(
@@ -191,13 +192,7 @@ public sealed class ExportClaimCsvUseCase(
         ServiceMonth serviceMonth)
     {
         var context = officeContextProvider.Resolve(office.RegionGrade, serviceMonth);
-        return new ClaimCsvOfficeDto(
-            office.OfficeNumber, context.RegionClassificationCode, context.UnitPriceMilliYen);
+        return new ClaimCsvOfficeDto(office.OfficeNumber, office.RegionGrade, context.UnitPriceMilliYen);
     }
 
-    private static string BuildFileName(
-        ClaimCsvDto dto,
-        ProcessingMonth processingMonth,
-        string sha256) =>
-        $"kokuho_{dto.Office.OfficeNumber}_{processingMonth.Year:D4}{processingMonth.Month:D2}_{sha256[..8]}.csv";
 }

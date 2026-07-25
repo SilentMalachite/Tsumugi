@@ -53,17 +53,43 @@ public sealed class CsvCellEncoderTests
         Decode(CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, raw), spec)).Should().Be(expected);
     }
 
-    // 公式ルールの文言は「comma, double quote, space, or kanji」。カナだけの値は引用しない。
-    // ここが緩む/厳しくなると RED になり、規則の解釈変更に気付ける。
+    // 共通編 1.2.2(4) は「漢字」を 2 バイトコードとして定義する。全角カナ・全角記号も 2 バイトなので
+    // 引用対象。半角カナ・半角数字は 1 バイトなので引用しない。
+    // NOTE(teeth): 表意文字だけを見る実装へ戻すと、全角カナ氏名が引用されず仕様違反になる。
     [Theory]
-    [InlineData("ヤマダタロウ")]
+    [InlineData("ヤマダタロウ")]   // 全角カナ = 2バイト
+    [InlineData("株式会社")]       // 漢字
+    [InlineData("１２３")]         // 全角数字
+    [InlineData("Ａ")]             // 全角英字
+    public void EncodeCell_quotes_every_two_byte_value(string raw)
+    {
+        var spec = Field("provider:J121:01:008", maxBytes: 40);
+
+        Decode(CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, raw), spec))
+            .Should().Be($"\"{raw}\"");
+    }
+
+    [Theory]
     [InlineData("ﾔﾏﾀﾞﾀﾛｳ")]
     [InlineData("12345")]
-    public void EncodeCell_does_not_quote_kana_or_digits(string raw)
+    [InlineData("ABC")]
+    public void EncodeCell_does_not_quote_single_byte_values(string raw)
     {
         var spec = Field("provider:J121:01:008", maxBytes: 40);
 
         Decode(CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, raw), spec)).Should().Be(raw);
+    }
+
+    // 共通編 1.2.2(3)① の使用不可能文字（シングルコーテーション 0x27）。
+    [Fact]
+    public void EncodeCell_fails_on_a_single_quotation_mark()
+    {
+        var spec = Field("provider:J121:01:008");
+
+        var act = () => CsvCellEncoder.EncodeCell(new CsvCell(spec.FieldId, "O'Brien"), spec);
+
+        act.Should().Throw<CsvEncodingException>()
+            .Which.Reason.Should().Be(CsvEncodingReason.ProhibitedCharacter);
     }
 
     // maxBytes は「引用符を除いた内容のバイト数」の上限（provider:J611:01 の

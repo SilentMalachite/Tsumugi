@@ -343,14 +343,15 @@ internal static class ClaimPreparationViewModelTestKit
     {
         public string SpecificationVersion => "csv-v1";
 
-        public byte[] Generate(Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvDto dto) => [];
+        public ClaimCsvDocument Generate(Tsumugi.Application.Dtos.Claim.Csv.ClaimCsvDto dto) =>
+            new([], "J110000A.CSV");
     }
 
     /// <summary>Phase 3-3: 制度マスタ由来の地域区分・単価は別テストの対象のため固定値を返す。</summary>
     internal sealed class FixedClaimCsvOfficeContextProvider : IClaimCsvOfficeContextProvider
     {
         public ClaimCsvOfficeContext Resolve(
-            Tsumugi.Domain.Enums.RegionGrade regionGrade, ServiceMonth serviceMonth) => new("06", 10_000);
+            Tsumugi.Domain.Enums.RegionGrade regionGrade, ServiceMonth serviceMonth) => new(10_000);
     }
 
     /// <summary>Phase 3-3: 出力履歴の永続化は Infrastructure 側テストの対象のためno-op。</summary>

@@ -21,7 +21,8 @@ public sealed partial class ClaimCsvExportSection(
     IFileSaveService fileSaveService) : ViewModelBase
 {
     private const string FileTypeName = "国保連請求CSV";
-    private const string FileExtension = ".csv";
+    /// <summary>共通編 1.2.1 が定める CSV 形式の拡張子。</summary>
+    private const string FileExtension = ".CSV";
     private const string NotFinalizedMessage = "確定済みの請求がありません。先に請求を確定してください。";
     private const string SaveFailedMessage = "CSVの保存に失敗しました。しばらくしてから再試行してください。";
     private const string MonthRangeMessage = "処理対象年月を正しく入力してください。";

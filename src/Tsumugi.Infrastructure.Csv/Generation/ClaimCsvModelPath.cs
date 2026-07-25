@@ -169,7 +169,7 @@ internal static class ClaimCsvModelPath
             "ClaimServiceLine.Count" => ClaimCsvValue.FromNumber(scope.RequireLine(path).Count),
 
             "RegionalClassificationMaster.byOfficeAndServiceProvisionMonth" =>
-                ClaimCsvValue.FromText(scope.Dto.Office.RegionClassificationCode),
+                RegionClassificationCode(scope),
             "UnitPriceMaster.byRegionServiceTypeAndServiceProvisionMonth" =>
                 ClaimCsvValue.FromNumber(scope.Dto.Office.UnitPriceMilliYen),
 
@@ -207,6 +207,19 @@ internal static class ClaimCsvModelPath
                 ClaimCsvGenerationReason.UnresolvableModelPath,
                 $"model path '{path}' differs across recipients; a claim file must cover a single value");
     }
+
+    /// <summary>
+    /// 地域区分コード。共通編のコード一覧（一級地=11 … 七級地=17 / その他=23）から解決する。
+    /// 表に載らない区分（未設定等）は fail-close し、推測したコードを出さない。
+    /// </summary>
+    private static ClaimCsvValue RegionClassificationCode(ClaimCsvResolutionScope scope) =>
+        Specifications.RegionClassificationCodeCatalog.Instance
+            .TryResolve(scope.Dto.Office.RegionGrade, out var code)
+            ? ClaimCsvValue.FromText(code)
+            : throw new ClaimCsvGenerationException(
+                scope.FieldId,
+                ClaimCsvGenerationReason.UnresolvableModelPath,
+                "the region grade has no official region classification code");
 
     /// <summary>真偽フラグは「該当する/しない」だけを表し、値そのものは持たない。</summary>
     private static ClaimCsvValue Flag(bool value) =>

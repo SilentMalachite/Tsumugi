@@ -1,3 +1,4 @@
+using Tsumugi.Domain.Enums;
 using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.Application.Dtos.Claim.Csv;
@@ -19,14 +20,17 @@ public sealed record ClaimCsvDto(
     ClaimCsvTotalsDto Totals,
     ClaimCsvSpecVersionDto SpecVersion);
 
-/// <param name="RegionClassificationCode">地域区分コード（制度マスタ解決済み）。</param>
+/// <param name="RegionGrade">
+/// 地域区分。CSV の公式コードへの変換は CSV 仕様側（<c>Tsumugi.Infrastructure.Csv</c>）が行う。
+/// コードは級地番号のゼロ詰めではないため、Application で組み立てない。
+/// </param>
 /// <param name="UnitPriceMilliYen">
-/// 単位数単価を1/1000円単位で表した整数（例: 10.00円/単位 → 10000）。
-/// spec の <c>provider:J121:04:013 = roundDown(010 * 011 / 1000)</c> がこの尺度を要求する。
+/// 単位数単価を1/1000円単位で表した整数（例: 10.00円/単位 → 10000）。共通編 1.5.1(4)
+/// 「単位数単価」欄が整数部2桁・小数部3桁を要求するため、この尺度が公式仕様と一致する。
 /// </param>
 public sealed record ClaimCsvOfficeDto(
     string OfficeNumber,
-    string RegionClassificationCode,
+    RegionGrade RegionGrade,
     int UnitPriceMilliYen);
 
 /// <param name="SortKey">受給者の安定ソートキー（受給者証番号）。決定論の要。</param>

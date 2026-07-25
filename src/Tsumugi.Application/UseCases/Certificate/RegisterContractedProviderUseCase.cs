@@ -81,12 +81,15 @@ public sealed class RegisterContractedProviderUseCase(
         e.ContractedSupplyDays, e.ContractDate, e.TerminationDate, e.Notes, e.ConcurrencyToken,
         e.CertificateEntryNumber, e.FirstServiceDate);
 
-    /// <summary>初回サービス提供日は契約日以降。請求CSVの開始年月日（J121:02:008）の正本になる。</summary>
+    /// <summary>
+    /// 初回サービス提供日は請求CSVの開始年月日（J121:02:008）の正本。事業所編の設定方法により
+    /// 契約変更があっても変わらず、契約日より前の日付になりうるため前後関係は検証しない。
+    /// 下限（2006-04-01）は <c>ContractedProvider.Create</c> が担保する。
+    /// </summary>
     internal static void ValidateFirstServiceDate(DateOnly? firstServiceDate, DateOnly contractDate)
     {
-        if (firstServiceDate is { } first && first < contractDate)
-            throw new ArgumentException(
-                "初回サービス提供日は契約日以後である必要があります。", nameof(firstServiceDate));
+        _ = firstServiceDate;
+        _ = contractDate;
     }
 
     internal static void ValidateCertificateEntryNumber(int? certificateEntryNumber)

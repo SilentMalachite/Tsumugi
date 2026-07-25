@@ -54,8 +54,8 @@ public sealed class ClaimCsvExportSectionTests
 
         fileSave.LastBytes.Should().NotBeNull();
         fileSave.LastFileTypeName.Should().Be("国保連請求CSV");
-        fileSave.LastExtension.Should().Be(".csv");
-        section.LastSavedFileName.Should().EndWith(".csv");
+        fileSave.LastExtension.Should().Be(".CSV");
+        section.LastSavedFileName.Should().MatchRegex("^[A-Za-z][A-Za-z0-9]{0,7}\\.CSV$");
         section.ErrorMessage.Should().BeNull();
         generator.LastDto!.ProcessingMonth.Should().Be(new ProcessingMonth(2026, 11));
         // AC3-7: 処理対象年月はサービス提供年月と独立している。
@@ -154,11 +154,11 @@ public sealed class ClaimCsvExportSectionTests
         public ClaimCsvExportFailedException? Failure { get; set; }
         public bool NoBatch { get; set; }
 
-        public byte[] Generate(ClaimCsvDto dto)
+        public ClaimCsvDocument Generate(ClaimCsvDto dto)
         {
             LastDto = dto;
             if (Failure is not null) throw Failure;
-            return [1, 2, 3];
+            return new ClaimCsvDocument([1, 2, 3], "J112611A.CSV");
         }
     }
 
@@ -190,7 +190,7 @@ public sealed class ClaimCsvExportSectionTests
     private sealed class StubOfficeContextProvider : IClaimCsvOfficeContextProvider
     {
         public ClaimCsvOfficeContext Resolve(RegionGrade regionGrade, ServiceMonth serviceMonth) =>
-            new("06", 10_000);
+            new(10_000);
     }
 
     private sealed class NoopExportRepository : IClaimCsvExportRepository

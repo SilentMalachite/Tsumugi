@@ -41,7 +41,9 @@ public sealed class ClaimCsvExportProductionWiringTests : IClassFixture<SqliteFi
 
         result.Bytes.Should().NotBeEmpty();
         result.Sha256.Should().Be(Convert.ToHexStringLower(SHA256.HashData(result.Bytes)));
-        result.SuggestedFileName.Should().Match("kokuho_1312345678_202608_*.csv");
+        // 共通編 1.2.1: 英字で始まる半角英数字 8 桁以内 ＋ ".CSV"。
+        result.SuggestedFileName.Should().MatchRegex("^[A-Za-z][A-Za-z0-9]{0,7}\\.CSV$");
+        result.SuggestedFileName.Should().StartWith("J112608");
 
         var text = CsvCellEncoder.Cp932.GetString(result.Bytes);
         text.Should().EndWith("\r\n");
