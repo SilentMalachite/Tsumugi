@@ -53,4 +53,74 @@ public static class OfficeCapabilityCoveragePolicy
             })
             .ToArray();
     }
+
+    /// <summary>
+    /// 宣言キーKが当月に生きているのに、Kを含む行がすべて他のcapabilityキーも要求していて、
+    /// 宣言集合では1行も成立しない場合を検出する（ADR 0049の一般化。<see cref="FindUncoveredKeys"/>
+    /// とは排反 — 前者は「Kが当月に無い」、こちらは「Kが当月にある」が前提）。
+    /// </summary>
+    /// <param name="declaredKeys">事業所が体制届で宣言したキー集合。</param>
+    /// <param name="monthCapabilityRows">
+    /// 当月に有効なservice-code行ごとの、capability種別の条件の値集合リスト
+    /// （<see cref="ExtractCapabilityValueSets"/>で1行分ずつ組み立てる。1行 = 条件のリストで、
+    /// 各条件は受理可能な値の集合）。1行の要件は「すべての条件の値集合が宣言集合と重なる」こと。
+    /// </param>
+    /// <remarks>
+    /// 判定規則。宣言キーKについて:
+    /// (1) Kが monthCapabilityRows のどの行のどの条件の値にも現れない → 対象外
+    /// （<see cref="FindUncoveredKeys"/>の領分、または請求に効かないキー）。
+    /// (2) Kを含む行が存在するが、そのどれも充足可能でない → 報告する。
+    /// (3) Kを含む充足可能な行が1つでもある → 報告しない。
+    /// </remarks>
+    public static IReadOnlyList<string> FindUnsatisfiableDeclaredKeys(
+        IReadOnlyCollection<string> declaredKeys,
+        IReadOnlyList<IReadOnlyList<IReadOnlySet<string>>> monthCapabilityRows)
+    {
+        ArgumentNullException.ThrowIfNull(declaredKeys);
+        ArgumentNullException.ThrowIfNull(monthCapabilityRows);
+
+        var declared = new HashSet<string>(declaredKeys, StringComparer.Ordinal);
+        var keysInRows = new HashSet<string>(
+            monthCapabilityRows.SelectMany(row => row.SelectMany(values => values)),
+            StringComparer.Ordinal);
+
+        bool IsSatisfiable(IReadOnlyList<IReadOnlySet<string>> row) =>
+            row.All(conditionValues => conditionValues.Overlaps(declared));
+
+        return declaredKeys
+            .Where(keysInRows.Contains)
+            .Where(key => !monthCapabilityRows
+                .Where(row => row.Any(conditionValues => conditionValues.Contains(key)))
+                .Any(IsSatisfiable))
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(key => key, StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    /// <summary>
+    /// 1行分の条件定義（<see cref="Models.ServiceCodeMasterRow.ConditionSelectors"/>を解決した
+    /// もの。他種別の条件が混在してよい）から、<c>kind: office-capability</c>のものだけを取り出し、
+    /// 条件ごとの受理可能な値集合を<b>平坦化せずに</b>列挙する（<see cref="FindUnsatisfiableDeclaredKeys"/>
+    /// の1行分の入力を組み立てるためのヘルパ）。token operandは単一値集合、token set operandは
+    /// 複数値集合。他のoperand型・office-capability以外のkindは対象外（<see cref="ExtractCapabilityValues"/>
+    /// と同じ契約。特にfacility-classification等の混在は偽陽性の原因になるため必ず除外する）。
+    /// </summary>
+    public static IReadOnlyList<IReadOnlySet<string>> ExtractCapabilityValueSets(
+        IEnumerable<ClaimConditionDefinition> rowConditionDefinitions)
+    {
+        ArgumentNullException.ThrowIfNull(rowConditionDefinitions);
+
+        return rowConditionDefinitions
+            .Where(condition => condition.Kind == ClaimConditionKind.OfficeCapability)
+            .Select(condition => condition.Operand switch
+            {
+                ClaimConditionTokenOperand token =>
+                    (IReadOnlySet<string>?)new HashSet<string>([token.Value], StringComparer.Ordinal),
+                ClaimConditionTokenSetOperand set => new HashSet<string>(set.Values, StringComparer.Ordinal),
+                _ => null,
+            })
+            .Where(valueSet => valueSet is not null)
+            .Select(valueSet => valueSet!)
+            .ToArray();
+    }
 }

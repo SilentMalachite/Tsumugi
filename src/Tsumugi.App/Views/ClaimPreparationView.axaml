@@ -84,6 +84,21 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
+            <!-- ADR 0049の一般化: 宣言キーは当月に有効だが、companionキー未宣言で行が1件も
+                 成立しない。原因（失効・未施行 vs 宣言不完全）が異なるため上のブロックとは
+                 別枠にし、対処（体制届の見直し vs companion optionの追加宣言）を混同させない。
+                 確定は止めない情報。 -->
+            <TextBlock Text="体制届の宣言が不完全です（他に必要なoptionが未選択。今月の確定には影響しません）" FontWeight="Bold"
+                       IsVisible="{Binding IncompleteCapabilityDeclarationWarnings.Count, Converter={x:Static conv:CountGreaterThanZeroConverter.Instance}}" />
+            <ItemsControl ItemsSource="{Binding IncompleteCapabilityDeclarationWarnings}"
+                          IsVisible="{Binding IncompleteCapabilityDeclarationWarnings.Count, Converter={x:Static conv:CountGreaterThanZeroConverter.Instance}}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
             <TextBlock Text="プレビュー明細" FontWeight="Bold" />
             <DataGrid ItemsSource="{Binding Preview.Details}"
                       AutoGenerateColumns="False" IsReadOnly="True"

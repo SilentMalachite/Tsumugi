@@ -46,6 +46,33 @@ public sealed class ClaimPreparationViewModelTests
             .Which.Should().Be(declaredKey);
     }
 
+    // 本タスク（ADR 0049の一般化）: キーは当月に有効だが、それを要求する行がすべて他の
+    // capabilityキー（companion）も要求していて宣言集合では1行も成立しない場合。
+    // CapabilityCoverageWarnings（失効・未施行）とは別枠のIncompleteCapabilityDeclarationWarnings
+    // として公開される。
+    [Fact]
+    public async Task PreviewAsync_surfaces_incomplete_capability_declaration_warnings_without_blocking_readiness()
+    {
+        const string requiredKey = "mhlw.b46.capability.treatment-improvement.6";
+        const string companionKey = "mhlw.b46.capability.treatment-improvement-v-band.3";
+        var fixture = CreateFixture();
+        fixture.SnapshotReader.Snapshot = fixture.SnapshotReader.Snapshot with
+        {
+            OfficeCapabilities = [Kit.Capability(new Dictionary<string, bool> { [requiredKey] = true })],
+        };
+        fixture.MasterProvider.Masters =
+            Kit.MastersRequiringCapabilityCompanion(requiredKey, companionKey);
+
+        await fixture.Sut.PreviewAsync();
+
+        fixture.Sut.Preview!.IsReady.Should().BeTrue("体制届の宣言不足で確定は止めない");
+        fixture.Sut.IncompleteCapabilityDeclarationWarnings.Should().ContainSingle()
+            .Which.Should().Be(requiredKey);
+        // 排反性: 既存のCapabilityCoverageWarnings（失効・未施行）はこのキーが当月に
+        // 有効なため空のまま。
+        fixture.Sut.CapabilityCoverageWarnings.Should().BeEmpty();
+    }
+
     /// <summary>
     /// C1: 施設区分が未入力のまま施設区分条件を持つ行へ到達すると
     /// <c>ServiceCodeResolver</c> が <c>FacilityClassificationUnresolved</c> を投げる。

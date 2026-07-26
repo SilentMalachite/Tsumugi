@@ -275,17 +275,71 @@ internal static class ClaimPreparationTestKit
                 "cond-office-capability-covered", ClaimConditionKind.OfficeCapability,
                 ClaimConditionOperator.Equals, new ClaimConditionTokenOperand(coveredKey))];
 
+    /// <summary>
+    /// 本タスク（ADR 0049の一般化）テスト専用: 指定したときだけ、2つのoffice-capability条件
+    /// （<paramref name="requiredKey"/> / <paramref name="companionKey"/>）を両方要求する加算行を
+    /// 1件追加する。<paramref name="requiredKey"/>だけを宣言し<paramref name="companionKey"/>を
+    /// 宣言しなければ、この行は1つも成立しない（実seedの処遇改善(Ⅴ)＝option6＋bandの構造を
+    /// 最小合成語彙で再現する）。
+    /// </summary>
+    private static IEnumerable<ClaimConditionDefinition> CapabilityAdditionConditions(
+        (string RequiredKey, string CompanionKey)? capabilityAdditionRow) =>
+        capabilityAdditionRow is not { } row
+            ? []
+            :
+            [
+                Condition(
+                    "cond-cap-required", ClaimConditionKind.OfficeCapability,
+                    ClaimConditionOperator.Equals, new ClaimConditionTokenOperand(row.RequiredKey)),
+                Condition(
+                    "cond-cap-companion", ClaimConditionKind.OfficeCapability,
+                    ClaimConditionOperator.Equals, new ClaimConditionTokenOperand(row.CompanionKey)),
+            ];
+
+    private static IEnumerable<ServiceCodeMasterRow> CapabilityAdditionServiceCodes(
+        (string RequiredKey, string CompanionKey)? capabilityAdditionRow) =>
+        capabilityAdditionRow is null
+            ? []
+            :
+            [
+                new ServiceCodeMasterRow(
+                    "sc-cap-addition",
+                    "699999",
+                    "合成加算(2キー要求)",
+                    "b-type",
+                    [],
+                    ["cond-cap-required", "cond-cap-companion"],
+                    new UnitAdditionRule("adj-cap", new FixedUnitsAmount(10), "step-addition", null, BillingUnit.PerDay),
+                    [new ClaimComponentRef(
+                        ClaimComponentMasterKind.Additions, "adj-cap", ClaimComponentRole.Adjustment)],
+                    new ServiceMonth(2024, 4),
+                    null,
+                    [SourceRef()]),
+            ];
+
+    private static IEnumerable<UnitAdjustmentMasterRow> CapabilityAdditionUnitAdjustments(
+        (string RequiredKey, string CompanionKey)? capabilityAdditionRow) =>
+        capabilityAdditionRow is null
+            ? []
+            :
+            [
+                new UnitAdjustmentMasterRow(
+                    "adj-cap", new FixedUnitsAmount(10), "step-addition", null, BillingUnit.PerDay,
+                    new ServiceMonth(2024, 4), null, [SourceRef()]),
+            ];
+
     internal static ClaimCalculationMasterBundle SyntheticMasters(
         int unitsPerDay = 700,
         bool includeTransitionRule = true,
-        string? coveredOfficeCapabilityKey = null) => new(
+        string? coveredOfficeCapabilityKey = null,
+        (string RequiredKey, string CompanionKey)? capabilityAdditionRow = null) => new(
         BasicRewards:
         [
             new BasicRewardMasterRow(
                 "base-a", "band-a", "staff-a", "cap-a", "610000", unitsPerDay,
                 new ServiceMonth(2024, 4), null, [SourceRef()]),
         ],
-        UnitAdjustments: [],
+        UnitAdjustments: [.. CapabilityAdditionUnitAdjustments(capabilityAdditionRow)],
         RegionUnitPrices:
         [
             new RegionUnitPriceMasterRow(
@@ -336,6 +390,7 @@ internal static class ClaimPreparationTestKit
                 new ServiceMonth(2024, 4),
                 null,
                 [SourceRef()]),
+            .. CapabilityAdditionServiceCodes(capabilityAdditionRow),
         ],
         ConditionDefinitions:
         [
@@ -352,6 +407,7 @@ internal static class ClaimPreparationTestKit
                 "cond-staff-a", ClaimConditionKind.Staffing, ClaimConditionOperator.Equals,
                 new ClaimConditionTokenOperand("staff-a")),
             .. OfficeCapabilityConditions(coveredOfficeCapabilityKey),
+            .. CapabilityAdditionConditions(capabilityAdditionRow),
         ]);
 
     internal static ClaimBatch Batch(

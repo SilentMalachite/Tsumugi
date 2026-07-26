@@ -141,3 +141,29 @@ IReadOnlySet<string> AllOfficeCapabilityConditionValues();
 - `CalculateClaimUseCaseTests` — 4件（警告する／未参照キーは警告しない／当月に有る場合は警告しない／無関係な理由の not-ready でも警告を運ぶ）。
 - `ClaimMasterR6FacilityTests.Category_v_becomes_an_uncovered_capability_after_it_expires` — 実seedに対する結線検査（2025-04・2026-06 の2ケース）。
 - `ClaimPreparationViewModelTests.PreviewAsync_surfaces_capability_coverage_warnings_without_blocking_readiness` — UI への到達と `IsReady` 非干渉。
+
+## 追補（隣接する別の穴の一般化。`feature/capability-declaration-satisfiability`、2026-07-27）
+
+決定1の2段構えは「K が当月のどの条件定義にも無い」（失効・未施行）だけを拾う。**K が当月に生きているのに、K を含む行がすべて追加の体制届キー（companion）も要求していて、宣言集合では1行も成立しない**場合は対象外のまま残っていた（§「(Ⅴ)区分と処遇改善対象optionの組合せ」で扱った「有害な向き」がまさにこれで、当時は入口ガード I1 だけで塞いでいた）。
+
+### (1) 塞いだ穴
+
+処遇改善(Ⅴ)の実例が典型: `mhlw.b46.capability.treatment-improvement.6`（option 6）だけを宣言し `mhlw.b46.capability.treatment-improvement-v-band.{n}`（band）を宣言していない事業所は、option 6 自体が当月（2024-06〜2025-03）に有効なため決定1の判定は沈黙するが、実seedの(Ⅴ)行23件は**すべて** option 6 と band の両方を `conditionSelectors` に要求するため0行一致し、加算は無音の¥0になる。`OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys` を新設し、宣言キー K について「K を含む行が当月に存在するが、そのどれも（宣言集合との対応で）充足可能でない」場合を検出する。行ごとの要件は条件のリスト（各条件は受理可能な値の集合。`equals` なら1要素、`in` なら複数要素）としてモデル化し、行が充足可能 ⇔ すべての条件の値集合が宣言集合と重なる、と定義した。既存の `FindUncoveredKeys` は変更していない（両者は排反 — 前者は「K が当月に無い」、後者は「K が当月にある」が前提）。
+
+### (2) capability条件だけを見る理由と偽陽性回避
+
+行には capability 種別以外（facility-classification・reward-system・average-wage-band・capacity・staffing 等）の条件も同居する。これらを行の「充足可否」判定に混ぜると、宣言集合（capabilityキーのみ）とは決して重ならない値（例: `general` / `designated-support-facility`）を持つ条件のせいで、本来成立する行まで「不成立」と誤判定する。実seedの処遇改善(Ⅰ)行（465120＝一般事業所向け、465138＝指定障害者支援施設向け）は、どちらも `capability-treatment-improvement-i`（option 2/Ⅰ）と `facility-classification-*` の両方を同じ行に要求する構造になっており、これが実際に偽陽性を起こしうる最小の実例になっている。そのため判定関数は `ExtractCapabilityValueSets` で `kind: office-capability` の条件だけを抽出し（`ExtractCapabilityValues` と同じ kind フィルタ契約。ただし平坦化はしない — 条件ごとの値集合を保つ）、それ以外の kind は行の要件から構造的に除外する。この除外を外すと、option 2/Ⅰ を宣言しただけの一般事業所が「宣言不完全」と誤警告される（実装中の RED チェックで実際に確認済み。報告 `.superpowers/sdd/capability-satisfiability/report.md` 参照）。
+
+### (3) 入口ガード（`OfficeCapabilityViewModel.SaveAsync` の I1）との役割分担
+
+I1 は `OfficeCapabilityViewModel.SaveAsync` に置いた**新規保存時**の入口ガードで、band を要求する選択番号を band 未選択のまま保存しようとする操作を1件も永続化しない（保存エラーで拒否する）。しかし `RegisterOfficeCapabilityUseCase` 自体はフラグ辞書を検証せず永続化するため、I1 は「この ViewModel から新規保存する経路」にしか効かない。将来の取込機能・別の入力面・テスト用シード・DB直接操作は I1 を素通りする。加えて I1 は `PeriodStart` の月の語彙しか見ないため、世代境界をまたぐ体制届（例: 期間開始が2025-01で処理対象月が2025-06）は開始月の語彙でしか検査されない。
+
+本検査（`FindUnsatisfiableDeclaredKeys`）は**プレビュー時のマスタ照合**（`ClaimPreviewPipeline`）に置くことで、書き手が誰であれ・いつ書かれたレコードであれ、**処理対象月ごとに独立して**再評価する。I1 が「不完全な宣言を新規に作らせない」予防であるのに対し、本検査は「既に存在する任意の宣言を、確認するたびに検査する」検出であり、互いに補完する（I1 だけでは救えない経路を本検査が拾う）。
+
+### (4) 残る限界
+
+判定は capability 種別の条件同士の競合だけを見る。**average-wage-band や capacity 起因で行が成立しない場合**（条件は参照されているが参照先の行が他の理由で成立しない、という同じ形の別バリエーション）は依然として拾わない。`docs/open-questions.md` の該当項目に追補済み。また本検査も警告であり `IsReady` を変えないため、決定2・「残る限界」節と同じく、運用者が見落とせば加算が0円のまま確定できる点は変わらない。
+
+DTO は既存の `ClaimPreviewDto.CapabilityCoverageWarnings` と**並列の別リスト**（`ClaimPreviewDto.IncompleteCapabilityDeclarationWarnings`）にした。同一リストへ混ぜると、運用者が「失効した option」と「宣言が不完全（companion option 未選択）」のどちらか判別できず、対処（体制届の見直し vs companion option の追加宣言）を誤る。UI も `ClaimPreparationView.axaml` に隣接する別ブロックとして表示する。
+
+証拠・詳細は `docs/phase3-6-acceptance.md` §9 と `.superpowers/sdd/capability-satisfiability/report.md`。

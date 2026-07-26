@@ -313,7 +313,7 @@ Task 0 が発見し、後続タスクへの注意として台帳へ記録した�
 
 **訂正した3件の記述**:
 
-1. 「(Ⅴ)區分/option の不一致は**算定額には影響しない**」（§6-2・ADR 0049）→ **無害な向き（band のみ）にしか当てはまらない**。有害な向き（option 6 のみ）は無音で0円になり、しかも ADR 0049 の存在検査は警告しない。I1 で塞いだ。
+1. 「(Ⅴ)区分/option の不一致は**算定額には影響しない**」（§6-2・ADR 0049）→ **無害な向き（band のみ）にしか当てはまらない**。有害な向き（option 6 のみ）は無音で0円になり、しかも ADR 0049 の存在検査は警告しない。I1 で塞いだ。
 2. §1 行22 が「偽陽性の不在」の証拠として `CalculateClaimUseCaseTests..._does_not_warn_about_a_declared_capability_never_referenced_by_any_condition` を挙げていたが、**§6-5 が同時に「そのテストは `all` が空だから通っている」と開示していた**（自己矛盾）。行22b を立て、Domain 層の `OfficeCapabilityCoveragePolicyTests.A_key_never_used_by_any_condition_is_ignored` を証拠として明示し、Application 層のテストは証拠にならない旨を書いた。
 3. 「呼び出し元での**未捕捉例外として表面化する**」（§3-1・ADR 0048「影響」1）→ 字義どおりではあるが「エラーが表示される」と読めた。実際の挙動は**アプリの終了**であり、C1 が変えた後の挙動へ文言を合わせた。
 
@@ -389,3 +389,34 @@ Task 3 の増分には、`Application.Tests` から `Infrastructure.Tests` へ�
 ### Domain カバレッジ床への接触（Task 5 fix round）
 
 `OfficeCapabilityCoveragePolicy.ExtractCapabilityValues` を Domain へ追加した時点で直接テストが無く、Domain 行カバレッジが **94.99%** へ落ちて `./build/ci.sh` が1度失敗した（`The total line coverage is below the specified 95`）。`ExtractCapabilityValues` の直接テスト5件（kind フィルタ・token operand・token set operand・非 token operand の無視・null 拒否）を追加して 95.29% へ回復した。これらのテストは床合わせのためだけでなく、新設 Domain ロジックの直接単体カバレッジとしてそれ自体が必要なものである。
+
+---
+
+## 9. 追補（体制届宣言の充足可能性検査。ADR 0049 の一般化）
+
+- ブランチ: `feature/capability-declaration-satisfiability`
+- ブリーフ: `.superpowers/sdd/capability-satisfiability/brief.md`
+- 報告: `.superpowers/sdd/capability-satisfiability/report.md`
+
+Task 5 の存在検査（`FindUncoveredKeys`）は「宣言キー K が当月のどの条件定義にも無い」（失効・未施行）だけを拾い、「K は当月に生きているが、K を含む行がすべて追加の体制届キーを要求していて宣言集合では1行も成立しない」場合は無音のまま残っていた（実例: 処遇改善(Ⅴ)＝option 6 のみ宣言し `-v-band.{n}` を宣言していない事業所。option 6 自体は 2024-06〜2025-03 に有効なため `FindUncoveredKeys` は沈黙するが、(Ⅴ)行23件はすべて option 6 と band の両方を要求するため0行一致し、加算は無音の¥0になる）。
+
+本追補は `OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys` を新設してこの穴を塞いだ。判定は**capability種別の条件だけ**を見る（`ExtractCapabilityValueSets`）。行には facility-classification 等の条件も同居するため、それらを混ぜると偽陽性になる（処遇改善(Ⅰ)行 465120/465138 は capability条件と facility-classification 条件を同じ行に持つ）。既存の `FindUncoveredKeys` とは排反（前者は「K が当月に無い」、本検査は「K が当月にある」が前提）であり、判定関数自体は変更していない。
+
+DTOは既存の `CapabilityCoverageWarnings` と**並列の別リスト**（`IncompleteCapabilityDeclarationWarnings`）にした。同一リストへ混ぜると、運用者が「失効した option」と「宣言が不完全（companion option 未選択）」のどちらか判別できず、対処（体制届の見直し vs companion option の追加宣言）を誤る。
+
+検出位置は `ClaimPreviewPipeline`（プレビュー時のマスタ照合）に置き、Phase 3-6 の I1（`OfficeCapabilityViewModel.SaveAsync` の入口ガード）とは役割が異なる。入口ガードは**新規保存時**にしか効かず、`RegisterOfficeCapabilityUseCase` 自体はフラグ辞書を検証しないため、将来の取込機能・別の入力面・テスト用シード・DB直接操作は入口ガードを素通りする。本検査は**永続化済みの任意のレコード**（書き手・作成時期を問わない）に対して、確認のたびに再評価される。また入口ガードは `PeriodStart` の月の語彙しか見ないため、世代境界をまたぐ体制届は開始月しか検査されないが、本検査は処理対象月ごとに独立して評価する。
+
+`IsReady` は変えない（Phase 3-6 と同じ非ブロッキング契約。`ClaimPreviewDto.IncompleteCapabilityDeclarationWarnings` が非空でも確定できる）。算定不成立の早期リターン（readiness不成立・経過措置guard不一致）でも警告を運ぶ（`CalculateClaimUseCaseTests.Execute_still_surfaces_incomplete_capability_declaration_warnings_when_not_ready_for_an_unrelated_reason`）。
+
+**残る限界**: 本検査が拾うのは capability 起因の不成立だけである。`docs/open-questions.md` の「体制届optionに対応するマスタ行が当月に存在しない場合のreadiness警告」項目に追補したとおり、average-wage-band や capacity 起因で行が成立しない場合（条件は参照されているが参照先の行が他の理由で成立しない「第3の形」の残り）は依然として拾わない。また警告であるため、運用者が見落とせば加算が¥0のまま確定できる点は ADR 0049 決定2・「残る限界」節と同じ（本検査もブロックしない）。
+
+### 証拠（テスト名）
+
+| # | 内容 | 証拠 |
+|---|---|---|
+| 1 | Domain: 充足可能／companion欠落で不充足／当月に無いキーは対象外／`in` operand の代替値で充足／決定論的順序 | `OfficeCapabilityCoveragePolicyTests`（`FindUnsatisfiableDeclaredKeys` 6件＋`ExtractCapabilityValueSets` 5件） |
+| 2 | Application: 警告する／companion併宣言で警告しない／無関係な理由の not-ready でも運ばれる | `CalculateClaimUseCaseTests.Execute_warns_about_an_incomplete_capability_declaration_missing_a_companion_key` / `..._does_not_warn_about_an_incomplete_capability_declaration_when_the_companion_key_is_also_declared` / `..._still_surfaces_incomplete_capability_declaration_warnings_when_not_ready_for_an_unrelated_reason` |
+| 3 | Infrastructure（実seed。2024-06）: option6のみ宣言→警告／option6+band3→警告なし／option2のみ宣言→facility-classification条件混在でも偽陽性なし | `CapabilityDeclarationSatisfiabilityProductionWiringTests`（3件） |
+| 4 | UI: 別枠のリストとして到達し `IsReady` を落とさない | `ClaimPreparationViewModelTests.PreviewAsync_surfaces_incomplete_capability_declaration_warnings_without_blocking_readiness` |
+
+`./build/ci.sh` は本追補の変更を含めて全ゲート緑（詳細・実測値は `.superpowers/sdd/capability-satisfiability/report.md` 参照）。

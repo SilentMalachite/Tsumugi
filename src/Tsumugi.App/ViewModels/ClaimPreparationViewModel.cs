@@ -82,6 +82,16 @@ public sealed partial class ClaimPreparationViewModel(
     /// </summary>
     public ObservableCollection<string> CapabilityCoverageWarnings { get; } = [];
 
+    /// <summary>
+    /// 体制届で宣言されたキーは当月に有効だが、それを要求する行がすべて他のcapabilityキー
+    /// （companion）も要求していて宣言集合では1行も成立しないキー（本タスク。ADR 0049の一般化）。
+    /// **確定を止めない情報**。<see cref="CapabilityCoverageWarnings"/>（失効・未施行）とは原因が
+    /// 異なるため別枠で表示する（運用者が「失効したoption」と「宣言が不完全」を区別できるように
+    /// する。対処が違う — 前者は体制届の見直し、後者はcompanionのoptionの追加宣言）。
+    /// 表示はキー文字列のみ（氏名・受給者証番号は出さない）。
+    /// </summary>
+    public ObservableCollection<string> IncompleteCapabilityDeclarationWarnings { get; } = [];
+
     public ObservableCollection<ClaimBatchHistoryDto> History { get; } = [];
 
     /// <summary>「帳票出力」セクション（Task 14）。確定済revisionの有無と受給者一覧は
@@ -118,6 +128,9 @@ public sealed partial class ClaimPreparationViewModel(
                 UpcomingSpecificationWarnings,
                 (preview.UpcomingSpecificationIssues ?? []).Select(FormatUpcomingChange));
             Replace(CapabilityCoverageWarnings, preview.CapabilityCoverageWarnings ?? []);
+            Replace(
+                IncompleteCapabilityDeclarationWarnings,
+                preview.IncompleteCapabilityDeclarationWarnings ?? []);
             ErrorMessage = null;
             await RefreshHistoryAsync(context, ct);
         }
@@ -147,6 +160,7 @@ public sealed partial class ClaimPreparationViewModel(
             Issues.Clear();
             UpcomingSpecificationWarnings.Clear();
             CapabilityCoverageWarnings.Clear();
+            IncompleteCapabilityDeclarationWarnings.Clear();
             ErrorMessage = null;
             await RefreshHistoryAsync(context, ct);
         }
@@ -185,6 +199,7 @@ public sealed partial class ClaimPreparationViewModel(
             Issues.Clear();
             UpcomingSpecificationWarnings.Clear();
             CapabilityCoverageWarnings.Clear();
+            IncompleteCapabilityDeclarationWarnings.Clear();
             ErrorMessage = null;
             await RefreshHistoryAsync(context, ct);
         }
@@ -214,6 +229,7 @@ public sealed partial class ClaimPreparationViewModel(
         Issues.Clear();
         UpcomingSpecificationWarnings.Clear();
         CapabilityCoverageWarnings.Clear();
+        IncompleteCapabilityDeclarationWarnings.Clear();
         History.Clear();
         ErrorMessage = null;
         CancelCommand.NotifyCanExecuteChanged();

@@ -490,6 +490,98 @@ public sealed class CalculateClaimUseCaseTests
             .Which.Should().Be(declaredKey);
     }
 
+    // --- IncompleteCapabilityDeclarationWarnings（ADR 0049の一般化。CapabilityCoverageWarnings
+    // とは排反: こちらはキーが当月に有効であることが前提） ---
+
+    private const string CapabilityAdditionRequiredKey = "mhlw.b46.capability.treatment-improvement.6";
+    private const string CapabilityAdditionCompanionKey =
+        "mhlw.b46.capability.treatment-improvement-v-band.3";
+
+    // NOTE(teeth): companionキー（band）を宣言していないと、requiredKeyを要求する行は
+    // 1つも成立せず、加算は無音で0円になる（処遇改善(Ⅴ)の実例そのもの）。IsReadyは変えない
+    // （ADR 0049と同じ非ブロッキング契約）。
+    [Fact]
+    public async Task Execute_warns_about_an_incomplete_capability_declaration_missing_a_companion_key()
+    {
+        var snapshot = Kit.Snapshot(
+            officeCapabilities:
+            [
+                Kit.Capability(flags: new Dictionary<string, bool> { [CapabilityAdditionRequiredKey] = true }),
+            ]);
+        var masterProvider = new Kit.FakeMasterProvider(
+            Kit.Release(),
+            Kit.SyntheticMasters(
+                capabilityAdditionRow: (CapabilityAdditionRequiredKey, CapabilityAdditionCompanionKey)));
+        var useCase = CreateUseCase(snapshot, masterProvider: masterProvider);
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeTrue("体制届の宣言不足で確定は止めない");
+        dto.IncompleteCapabilityDeclarationWarnings.Should().ContainSingle()
+            .Which.Should().Be(CapabilityAdditionRequiredKey);
+        // 排反性: このキーは当月に条件定義が実在するため、既存のCapabilityCoverageWarnings
+        // （失効・未施行）は空のまま — 原因が異なる別枠であることの直接証拠。
+        dto.CapabilityCoverageWarnings.Should().BeEmpty();
+    }
+
+    /// <summary>対照実験: companionキーも宣言すれば行が充足可能になり、警告は出ない。</summary>
+    [Fact]
+    public async Task
+        Execute_does_not_warn_about_an_incomplete_capability_declaration_when_the_companion_key_is_also_declared()
+    {
+        var snapshot = Kit.Snapshot(
+            officeCapabilities:
+            [
+                Kit.Capability(flags: new Dictionary<string, bool>
+                {
+                    [CapabilityAdditionRequiredKey] = true,
+                    [CapabilityAdditionCompanionKey] = true,
+                }),
+            ]);
+        var masterProvider = new Kit.FakeMasterProvider(
+            Kit.Release(),
+            Kit.SyntheticMasters(
+                capabilityAdditionRow: (CapabilityAdditionRequiredKey, CapabilityAdditionCompanionKey)));
+        var useCase = CreateUseCase(snapshot, masterProvider: masterProvider);
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeTrue();
+        dto.IncompleteCapabilityDeclarationWarnings.Should().BeEmpty(
+            "companionキーも宣言されていれば行は充足可能であり、報告してはならない");
+    }
+
+    // NOTE(teeth): CapabilityCoverageWarnings（ADR 0049）と同じ理由で、無関係な理由
+    // （事業所請求設定=profile未登録）でnot-readyな月でも本警告は消えてはならない。
+    [Fact]
+    public async Task
+        Execute_still_surfaces_incomplete_capability_declaration_warnings_when_not_ready_for_an_unrelated_reason()
+    {
+        var snapshot = Kit.Snapshot(
+            includeProfile: false,
+            officeCapabilities:
+            [
+                Kit.Capability(flags: new Dictionary<string, bool> { [CapabilityAdditionRequiredKey] = true }),
+            ]);
+        var masterProvider = new Kit.FakeMasterProvider(
+            Kit.Release(),
+            Kit.SyntheticMasters(
+                capabilityAdditionRow: (CapabilityAdditionRequiredKey, CapabilityAdditionCompanionKey)));
+        var useCase = CreateUseCase(snapshot, masterProvider: masterProvider);
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeFalse("事業所請求設定(profile)未登録という無関係な理由でnot-ready");
+        dto.Issues.Should().Contain(issue =>
+            issue.Code == ClaimPreparationIssueCode.MissingRequiredEvidence
+            && issue.FieldCode == "OfficeClaimProfile.Effective");
+        dto.IncompleteCapabilityDeclarationWarnings.Should().ContainSingle()
+            .Which.Should().Be(CapabilityAdditionRequiredKey);
+    }
+
     /// <summary>
     /// 体制届キー"mhlw.b46.capability.treatment-improvement.6"を宣言済みだが、
     /// Kit.SyntheticMasters()の条件定義には含まれない（＝当月に無い）。
