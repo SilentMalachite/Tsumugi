@@ -42,14 +42,20 @@ public sealed record ClaimPreviewDto(
     IReadOnlyList<ClaimUpcomingSpecificationIssue>? UpcomingSpecificationIssues = null,
     // 体制届で宣言されたが当月に有効なマスタ行が無いキー。**確定は止めない**
     // （IsReadyには影響させない）。無音で加算0円になる経路を可視化する警告（ADR 0049）。
-    IReadOnlyList<string>? CapabilityCoverageWarnings = null)
+    IReadOnlyList<string>? CapabilityCoverageWarnings = null,
+    // 体制届で宣言されたキーは当月に有効だが、それを要求する行がすべて他のcapabilityキーも
+    // 要求していて、宣言集合では1行も成立しないキー。**確定は止めない**（IsReadyには影響
+    // させない）。CapabilityCoverageWarnings（失効・未施行）とは原因が異なるため別枠で運ぶ
+    // （宣言が不完全。ADR 0049の一般化）。
+    IReadOnlyList<string>? IncompleteCapabilityDeclarationWarnings = null)
 {
     public static ClaimPreviewDto NotReady(
         ServiceMonth serviceMonth,
         string claimMasterVersion,
         IReadOnlyList<ClaimPreparationIssue> issues,
         IReadOnlyList<ClaimUpcomingSpecificationIssue>? upcomingSpecificationIssues = null,
-        IReadOnlyList<string>? capabilityCoverageWarnings = null)
+        IReadOnlyList<string>? capabilityCoverageWarnings = null,
+        IReadOnlyList<string>? incompleteCapabilityDeclarationWarnings = null)
         => new(
             serviceMonth,
             claimMasterVersion,
@@ -62,7 +68,8 @@ public sealed record ClaimPreviewDto(
             issues,
             IsReady: false,
             upcomingSpecificationIssues,
-            capabilityCoverageWarnings);
+            capabilityCoverageWarnings,
+            incompleteCapabilityDeclarationWarnings);
 }
 
 public sealed record ClaimBatchRevisionDto(Guid BatchId, int Revision, bool IsReplay);

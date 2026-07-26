@@ -305,6 +305,56 @@ internal static class ClaimPreparationViewModelTestKit
         };
     }
 
+    /// <summary>
+    /// 本タスク（ADR 0049の一般化）テスト専用: 2つのoffice-capability条件
+    /// （<paramref name="requiredKey"/> / <paramref name="companionKey"/>）を両方要求する加算行を
+    /// 追加したマスタ束。<paramref name="requiredKey"/>だけを宣言すると、この行は1つも成立しない
+    /// （実seedの処遇改善(Ⅴ)＝option6＋bandの構造を合成語彙で再現する）。
+    /// </summary>
+    internal static ClaimCalculationMasterBundle MastersRequiringCapabilityCompanion(
+        string requiredKey, string companionKey)
+    {
+        var baseline = SyntheticMasters();
+        return baseline with
+        {
+            UnitAdjustments =
+            [
+                .. baseline.UnitAdjustments,
+                new UnitAdjustmentMasterRow(
+                    "adj-cap", new FixedUnitsAmount(10), "step-addition", null, BillingUnit.PerDay,
+                    new ServiceMonth(2024, 4), null, [SourceRef()]),
+            ],
+            ServiceCodes =
+            [
+                .. baseline.ServiceCodes,
+                new ServiceCodeMasterRow(
+                    "sc-cap-addition",
+                    "699999",
+                    "合成加算(2キー要求)",
+                    "b-type",
+                    [],
+                    ["cond-cap-required", "cond-cap-companion"],
+                    new UnitAdditionRule(
+                        "adj-cap", new FixedUnitsAmount(10), "step-addition", null, BillingUnit.PerDay),
+                    [new ClaimComponentRef(
+                        ClaimComponentMasterKind.Additions, "adj-cap", ClaimComponentRole.Adjustment)],
+                    new ServiceMonth(2024, 4),
+                    null,
+                    [SourceRef()]),
+            ],
+            ConditionDefinitions =
+            [
+                .. baseline.ConditionDefinitions,
+                Condition(
+                    "cond-cap-required", ClaimConditionKind.OfficeCapability, ClaimConditionOperator.Equals,
+                    new ClaimConditionTokenOperand(requiredKey)),
+                Condition(
+                    "cond-cap-companion", ClaimConditionKind.OfficeCapability, ClaimConditionOperator.Equals,
+                    new ClaimConditionTokenOperand(companionKey)),
+            ],
+        };
+    }
+
     internal sealed class MutableSnapshotReader(ClaimCalculationSnapshot snapshot)
         : IClaimCalculationSnapshotReader
     {

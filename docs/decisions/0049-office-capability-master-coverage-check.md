@@ -125,7 +125,9 @@ IReadOnlySet<string> AllOfficeCapabilityConditionValues();
 
 当初この節は「本チェックは弾かないが**算定額には影響しない**」と一括りに書いていた。**それは片方の向きにしか当てはまらない。**
 
-**無害な向き（band だけがあって option 6 が無い）**: マスタ側の二重ゲート（ADR 0048 決定4）により、option 6 が立っていなければ(Ⅴ)行は一致しない。よって算定額には影響しない。また 2025-04 以降は band キー自体が本チェックの警告対象になるため、失効後は可視化される。本チェックでも入力側でも弾かない。
+**無害な向き（band だけがあって option 6 が無い）**: マスタ側の二重ゲート（ADR 0048 決定4）により、option 6 が立っていなければ(Ⅴ)行は一致しない。よって算定額には影響しない。また 2025-04 以降は band キー自体が本チェックの警告対象になるため、失効後は可視化される。
+
+> **訂正（`feature/capability-declaration-satisfiability`、2026-07-27）**: 直前の「本チェックでも入力側でも弾かない」は、下記「追補」節（`FindUnsatisfiableDeclaredKeys`）導入前の記述であり、**現在は誤り**。band だけを宣言すると、band キー自体は当月に条件定義を持つため決定1の判定（本節冒頭の2段構え）は依然沈黙するが、band を要求する(Ⅴ)行はどれも同じ行で option 6 も要求するため、追補の判定はこの band を「宣言はあるが1行も成立しないキー」として報告する（`IncompleteCapabilityDeclarationWarnings`。実例: 2024-06 に band.3 のみ宣言すると band.3 が報告される）。**本チェック（追補を含む）は現在この向きも弾く。** 入力側（`OfficeCapabilityViewModel.SaveAsync`）も、保存エラーにはしないが、**band を要求しない選択番号が選ばれている間は band キー自体を書き込まない**という形でこの向きを塞ぐよう改めた（詳細は追補 (5)）。
 
 **有害な向き（option 6 だけがあって band が無い）**: seed の(Ⅴ)行は `capability-treatment-improvement-v`（option 6）と `-v-band-{n}` の**両方**を要求するため、band が無いと 2024-06〜2025-03 のどの(Ⅴ)行にも一致せず、**加算が無音で0円になる**（本ADRが排除しようとしている無音の過少請求そのもの）。しかも本チェックは警告しない —— `…treatment-improvement.6` は当該月に**有効**なので `!month.Contains(key)` が成立しないからである。
 
@@ -141,3 +143,41 @@ IReadOnlySet<string> AllOfficeCapabilityConditionValues();
 - `CalculateClaimUseCaseTests` — 4件（警告する／未参照キーは警告しない／当月に有る場合は警告しない／無関係な理由の not-ready でも警告を運ぶ）。
 - `ClaimMasterR6FacilityTests.Category_v_becomes_an_uncovered_capability_after_it_expires` — 実seedに対する結線検査（2025-04・2026-06 の2ケース）。
 - `ClaimPreparationViewModelTests.PreviewAsync_surfaces_capability_coverage_warnings_without_blocking_readiness` — UI への到達と `IsReady` 非干渉。
+
+## 追補（隣接する別の穴の一般化。`feature/capability-declaration-satisfiability`、2026-07-27）
+
+決定1の2段構えは「K が当月のどの条件定義にも無い」（失効・未施行）だけを拾う。**K が当月に生きているのに、K を含む行がすべて追加の体制届キー（companion）も要求していて、宣言集合では1行も成立しない**場合は対象外のまま残っていた（§「(Ⅴ)区分と処遇改善対象optionの組合せ」で扱った「有害な向き」がまさにこれで、当時は入口ガード I1 だけで塞いでいた）。
+
+### (1) 塞いだ穴
+
+処遇改善(Ⅴ)の実例が典型: `mhlw.b46.capability.treatment-improvement.6`（option 6）だけを宣言し `mhlw.b46.capability.treatment-improvement-v-band.{n}`（band）を宣言していない事業所は、option 6 自体が当月（2024-06〜2025-03）に有効なため決定1の判定は沈黙するが、実seedの(Ⅴ)行23件は**すべて** option 6 と band の両方を `conditionSelectors` に要求するため0行一致し、加算は無音の¥0になる。`OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys` を新設し、宣言キー K について「K を含む行が当月に存在するが、そのどれも（宣言集合との対応で）充足可能でない」場合を検出する。行ごとの要件は条件のリスト（各条件は受理可能な値の集合。`equals` なら1要素、`in` なら複数要素）としてモデル化し、行が充足可能 ⇔ すべての条件の値集合が宣言集合と重なる、と定義した。既存の `FindUncoveredKeys` は変更していない（両者は排反 — 前者は「K が当月に無い」、後者は「K が当月にある」が前提）。
+
+### (2) capability条件だけを見る理由と偽陽性回避
+
+行には capability 種別以外（facility-classification・reward-system・average-wage-band・capacity・staffing 等）の条件も同居する。これらを行の「充足可否」判定に混ぜると、宣言集合（capabilityキーのみ）とは決して重ならない値（例: `general` / `designated-support-facility`）を持つ条件のせいで、本来成立する行まで「不成立」と誤判定する。実seedの処遇改善(Ⅰ)行（465120＝一般事業所向け、465138＝指定障害者支援施設向け）は、どちらも `capability-treatment-improvement-i`（option 2/Ⅰ）と `facility-classification-*` の両方を同じ行に要求する構造になっており、これが実際に偽陽性を起こしうる最小の実例になっている。そのため判定関数は `ExtractCapabilityValueSets` で `kind: office-capability` の条件だけを抽出し（`ExtractCapabilityValues` と同じ kind フィルタ契約。ただし平坦化はしない — 条件ごとの値集合を保つ）、それ以外の kind は行の要件から構造的に除外する。この除外を外すと、option 2/Ⅰ を宣言しただけの一般事業所が「宣言不完全」と誤警告される。実装時に `ExtractCapabilityValueSets` から kind フィルタを一時的に外し、`CapabilityDeclarationSatisfiabilityProductionWiringTests`（実seed・2024-06）を実行して確認済み: `Declaring_the_i_option_alone_is_not_reported_even_though_its_rows_also_carry_a_facility_classification_condition` が
+`Expected dto.IncompleteCapabilityDeclarationWarnings to be empty because facility-classification条件はcapability種別ではないため、行の充足可否に含めてはならない, but found at least one item {"mhlw.b46.capability.treatment-improvement.2"}.`
+で失敗し、同時に `Declaring_the_v_option_together_with_its_band_is_not_reported` も
+`Expected dto.IncompleteCapabilityDeclarationWarnings to be empty, but found at least one item {"mhlw.b46.capability.treatment-improvement-v-band.3"}.`
+で失敗した（kind フィルタを外すと `reward-system` 種別の値まで混入し、実質すべての行が「不成立」に見えるため）。kind フィルタを戻すと同クラスの4件とも green に戻る。
+
+### (3) 入口ガード（`OfficeCapabilityViewModel.SaveAsync` の I1）との役割分担
+
+I1 は `OfficeCapabilityViewModel.SaveAsync` に置いた**新規保存時**の入口ガードで、band を要求する選択番号を band 未選択のまま保存しようとする操作を1件も永続化しない（保存エラーで拒否する）。しかし `RegisterOfficeCapabilityUseCase` 自体はフラグ辞書を検証せず永続化するため、I1 は「この ViewModel から新規保存する経路」にしか効かない。将来の取込機能・別の入力面・テスト用シード・DB直接操作は I1 を素通りする。加えて I1 は `PeriodStart` の月の語彙しか見ないため、世代境界をまたぐ体制届（例: 期間開始が2025-01で処理対象月が2025-06）は開始月の語彙でしか検査されない。
+
+本検査（`FindUnsatisfiableDeclaredKeys`）は**プレビュー時のマスタ照合**（`ClaimPreviewPipeline`）に置くことで、書き手が誰であれ・いつ書かれたレコードであれ、**処理対象月ごとに独立して**再評価する。I1 が「不完全な宣言を新規に作らせない」予防であるのに対し、本検査は「既に存在する任意の宣言を、確認するたびに検査する」検出であり、互いに補完する（I1 だけでは救えない経路を本検査が拾う）。
+
+### (4) 残る限界
+
+判定は capability 種別の条件同士の競合だけを見る。**average-wage-band や capacity 起因で行が成立しない場合**（条件は参照されているが参照先の行が他の理由で成立しない、という同じ形の別バリエーション）は依然として拾わない。`docs/open-questions.md` の該当項目に追補済み。また本検査も警告であり `IsReady` を変えないため、決定2・「残る限界」節と同じく、運用者が見落とせば加算が0円のまま確定できる点は変わらない。
+
+DTO は既存の `ClaimPreviewDto.CapabilityCoverageWarnings` と**並列の別リスト**（`ClaimPreviewDto.IncompleteCapabilityDeclarationWarnings`）にした。同一リストへ混ぜると、運用者が「失効した option」と「宣言が不完全（companion option の過不足）」のどちらか判別できず、対処（体制届の見直し vs companion option の追加・削除）を誤る。UI も `ClaimPreparationView.axaml` に隣接する別ブロックとして表示する。**宣言が不完全になる原因は「不足しているキーがある」場合と「不要なキーが残っている」場合の両方があり得るため（(5)参照）、見出し文言はどちらか一方の対処だけを指示しない中立な表現にした。**
+
+### (5) orphan band の書き込みガード（レビュー追補、2026-07-27）
+
+本節冒頭で訂正したとおり、「無害な向き（band だけがあって option 6 が無い）」は追補の判定自体が拾うようになったが、**発生源を断つ方が望ましい**。`OfficeCapabilityViewModel.SaveAsync` は元々、選択中の処遇改善対象の選択番号に関わらず band を無条件で書いていた（(Ⅴ)以外から見た band は「無害だから弾かない」という、当初の誤った前提に基づく設計判断だった）。加えて `ReloadCapabilityOptions` は選択番号の変更単体では band 選択をクリアしないため、(Ⅴ)（option 6）から他区分へ切り替えた後も band 選択がそのまま残り、次の保存操作で orphan な band キーが永続化される経路が実運用で到達可能だった（レビュー指摘）。
+
+`SaveAsync` の band 書き込みを、既存の I1 ガード（「option 側が band を要求するのに band 未選択なら保存エラー」）の**逆向き**（「選択中の option が band を要求しない場合は band キー自体を書かない」）に改めた。使うデータは I1 と同じ `_optionsRequiringVBand`（`QueryClaimBillingTokenOptionsUseCase.TreatmentImprovementOptionsRequiringVBand`、マスタ行から導出）であり、UI へ「どの選択番号が(Ⅴ)か」という語彙を新たに持たせてはいない。band を要求しない選択番号のまま band を選んで保存しても、エラーにはならず単に band キーが書かれないだけになる（I1 とは非対称: option 側の不足はエラーで拒否するが、band 側の不要分は黙って落とす。band だけを外させる再入力を要求するコストと、単に書かないコストが不釣り合いなため）。
+
+証拠: `OfficeCapabilityViewModelTests.SaveAsync_does_not_write_an_orphan_band_when_the_selected_option_does_not_require_it` / `..._does_not_write_an_orphan_band_after_switching_away_from_the_option_that_required_it`、`CapabilityDeclarationSatisfiabilityProductionWiringTests.Declaring_only_the_band_without_the_v_option_is_reported_as_an_incomplete_capability_declaration`（この書き込みガードを経由しない既存データ・別経路に対しても、検査自体は実seedで引き続き機能することの確認）。
+
+証拠・詳細は `docs/phase3-6-acceptance.md` §9。

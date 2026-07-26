@@ -34,7 +34,8 @@ public sealed class CalculateClaimUseCase(
                 computation.ClaimMasterVersion,
                 computation.Issues,
                 computation.UpcomingSpecificationIssues,
-                computation.CapabilityCoverageWarnings);
+                computation.CapabilityCoverageWarnings,
+                computation.IncompleteCapabilityDeclarationWarnings);
         }
 
         return new ClaimPreviewDto(
@@ -60,7 +61,10 @@ public sealed class CalculateClaimUseCase(
             // 将来の施行分で必要になる項目は警告として運ぶ（IsReady は変えない。ADR 0041）。
             UpcomingSpecificationIssues: computation.UpcomingSpecificationIssues,
             // 体制届optionに対応するマスタ行の不足も警告として運ぶ（IsReady は変えない。ADR 0049）。
-            CapabilityCoverageWarnings: computation.CapabilityCoverageWarnings);
+            CapabilityCoverageWarnings: computation.CapabilityCoverageWarnings,
+            // 宣言が不完全（companionキー未宣言）で1行も成立しないキーも警告として運ぶ
+            // （IsReady は変えない。ADR 0049の一般化）。
+            IncompleteCapabilityDeclarationWarnings: computation.IncompleteCapabilityDeclarationWarnings);
     }
 }
 

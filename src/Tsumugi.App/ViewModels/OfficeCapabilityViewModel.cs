@@ -148,8 +148,15 @@ public sealed partial class OfficeCapabilityViewModel(
             // bandと対称に、月の語彙(TreatmentImprovementOptions)に無い値は書かない
             // ——通常はReloadCapabilityOptionsの失効選択リセットが先に選択をnullへ戻すが、
             // それを経由しない値の混入（プログラム的な直接代入等）に対する防波堤として、
-            // 書き込み時にも同じ語彙チェックを課す。
-            if (TreatmentImprovementOption is { } option && TreatmentImprovementOptions.Contains(option))
+            // 書き込み時にも同じ語彙チェックを課す。この語彙チェック済みの選択番号
+            // （無ければnull）は、option書き込み・band書き込みガードの両方が参照するため
+            // 一度だけ確定させる。
+            var validOption = TreatmentImprovementOption is { } candidate
+                && TreatmentImprovementOptions.Contains(candidate)
+                ? candidate
+                : (int?)null;
+
+            if (validOption is { } option)
             {
                 // 当月のマスタ行が(Ⅴ)区分を併せて要求している選択番号を、区分の選択なしに
                 // 宣言すると、その選択番号の行は1件も一致せず加算が**無音で0円**になる
@@ -165,13 +172,18 @@ public sealed partial class OfficeCapabilityViewModel(
                 flags[$"mhlw.b46.capability.treatment-improvement.{option}"] = true;
             }
 
-            // (Ⅴ)区分は、その月に選択肢が存在し、かつ選択されているときに書く。
-            // 「bandだけがあってoptionが無い」向きは算定額に影響しない（seedの(Ⅴ)行が
-            // option側の条件も要求するため一致しない）のでここでは弾かない。逆向き
-            // （optionだけでbandが無い）は上の分岐で弾く —— そちらは無音で0円になる。
-            // どの選択番号が band を要求するかは常にマスタ行から導出しており、UI側に
-            // 「どの選択番号が(Ⅴ)か」という語彙は持たせない（ADR 0048・0049）。
-            if (HasSelectableVBand())
+            // (Ⅴ)区分は、選択中の選択番号が当月のマスタ行でband併宣言を要求している場合に
+            // 限って書く（上のガードの逆向き）。band を要求しない選択番号のまま band だけを
+            // 選択・保存すると、宣言集合ではどの(Ⅴ)行にも一致しないorphanなキーになり、
+            // 体制届の充足可能性検査（`OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys`）
+            // が毎月警告する（レビュー指摘: (Ⅴ)から他区分へ切り替えた後もband選択がそのまま
+            // 残る画面挙動のため、実運用で到達しうる）。band 併選択を要求しない選択番号
+            // （またはoption未選択）では、band を選んでいても書かない。どの選択番号が band を
+            // 要求するかは常にマスタ行から導出しており、UI側に「どの選択番号が(Ⅴ)か」という
+            // 語彙は持たせない（ADR 0048・0049）。
+            if (validOption is { } bandGatingOption
+                && _optionsRequiringVBand.Contains(bandGatingOption)
+                && HasSelectableVBand())
             {
                 flags[$"mhlw.b46.capability.treatment-improvement-v-band.{TreatmentImprovementVBand}"] = true;
             }

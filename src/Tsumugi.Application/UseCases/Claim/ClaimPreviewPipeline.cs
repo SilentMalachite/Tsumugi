@@ -21,13 +21,19 @@ internal sealed record ClaimPreviewComputation(
     // 事前登録済みの将来版で必要になる項目（確定は止めない警告）。
     IReadOnlyList<ClaimUpcomingSpecificationIssue> UpcomingSpecificationIssues = null!,
     // 体制届で宣言されたが当月に有効なマスタ行が無いキー（確定は止めない警告。ADR 0049）。
-    IReadOnlyList<string> CapabilityCoverageWarnings = null!)
+    IReadOnlyList<string> CapabilityCoverageWarnings = null!,
+    // 体制届で宣言されたキーは当月に有効だが、それを要求する行がすべて他のcapabilityキーも
+    // 要求していて、宣言集合では1行も成立しないキー（確定は止めない警告。ADR 0049の一般化）。
+    IReadOnlyList<string> IncompleteCapabilityDeclarationWarnings = null!)
 {
     public IReadOnlyList<ClaimUpcomingSpecificationIssue> UpcomingSpecificationIssues { get; init; } =
         UpcomingSpecificationIssues ?? [];
 
     public IReadOnlyList<string> CapabilityCoverageWarnings { get; init; } =
         CapabilityCoverageWarnings ?? [];
+
+    public IReadOnlyList<string> IncompleteCapabilityDeclarationWarnings { get; init; } =
+        IncompleteCapabilityDeclarationWarnings ?? [];
 }
 
 /// <summary>
@@ -103,6 +109,7 @@ internal sealed class ClaimPreviewPipeline(
             snapshot, serviceMonth);
         ClaimCalculationMasterBundle? masters = null;
         IReadOnlyList<string> capabilityCoverageWarnings = [];
+        IReadOnlyList<string> incompleteCapabilityDeclarationWarnings = [];
         if (declaredCapabilityKeys.Count > 0 && release is not null)
         {
             masters = masterProvider.ResolveCalculationMasters(serviceMonth);
@@ -110,6 +117,11 @@ internal sealed class ClaimPreviewPipeline(
                 declaredCapabilityKeys,
                 OfficeCapabilityCoveragePolicy.ExtractCapabilityValues(masters.ConditionDefinitions),
                 masterProvider.AllOfficeCapabilityConditionValues());
+            // 隣にある別の穴（本タスク）: キーは当月に生きているが、それを要求する行がすべて
+            // 他のcapabilityキーも要求していて宣言集合では1行も成立しない場合。FindUncoveredKeys
+            // とは排反（前者は「当月に無い」が前提）なので、同じ入口で並行に計算する。
+            incompleteCapabilityDeclarationWarnings = OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys(
+                declaredCapabilityKeys, BuildMonthCapabilityRows(masters));
         }
 
         if (issues.Length > 0 || requestResult.Request is not { } request || release is null)
@@ -117,7 +129,8 @@ internal sealed class ClaimPreviewPipeline(
             // 算定不成立でも「次の施行分での変更」「体制届カバレッジ」は運ぶ。緩む方向・無音の
             // 加算欠落はまさに not-ready のときにも起き得るため、ここで落とすと気付けない。
             return new ClaimPreviewComputation(
-                claimMasterVersion, issues, null, [], "", upcomingIssues, capabilityCoverageWarnings);
+                claimMasterVersion, issues, null, [], "", upcomingIssues, capabilityCoverageWarnings,
+                incompleteCapabilityDeclarationWarnings);
         }
 
         // 宣言キーが無く上でmastersを解決していなければ、ここで初めて解決する
@@ -133,7 +146,7 @@ internal sealed class ClaimPreviewPipeline(
         {
             return new ClaimPreviewComputation(
                 claimMasterVersion, Normalize(transitionIssues), null, [], "", upcomingIssues,
-                capabilityCoverageWarnings);
+                capabilityCoverageWarnings, incompleteCapabilityDeclarationWarnings);
         }
 
         var result = ClaimCalculator.Calculate(masters, request);
@@ -146,7 +159,35 @@ internal sealed class ClaimPreviewPipeline(
             officeId, serviceMonth, claimMasterVersion, result, detailDrafts, csvSpecificationVersion);
         return new ClaimPreviewComputation(
             claimMasterVersion, issues, result, detailDrafts, previewHash, upcomingIssues,
-            capabilityCoverageWarnings);
+            capabilityCoverageWarnings, incompleteCapabilityDeclarationWarnings);
+    }
+
+    /// <summary>
+    /// 当月に有効な各service-code行のConditionSelectorsをConditionDefinitionsへ引き当て、
+    /// <see cref="OfficeCapabilityCoveragePolicy.ExtractCapabilityValueSets"/>で
+    /// office-capability種別だけを1行分ずつ取り出す（<see cref="OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys"/>
+    /// の入力を組み立てる）。未知のselector（本来は起こらない。ロード時のvalidatorが保証する）は
+    /// 警告計算という非ブロッキング経路の性質上、例外にせず単に無視する。
+    /// </summary>
+    private static IReadOnlyList<IReadOnlySet<string>>[] BuildMonthCapabilityRows(
+        ClaimCalculationMasterBundle masters)
+    {
+        var conditionsByKey = masters.ConditionDefinitions
+            .ToDictionary(condition => condition.Key, condition => condition, StringComparer.Ordinal);
+
+        return masters.ServiceCodes
+            .Select(row =>
+            {
+                var rowConditions = new List<ClaimConditionDefinition>();
+                foreach (var selector in row.ConditionSelectors)
+                {
+                    if (conditionsByKey.TryGetValue(selector, out var condition))
+                        rowConditions.Add(condition);
+                }
+
+                return OfficeCapabilityCoveragePolicy.ExtractCapabilityValueSets(rowConditions);
+            })
+            .ToArray();
     }
 
     /// <summary>

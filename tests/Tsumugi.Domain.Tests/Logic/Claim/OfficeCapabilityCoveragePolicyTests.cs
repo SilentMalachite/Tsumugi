@@ -160,4 +160,289 @@ public sealed class OfficeCapabilityCoveragePolicyTests
 
         act.Should().Throw<ArgumentNullException>();
     }
+
+    private static HashSet<string> Set(params string[] values) =>
+        new(values, StringComparer.Ordinal);
+
+    // --- FindUnsatisfiableDeclaredKeys（本タスクの一般化。ADR 0049の隣にある別の穴） ---
+
+    /// <summary>
+    /// 宣言キーを要求する行が1つでもあり、その行の他の条件（capability種別に限る）すべてが
+    /// 宣言集合と重なるなら充足可能であり、報告しない。単一条件行（他のキーを要求しない）は
+    /// 常にこれに当たる。
+    /// </summary>
+    [Fact]
+    public void A_declared_key_with_a_satisfiable_row_is_not_reported()
+    {
+        IReadOnlyList<IReadOnlyList<IReadOnlySet<string>>> rows =
+        [
+            [Set("mhlw.b46.capability.treatment-improvement.2")],
+        ];
+
+        var result = OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys(
+            declaredKeys: ["mhlw.b46.capability.treatment-improvement.2"],
+            monthCapabilityRows: rows);
+
+        result.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// 処遇改善(Ⅴ)の実例（2024-06〜2025-03）: option 6 は当月に有効だが、それを要求する行は
+    /// すべてband（第2のcapabilityキー）も要求する。band を宣言していなければ、その行は
+    /// 1つも充足できず、加算は無音で0円になる。これが本タスクの検出対象。
+    /// </summary>
+    [Fact]
+    public void A_declared_key_whose_only_referencing_row_also_requires_an_undeclared_companion_key_is_reported()
+    {
+        IReadOnlyList<IReadOnlyList<IReadOnlySet<string>>> rows =
+        [
+            [
+                Set("mhlw.b46.capability.treatment-improvement.6"),
+                Set("mhlw.b46.capability.treatment-improvement-v-band.3"),
+            ],
+        ];
+
+        var result = OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys(
+            declaredKeys: ["mhlw.b46.capability.treatment-improvement.6"],
+            monthCapabilityRows: rows);
+
+        result.Should().ContainSingle()
+            .Which.Should().Be("mhlw.b46.capability.treatment-improvement.6");
+    }
+
+    /// <summary>companionキーも宣言すれば、同じ行が充足可能になり報告されなくなる。</summary>
+    [Fact]
+    public void Declaring_the_companion_key_makes_the_row_satisfiable()
+    {
+        IReadOnlyList<IReadOnlyList<IReadOnlySet<string>>> rows =
+        [
+            [
+                Set("mhlw.b46.capability.treatment-improvement.6"),
+                Set("mhlw.b46.capability.treatment-improvement-v-band.3"),
+            ],
+        ];
+
+        var result = OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys(
+            declaredKeys:
+            [
+                "mhlw.b46.capability.treatment-improvement.6",
+                "mhlw.b46.capability.treatment-improvement-v-band.3",
+            ],
+            monthCapabilityRows: rows);
+
+        result.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// 実運用で到達しうる逆向き: band だけを宣言し、option（6）を宣言していない
+    /// （例: (Ⅴ)からいったん他区分へ切り替えた後もorphanなbandキーが残っている状態）。
+    /// rule 2 は宣言キーの役割（「主」か「companion」か）を区別しないため、この向きも
+    /// 同じ判定で報告されることを固定する。レビュー指摘: この向きはどの層でも未検査だった。
+    /// </summary>
+    [Fact]
+    public void A_declared_key_used_only_as_a_companion_without_its_primary_key_is_reported()
+    {
+        IReadOnlyList<IReadOnlyList<IReadOnlySet<string>>> rows =
+        [
+            [
+                Set("mhlw.b46.capability.treatment-improvement.6"),
+                Set("mhlw.b46.capability.treatment-improvement-v-band.3"),
+            ],
+        ];
+
+        var result = OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys(
+            declaredKeys: ["mhlw.b46.capability.treatment-improvement-v-band.3"],
+            monthCapabilityRows: rows);
+
+        result.Should().ContainSingle()
+            .Which.Should().Be("mhlw.b46.capability.treatment-improvement-v-band.3");
+    }
+
+    /// <summary>
+    /// rule 3 のピン止め: K を含む行が複数あり、そのうち1つでも充足可能なら報告しない。
+    /// 単一行のケース（他の全テスト）だけでは、実装の <c>row.Any(IsSatisfiable)</c> を
+    /// <c>row.All(IsSatisfiable)</c> に変異させても本ファイルの全テストが緑のまま通り抜けてしまう
+    /// （レビュー指摘。実seedのwiring検査でしか検出できていなかった）。2行構成（1行目は
+    /// companion未宣言で不充足、2行目はKだけを要求する単一条件行で充足）でこの変異を
+    /// Domain層に直接固定する。
+    /// </summary>
+    [Fact]
+    public void A_declared_key_with_one_unsatisfiable_and_one_satisfiable_row_is_not_reported()
+    {
+        IReadOnlyList<IReadOnlyList<IReadOnlySet<string>>> rows =
+        [
+            [
+                Set("mhlw.b46.capability.treatment-improvement.6"),
+                Set("mhlw.b46.capability.treatment-improvement-v-band.3"),
+            ],
+            [
+                Set("mhlw.b46.capability.treatment-improvement.6"),
+            ],
+        ];
+
+        var result = OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys(
+            declaredKeys: ["mhlw.b46.capability.treatment-improvement.6"],
+            monthCapabilityRows: rows);
+
+        result.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// 当月のどの行のcapability条件にも現れないキーは対象外（FindUncoveredKeysの領分、
+    /// または請求に効かないキー）。ここを報告すると、算定に関与しないキーで毎月ノイズが出る。
+    /// </summary>
+    [Fact]
+    public void A_key_not_referenced_by_any_row_this_month_is_out_of_scope()
+    {
+        IReadOnlyList<IReadOnlyList<IReadOnlySet<string>>> rows =
+        [
+            [Set("mhlw.b46.capability.treatment-improvement.2")],
+        ];
+
+        var result = OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys(
+            declaredKeys: ["mealProvision"],
+            monthCapabilityRows: rows);
+
+        result.Should().BeEmpty();
+    }
+
+    /// <summary>in演算子の代替値のどれか1つを宣言していれば、その条件は充足する。</summary>
+    [Fact]
+    public void Declaring_any_alternative_value_of_an_in_condition_satisfies_it()
+    {
+        IReadOnlyList<IReadOnlyList<IReadOnlySet<string>>> rows =
+        [
+            [
+                Set("mhlw.b46.capability.treatment-improvement.6"),
+                Set(
+                    "mhlw.b46.capability.treatment-improvement-v-band.1",
+                    "mhlw.b46.capability.treatment-improvement-v-band.2",
+                    "mhlw.b46.capability.treatment-improvement-v-band.3"),
+            ],
+        ];
+
+        var result = OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys(
+            declaredKeys:
+            [
+                "mhlw.b46.capability.treatment-improvement.6",
+                "mhlw.b46.capability.treatment-improvement-v-band.2",
+            ],
+            monthCapabilityRows: rows);
+
+        result.Should().BeEmpty();
+    }
+
+    /// <summary>結果は決定論（順序が安定）でなければならない。</summary>
+    [Fact]
+    public void FindUnsatisfiableDeclaredKeys_orders_results_deterministically()
+    {
+        IReadOnlyList<IReadOnlyList<IReadOnlySet<string>>> rows =
+        [
+            [Set("b.key"), Set("undeclared-companion")],
+            [Set("a.key"), Set("undeclared-companion")],
+        ];
+
+        var result = OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys(
+            declaredKeys: ["b.key", "a.key"],
+            monthCapabilityRows: rows);
+
+        result.Should().Equal("a.key", "b.key");
+    }
+
+    [Fact]
+    public void FindUnsatisfiableDeclaredKeys_rejects_null_declared_keys()
+    {
+        var act = () => OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys(null!, []);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void FindUnsatisfiableDeclaredKeys_rejects_null_rows()
+    {
+        var act = () => OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys([], null!);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    // --- ExtractCapabilityValueSets（平坦化しない経路。既存のExtractCapabilityValuesの隣） ---
+
+    /// <summary>
+    /// office-capability以外の条件（例: facility-classification）は除外する。実seedの
+    /// 処遇改善(Ⅰ)行はcapability条件とfacility-classification条件を同じ行に持つため、
+    /// ここを誤るとfacility条件が偽陽性の原因になる（brief記載の465120/465138相当）。
+    /// </summary>
+    [Fact]
+    public void ExtractCapabilityValueSets_ignores_conditions_of_other_kinds()
+    {
+        var result = OfficeCapabilityCoveragePolicy.ExtractCapabilityValueSets(
+        [
+            Condition(
+                "cond-facility", ClaimConditionKind.FacilityClassification,
+                new ClaimConditionTokenOperand("general")),
+            Condition(
+                "cond-cap", ClaimConditionKind.OfficeCapability,
+                new ClaimConditionTokenOperand("mhlw.b46.capability.treatment-improvement.2")),
+        ]);
+
+        result.Should().ContainSingle()
+            .Which.Should().BeEquivalentTo(Set("mhlw.b46.capability.treatment-improvement.2"));
+    }
+
+    /// <summary>token operand（単一値）は1要素集合になる。</summary>
+    [Fact]
+    public void ExtractCapabilityValueSets_extracts_a_single_value_set_from_a_token_operand()
+    {
+        var result = OfficeCapabilityCoveragePolicy.ExtractCapabilityValueSets(
+        [
+            Condition(
+                "cond-cap", ClaimConditionKind.OfficeCapability,
+                new ClaimConditionTokenOperand("mhlw.b46.capability.treatment-improvement.6")),
+        ]);
+
+        result.Should().ContainSingle()
+            .Which.Should().BeEquivalentTo(Set("mhlw.b46.capability.treatment-improvement.6"));
+    }
+
+    /// <summary>token set operand（in条件）は複数値集合になる。</summary>
+    [Fact]
+    public void ExtractCapabilityValueSets_extracts_a_multi_value_set_from_a_token_set_operand()
+    {
+        var result = OfficeCapabilityCoveragePolicy.ExtractCapabilityValueSets(
+        [
+            Condition(
+                "cond-cap-set", ClaimConditionKind.OfficeCapability,
+                new ClaimConditionTokenSetOperand(
+                [
+                    "mhlw.b46.capability.treatment-improvement-v-band.1",
+                    "mhlw.b46.capability.treatment-improvement-v-band.2",
+                ])),
+        ]);
+
+        result.Should().ContainSingle()
+            .Which.Should().BeEquivalentTo(Set(
+                "mhlw.b46.capability.treatment-improvement-v-band.1",
+                "mhlw.b46.capability.treatment-improvement-v-band.2"));
+    }
+
+    /// <summary>token・token set以外のoperandは対象外（ExtractCapabilityValuesと同じ契約）。</summary>
+    [Fact]
+    public void ExtractCapabilityValueSets_ignores_operands_that_are_not_token_shaped()
+    {
+        var result = OfficeCapabilityCoveragePolicy.ExtractCapabilityValueSets(
+        [
+            Condition(
+                "cond-cap-int", ClaimConditionKind.OfficeCapability, new ClaimConditionIntegerOperand(1)),
+        ]);
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ExtractCapabilityValueSets_rejects_null_input()
+    {
+        var act = () => OfficeCapabilityCoveragePolicy.ExtractCapabilityValueSets(null!);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
 }
