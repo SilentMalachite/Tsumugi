@@ -49,6 +49,9 @@ public sealed class OfficeClaimProfileConfiguration : IEntityTypeConfiguration<O
                 table.HasCheckConstraint(
                     "CK_OfficeClaimProfiles_ReformStatus_ClosedSet",
                     "\"ReformStatus\" IS NULL OR \"ReformStatus\" IN (1, 2, 3, 4)");
+                table.HasCheckConstraint(
+                    "CK_OfficeClaimProfiles_FacilityClassification_ClosedSet",
+                    "\"FacilityClassification\" IS NULL OR \"FacilityClassification\" IN (1, 2)");
                 AddVersionedOptionCheck(table, "EarlierRegisteredBandOption");
                 AddVersionedOptionCheck(table, "LaterRegisteredBandOption");
             });

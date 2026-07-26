@@ -1519,6 +1519,8 @@ namespace Tsumugi.Infrastructure.Migrations
 
                             t.HasCheckConstraint("CK_OfficeClaimProfiles_EarlierRegisteredBandOption", "((\"EarlierRegisteredBandOption_MasterVersion\" IS NULL AND \"EarlierRegisteredBandOption_Option_Kind\" IS NULL AND \"EarlierRegisteredBandOption_Option_OfficialOptionCode\" IS NULL) OR (\"EarlierRegisteredBandOption_MasterVersion\" IS NOT NULL AND \"EarlierRegisteredBandOption_Option_Kind\" IS NOT NULL AND \"EarlierRegisteredBandOption_Option_OfficialOptionCode\" IS NOT NULL AND length(trim(\"EarlierRegisteredBandOption_MasterVersion\")) BETWEEN 1 AND 64 AND \"EarlierRegisteredBandOption_Option_Kind\" IN (1, 2, 3) AND \"EarlierRegisteredBandOption_Option_OfficialOptionCode\" > 0))");
 
+                            t.HasCheckConstraint("CK_OfficeClaimProfiles_FacilityClassification_ClosedSet", "\"FacilityClassification\" IS NULL OR \"FacilityClassification\" IN (1, 2)");
+
                             t.HasCheckConstraint("CK_OfficeClaimProfiles_LaterRegisteredBandOption", "((\"LaterRegisteredBandOption_MasterVersion\" IS NULL AND \"LaterRegisteredBandOption_Option_Kind\" IS NULL AND \"LaterRegisteredBandOption_Option_OfficialOptionCode\" IS NULL) OR (\"LaterRegisteredBandOption_MasterVersion\" IS NOT NULL AND \"LaterRegisteredBandOption_Option_Kind\" IS NOT NULL AND \"LaterRegisteredBandOption_Option_OfficialOptionCode\" IS NOT NULL AND length(trim(\"LaterRegisteredBandOption_MasterVersion\")) BETWEEN 1 AND 64 AND \"LaterRegisteredBandOption_Option_Kind\" IN (1, 2, 3) AND \"LaterRegisteredBandOption_Option_OfficialOptionCode\" > 0))");
 
                             t.HasCheckConstraint("CK_OfficeClaimProfiles_ReformStatus_ClosedSet", "\"ReformStatus\" IS NULL OR \"ReformStatus\" IN (1, 2, 3, 4)");

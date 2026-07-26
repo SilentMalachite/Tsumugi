@@ -96,6 +96,29 @@ public sealed class Phase35OfficeFacilityClassificationMigrationTests
     }
 
     [Fact]
+    public async Task Target_rejects_a_facility_classification_value_outside_the_closed_set()
+    {
+        await using var database = await TemporarySqliteDatabase.CreateAsync();
+        var (target, _) = ResolveMigration(database.Context);
+        await database.Context.GetService<IMigrator>().MigrateAsync(target);
+        var officeId = await SeedOfficeAsync(database.Connection);
+
+        // FacilityClassificationはGeneral(1)/DesignatedSupportFacility(2)の閉集合。
+        // ReformStatusのCK_OfficeClaimProfiles_ReformStatus_ClosedSetと同様、
+        // 未定義の整数値（列挙に無い99）はDB側でも拒否されることを固定する。
+        var invalid = NewProfile(
+            Guid.NewGuid(), officeId, new DateOnly(2026, 4, 1), (FacilityClassification)99);
+        database.Context.Set<OfficeClaimProfile>().Add(invalid);
+
+        var act = () => database.Context.SaveChangesAsync();
+
+        var exception = await act.Should().ThrowAsync<DbUpdateException>(
+            "FacilityClassificationは1（General）・2（DesignatedSupportFacility）以外を持てない");
+        exception.Which.InnerException.Should().BeOfType<SqliteException>().Which.Message
+            .Should().Contain("CK_OfficeClaimProfiles_FacilityClassification_ClosedSet");
+    }
+
+    [Fact]
     public async Task Down_removes_the_column_and_reup_is_deterministic()
     {
         await using var database = await TemporarySqliteDatabase.CreateAsync();

@@ -12,7 +12,7 @@ using Tsumugi.Infrastructure.Persistence;
 namespace Tsumugi.Infrastructure.Migrations
 {
     [DbContext(typeof(TsumugiDbContext))]
-    [Migration("20260726041327_Phase35OfficeFacilityClassification")]
+    [Migration("20260726052445_Phase35OfficeFacilityClassification")]
     partial class Phase35OfficeFacilityClassification
     {
         /// <inheritdoc />
@@ -1521,6 +1521,8 @@ namespace Tsumugi.Infrastructure.Migrations
                             t.HasCheckConstraint("CK_OfficeClaimProfiles_CancelPayload", "\"Kind\" <> 3 OR (\"MasterVersion\" IS NULL AND \"ReformStatus\" IS NULL AND \"AverageWageBandOption_Kind\" IS NULL AND \"AverageWageBandOption_OfficialOptionCode\" IS NULL AND \"DesignationDate\" IS NULL AND \"SupportStartDate\" IS NULL AND \"EarlierRegisteredBandOption_MasterVersion\" IS NULL AND \"EarlierRegisteredBandOption_Option_Kind\" IS NULL AND \"EarlierRegisteredBandOption_Option_OfficialOptionCode\" IS NULL AND \"EarlierRegistrationMonthKey\" IS NULL AND \"LaterRegisteredBandOption_MasterVersion\" IS NULL AND \"LaterRegisteredBandOption_Option_Kind\" IS NULL AND \"LaterRegisteredBandOption_Option_OfficialOptionCode\" IS NULL AND \"LaterRegistrationMonthKey\" IS NULL AND \"ReformComparisonEvidenceDocumentId\" IS NULL AND \"FiledTransitionPeriod\" IS NULL AND \"FiledTransitionEvidenceDocumentId\" IS NULL AND \"EvidenceDocumentId\" IS NULL AND \"ConfirmedAt\" IS NULL AND \"ConfirmedBy\" IS NULL AND \"ConfirmationReason\" IS NULL AND \"CapacityHeadcount\" IS NULL AND \"StaffingKey\" IS NULL AND \"RegionKey\" IS NULL AND \"FacilityClassification\" IS NULL)");
 
                             t.HasCheckConstraint("CK_OfficeClaimProfiles_EarlierRegisteredBandOption", "((\"EarlierRegisteredBandOption_MasterVersion\" IS NULL AND \"EarlierRegisteredBandOption_Option_Kind\" IS NULL AND \"EarlierRegisteredBandOption_Option_OfficialOptionCode\" IS NULL) OR (\"EarlierRegisteredBandOption_MasterVersion\" IS NOT NULL AND \"EarlierRegisteredBandOption_Option_Kind\" IS NOT NULL AND \"EarlierRegisteredBandOption_Option_OfficialOptionCode\" IS NOT NULL AND length(trim(\"EarlierRegisteredBandOption_MasterVersion\")) BETWEEN 1 AND 64 AND \"EarlierRegisteredBandOption_Option_Kind\" IN (1, 2, 3) AND \"EarlierRegisteredBandOption_Option_OfficialOptionCode\" > 0))");
+
+                            t.HasCheckConstraint("CK_OfficeClaimProfiles_FacilityClassification_ClosedSet", "\"FacilityClassification\" IS NULL OR \"FacilityClassification\" IN (1, 2)");
 
                             t.HasCheckConstraint("CK_OfficeClaimProfiles_LaterRegisteredBandOption", "((\"LaterRegisteredBandOption_MasterVersion\" IS NULL AND \"LaterRegisteredBandOption_Option_Kind\" IS NULL AND \"LaterRegisteredBandOption_Option_OfficialOptionCode\" IS NULL) OR (\"LaterRegisteredBandOption_MasterVersion\" IS NOT NULL AND \"LaterRegisteredBandOption_Option_Kind\" IS NOT NULL AND \"LaterRegisteredBandOption_Option_OfficialOptionCode\" IS NOT NULL AND length(trim(\"LaterRegisteredBandOption_MasterVersion\")) BETWEEN 1 AND 64 AND \"LaterRegisteredBandOption_Option_Kind\" IN (1, 2, 3) AND \"LaterRegisteredBandOption_Option_OfficialOptionCode\" > 0))");
 

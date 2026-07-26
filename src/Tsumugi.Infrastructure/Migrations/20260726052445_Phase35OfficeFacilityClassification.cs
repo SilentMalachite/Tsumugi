@@ -24,6 +24,11 @@ namespace Tsumugi.Infrastructure.Migrations
                 name: "CK_OfficeClaimProfiles_CancelPayload",
                 table: "OfficeClaimProfiles",
                 sql: "\"Kind\" <> 3 OR (\"MasterVersion\" IS NULL AND \"ReformStatus\" IS NULL AND \"AverageWageBandOption_Kind\" IS NULL AND \"AverageWageBandOption_OfficialOptionCode\" IS NULL AND \"DesignationDate\" IS NULL AND \"SupportStartDate\" IS NULL AND \"EarlierRegisteredBandOption_MasterVersion\" IS NULL AND \"EarlierRegisteredBandOption_Option_Kind\" IS NULL AND \"EarlierRegisteredBandOption_Option_OfficialOptionCode\" IS NULL AND \"EarlierRegistrationMonthKey\" IS NULL AND \"LaterRegisteredBandOption_MasterVersion\" IS NULL AND \"LaterRegisteredBandOption_Option_Kind\" IS NULL AND \"LaterRegisteredBandOption_Option_OfficialOptionCode\" IS NULL AND \"LaterRegistrationMonthKey\" IS NULL AND \"ReformComparisonEvidenceDocumentId\" IS NULL AND \"FiledTransitionPeriod\" IS NULL AND \"FiledTransitionEvidenceDocumentId\" IS NULL AND \"EvidenceDocumentId\" IS NULL AND \"ConfirmedAt\" IS NULL AND \"ConfirmedBy\" IS NULL AND \"ConfirmationReason\" IS NULL AND \"CapacityHeadcount\" IS NULL AND \"StaffingKey\" IS NULL AND \"RegionKey\" IS NULL AND \"FacilityClassification\" IS NULL)");
+
+            migrationBuilder.AddCheckConstraint(
+                name: "CK_OfficeClaimProfiles_FacilityClassification_ClosedSet",
+                table: "OfficeClaimProfiles",
+                sql: "\"FacilityClassification\" IS NULL OR \"FacilityClassification\" IN (1, 2)");
         }
 
         /// <inheritdoc />
@@ -31,6 +36,10 @@ namespace Tsumugi.Infrastructure.Migrations
         {
             migrationBuilder.DropCheckConstraint(
                 name: "CK_OfficeClaimProfiles_CancelPayload",
+                table: "OfficeClaimProfiles");
+
+            migrationBuilder.DropCheckConstraint(
+                name: "CK_OfficeClaimProfiles_FacilityClassification_ClosedSet",
                 table: "OfficeClaimProfiles");
 
             migrationBuilder.DropColumn(
