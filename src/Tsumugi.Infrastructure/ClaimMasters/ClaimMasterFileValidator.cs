@@ -670,11 +670,28 @@ internal static class ClaimMasterFileValidator
         }
 
         // ADR 0021: 体制届キーは「mhlw.b46.capability.<field>.<option>」の正式one-hotキーのみ。
-        // 旧暫定キー（mealProvision等）や別体系のトークンをここで受け付けない。
-        if (kind is ClaimConditionKind.OfficeCapability
-            && !value.StartsWith("mhlw.b46.capability.", StringComparison.Ordinal))
+        // 旧暫定キー（mealProvision等）や別体系のトークンをここで受け付けない。ちょうど5segment
+        // （mhlw/b46/capability/<field>/<option>）であることも強制する。この形を単なる前置一致
+        // ではなく厳密な形として固定するのは、ClaimMasterFileValidator.ConditionIntersectionGroupKey
+        // が末尾ドット区切りを「フィールド名」とみなして体制届の複数条件を安全にAND合成できる
+        // ようにするため（Phase 3-6 Task 2 review Important 2）: 短縮形（<field>を欠く）は
+        // 無関係なトークンと同じfamilyへ過剰グルーピングされ、入れ子形（余分なsegmentを持つ）は
+        // 本来同一fieldであるべき条件が別familyに分裂し矛盾を検出できなくなる。どちらも
+        // グルーピングの安全性が「この形以外あり得ない」という前提に依存しているため、ここで
+        // 閉じたシェイプとして強制する。
+        if (kind is ClaimConditionKind.OfficeCapability)
         {
-            throw Invalid(fileName, key, "value", $"unknown office-capability key '{value}'");
+            var segments = value.Split('.');
+            var isWellFormedCapabilityKey = segments.Length == 5
+                && segments[0] == "mhlw"
+                && segments[1] == "b46"
+                && segments[2] == "capability"
+                && segments[3].Length > 0
+                && segments[4].Length > 0;
+            if (!isWellFormedCapabilityKey)
+            {
+                throw Invalid(fileName, key, "value", $"unknown office-capability key '{value}'");
+            }
         }
     }
 

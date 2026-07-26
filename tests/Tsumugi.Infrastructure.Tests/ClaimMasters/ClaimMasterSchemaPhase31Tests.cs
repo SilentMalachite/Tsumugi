@@ -515,6 +515,137 @@ public sealed class ClaimMasterSchemaPhase31Tests
             .WithMessage("*service-factor*conditionSelectors*");
     }
 
+    /// <summary>
+    /// Phase 3-6 Task 2 review (Important 3): guards
+    /// <c>ClaimMasterFileValidator.ConditionIntersectionGroupKey</c>'s same-field conflict
+    /// detection. Two office-capability selectors sharing the token family
+    /// "mhlw.b46.capability.treatment-improvement" but different option values (2 vs 4,
+    /// mirroring the real <c>capability-treatment-improvement-i</c>/<c>-iii</c> keys) can
+    /// never both be true for one context (ADR 0021's one-hot field is single-valued) and
+    /// must still be rejected as an empty intersection, exactly as before the family-scoped
+    /// grouping relaxation.
+    /// </summary>
+    [Fact]
+    public void Load_rejects_empty_office_capability_intersections_within_the_same_field()
+    {
+        var masters = ValidMasters();
+        var root = MasterRoot(masters, "service-codes.json");
+        root["conditionDefinitions"]!.AsArray().Add(
+            Condition(
+                "capability-treatment-improvement-i",
+                "office-capability",
+                "equals",
+                "mhlw.b46.capability.treatment-improvement.2"));
+        root["conditionDefinitions"]!.AsArray().Add(
+            Condition(
+                "capability-treatment-improvement-iii",
+                "office-capability",
+                "equals",
+                "mhlw.b46.capability.treatment-improvement.4"));
+        MutateService(root, "service-unit", values =>
+        {
+            values["conditionSelectors"]!.AsArray().Add("capability-treatment-improvement-i");
+            values["conditionSelectors"]!.AsArray().Add("capability-treatment-improvement-iii");
+        });
+        SaveRoot(masters, "service-codes.json", root);
+
+        var action = () => Load(masters);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*service-unit*conditionSelectors*empty intersection*");
+    }
+
+    /// <summary>
+    /// Phase 3-6 Task 2 review (Important 3): the (Ⅴ) double-gate design (ADR 0048) requires
+    /// a row to select BOTH "処遇改善(Ⅴ)そのもの" (option 6) AND a specific sub-division band —
+    /// two independent one-hot fields stored in the same
+    /// <see cref="ClaimBillingConditionContext.OfficeCapabilityKeys"/> set (ADR 0021), not two
+    /// conflicting values of one field. Composing them on one row's <c>conditionSelectors</c>
+    /// must load cleanly; this is the legitimate composition
+    /// <c>ConditionIntersectionGroupKey</c>'s family-scoped grouping was relaxed to permit.
+    /// </summary>
+    [Fact]
+    public void Load_accepts_office_capability_conditions_composed_across_different_fields()
+    {
+        var masters = ValidMasters();
+        var root = MasterRoot(masters, "service-codes.json");
+        root["conditionDefinitions"]!.AsArray().Add(
+            Condition(
+                "capability-treatment-improvement-v",
+                "office-capability",
+                "equals",
+                "mhlw.b46.capability.treatment-improvement.6"));
+        root["conditionDefinitions"]!.AsArray().Add(
+            Condition(
+                "capability-treatment-improvement-v-band-1",
+                "office-capability",
+                "equals",
+                "mhlw.b46.capability.treatment-improvement-v-band.1"));
+        MutateService(root, "service-unit", values =>
+        {
+            values["conditionSelectors"]!.AsArray().Add("capability-treatment-improvement-v");
+            values["conditionSelectors"]!.AsArray().Add("capability-treatment-improvement-v-band-1");
+        });
+        SaveRoot(masters, "service-codes.json", root);
+
+        var action = () => Load(masters);
+
+        action.Should().NotThrow();
+    }
+
+    /// <summary>
+    /// Phase 3-6 Task 2 review (Important 2): <c>ValidateConditionToken</c>'s ADR 0021 shape
+    /// check must be an exact 5-segment match (mhlw/b46/capability/&lt;field&gt;/&lt;option&gt;),
+    /// not a mere prefix check. A short-form token missing the &lt;option&gt; segment must be
+    /// rejected — accepting it would collapse to family "mhlw.b46.capability" in
+    /// <c>ConditionIntersectionGroupKey</c> and over-group with every other short-form token,
+    /// causing a spurious empty-intersection rejection unrelated to the tokens' real meaning.
+    /// </summary>
+    [Fact]
+    public void Load_rejects_a_short_form_office_capability_key()
+    {
+        var masters = ValidMasters();
+        var root = MasterRoot(masters, "service-codes.json");
+        root["conditionDefinitions"]!.AsArray().Add(
+            Condition(
+                "capability-short-form",
+                "office-capability",
+                "equals",
+                "mhlw.b46.capability.peer-support"));
+        SaveRoot(masters, "service-codes.json", root);
+
+        var action = () => Load(masters);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*capability-short-form*value*unknown office-capability key*");
+    }
+
+    /// <summary>
+    /// Phase 3-6 Task 2 review (Important 2): a token with an extra segment beyond
+    /// &lt;field&gt;.&lt;option&gt; must be rejected — accepting it would let a genuine
+    /// same-field conflict (e.g. this nested variant vs. the un-nested
+    /// "…treatment-improvement.6") escape <c>ConditionIntersectionGroupKey</c>'s family match
+    /// silently, since the two would split into different families instead of conflicting.
+    /// </summary>
+    [Fact]
+    public void Load_rejects_a_nested_office_capability_key()
+    {
+        var masters = ValidMasters();
+        var root = MasterRoot(masters, "service-codes.json");
+        root["conditionDefinitions"]!.AsArray().Add(
+            Condition(
+                "capability-nested",
+                "office-capability",
+                "equals",
+                "mhlw.b46.capability.treatment-improvement.6.a"));
+        SaveRoot(masters, "service-codes.json", root);
+
+        var action = () => Load(masters);
+
+        action.Should().Throw<InvalidDataException>()
+            .WithMessage("*capability-nested*value*unknown office-capability key*");
+    }
+
     [Fact]
     public void Load_accepts_explicit_service_and_condition_retirement()
     {

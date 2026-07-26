@@ -70,45 +70,6 @@ internal static class ExternalSpecificationLiteralGuard
     /// Task 11 addition seeds carry.</item>
     /// </list>
     /// </remarks>
-    /// <remarks>
-    /// Phase 3-6 Task 2 (ADR 0048) extends the R6-06 処遇改善統一 <c>targetSelector</c>
-    /// (<c>target.b46.items-1-to-16-4.v1</c>) percentage-of-target family's
-    /// <c>calculationOrder</c> sequence from 1〜7 to 1〜30 (adding 処遇改善加算(Ⅴ)'s 14
-    /// sub-divisions plus 9 facility variants). calculationOrder is this codebase's own
-    /// internal application-order bookkeeping — no official document assigns these numbers —
-    /// so widening the sequence's magnitude range (11〜23 among the new values) newly
-    /// coincides with several unrelated Domain/Application literals that were already fixed
-    /// for independent reasons:
-    /// <list type="bullet">
-    /// <item>ClaimPreparationContracts.cs 28/36: <c>ClaimPreparationIssueCode</c> enum
-    /// discriminants 11/12 (ADR 0022/Task 12) — ordinal type tags, not reward values.</item>
-    /// <item>UpdateOfficeUseCase.cs:54 / RegisterOfficeUseCase.cs:31: the 16-character
-    /// postal-code length cap (事業所登録フォーム) — unrelated to reward units.</item>
-    /// <item>DateValidator.cs 7/29, ProcessingMonth.cs 31/79, ServiceMonth.cs 31/79,
-    /// YearMonth.cs 13/22/23, ClaimMasterRelease.cs:91: the calendar month bound (1〜12)
-    /// and/or the 1900〜2200 year bound shared by every date-like value object — unrelated
-    /// to reward units.</item>
-    /// <item>WageSettings.cs:23 (AllowedHourUnitMinutes) contains 12 and 20 among its Phase 2
-    /// wage time-unit divisors of 60 minutes — unrelated to reward units.</item>
-    /// <item>WageSettings.cs:34, FiscalYearPolicy.cs 10/17/24/26: the fiscal-year start-month
-    /// bound (1〜12) — unrelated to reward units.</item>
-    /// <item>AverageWageFormula.cs:48: division by the 12 months in a year when annualizing
-    /// wages (ADR 0023) — unrelated to reward units.</item>
-    /// <item>ClaimMasterCatalogPolicy.cs 204/210: month-rollover arithmetic and the shared
-    /// 1900〜2200/1〜12 <c>ServiceMonth</c> bound — unrelated to reward units.</item>
-    /// <item>ClaimCalculationMasters.cs 44〜47/75/82: <c>ClaimSourceSupport</c> and
-    /// <c>ClaimConditionKind</c> enum discriminants 11〜15 — ordinal type tags, not reward
-    /// values (same rationale as the existing enum-discriminant exemptions above).</item>
-    /// <item>ClaimCalculationMasters.cs 264/267: <c>RequiredStatutoryFormula</c>'s
-    /// <c>DaysDivisor</c> (22) and <c>FixedAdditionUnits</c> (23) — the Task 13 protected-
-    /// facility (基準該当Ｂ型) closed statutory contract, fixed independently of
-    /// calculationOrder and already partially exempted above (its <c>UnitPriceDivisorYen</c>
-    /// of 10, line 266).</item>
-    /// <item>OfficeClaimProfilePolicy.cs 220/221: the open-ended-period sentinel
-    /// <c>new ServiceMonth(2200, 12)</c> reusing the same year/month ceiling — unrelated to
-    /// reward units.</item>
-    /// </list>
-    /// </remarks>
     private static readonly (string RelativePath, int LineNumber, string Literal)[]
         KnownCoincidentalLiteralMatches =
         [
@@ -119,40 +80,6 @@ internal static class ExternalSpecificationLiteralGuard
             ("src/Tsumugi.Application/UseCases/Certificate/RegisterCertificateUseCase.cs", 67, "10"),
             ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 266, "10"),
             ("src/Tsumugi.Domain/Logic/Claim/AverageWageFormula.cs", 44, "10"),
-            ("src/Tsumugi.Application/Claim/ClaimPreparationContracts.cs", 28, "11"),
-            ("src/Tsumugi.Application/Claim/ClaimPreparationContracts.cs", 36, "12"),
-            ("src/Tsumugi.Application/UseCases/Office/UpdateOfficeUseCase.cs", 54, "16"),
-            ("src/Tsumugi.Application/UseCases/RegisterOfficeUseCase.cs", 31, "16"),
-            ("src/Tsumugi.Application/Validation/DateValidator.cs", 7, "12"),
-            ("src/Tsumugi.Application/Validation/DateValidator.cs", 29, "12"),
-            ("src/Tsumugi.Domain/Entities/WageSettings.cs", 23, "12"),
-            ("src/Tsumugi.Domain/Entities/WageSettings.cs", 23, "20"),
-            ("src/Tsumugi.Domain/Entities/WageSettings.cs", 34, "12"),
-            ("src/Tsumugi.Domain/Logic/Claim/AverageWageFormula.cs", 48, "12"),
-            ("src/Tsumugi.Domain/Logic/Claim/ClaimMasterCatalogPolicy.cs", 204, "12"),
-            ("src/Tsumugi.Domain/Logic/Claim/ClaimMasterCatalogPolicy.cs", 210, "12"),
-            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 44, "11"),
-            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 45, "12"),
-            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 46, "13"),
-            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 47, "14"),
-            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 75, "11"),
-            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 82, "12"),
-            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 264, "22"),
-            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimCalculationMasters.cs", 267, "23"),
-            ("src/Tsumugi.Domain/Logic/Claim/Models/ClaimMasterRelease.cs", 91, "12"),
-            ("src/Tsumugi.Domain/Logic/Claim/OfficeClaimProfilePolicy.cs", 220, "12"),
-            ("src/Tsumugi.Domain/Logic/Claim/OfficeClaimProfilePolicy.cs", 221, "12"),
-            ("src/Tsumugi.Domain/Logic/FiscalYearPolicy.cs", 10, "12"),
-            ("src/Tsumugi.Domain/Logic/FiscalYearPolicy.cs", 17, "12"),
-            ("src/Tsumugi.Domain/Logic/FiscalYearPolicy.cs", 24, "12"),
-            ("src/Tsumugi.Domain/Logic/FiscalYearPolicy.cs", 26, "12"),
-            ("src/Tsumugi.Domain/ValueObjects/ProcessingMonth.cs", 31, "12"),
-            ("src/Tsumugi.Domain/ValueObjects/ProcessingMonth.cs", 79, "12"),
-            ("src/Tsumugi.Domain/ValueObjects/ServiceMonth.cs", 31, "12"),
-            ("src/Tsumugi.Domain/ValueObjects/ServiceMonth.cs", 79, "12"),
-            ("src/Tsumugi.Domain/ValueObjects/YearMonth.cs", 13, "12"),
-            ("src/Tsumugi.Domain/ValueObjects/YearMonth.cs", 22, "12"),
-            ("src/Tsumugi.Domain/ValueObjects/YearMonth.cs", 23, "12"),
         ];
 
     /// <summary>
@@ -553,12 +480,40 @@ internal static class ExternalSpecificationLiteralGuard
 
     private const string AllowedOptionsByR8ReformStatusPropertyName = "allowedOptionsByR8ReformStatus";
 
+    /// <summary>
+    /// Phase 3-6 Task 2 review (Important 1): <c>calculationOrder</c> is a versioned selector
+    /// identifier in the closed <c>percentageOfTargetAmount</c> shape of the claim-master
+    /// schema (<c>claim-master-file.schema.json</c>) — the internal application-order
+    /// bookkeeping among competing percentage-of-target additions sharing one
+    /// <c>targetSelector</c>, not a reward value (units/rates/thresholds). No official
+    /// document assigns these numbers; production C# consumes them only as a structured
+    /// <c>PercentageOfTargetAmount.CalculationOrder</c> and never needs to spell one.
+    /// Cataloging it floods the guard with calendar/type-ordinal coincidences every time a
+    /// percentage-of-target family's calculationOrder sequence grows past magnitude 10 (e.g.
+    /// Phase 3-6 Task 2 extended the R6-06 処遇改善統一 family from 1〜7 to 1〜30 and collided
+    /// with ~34 unrelated Domain/Application literals — see the removed allowlist entries in
+    /// this file's history for the exhaustive list this scanner-level skip replaces). Exactly
+    /// as with <see cref="OfficialOptionCodePropertyName"/> above, the exemption is scoped to
+    /// values nested under an <c>amount</c> ancestor — the only shape ADR-defined
+    /// percentage-of-target amounts carry this property in
+    /// (<c>claim-master-file.schema.json</c>'s <c>percentageOfTargetAmount</c> definition) —
+    /// so the same property name elsewhere still enters the catalog like any other number,
+    /// which <c>Scan_calculation_order_outside_an_amount_ancestor_is_cataloged</c> proves, and
+    /// every other number nested under <c>amount</c> is still cataloged, which
+    /// <c>Scan_still_detects_other_amount_numbers_beside_calculation_order</c> proves.
+    /// </summary>
+    private const string CalculationOrderPropertyName = "calculationOrder";
+
+    /// <summary>The one closed shape that carries a percentage-of-target's calculationOrder.</summary>
+    private const string AmountAncestorPropertyName = "amount";
+
     private static void CollectMasterValues(
         JsonElement element,
         string pointer,
         string relativePath,
         ICollection<CatalogLiteral> catalogLiterals,
-        bool insideAllowedBandOptionAncestor = false)
+        bool insideAllowedBandOptionAncestor = false,
+        bool insideAmountAncestor = false)
     {
         switch (element.ValueKind)
         {
@@ -575,16 +530,30 @@ internal static class ExternalSpecificationLiteralGuard
                         continue;
                     }
 
+                    if (insideAmountAncestor
+                        && string.Equals(
+                            property.Name,
+                            CalculationOrderPropertyName,
+                            StringComparison.Ordinal)
+                        && property.Value.ValueKind == JsonValueKind.Number)
+                    {
+                        continue;
+                    }
+
                     var childInsideAllowedBandOptionAncestor =
                         insideAllowedBandOptionAncestor
                         || IsAllowedBandOptionAncestorPropertyName(property.Name);
+                    var childInsideAmountAncestor =
+                        insideAmountAncestor
+                        || IsAmountAncestorPropertyName(property.Name);
 
                     CollectMasterValues(
                         property.Value,
                         pointer + "/" + EscapeJsonPointer(property.Name),
                         relativePath,
                         catalogLiterals,
-                        childInsideAllowedBandOptionAncestor);
+                        childInsideAllowedBandOptionAncestor,
+                        childInsideAmountAncestor);
                 }
                 break;
             case JsonValueKind.Array:
@@ -596,7 +565,8 @@ internal static class ExternalSpecificationLiteralGuard
                         pointer + "/" + index.ToString(CultureInfo.InvariantCulture),
                         relativePath,
                         catalogLiterals,
-                        insideAllowedBandOptionAncestor);
+                        insideAllowedBandOptionAncestor,
+                        insideAmountAncestor);
                     index++;
                 }
                 break;
@@ -990,6 +960,9 @@ internal static class ExternalSpecificationLiteralGuard
     private static bool IsAllowedBandOptionAncestorPropertyName(string propertyName) =>
         propertyName is AllowedAverageWageBandOptionsPropertyName
             or AllowedOptionsByR8ReformStatusPropertyName;
+
+    private static bool IsAmountAncestorPropertyName(string propertyName) =>
+        propertyName is AmountAncestorPropertyName;
 
     private static bool IsExcludedPath(string path) =>
         ContainsDirectory(path, "obj") ||
