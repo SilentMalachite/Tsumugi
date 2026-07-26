@@ -1759,6 +1759,1363 @@
         "roundingRuleId": "claim.rounding.units.half-up.v1",
         "billingUnit": "per-month"
       }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-1",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理236頁（第2条表・左欄改正後 第14の17 注2 ホ ⑴ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1069",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.080",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 8
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-2",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理236頁（第2条表・左欄改正後 第14の17 注2 ホ ⑵ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1071",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.079",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 9
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-3",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理236頁（第2条表・左欄改正後 第14の17 注2 ホ ⑶ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1073",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.078",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 10
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-4",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⑷ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1075",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.077",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 11
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-5",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⑸ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1077",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.066",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 12
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-6",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⑹ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1079",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.064",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 13
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-7",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⑺ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1081",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.061",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 14
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-8",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⑻ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1083",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.063",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 15
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-9",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⑼ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1085",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.059",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 16
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-10",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⑽ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1087",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.048",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 17
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-11",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⑾ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1089",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.049",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 18
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-12",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⑿ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1091",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.046",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 19
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-13",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⒀ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1093",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.044",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 20
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-14",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理238頁（第2条表・左欄改正後 第14の17 注2 ホ ⒁ 率）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1095",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.031",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 21
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-1.facility",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理236頁（第2条表・左欄改正後 第14の17 注2 ホ ⑴ 括弧書き「指定障害者支援施設にあっては、…に相当する単位数」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1070",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.091",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 22
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-2.facility",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理236頁（第2条表・左欄改正後 第14の17 注2 ホ ⑵ 括弧書き「指定障害者支援施設にあっては、…に相当する単位数」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1072",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.087",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 23
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-5.facility",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⑸ 括弧書き「指定障害者支援施設にあっては、…に相当する単位数」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1078",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.074",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 24
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-7.facility",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⑺ 括弧書き「指定障害者支援施設にあっては、…に相当する単位数」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1082",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.066",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 25
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-8.facility",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⑻ 括弧書き「指定障害者支援施設にあっては、…に相当する単位数」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1084",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.073",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 26
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-10.facility",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⑽ 括弧書き「指定障害者支援施設にあっては、…に相当する単位数」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1088",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.053",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 27
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-11.facility",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⑾ 括弧書き「指定障害者支援施設にあっては、…に相当する単位数」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1090",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.056",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 28
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-13.facility",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理237頁（第2条表・左欄改正後 第14の17 注2 ホ ⒀ 括弧書き「指定障害者支援施設にあっては、…に相当する単位数」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1094",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.048",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 29
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
+    },
+    {
+      "key": "addition.treatment-improvement.unified.v-14.facility",
+      "effectiveFrom": "2024-06",
+      "effectiveTo": "2025-03",
+      "sourceRefs": [
+        {
+          "documentId": "r6-fee-notice",
+          "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
+          "locator": "物理238頁（第2条表・左欄改正後 第14の17 注2 ホ ⒁ 括弧書き「指定障害者支援施設にあっては、…に相当する単位数」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-xlsx",
+          "sha256": "4a191158daa7dbe8b29c10e966a01960ca8267a747546220aad666dfa5ef5a82",
+          "locator": "workbook-order=38;row=1096",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-service-codes-2-pdf",
+          "sha256": "708270200599de9fb7d15d7270997286c3671d378e0a00e3b186a946e67b4465",
+          "locator": "p.259",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "master-values",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r6-calculation-note",
+          "sha256": "958f9868e4527c27fd050676879b8e6c88b477dbf71c01d5721b7af0bc4f35e1",
+          "locator": "p.8〜9 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "amount": {
+          "kind": "percentage-of-target",
+          "percentage": "0.035",
+          "applicationKind": "add",
+          "percentageBaseScope": "monthly-target-unit-sum",
+          "targetSelector": "target.b46.items-1-to-16-4.v1",
+          "calculationOrder": 30
+        },
+        "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+        "roundingRuleId": "claim.rounding.units.half-up.v1",
+        "billingUnit": "per-month"
+      }
     }
   ]
 }

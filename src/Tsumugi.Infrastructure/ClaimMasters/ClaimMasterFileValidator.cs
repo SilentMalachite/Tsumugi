@@ -2509,7 +2509,7 @@ internal static class ClaimMasterFileValidator
                 .Select(selector => byKey[selector].Single(row =>
                     IsWithin(month, row.EffectiveFrom, row.EffectiveTo)))
                 .ToArray();
-            foreach (var dimension in active.GroupBy(row => row.Kind))
+            foreach (var dimension in active.GroupBy(ConditionIntersectionGroupKey))
             {
                 if (!HasConditionIntersection(dimension.ToArray()))
                 {
@@ -2521,6 +2521,34 @@ internal static class ClaimMasterFileValidator
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// 同一行が参照する複数条件のうち、どれが「同じ体制届フィールドの排他値」として
+    /// 交差チェック対象になるかを決める。<see cref="ClaimConditionKind"/>単体では粒度が
+    /// 粗すぎる: <c>OfficeCapability</c>は事業所体制届の複数フィールド（ADR 0021の
+    /// one-hotキー）を同じ<see cref="ClaimBillingConditionContext.OfficeCapabilityKeys"/>
+    /// 集合へ格納するため、フィールドが異なれば同時に真となってよい（例: 「処遇改善(Ⅴ)を
+    /// 選択」と「(Ⅴ)のサブ区分nを選択」は別フィールドで、両方を要求するAND条件が正しい）。
+    /// トークンは<c>mhlw.b46.capability.{field}.{value}</c>の形を約束事とし、末尾の
+    /// ドット区切りを値、残りをフィールド名として切り出す。同一フィールド内の異なる値
+    /// （例: 処遇改善(Ⅰ)と(Ⅳ)を誤って両方参照）は従来どおり空交差として検出する。
+    /// </summary>
+    private static string ConditionIntersectionGroupKey(ClaimConditionDefinition definition)
+    {
+        if (definition.Kind != ClaimConditionKind.OfficeCapability)
+            return definition.Kind.ToString();
+
+        var token = definition.Operand switch
+        {
+            ClaimConditionTokenOperand tokenOperand => tokenOperand.Value,
+            ClaimConditionTokenSetOperand setOperand => setOperand.Values[0],
+            _ => throw new InvalidOperationException(
+                "Office-capability condition operand kind is closed."),
+        };
+        var separatorIndex = token.LastIndexOf('.');
+        var family = separatorIndex < 0 ? token : token[..separatorIndex];
+        return $"{definition.Kind}:{family}";
     }
 
     private static bool HasConditionIntersection(
