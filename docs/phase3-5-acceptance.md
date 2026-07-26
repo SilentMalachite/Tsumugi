@@ -53,6 +53,15 @@
 - `ServiceCodeResolutionErrorCode.FacilityClassificationUnresolved = 7`（`src/Tsumugi.Domain/Logic/Claim/ServiceCodeResolver.cs:26`）
 - `OfficeClaimProfile.FacilityClassification`列（`src/Tsumugi.Domain/Entities/OfficeClaimProfile.cs:61`）＋migration `20260726052445_Phase35OfficeFacilityClassification`
 - `ClaimInputView.axaml`のComboBox1個（`ItemsSource="{Binding FacilityClassificationOptions}" SelectedItem="{Binding FacilityClassification}"`、`:160`）
+- **確定入力snapshotへの`facilityClassification`凍結**（`src/Tsumugi.Application/Claim/ClaimRecipientSnapshotWriter.cs`の`conditions`末尾。2026-07-26 最終レビューI-1で追加）
+
+### 確定snapshotへの凍結について（最終レビューI-1・2026-07-26 追加）
+
+`ClaimRecipientSnapshotWriter`の`conditions`は施設区分を凍結していなかった。このファイルは本スライスのどのtask brief・report・specにも登場せず、**最終レビューで「どのタスクからも漏れたもの」として発見された**。
+
+誤請求は生じていなかった。`ClaimPreviewHashing.Compute`が総単位数込みでhashするため、プレビュー後に施設区分を変えると単位数が変わり（(Ⅰ)イで14,014×0.105=1,471単位 対 ×0.116=1,626単位）、hash不一致で`CloseClaimUseCase`が確定を拒否する。問題は**証跡**で、確定済み請求の凍結snapshotから「どちらの施設区分で算定したか」を復元できなかった（ADR 0026が凍結を求める「確定時点の入力」の欠落）。
+
+既存キーの順序を変えず末尾へ追記した（`ClaimFinalizationSnapshotWriter.cs:100`の前例に従う）。未入力は`null`のまま記録し、推測で`general`へ落とさない。**canonical bytesとPreviewHashが変わるため、R8施設請求が実際に確定される前の本スライス内で実施した。** 既存テストは1件も落ちなかった（＝入力snapshotのcanonical bytesを固定するテストが従来存在しなかった）ため、`ClaimRecipientSnapshotWriterTests`（4件）を新規作成して固定した。
 
 ---
 
@@ -135,6 +144,7 @@ Task 2完了時点（seed投入完了、Task 3・4未着手）からTask 4完了
 2. **施設での体制届option集合の絞り込み（ADR 0021: R8-06の`treatment-improvement`は`{1,2,4,5,7}`）**: 率とは別の入力バリデーションの話であり、一次資料の再確認と体制届側の変更を伴うため本スライスの非スコープとした（spec §4）。現状、`OfficeClaimProfile.FacilityClassification`と体制届の`treatment-improvement`選択番号は独立して入力可能であり、組合せの妥当性検証は行っていない。
 3. **GUI手動貫通確認がPhase 1から未実施のまま**: `docs/open-questions.md`の「Avalonia GUI 目視確認 (AC1-8 補完)」項目が示すとおり、実機起動でのフォント拡大追従・Reduce Motionのタブ順・フォーカス移動は手動QAでしか確認できない。本タスクは`ClaimInputView`へComboBoxを1つ追加したが（Task 5）、新規View・新規タブは作っておらず既存の「事業所請求設定」構造化入力群と同一パターンのため対象範囲は実質的に増えていないが、継続課題として維持する。
 4. **`FacilityClassification`が体制届の`treatment-improvement`選択番号と独立入力である点の未検証**: 施設区分を入力しても体制届optionと矛盾する組合せ（例: option 3・8のみ届け出ているのに施設区分を入力する等）を弾くバリデーションは無い。実害は無い（(Ⅱ)は施設区分条件を持たないため単に無視される）が、上記2の絞り込みが実装されればあわせて解消されうる。
+5. **R6-06世代（2024-06〜2026-05）に施設区分の別立てが無い**（2026-07-26 最終レビューで発見・追記）: `b-addition.r6-06.treatment-improvement.unified.i`〜`.iv`（465120・465121・465122・465123）は`conditionSelectors`に施設区分条件を1つも持たない。**処理対象月が2026-05以前の場合、指定障害者支援施設が体制届option 2等を届け出ても通常行へ無音で解決する（過少請求）。エラーは出ない。** 本スライスがR8-06について塞いだのとまったく同じクラスの欠陥が、R6世代には残っている。spec §4は`466774`等を非スコープ宣言していたが、`docs/open-questions.md`にも本証跡にも記録が無く、最終レビューで「どのタスクからも漏れたもの」として指摘された。ADR 0045が観測したR6期の施設別立て率（通常93・91・76・62に対し施設104・86・69）が有力な手がかりだが、サービスコードの実在確認は未実施。`docs/open-questions.md`へ起票済み。**過去月の再請求・訂正が必要になった時点で優先度が上がる。**
 
 ---
 
