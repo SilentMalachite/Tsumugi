@@ -367,6 +367,46 @@ public sealed class ClaimCalculatorGoldenCaseTests
         detail.BenefitYen.Should().Be(213_273);
     }
 
+    /// <summary>
+    /// ADR 0047 worked example: 指定障害者支援施設（<see cref="FacilityClassification"/>
+    /// トークン"designated-support-facility"）× 福祉・介護職員等処遇改善加算(Ⅰ)イ施設variant
+    /// （465138＠116/1000）× 2026-06。基本報酬は<see cref="Matches_adr_0045_worked_example_reform_exempt_office_in_june_2026"/>
+    /// と同じ462049（cap-20-or-less×band-20000-25000×staff-7.5-1、22日、region-grade-2）を再利用し、
+    /// 処遇改善加算だけを通常事業所率(105/1000・465120)から施設率(116/1000・465138)へ差し替える。
+    /// 期待値の算出過程はADR 0047「worked example」節に記載する。
+    /// </summary>
+    [Fact]
+    public void Matches_adr_0047_worked_example_designated_support_facility_office_in_june_2026()
+    {
+        var context = new ClaimBillingConditionContext(
+            RewardSystem: "b-type",
+            PaymentBand: "band-20000-25000",
+            CapacityHeadcount: 20,
+            StaffingKey: "staff-7.5-1",
+            AverageWageBandOption: new AverageWageBandOption(AverageWageBandOptionKind.Numeric, 5),
+            R8ReformStatus: R8ReformStatus.ReformExempt,
+            OfficeCapabilityKeys: [TreatmentImprovementR8CapabilityKey],
+            FacilityClassification: "designated-support-facility");
+
+        var result = ClaimCalculator.Calculate(R8FacilityMasters(), new ClaimCalculationRequest(
+            new ServiceMonth(2026, 6), context, "region-grade-2", "b-type",
+            [new RecipientClaimSource(
+                RecipientA, BilledDays: 22, BenefitRatePercent: 90,
+                CertificateMonthlyCapYen: UnboundedSyntheticCapYen,
+                BurdenCategory: SyntheticBurdenCategory)],
+            CountSelectorBindings));
+
+        var detail = result.Details.Should().ContainSingle().Subject;
+        detail.AdditionLines.Select(line => (line.ServiceCode, line.Units)).Should().BeEquivalentTo(
+        [
+            ("465138", 1_626),
+        ]);
+        detail.TotalUnits.Should().Be(15_640);
+        detail.TotalCostYen.Should().Be(170_632);
+        detail.BurdenYen.Should().Be(17_063);
+        detail.BenefitYen.Should().Be(153_569);
+    }
+
     /// <summary>ADR 0028決定2のcountSelector正準トークン束縛（productionと同一語彙）。</summary>
     private static readonly IReadOnlyDictionary<string, ClaimCountMetric> CountSelectorBindings =
         new Dictionary<string, ClaimCountMetric>(StringComparer.Ordinal)
@@ -754,5 +794,96 @@ public sealed class ClaimCalculatorGoldenCaseTests
             ConditionDefinitionR8(
                 "cond-r8-reform-target", ClaimConditionKind.R8ReformStatus, ClaimConditionOperator.Equals,
                 new ClaimConditionTokenOperand("reform-target")),
+        ]);
+
+    // ADR 0047 worked exampleが引用する施設variant率（(Ⅰ)イ施設＠116/1000、2026-06以降）。
+    private static readonly PercentageOfTargetAmount TreatmentImprovementR8FacilityPercentage = new(
+        0.116m,
+        PercentageApplicationKind.Add,
+        PercentageBaseScope.MonthlyTargetUnitSum,
+        MonthlyTargetSelector,
+        CalculationOrder: 7);
+
+    /// <summary>
+    /// ADR 0047 worked example（golden case 3）専用マスタ。<see cref="R8Masters"/>とは別の
+    /// 独立したbundleとして持つ（<see cref="R8Masters"/>を施設区分条件つきへ書き換えると、
+    /// それを共有する<see cref="Matches_adr_0045_worked_example_reform_exempt_office_in_june_2026"/>・
+    /// <see cref="Matches_adr_0046_worked_example_reform_target_office_in_june_2026"/>の両方が
+    /// <see cref="FacilityClassification"/>未指定でfail-closeするようになり、無関係な既存golden case
+    /// を壊してしまうため）。462049（cap-20-or-less×band-20000-25000×staff-7.5-1）はADR 0027決定6の
+    /// 継続行をそのまま再利用し、処遇改善加算だけを施設variant（465138＠116/1000）へ差し替える。
+    /// </summary>
+    private static ClaimCalculationMasterBundle R8FacilityMasters() => new(
+        BasicRewards:
+        [
+            BasicReward("base-462049", "band-20000-25000", "staff-7.5-1", "cap-20-or-less", "462049", 637),
+        ],
+        UnitAdjustments:
+        [
+            // ADR 0047決定表: 福祉・介護職員等処遇改善加算(Ⅰ)イ・指定障害者支援施設variant＠116/1000。
+            new UnitAdjustmentMasterRow(
+                "addition.treatment-improvement.r8.i-i.facility",
+                TreatmentImprovementR8FacilityPercentage,
+                "claim.step.units.monthly-target.percentage.v1",
+                "claim.rounding.units.half-up.v1",
+                BillingUnit.PerMonth,
+                new ServiceMonth(2026, 6),
+                null,
+                [SourceRefR8()]),
+        ],
+        RegionUnitPrices: [RegionUnitPrice("region-grade-2", 10.91m)],
+        BurdenCaps: [BurdenCap()],
+        TransitionRules: [],
+        ServiceCodes:
+        [
+            ServiceCode(
+                "sc-462049", "462049", "就継ＢⅡ１５",
+                ["cond-system-b", "cond-band-20000-25000", "cond-cap-20-or-less", "cond-staff-7-5-1"],
+                "base-462049"),
+            // ADR 0047決定表: 465138（(Ⅰ)イ施設variant）。office-capability(option2)＋
+            // facility-classification(designated-support-facility)の2条件で選定する。
+            new ServiceCodeMasterRow(
+                "sc-r8-465138-i-i-facility", "465138",
+                "福祉・介護職員等処遇改善加算(Ⅰ)イ（指定障害者支援施設において行った場合）", "b-type",
+                ["selector:sc-r8-465138-i-i-facility"],
+                ["cond-system-b", "cond-cap-treatment-r8-i-i", "cond-facility-designated-support-facility"],
+                new UnitAdditionRule(
+                    "addition.treatment-improvement.r8.i-i.facility",
+                    TreatmentImprovementR8FacilityPercentage,
+                    "claim.step.units.monthly-target.percentage.v1",
+                    "claim.rounding.units.half-up.v1",
+                    BillingUnit.PerMonth),
+                [
+                    new ClaimComponentRef(
+                        ClaimComponentMasterKind.Additions,
+                        "addition.treatment-improvement.r8.i-i.facility",
+                        ClaimComponentRole.Adjustment),
+                ],
+                new ServiceMonth(2026, 6),
+                null,
+                [SourceRefR8()]),
+        ],
+        ConditionDefinitions:
+        [
+            ConditionDefinition(
+                "cond-system-b", ClaimConditionKind.RewardSystem, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand("b-type")),
+            ConditionDefinition(
+                "cond-band-20000-25000", ClaimConditionKind.PaymentBand, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand("band-20000-25000")),
+            ConditionDefinition(
+                "cond-cap-20-or-less", ClaimConditionKind.Capacity, ClaimConditionOperator.LessThanOrEqual,
+                new ClaimConditionIntegerOperand(20)),
+            ConditionDefinition(
+                "cond-staff-7-5-1", ClaimConditionKind.Staffing, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand("staff-7.5-1")),
+            ConditionDefinitionR8(
+                "cond-cap-treatment-r8-i-i", ClaimConditionKind.OfficeCapability, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand(TreatmentImprovementR8CapabilityKey)),
+            // ADR 0047決定表: facility-classification条件（designated-support-facility）。
+            ConditionDefinitionR8(
+                "cond-facility-designated-support-facility", ClaimConditionKind.FacilityClassification,
+                ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand("designated-support-facility")),
         ]);
 }

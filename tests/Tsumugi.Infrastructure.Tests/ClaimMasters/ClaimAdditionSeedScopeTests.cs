@@ -29,8 +29,15 @@ namespace Tsumugi.Infrastructure.Tests.ClaimMasters;
 /// `r8-service-codes-2-pdf` の2方式抽出が一致、ADR 0021の請求サービスコード対応表とも一致）が
 /// R6統一処遇改善と**同一のサービスコード**（465120/465121/465122/465123）を2026-06以降も継続
 /// 使用することを示している。新設区分(Ⅰ)ロ・(Ⅱ)ロだけが新コード（465174/465175）を持つ。
-/// 処遇改善(Ⅴ)・障害者支援施設variant（465138/465140/465141/465176等）は本タスクでも未確定
-/// につきseedしない。
+/// </para>
+/// <para>
+/// ADR 0047（Phase 3-5 Task 2）: ADR 0045が「確定できなかった区分」として持ち越した障害者支援
+/// 施設variantのうち、(Ⅰ)イ・(Ⅰ)ロ・(Ⅲ)・(Ⅳ)の4区分（465138/465176/465140/465141）は
+/// `r8-service-codes-2-xlsx`・`r8-service-codes-2-pdf`の2形式でサービスコードの実在を確認し、
+/// 率は`r8-fee-notice`（ADR 0045の抽出結果からの転記）で確定した。(Ⅱ)イ・(Ⅱ)ロは公式に施設別立て
+/// 自体が存在しない（率表に施設別建てが無く、xlsx行2266・2268はコード未割当のプレースホルダ）ため
+/// 対象外とし、施設区分条件を一切付けていない。処遇改善(Ⅴ)（選択番号6・14区分の経過措置）は
+/// 本タスクでも未確定につきseedしない。
 /// </para>
 /// </summary>
 public sealed class ClaimAdditionSeedScopeTests
@@ -75,13 +82,17 @@ public sealed class ClaimAdditionSeedScopeTests
     ];
 
     /// <summary>
-    /// ADR 0045: R8処遇改善(Ⅰ)イ・(Ⅰ)ロ・(Ⅱ)イ・(Ⅱ)ロ・(Ⅲ)・(Ⅳ)の事業所コード（2026-06〜）。
-    /// (Ⅰ)イ・(Ⅱ)イ・(Ⅲ)・(Ⅳ)はUnifiedTreatmentImprovementCodesと同一コードを継続使用し、
-    /// (Ⅰ)ロ・(Ⅱ)ロだけが新設コード（465174・465175）を持つ。
+    /// ADR 0045・ADR 0047: R8処遇改善(Ⅰ)イ・(Ⅰ)ロ・(Ⅱ)イ・(Ⅱ)ロ・(Ⅲ)・(Ⅳ)の6区分（通常事業所
+    /// コード）と、そのうち施設別立てが確認できた4区分（(Ⅰ)イ・(Ⅰ)ロ・(Ⅲ)・(Ⅳ)）の指定障害者
+    /// 支援施設variantコード（2026-06〜）。(Ⅰ)イ・(Ⅱ)イ・(Ⅲ)・(Ⅳ)の通常コードは
+    /// UnifiedTreatmentImprovementCodesと同一コードを継続使用し、(Ⅰ)ロ・(Ⅱ)ロだけが新設コード
+    /// （465174・465175）を持つ。(Ⅱ)イ・(Ⅱ)ロは公式に施設別立てが存在しないためvariantを持たない
+    /// （ADR 0047）。
     /// </summary>
     private static readonly string[] R8TreatmentImprovementCodes =
     [
         "465120", "465174", "465121", "465175", "465122", "465123",
+        "465138", "465176", "465140", "465141",
     ];
 
     [Fact]
@@ -137,24 +148,26 @@ public sealed class ClaimAdditionSeedScopeTests
     [Fact]
     public void R8_treatment_improvement_rows_apply_only_from_2026_06()
     {
-        // 2026-06のR8処遇改善コード集合を、期待6コードちょうどと完全一致で固定する
-        // （上限側も固定するため、465138等のvariantを誤ってseedしてもここでRED化する）。
+        // 2026-06のR8処遇改善コード集合を、期待10コード（通常6＋施設variant4）ちょうどと
+        // 完全一致で固定する（上限側も固定するため、未確定の処遇改善(Ⅴ)等を誤ってseedしても
+        // ここでRED化する）。
         var juneCodes = AdditionRows(new ServiceMonth(2026, 6))
             .Select(row => row.ServiceCode)
             .Order(StringComparer.Ordinal);
         juneCodes.Should().Equal(
             FixedAdditionCodes.Concat(R8TreatmentImprovementCodes).Order(StringComparer.Ordinal),
-            "2026-06の加算コード集合は固定単位行＋R8処遇改善6区分ちょうどでなければならない");
+            "2026-06の加算コード集合は固定単位行＋R8処遇改善10区分（通常6＋施設variant4）ちょうどでなければならない");
 
-        // 465174/465175だけが2026-06で新たに現れることを、リテラル同士ではなく2026-05・2026-06
-        // それぞれのseedから解決した実データの差分で確認する。
+        // 465174/465175（新設区分）と465138/465176/465140/465141（施設variant）が2026-06で
+        // 新たに現れることを、リテラル同士ではなく2026-05・2026-06それぞれのseedから解決した
+        // 実データの差分で確認する。
         var mayCodeSet = AdditionRows(new ServiceMonth(2026, 5))
             .Select(row => row.ServiceCode).ToHashSet(StringComparer.Ordinal);
         var juneCodeSet = AdditionRows(new ServiceMonth(2026, 6))
             .Select(row => row.ServiceCode).ToHashSet(StringComparer.Ordinal);
         juneCodeSet.Except(mayCodeSet).Order(StringComparer.Ordinal).Should().Equal(
-            ["465174", "465175"],
-            "新設区分(Ⅰ)ロ・(Ⅱ)ロだけが2026-06で新たに現れる（ADR 0045）");
+            ["465138", "465140", "465141", "465174", "465175", "465176"],
+            "新設区分(Ⅰ)ロ・(Ⅱ)ロと施設variant4区分（ADR 0047）だけが2026-06で新たに現れる");
     }
 
     [Fact]

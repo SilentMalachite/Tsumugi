@@ -988,6 +988,64 @@
       ]
     },
     {
+      "key": "facility-classification-general",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "kind": "facility-classification",
+      "operator": "equals",
+      "value": "general",
+      "sourceRefs": [
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2261（追加条件欄が空＝指定障害者支援施設以外）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 通常事業所の率）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "facility-classification-designated-support-facility",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "kind": "facility-classification",
+      "operator": "equals",
+      "value": "designated-support-facility",
+      "sourceRefs": [
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2262（追加条件欄「指定障害者支援施設において行った場合」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "conditions",
+            "effective-period"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 イ 括弧書き「指定障害者支援施設にあっては、1000分の116に相当する単位数」）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "conditions"
+          ]
+        }
+      ]
+    },
+    {
       "key": "band-48000-plus",
       "effectiveFrom": "2026-06",
       "effectiveTo": null,
@@ -10341,7 +10399,8 @@
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
-          "capability-treatment-improvement-r8-i-i"
+          "capability-treatment-improvement-r8-i-i",
+          "facility-classification-general"
         ],
         "unitRule": {
           "kind": "unit-addition",
@@ -10430,7 +10489,8 @@
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
-          "capability-treatment-improvement-r8-i-ro"
+          "capability-treatment-improvement-r8-i-ro",
+          "facility-classification-general"
         ],
         "unitRule": {
           "kind": "unit-addition",
@@ -10697,7 +10757,8 @@
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
-          "capability-treatment-improvement-r8-iii"
+          "capability-treatment-improvement-r8-iii",
+          "facility-classification-general"
         ],
         "unitRule": {
           "kind": "unit-addition",
@@ -10786,7 +10847,8 @@
         ],
         "conditionSelectors": [
           "reward-system-employment-continuation-support-b",
-          "capability-treatment-improvement-r8-iv"
+          "capability-treatment-improvement-r8-iv",
+          "facility-classification-general"
         ],
         "unitRule": {
           "kind": "unit-addition",
@@ -10807,6 +10869,366 @@
           {
             "masterKind": "additions",
             "key": "addition.treatment-improvement.r8.iv",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r8-06.treatment-improvement.i-i.facility",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2262",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 イ 括弧書き「指定障害者支援施設にあっては、1000分の116に相当する単位数」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-value"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "465138",
+        "officialLabel": "福祉・介護職員等処遇改善加算(Ⅰ)イ（指定障害者支援施設において行った場合）",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r8-06.treatment-improvement.i-i.facility"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-treatment-improvement-r8-i-i",
+          "facility-classification-designated-support-facility"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.treatment-improvement.r8.i-i.facility",
+          "amount": {
+            "kind": "percentage-of-target",
+            "percentage": "0.116",
+            "applicationKind": "add",
+            "percentageBaseScope": "monthly-target-unit-sum",
+            "targetSelector": "target.b46.items-1-to-16-4.v1",
+            "calculationOrder": 7
+          },
+          "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+          "roundingRuleId": "claim.rounding.units.half-up.v1",
+          "billingUnit": "per-month"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.treatment-improvement.r8.i-i.facility",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r8-06.treatment-improvement.i-ro.facility",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2264",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ロ 括弧書き「指定障害者支援施設にあっては、1000分の120に相当する単位数」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-value"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "465176",
+        "officialLabel": "福祉・介護職員等処遇改善加算(Ⅰ)ロ（指定障害者支援施設において行った場合）",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r8-06.treatment-improvement.i-ro.facility"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-treatment-improvement-r8-i-ro",
+          "facility-classification-designated-support-facility"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.treatment-improvement.r8.i-ro.facility",
+          "amount": {
+            "kind": "percentage-of-target",
+            "percentage": "0.120",
+            "applicationKind": "add",
+            "percentageBaseScope": "monthly-target-unit-sum",
+            "targetSelector": "target.b46.items-1-to-16-4.v1",
+            "calculationOrder": 8
+          },
+          "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+          "roundingRuleId": "claim.rounding.units.half-up.v1",
+          "billingUnit": "per-month"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.treatment-improvement.r8.i-ro.facility",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r8-06.treatment-improvement.iii.facility",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2270",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ホ 括弧書き「指定障害者支援施設にあっては、1000分の98に相当する単位数」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-value"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "465140",
+        "officialLabel": "福祉・介護職員等処遇改善加算(Ⅲ)（指定障害者支援施設において行った場合）",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r8-06.treatment-improvement.iii.facility"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-treatment-improvement-r8-iii",
+          "facility-classification-designated-support-facility"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.treatment-improvement.r8.iii.facility",
+          "amount": {
+            "kind": "percentage-of-target",
+            "percentage": "0.098",
+            "applicationKind": "add",
+            "percentageBaseScope": "monthly-target-unit-sum",
+            "targetSelector": "target.b46.items-1-to-16-4.v1",
+            "calculationOrder": 9
+          },
+          "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+          "roundingRuleId": "claim.rounding.units.half-up.v1",
+          "billingUnit": "per-month"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.treatment-improvement.r8.iii.facility",
+            "role": "adjustment"
+          }
+        ]
+      }
+    },
+    {
+      "key": "b-addition.r8-06.treatment-improvement.iv.facility",
+      "effectiveFrom": "2026-06",
+      "effectiveTo": null,
+      "sourceRefs": [
+        {
+          "documentId": "r8-service-codes-2-xlsx",
+          "sha256": "307b631ed91a07d4fc9a77b090030b2819731aa018a0374544c1984bf2935049",
+          "locator": "workbook-order=38;row=2272",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-fee-notice",
+          "sha256": "f4b7a05e33b5dd91bf745ef078fd5563930ea3a2a7b84463e7bd092c36ff036c",
+          "locator": "物理57頁（印字頁番号なし。第2条表・左欄改正後 第14の17 ヘ 括弧書き「指定障害者支援施設にあっては、1000分の81に相当する単位数」）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-value"
+          ]
+        },
+        {
+          "documentId": "r8-service-codes-2-pdf",
+          "sha256": "0ff507138037c0b58bdada54d35677c27cf54e708635706d41004638626a7445",
+          "locator": "物理245頁（印字頁番号なし）",
+          "evidenceRole": "cross-check",
+          "supports": [
+            "service-identity",
+            "selectors",
+            "unit-rule-kind",
+            "unit-rule-step",
+            "unit-rule-target",
+            "effective-period",
+            "conditions"
+          ]
+        },
+        {
+          "documentId": "r8-calculation-note",
+          "sha256": "0c4f357f4dfd20c71ec0ab8b688db4323d3a4f52c1545fdf46a996cb15485d99",
+          "locator": "物理8〜9頁（印字頁番号も8・9で物理頁と一致） 単位数の端数処理（割合加算の四捨五入・ADR 0025）",
+          "evidenceRole": "authoritative",
+          "supports": [
+            "unit-rule-rounding"
+          ]
+        }
+      ],
+      "values": {
+        "serviceCode": "465141",
+        "officialLabel": "福祉・介護職員等処遇改善加算(Ⅳ)（指定障害者支援施設において行った場合）",
+        "serviceKind": "employment-continuation-support-b",
+        "selectors": [
+          "selector:b-addition.r8-06.treatment-improvement.iv.facility"
+        ],
+        "conditionSelectors": [
+          "reward-system-employment-continuation-support-b",
+          "capability-treatment-improvement-r8-iv",
+          "facility-classification-designated-support-facility"
+        ],
+        "unitRule": {
+          "kind": "unit-addition",
+          "adjustmentComponentKey": "addition.treatment-improvement.r8.iv.facility",
+          "amount": {
+            "kind": "percentage-of-target",
+            "percentage": "0.081",
+            "applicationKind": "add",
+            "percentageBaseScope": "monthly-target-unit-sum",
+            "targetSelector": "target.b46.items-1-to-16-4.v1",
+            "calculationOrder": 10
+          },
+          "calculationStepId": "claim.step.units.monthly-target.percentage.v1",
+          "roundingRuleId": "claim.rounding.units.half-up.v1",
+          "billingUnit": "per-month"
+        },
+        "componentRefs": [
+          {
+            "masterKind": "additions",
+            "key": "addition.treatment-improvement.r8.iv.facility",
             "role": "adjustment"
           }
         ]
