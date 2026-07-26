@@ -1709,7 +1709,7 @@
         {
           "documentId": "r6-fee-notice",
           "sha256": "5d32a1fa54d928be5c91861ecf68490e820768a93b9923a5d8b342c267351d54",
-          "locator": "物理236頁 二（第2条表・左欄改正後 第14の17 括弧書き「指定障害者支援施設にあっては、…に相当する単位数」）",
+          "locator": "物理236頁 ニ（第2条表・左欄改正後 第14の17 括弧書き「指定障害者支援施設にあっては、…に相当する単位数」）",
           "evidenceRole": "authoritative",
           "supports": [
             "master-values",

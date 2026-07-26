@@ -138,6 +138,8 @@ public sealed class ClaimAdditionSeedScopeTests
         var r6PreCodes = AdditionRows(new ServiceMonth(2024, 4))
             .Select(row => row.ServiceCode).ToHashSet(StringComparer.Ordinal);
         r6PreCodes.Should().NotIntersectWith(UnifiedTreatmentImprovementCodes);
+        r6PreCodes.Should().NotIntersectWith(UnifiedTreatmentImprovementFacilityCodes,
+            "ADR 0048の施設variant3区分も統一処遇改善本体と同じ2024-06開始でなければならない");
         r6PreCodes.Should().Contain(FixedAdditionCodes);
 
         // ADR 0045: 2026-06はR8処遇改善へ世代交代する。465120/465121/465122/465123は公式資料上
@@ -195,6 +197,20 @@ public sealed class ClaimAdditionSeedScopeTests
             ["465174", "465175", "465176"],
             "新設区分(Ⅰ)ロ・(Ⅱ)ロと(Ⅰ)ロ施設variantだけが2026-06で新たに現れる。" +
             "(Ⅰ)・(Ⅲ)・(Ⅳ)施設variantはADR 0048でR6-06から継続するため新規出現ではない");
+
+        // ADR 0048（Phase 3-6 Task 1）でservice-codeがR6-06/R8-06の生成境界をまたいで共有される
+        // ようになったため（465138/465140/465141）、上のservice-code差分だけではR8-06行の
+        // effectiveFromが誤って2026-05以前へ動く欠陥を検出できない（R6-06行が同じコードを
+        // 2026-05まで供給し続けるため、mayCodeSetの内容が変わらず差分に現れない）。行キーは
+        // 世代間で共有されないため、2026-05にR8-06キーが一切存在しないことを直接固定する
+        // （ClaimMasterR6FacilityTests.R6_facility_rows_do_not_reach_june_2026のミラー）。
+        var mayKeys = JsonClaimMasterProvider.LoadEmbedded()
+            .ResolveCalculationMasters(new ServiceMonth(2026, 5))
+            .ServiceCodes
+            .Select(row => row.Key);
+        mayKeys
+            .Where(key => key.StartsWith("b-addition.r8-06.treatment-improvement.", StringComparison.Ordinal))
+            .Should().BeEmpty("R8-06の処遇改善行は2026-06から開始するため2026-05には存在してはならない");
     }
 
     [Fact]
