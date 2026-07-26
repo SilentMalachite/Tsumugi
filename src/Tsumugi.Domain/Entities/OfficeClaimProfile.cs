@@ -51,4 +51,12 @@ public sealed record OfficeClaimProfile : Entity
     /// フォールバックする（既存事業所の後方互換）。
     /// </summary>
     public string? RegionKey { get; init; }
+
+    /// <summary>
+    /// 施設区分（ADR 0021・ADR 0047）。処遇改善加算の一部区分は指定障害者支援施設で率が
+    /// 別立てになる。体制届の `designated-management` から推測せず構造化入力で受ける。
+    /// <c>null</c>／<see cref="FacilityClassification.Unknown"/>は未入力で、施設variantを持つ
+    /// 区分の算定はフェイルクローズする。
+    /// </summary>
+    public FacilityClassification? FacilityClassification { get; init; }
 }
