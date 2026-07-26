@@ -41,6 +41,20 @@
             <CheckBox Content="食事提供体制 (mealProvision)" IsChecked="{Binding MealProvision}" />
             <CheckBox Content="送迎支援 (transportSupport)" IsChecked="{Binding TransportSupport}" />
         </StackPanel>
+        <StackPanel Orientation="Vertical" Spacing="4">
+            <TextBlock Text="福祉・介護職員等処遇改善加算 対象区分" />
+            <ComboBox ItemsSource="{Binding TreatmentImprovementOptions}"
+                      SelectedItem="{Binding TreatmentImprovementOption}"
+                      AutomationProperties.Name="福祉・介護職員等処遇改善加算 対象区分" />
+        </StackPanel>
+        <StackPanel Orientation="Vertical" Spacing="4"
+                    IsVisible="{Binding TreatmentImprovementVBandOptions.Count,
+                                Converter={x:Static conv:CountGreaterThanZeroConverter.Instance}}">
+            <TextBlock Text="福祉・介護職員等処遇改善加算(Ⅴ) 区分" />
+            <ComboBox ItemsSource="{Binding TreatmentImprovementVBandOptions}"
+                      SelectedItem="{Binding TreatmentImprovementVBand}"
+                      AutomationProperties.Name="福祉・介護職員等処遇改善加算(Ⅴ) 区分" />
+        </StackPanel>
         <TextBlock Text="{Binding SaveErrorMessage}"
                    Foreground="#FF4444"
                    IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
