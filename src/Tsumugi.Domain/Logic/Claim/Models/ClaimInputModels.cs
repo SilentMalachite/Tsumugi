@@ -154,6 +154,21 @@ public enum R8ReformStatus
     UnchangedBelow15000 = 4,
 }
 
+/// <summary>
+/// 施設区分（ADR 0021・ADR 0047）。処遇改善加算の一部区分は指定障害者支援施設で率が
+/// 別立てになるため、体制届の `designated-management` から推測せず構造化入力で受ける。
+/// </summary>
+public enum FacilityClassification
+{
+    Unknown = 0,
+
+    /// <summary>指定障害者支援施設以外の就労継続支援B型事業所。</summary>
+    General = 1,
+
+    /// <summary>指定障害者支援施設において行う場合。</summary>
+    DesignatedSupportFacility = 2,
+}
+
 public enum UpperLimitManagementApplicability
 {
     Unknown = 0,

@@ -11,6 +11,11 @@ namespace Tsumugi.Domain.Logic.Claim.Models;
 /// フェイルクローズする。空集合は「体制届上いずれの加算体制もない」= 該当加算を算定しない
 /// （正しい請求挙動）。production builderは常に非nullを渡す（未登録なら空集合）。
 /// </param>
+/// <param name="FacilityClassification">
+/// 施設区分トークン（ADR 0047）。<c>null</c>は「施設区分が未入力（判定不能）」を表し、
+/// 施設区分条件つき行の解決はフェイルクローズする。施設区分条件を持たない行（例: 処遇改善
+/// (Ⅱ)イ・(Ⅱ)ロ。公式に施設別立てが存在しない）は<c>null</c>のままでも解決できる。
+/// </param>
 public sealed record ClaimBillingConditionContext(
     string RewardSystem,
     string PaymentBand,
@@ -18,4 +23,5 @@ public sealed record ClaimBillingConditionContext(
     string StaffingKey,
     AverageWageBandOption AverageWageBandOption,
     R8ReformStatus R8ReformStatus,
-    IReadOnlyCollection<string>? OfficeCapabilityKeys = null);
+    IReadOnlyCollection<string>? OfficeCapabilityKeys = null,
+    string? FacilityClassification = null);

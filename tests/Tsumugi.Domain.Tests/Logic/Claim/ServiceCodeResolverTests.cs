@@ -51,9 +51,11 @@ public sealed class ServiceCodeResolverTests
 
     [Fact]
     public void Throws_condition_unresolved_for_frozen_condition_kinds()
-        // FacilityClassification（保護施設系）等、本スライス対象外のkindを含む行はConditionUnresolved
+        // ADR 0047でFacilityClassificationは本スライスの対象になったため、この例は
+        // EmploymentOutcomeCount（就労移行実績等、本スライス対象外のkind）に差し替える。
+        // 他にも未配線のkindはあるが、代表として1つ検証すれば足りる。
         => FluentActions.Invoking(() => ServiceCodeResolver.ResolveBasicReward(
-                SyntheticMastersWithFacilityClassificationCondition(), Month, DefaultContext()))
+                SyntheticMastersWithFrozenConditionKind(), Month, DefaultContext()))
             .Should().Throw<ServiceCodeResolutionException>()
             .Which.Code.Should().Be(ServiceCodeResolutionErrorCode.ConditionUnresolved);
 
@@ -90,6 +92,45 @@ public sealed class ServiceCodeResolverTests
         => FluentActions.Invoking(() => ServiceCodeResolver.ResolveBasicReward(
                 SyntheticMastersWithInOperatorCondition(), Month, DefaultContext()))
             .Should().NotThrow();
+
+    /// <summary>
+    /// ADR 0047: 施設区分条件は、context が施設区分を持たない（null）とき判定不能として
+    /// フェイルクローズする。汎用の ConditionUnresolved ではなく専用コードで返し、
+    /// 「施設区分が未入力である」ことを呼び出し側が判別できるようにする。
+    /// 検証は公開API（<see cref="ServiceCodeResolver.ResolveAdditions"/>）経由で行う
+    /// （<c>Evaluate</c>はprivateで<c>Tsumugi.Domain</c>にInternalsVisibleToが無いため）。
+    /// </summary>
+    [Fact]
+    public void Facility_classification_condition_fails_closed_when_the_context_has_no_value()
+    {
+        var masters = SyntheticMastersWithFacilityClassificationAddition("designated-support-facility");
+        var context = DefaultContext();
+
+        var action = () => ServiceCodeResolver.ResolveAdditions(masters, Month, context);
+
+        action.Should().Throw<ServiceCodeResolutionException>()
+            .Which.Code.Should().Be(
+                ServiceCodeResolutionErrorCode.FacilityClassificationUnresolved,
+                "施設区分未入力は汎用の判定不能と区別する（ADR 0047）");
+    }
+
+    /// <summary>
+    /// ADR 0047: 施設区分が入っていれば通常のtoken比較として評価する。一致した場合のみ加算行が
+    /// 解決結果に含まれ、不一致の場合は「算定しない」として除外される（フェイルクローズではない）。
+    /// </summary>
+    [Theory]
+    [InlineData("designated-support-facility", "designated-support-facility", true)]
+    [InlineData("general", "designated-support-facility", false)]
+    public void Facility_classification_condition_compares_the_token(
+        string contextValue, string conditionValue, bool expected)
+    {
+        var masters = SyntheticMastersWithFacilityClassificationAddition(conditionValue);
+        var context = DefaultContext() with { FacilityClassification = contextValue };
+
+        var resolved = ServiceCodeResolver.ResolveAdditions(masters, Month, context);
+
+        resolved.Should().HaveCount(expected ? 1 : 0);
+    }
 
     private static ClaimBillingConditionContext DefaultContext() => new(
         RewardSystem: "b-type",
@@ -177,7 +218,9 @@ public sealed class ServiceCodeResolverTests
         ],
         ConditionDefinitions: DefaultConditions());
 
-    private static ClaimCalculationMasterBundle SyntheticMastersWithFacilityClassificationCondition() => new(
+    // ADR 0047でFacilityClassificationは配線済みになったため、まだ配線されていないkind
+    // （EmploymentOutcomeCount）で「凍結スコープはConditionUnresolved」の挙動を検証する。
+    private static ClaimCalculationMasterBundle SyntheticMastersWithFrozenConditionKind() => new(
         BasicRewards: [BasicReward()],
         UnitAdjustments: [],
         RegionUnitPrices: [],
@@ -185,15 +228,57 @@ public sealed class ServiceCodeResolverTests
         TransitionRules: [],
         ServiceCodes:
         [
-            ServiceCode("sc-a", "610000", [.. DefaultConditionSelectors, "cond-facility"], "base-a"),
+            ServiceCode("sc-a", "610000", [.. DefaultConditionSelectors, "cond-frozen"], "base-a"),
         ],
         ConditionDefinitions:
         [
             .. DefaultConditions(),
             ConditionDefinition(
-                "cond-facility", ClaimConditionKind.FacilityClassification, ClaimConditionOperator.Equals,
-                new ClaimConditionTokenOperand("protected")),
+                "cond-frozen", ClaimConditionKind.EmploymentOutcomeCount, ClaimConditionOperator.Equals,
+                new ClaimConditionTokenOperand("unused")),
         ]);
+
+    // ADR 0047: 施設区分条件つきの加算行1本のみを持つ最小マスタ。ResolveAdditions経由で
+    // EvaluateFacilityClassificationの挙動（フェイルクローズ／token比較）を検証する。
+    private static ClaimCalculationMasterBundle SyntheticMastersWithFacilityClassificationAddition(
+        string conditionTokenValue)
+    {
+        const string adjustmentKey = "addition.facility-classification-test";
+        var amount = new FixedUnitsAmount(10);
+
+        return new ClaimCalculationMasterBundle(
+            BasicRewards: [],
+            UnitAdjustments:
+            [
+                new UnitAdjustmentMasterRow(
+                    adjustmentKey, amount, "step-add", null, BillingUnit.PerDay,
+                    new ServiceMonth(2024, 4), null, [SourceRef()]),
+            ],
+            RegionUnitPrices: [],
+            BurdenCaps: [],
+            TransitionRules: [],
+            ServiceCodes:
+            [
+                new ServiceCodeMasterRow(
+                    "sc-facility-addition",
+                    "999999",
+                    "施設区分条件加算(合成)",
+                    "b-type",
+                    [],
+                    ["cond-facility-addition"],
+                    new UnitAdditionRule(adjustmentKey, amount, "step-add", null, BillingUnit.PerDay),
+                    [new ClaimComponentRef(ClaimComponentMasterKind.Additions, adjustmentKey, ClaimComponentRole.Adjustment)],
+                    new ServiceMonth(2024, 4),
+                    null,
+                    [SourceRef()]),
+            ],
+            ConditionDefinitions:
+            [
+                ConditionDefinition(
+                    "cond-facility-addition", ClaimConditionKind.FacilityClassification, ClaimConditionOperator.Equals,
+                    new ClaimConditionTokenOperand(conditionTokenValue)),
+            ]);
+    }
 
     private static ClaimCalculationMasterBundle SyntheticMastersWithBrokenComponentRef() => new(
         BasicRewards: [BasicReward()],

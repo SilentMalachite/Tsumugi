@@ -17,6 +17,13 @@ public enum ServiceCodeResolutionErrorCode
     /// 一致しない（マスタ間の食い違い。フェイルクローズ）。
     /// </summary>
     ComponentMismatch = 6,
+
+    /// <summary>
+    /// 施設区分条件を評価しようとしたが、contextが施設区分を持たない（未入力）。
+    /// 汎用の<see cref="ConditionUnresolved"/>と区別し、呼び出し側が
+    /// 「施設区分を入力すれば解消する」と判別できるようにする（ADR 0047）。
+    /// </summary>
+    FacilityClassificationUnresolved = 7,
 }
 
 public sealed class ServiceCodeResolutionException(ServiceCodeResolutionErrorCode code)
@@ -190,6 +197,8 @@ public static class ServiceCodeResolver
                 EvaluateInteger(definition, context.AverageWageBandOption.OfficialOptionCode),
             ClaimConditionKind.R8ReformStatus => EvaluateToken(definition, TokenFor(context.R8ReformStatus)),
             ClaimConditionKind.OfficeCapability => EvaluateCapability(definition, context),
+            ClaimConditionKind.FacilityClassification =>
+                EvaluateFacilityClassification(definition, context),
             // 凍結スコープ（保護施設・基準該当等）のkindはフェイルクローズ
             _ => throw new ServiceCodeResolutionException(ServiceCodeResolutionErrorCode.ConditionUnresolved),
         };
@@ -213,6 +222,22 @@ public static class ServiceCodeResolver
                 set.Values.Any(keys.Contains),
             _ => throw new ServiceCodeResolutionException(ServiceCodeResolutionErrorCode.ConditionUnresolved),
         };
+    }
+
+    /// <summary>
+    /// 施設区分条件: contextの施設区分トークンとの一致。未入力（null）の場合は判定不能として
+    /// 専用コードでフェイルクローズする（推測して通常事業所として扱わない。ADR 0047）。
+    /// </summary>
+    private static bool EvaluateFacilityClassification(
+        ClaimConditionDefinition definition, ClaimBillingConditionContext context)
+    {
+        if (context.FacilityClassification is not { } value)
+        {
+            throw new ServiceCodeResolutionException(
+                ServiceCodeResolutionErrorCode.FacilityClassificationUnresolved);
+        }
+
+        return EvaluateToken(definition, value);
     }
 
     private static bool EvaluateToken(ClaimConditionDefinition definition, string value)
