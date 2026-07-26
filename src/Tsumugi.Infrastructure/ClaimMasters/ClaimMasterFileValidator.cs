@@ -670,11 +670,28 @@ internal static class ClaimMasterFileValidator
         }
 
         // ADR 0021: 体制届キーは「mhlw.b46.capability.<field>.<option>」の正式one-hotキーのみ。
-        // 旧暫定キー（mealProvision等）や別体系のトークンをここで受け付けない。
-        if (kind is ClaimConditionKind.OfficeCapability
-            && !value.StartsWith("mhlw.b46.capability.", StringComparison.Ordinal))
+        // 旧暫定キー（mealProvision等）や別体系のトークンをここで受け付けない。ちょうど5segment
+        // （mhlw/b46/capability/<field>/<option>）であることも強制する。この形を単なる前置一致
+        // ではなく厳密な形として固定するのは、ClaimMasterFileValidator.ConditionIntersectionGroupKey
+        // が末尾ドット区切りを「フィールド名」とみなして体制届の複数条件を安全にAND合成できる
+        // ようにするため（Phase 3-6 Task 2 review Important 2）: 短縮形（<field>を欠く）は
+        // 無関係なトークンと同じfamilyへ過剰グルーピングされ、入れ子形（余分なsegmentを持つ）は
+        // 本来同一fieldであるべき条件が別familyに分裂し矛盾を検出できなくなる。どちらも
+        // グルーピングの安全性が「この形以外あり得ない」という前提に依存しているため、ここで
+        // 閉じたシェイプとして強制する。
+        if (kind is ClaimConditionKind.OfficeCapability)
         {
-            throw Invalid(fileName, key, "value", $"unknown office-capability key '{value}'");
+            var segments = value.Split('.');
+            var isWellFormedCapabilityKey = segments.Length == 5
+                && segments[0] == "mhlw"
+                && segments[1] == "b46"
+                && segments[2] == "capability"
+                && segments[3].Length > 0
+                && segments[4].Length > 0;
+            if (!isWellFormedCapabilityKey)
+            {
+                throw Invalid(fileName, key, "value", $"unknown office-capability key '{value}'");
+            }
         }
     }
 
@@ -2509,7 +2526,7 @@ internal static class ClaimMasterFileValidator
                 .Select(selector => byKey[selector].Single(row =>
                     IsWithin(month, row.EffectiveFrom, row.EffectiveTo)))
                 .ToArray();
-            foreach (var dimension in active.GroupBy(row => row.Kind))
+            foreach (var dimension in active.GroupBy(ConditionIntersectionGroupKey))
             {
                 if (!HasConditionIntersection(dimension.ToArray()))
                 {
@@ -2521,6 +2538,34 @@ internal static class ClaimMasterFileValidator
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// 同一行が参照する複数条件のうち、どれが「同じ体制届フィールドの排他値」として
+    /// 交差チェック対象になるかを決める。<see cref="ClaimConditionKind"/>単体では粒度が
+    /// 粗すぎる: <c>OfficeCapability</c>は事業所体制届の複数フィールド（ADR 0021の
+    /// one-hotキー）を同じ<see cref="ClaimBillingConditionContext.OfficeCapabilityKeys"/>
+    /// 集合へ格納するため、フィールドが異なれば同時に真となってよい（例: 「処遇改善(Ⅴ)を
+    /// 選択」と「(Ⅴ)のサブ区分nを選択」は別フィールドで、両方を要求するAND条件が正しい）。
+    /// トークンは<c>mhlw.b46.capability.{field}.{value}</c>の形を約束事とし、末尾の
+    /// ドット区切りを値、残りをフィールド名として切り出す。同一フィールド内の異なる値
+    /// （例: 処遇改善(Ⅰ)と(Ⅳ)を誤って両方参照）は従来どおり空交差として検出する。
+    /// </summary>
+    private static string ConditionIntersectionGroupKey(ClaimConditionDefinition definition)
+    {
+        if (definition.Kind != ClaimConditionKind.OfficeCapability)
+            return definition.Kind.ToString();
+
+        var token = definition.Operand switch
+        {
+            ClaimConditionTokenOperand tokenOperand => tokenOperand.Value,
+            ClaimConditionTokenSetOperand setOperand => setOperand.Values[0],
+            _ => throw new InvalidOperationException(
+                "Office-capability condition operand kind is closed."),
+        };
+        var separatorIndex = token.LastIndexOf('.');
+        var family = separatorIndex < 0 ? token : token[..separatorIndex];
+        return $"{definition.Kind}:{family}";
     }
 
     private static bool HasConditionIntersection(

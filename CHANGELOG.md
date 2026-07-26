@@ -29,9 +29,45 @@
 
 ### 本番投入前に必須の deferred
 
-- Phase 3-1は未受け入れ。**51 missing fieldIds / 26 implementation targets**（CSV 30件＋帳票21件。正本は `docs/phase3-claim-field-mapping.md`）のモデル・migration・repository・保存ユースケース・typed requirements・readiness gateは実装済みだが、実UIと一貫snapshot readerは未実装。Phase 3-2 / 3-3も未実装。
-- 対象service-code revisionsを含む令和6/8報酬masterのproduction seed、保護施設事務費の実値recordと証拠取込、master resolver、平均工賃・基本報酬・加算減算・地域単価・利用者負担のruntime計算、production snapshot codec、validated finalization / `IValidatedClaimSnapshotReader`を実装する。
-- 3帳票と国保連提出CSV（CP932 / CRLF）の生成・保存UIを実装する。現時点では請求CSV生成完了ではない。
+> 本節は Phase 3-1 未受け入れ時点の記述のまま陳腐化していたため、2026-07-26（Phase 3-6 完了時）に現況へ更新した。3帳票は Phase 3-2 で、国保連請求CSV生成・保存UIは Phase 3-3 で実装済みである。
+
+- **GUI 手動貫通確認が Phase 1 から未実施**。実機起動でのフォント拡大追従・Reduce Motion・タブ順・フォーカス移動、および Phase 3-6 で判明した「`PeriodStart` 編集をまたいだ ComboBox の選択保持」（headless の ViewModel テストでは原理的に検証できない）は手動QAでしか確認できない。macOS/Windows 双方で1回ずつ、プレビュー→確定→帳票保存×3→CSV生成→保存 の end-to-end を目視で確認する。
+- **Phase 3-3 より前に確定した請求は再確定が必要**。snapshot が契約情報・サービス利用日数を持たないため CSV 化できない（ADR 0032・0034）。
+- **2026-05以前の月を扱う事業所は施設区分（`OfficeClaimProfile.FacilityClassification`）の入力が必須**。Phase 3-6（ADR 0048）以降、未入力のまま処遇改善(Ⅰ)/(Ⅲ)/(Ⅳ)を宣言していると 2024-06〜2026-05 の全月で preview・再確定が fail-close する（過去月の訂正に及ぶ）。
+- **未投入の制度実値**: 保護施設事務費の実値record・runtime算定、`PaymentBand` 境界マスタ（平均工賃月額からの band 自動導出）、R8-06 の定員超過・生活支援員等欠員・サービス管理責任者欠員3シート、`r8-reform-status-exempt`、体制届 option 8（filed-transition）、option 10（生産活動支援）と参加評価型。詳細は `docs/open-questions.md`。
+- **旧暫定体制届キー（`mealProvision` / `transportSupport`）が公式キーへ未移行**。算定に効かないまま書かれ続けている。送迎体制加算・食事提供体制加算のマスタ投入と同時に移行する。
+- SQLite 暗号化方針の決定、NuGet audit suppression（GHSA-2m69-gcr7-jv3q）の解除、バックアップ自動化、配布パッケージング、運用ガイド。
+
+## Phase 3-6 完了 (2026-07-26)
+
+- Phase 3-5 最終レビューが持ち越したR6-06世代（2024-06〜2026-05）の施設区分欠落を塞いだ（ADR 0048）。
+  指定障害者支援施設variant3区分（(Ⅰ)=465138@0.104・(Ⅲ)=465140@0.086・(Ⅳ)=465141@0.069）を投入し、
+  通常3行へ `facility-classification-general-r6-06` を付与した。(Ⅱ)=465121は施設別立てが
+  存在しないため無変更
+- 告示の括弧書き「指定障害者支援施設にあっては」の有無と、サービスコード表の施設行の有無が
+  18区分すべてで完全一致することを2形式独立照合で確認し、欠番が抽出漏れではなく制度上の
+  欠番であることの根拠とした
+- **ADR 0045 の「R8-06へ処遇改善(Ⅴ)を投入する必要がある」という前提の誤りを訂正した**。
+  (Ⅴ)はR6-06世代の経過措置であり **2024-06〜2025-03 にしか存在しない**（`r6-fee-notice` の
+  期限本文・`r8-fee-notice` の「（削る）」・R8コード表に465124〜465137が無いこと、の3点が一致）。
+  通常14行・施設variant 9行の計23行を当該期間限定で投入した
+- 体制届の選択肢（処遇改善の対象区分・(Ⅴ)区分）を当月のマスタ条件定義から導出する経路を追加し、
+  公式キー `mhlw.b46.capability.treatment-improvement.{n}` / `…-v-band.{n}` の入力面を
+  `OfficeCapabilityView` へ追加した（UIが制度語彙を持たない。ADR 0021）
+- 宣言された体制届optionに対応するマスタ行が当月に無い場合の**存在検査**を恒久readinessチェックとして
+  追加（ADR 0049）。2段構え（当月に無い ∧ 他の期間には有る）で偽陽性を排除し、`IsReady` を
+  変えない警告として `ClaimPreparationView` へ表示する。処遇改善に限らず `OfficeCapability` を
+  参照する全加算に効く
+- `ClaimMasterFileValidator` を2箇所改修した（`OfficeCapability` 条件の交差判定をトークンfamily単位へ
+  精密化・トークン形状をちょうど5セグメントへ強制）。いずれも本スライス以前は一度も行使されて
+  いなかった実装上のギャップ
+- **破壊的な運用上の帰結**: `OfficeClaimProfile.FacilityClassification` が未入力のまま
+  処遇改善(Ⅰ)/(Ⅲ)/(Ⅳ)を宣言している事業所は、**2024-06〜2026-05 の全月で preview・再確定が
+  fail-close する**（過去月の訂正に及ぶ）。片側だけの投入は二重計上になるため回避不可。
+  詳細は [`docs/phase3-6-acceptance.md`](docs/phase3-6-acceptance.md) §3-1
+- 未解決: 旧暫定体制届キーの公式キーへの移行、(Ⅴ)区分と処遇改善対象optionの組合せ検証、
+  GUI手動貫通確認。詳細は [`docs/phase3-6-acceptance.md`](docs/phase3-6-acceptance.md) と
+  `docs/open-questions.md`
 
 ## Phase 3-4 完了 (2026-07-26)
 

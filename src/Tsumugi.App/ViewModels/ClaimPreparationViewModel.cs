@@ -9,6 +9,7 @@ using Tsumugi.Application.UseCases.Claim;
 using Tsumugi.Application.UseCases.Office;
 using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Domain.Enums;
+using Tsumugi.Domain.Logic.Claim;
 using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.App.ViewModels;
@@ -39,6 +40,14 @@ public sealed partial class ClaimPreparationViewModel(
     private const string NoActiveHistoryMessage = "取下げ対象の確定請求がありません。";
     private const string GenericFailureMessage = "処理に失敗しました。しばらくしてから再試行してください。";
 
+    /// <summary>
+    /// 施設区分（<c>OfficeClaimProfile.FacilityClassification</c>）が未入力のまま、施設区分条件を
+    /// 持つ行へ到達したときの固定文言。ADR 0047 はこれを readiness の不足項目にしない判断を
+    /// しているため、入力すべき欄を名指しできるのはこの境界だけになる。
+    /// </summary>
+    private const string FacilityClassificationRequiredMessage =
+        "施設区分が未入力です。事業所請求設定で施設区分を入力してから、もう一度実行してください。";
+
     private readonly ListOfficesUseCase _listOffices = listOffices;
     private readonly CalculateClaimUseCase _calculateClaim = calculateClaim;
     private readonly CloseClaimUseCase _closeClaim = closeClaim;
@@ -66,6 +75,13 @@ public sealed partial class ClaimPreparationViewModel(
     /// 表示は項目コードと版だけ（氏名・受給者証番号は出さない）。
     /// </summary>
     public ObservableCollection<string> UpcomingSpecificationWarnings { get; } = [];
+
+    /// <summary>
+    /// 体制届で宣言されたが当月に有効なマスタ行が無いキー（ADR 0049）。**確定を止めない情報**で、
+    /// 無音で加算0円になる経路を可視化する警告。表示はキー文字列のみ（氏名・受給者証番号は出さない）。
+    /// </summary>
+    public ObservableCollection<string> CapabilityCoverageWarnings { get; } = [];
+
     public ObservableCollection<ClaimBatchHistoryDto> History { get; } = [];
 
     /// <summary>「帳票出力」セクション（Task 14）。確定済revisionの有無と受給者一覧は
@@ -101,6 +117,7 @@ public sealed partial class ClaimPreparationViewModel(
             Replace(
                 UpcomingSpecificationWarnings,
                 (preview.UpcomingSpecificationIssues ?? []).Select(FormatUpcomingChange));
+            Replace(CapabilityCoverageWarnings, preview.CapabilityCoverageWarnings ?? []);
             ErrorMessage = null;
             await RefreshHistoryAsync(context, ct);
         }
@@ -129,6 +146,7 @@ public sealed partial class ClaimPreparationViewModel(
             Preview = null;
             Issues.Clear();
             UpcomingSpecificationWarnings.Clear();
+            CapabilityCoverageWarnings.Clear();
             ErrorMessage = null;
             await RefreshHistoryAsync(context, ct);
         }
@@ -166,6 +184,7 @@ public sealed partial class ClaimPreparationViewModel(
             Preview = null;
             Issues.Clear();
             UpcomingSpecificationWarnings.Clear();
+            CapabilityCoverageWarnings.Clear();
             ErrorMessage = null;
             await RefreshHistoryAsync(context, ct);
         }
@@ -194,6 +213,7 @@ public sealed partial class ClaimPreparationViewModel(
         Preview = null;
         Issues.Clear();
         UpcomingSpecificationWarnings.Clear();
+        CapabilityCoverageWarnings.Clear();
         History.Clear();
         ErrorMessage = null;
         CancelCommand.NotifyCanExecuteChanged();
@@ -262,9 +282,16 @@ public sealed partial class ClaimPreparationViewModel(
         return true;
     }
 
+    /// <summary>
+    /// <see cref="ServiceCodeResolutionException"/> を含める理由: 算定は
+    /// <c>ClaimPreviewPipeline</c> から <c>ClaimCalculator.Calculate</c> を同期呼び出しするため、
+    /// マスタ解決の失敗はそのまま <see cref="PreviewAsync"/>／<see cref="CloseAsync"/> へ伝播する。
+    /// ここで受けないと <c>AsyncRelayCommand</c>（<c>FlowExceptionsToTaskScheduler</c> 無し）から
+    /// 未捕捉例外として抜け、グローバルハンドラも無いためアプリが終了する。
+    /// </summary>
     private static bool IsHandledClaimException(Exception ex) =>
         ex is ClaimFinalizationException or ClaimMasterPolicyUnavailableException
-            or ClaimInputSaveException or ArgumentException;
+            or ClaimInputSaveException or ServiceCodeResolutionException or ArgumentException;
 
     private static string MapError(Exception ex) => ex switch
     {
@@ -276,6 +303,12 @@ public sealed partial class ClaimPreparationViewModel(
         },
         ClaimMasterPolicyUnavailableException => MasterUnavailableMessage,
         ClaimInputSaveException => GenericFailureMessage,
+        // 施設区分の未入力（ADR 0047・0048）だけは入力すべき欄を名指しする。他の解決失敗は
+        // マスタ側の不整合であり利用者の入力では直せないため汎用文言に倒す。
+        ServiceCodeResolutionException
+        {
+            Code: ServiceCodeResolutionErrorCode.FacilityClassificationUnresolved,
+        } => FacilityClassificationRequiredMessage,
         _ => GenericFailureMessage,
     };
 

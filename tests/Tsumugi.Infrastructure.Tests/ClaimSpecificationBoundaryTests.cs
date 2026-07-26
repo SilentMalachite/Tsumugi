@@ -158,6 +158,73 @@ public sealed class ClaimSpecificationBoundaryTests
         violation.CatalogPath.Should().EndWith("#/entries/0/values/officialOptionCode");
     }
 
+    [Fact]
+    public void Scan_ignores_calculation_order_as_a_percentage_amount_ordering_index()
+    {
+        // Phase 3-6 Task 2 review (Important 1): calculationOrderは
+        // percentageOfTargetAmount形状のみが持つ内部の適用順ブックキーピングであり（公式資料は
+        // この番号を割り当てない）、報酬値ではない。カタログへ載せると割合加算family一つの
+        // calculationOrder列が10を超えるたびに暦・型序数の偶然一致でguardが汚染される
+        // （Phase 3-6 Task 2の1〜30拡張で34件の無関係な既存リテラルと衝突した）ため、
+        // officialOptionCodeと同じ手口でこの正確なプロパティ名だけをカタログ抽出から除外する
+        // （値としての数値は下のテストが引き続き検出することを証明）。
+        using var fixture = new SpecificationFixture();
+        fixture.WriteCalculationOrderInsideAmount(
+            calculationOrder: "22", otherAmountNumber: "23");
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/CalculationOrderUse.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal static class CalculationOrderUse { " +
+            "internal static int Value => 22; }");
+
+        fixture.Scan().Should().NotContain(
+            v => v.Rule == "claim-master-literal" && v.Literal == "22");
+    }
+
+    [Fact]
+    public void Scan_still_detects_other_amount_numbers_beside_calculation_order()
+    {
+        // 補償テスト: calculationOrder以外の数値（例: amount形状内の別フィールド）が同じ
+        // amount形状の値に現れた場合、guardは引き続き検出する（除外がプロパティ名1点に
+        // 閉じている証明）。
+        using var fixture = new SpecificationFixture();
+        fixture.WriteCalculationOrderInsideAmount(
+            calculationOrder: "22", otherAmountNumber: "23");
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/OtherAmountNumberUse.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal static class OtherAmountNumberUse { " +
+            "internal static int Value => 23; }");
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-literal" && v.Literal == "23");
+
+        violation.RelativePath.Should().Be("src/Tsumugi.Domain/Logic/Claim/OtherAmountNumberUse.cs");
+        violation.CatalogPath.Should().EndWith("#/entries/0/values/amount/otherAmountNumber");
+    }
+
+    [Fact]
+    public void Scan_calculation_order_outside_an_amount_ancestor_is_cataloged()
+    {
+        // calculationOrderの除外は amount 祖先配下のみに閉じる（percentageOfTargetAmount形状が
+        // このプロパティを持つ唯一の場所）。同じプロパティ名がそれ以外の場所（例: values直下の
+        // 兄弟フィールド）に現れた場合は通常のmaster値として引き続きカタログへ載り、他の数値と
+        // 同様に扱われる。除外がどのファイルのどこにあるプロパティ名にも及ばないことの証明。
+        using var fixture = new SpecificationFixture();
+        fixture.WriteCalculationOrderOutsideAmount("22");
+        fixture.Write(
+            "src/Tsumugi.Domain/Logic/Claim/CalculationOrderOutsideAncestorUse.cs",
+            "namespace Tsumugi.Domain.Logic.Claim; internal static class " +
+            "CalculationOrderOutsideAncestorUse { internal static int Value => 22; }");
+
+        var violation = Assert.Single(
+            fixture.Scan(),
+            v => v.Rule == "claim-master-literal" && v.Literal == "22");
+
+        violation.RelativePath.Should().Be(
+            "src/Tsumugi.Domain/Logic/Claim/CalculationOrderOutsideAncestorUse.cs");
+        violation.CatalogPath.Should().EndWith("#/entries/0/values/calculationOrder");
+    }
+
     [Theory]
     [InlineData("10")]
     [InlineData("-10")]
@@ -788,6 +855,48 @@ public sealed class ClaimSpecificationBoundaryTests
                 "      \"sourceRefs\": [{ \"documentId\": \"known-source\" }],\n" +
                 "      \"values\": {\n" +
                 "        \"officialOptionCode\": " + officialOptionCode + "\n" +
+                "      }\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}\n");
+        }
+
+        public void WriteCalculationOrderInsideAmount(string calculationOrder, string otherAmountNumber)
+        {
+            Write(
+                MasterPath,
+                "{\n" +
+                "  \"schemaVersion\": \"2\",\n" +
+                "  \"masterKind\": \"fixture\",\n" +
+                "  \"entries\": [\n" +
+                "    {\n" +
+                "      \"effectiveFrom\": \"2026-06\",\n" +
+                "      \"sourceRefs\": [{ \"documentId\": \"known-source\" }],\n" +
+                "      \"values\": {\n" +
+                "        \"amount\": {\n" +
+                "          \"kind\": \"percentage-of-target\",\n" +
+                "          \"calculationOrder\": " + calculationOrder + ",\n" +
+                "          \"otherAmountNumber\": " + otherAmountNumber + "\n" +
+                "        }\n" +
+                "      }\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}\n");
+        }
+
+        public void WriteCalculationOrderOutsideAmount(string calculationOrder)
+        {
+            Write(
+                MasterPath,
+                "{\n" +
+                "  \"schemaVersion\": \"2\",\n" +
+                "  \"masterKind\": \"fixture\",\n" +
+                "  \"entries\": [\n" +
+                "    {\n" +
+                "      \"effectiveFrom\": \"2026-06\",\n" +
+                "      \"sourceRefs\": [{ \"documentId\": \"known-source\" }],\n" +
+                "      \"values\": {\n" +
+                "        \"calculationOrder\": " + calculationOrder + "\n" +
                 "      }\n" +
                 "    }\n" +
                 "  ]\n" +

@@ -150,7 +150,9 @@ internal static class ClaimPreparationViewModelTestKit
         };
     }
 
-    internal static ClaimCalculationSnapshot Snapshot(int billedDays = 2) => new(
+    internal static ClaimCalculationSnapshot Snapshot(
+        int billedDays = 2,
+        IReadOnlyList<OfficeCapability>? officeCapabilities = null) => new(
         [RecipientId],
         Profile(),
         [Input()],
@@ -158,7 +160,19 @@ internal static class ClaimPreparationViewModelTestKit
         [AverageWageEvidence()],
         new Dictionary<Guid, int> { [RecipientId] = billedDays },
         new Dictionary<Guid, int> { [RecipientId] = 1 },
-        new Dictionary<Guid, Certificate> { [RecipientId] = Certificate() });
+        new Dictionary<Guid, Certificate> { [RecipientId] = Certificate() },
+        OfficeCapabilities: officeCapabilities);
+
+    /// <summary>ADR 0049テスト専用: 体制届の実効フラグ集合を持つ合成レコード。</summary>
+    internal static OfficeCapability Capability(IReadOnlyDictionary<string, bool> flags) =>
+        OfficeCapability.Create(
+            Guid.NewGuid(),
+            OfficeId,
+            new DateRange(new DateOnly(2024, 4, 1), null),
+            flags,
+            "tester",
+            Now,
+            Guid.NewGuid());
 
     /// <summary>
     /// Task 12（ADR 0022）: <see cref="PaymentBurdenCategory"/>→burden-caps.json正準keyの対応。
@@ -265,6 +279,32 @@ internal static class ClaimPreparationViewModelTestKit
                 new ClaimConditionTokenOperand("staff-a")),
         ]);
 
+    /// <summary>
+    /// 施設区分条件を持つ基本報酬行だけを含むマスタ束。<see cref="Tokens"/> は
+    /// <c>FacilityClassification</c> を持たない（null）ため、<c>ServiceCodeResolver</c> が
+    /// <c>FacilityClassificationUnresolved</c> でフェイルクローズする経路を合成語彙で再現する
+    /// （ADR 0047・0048。実seedでは 2024-06〜 の処遇改善行がこの形になる）。
+    /// </summary>
+    internal static ClaimCalculationMasterBundle MastersRequiringFacilityClassification()
+    {
+        var baseline = SyntheticMasters();
+        var row = baseline.ServiceCodes[0];
+        return baseline with
+        {
+            ServiceCodes =
+            [
+                row with { ConditionSelectors = [.. row.ConditionSelectors, "cond-facility-general"] },
+            ],
+            ConditionDefinitions =
+            [
+                .. baseline.ConditionDefinitions,
+                Condition(
+                    "cond-facility-general", ClaimConditionKind.FacilityClassification,
+                    ClaimConditionOperator.Equals, new ClaimConditionTokenOperand("general")),
+            ],
+        };
+    }
+
     internal sealed class MutableSnapshotReader(ClaimCalculationSnapshot snapshot)
         : IClaimCalculationSnapshotReader
     {
@@ -281,6 +321,10 @@ internal static class ClaimPreparationViewModelTestKit
         public ClaimMasterRelease? Release { get; set; } = release;
         public ClaimCalculationMasterBundle? Masters { get; set; } = masters;
 
+        /// <summary>ADR 0049テスト専用: 全期間の体制届キー集合（既定は空＝カバレッジ警告なし）。</summary>
+        public IReadOnlySet<string> AllCapabilityValues { get; set; } =
+            new HashSet<string>(StringComparer.Ordinal);
+
         public ClaimMasterRelease ResolveVersion(ServiceMonth serviceMonth)
             => Release ?? throw new ClaimMasterPolicyUnavailableException(
                 ClaimMasterPolicyUnavailableCode.Unavailable);
@@ -288,6 +332,8 @@ internal static class ClaimPreparationViewModelTestKit
         public ClaimCalculationMasterBundle ResolveCalculationMasters(ServiceMonth serviceMonth)
             => Masters ?? throw new ClaimMasterPolicyUnavailableException(
                 ClaimMasterPolicyUnavailableCode.Unavailable);
+
+        public IReadOnlySet<string> AllOfficeCapabilityConditionValues() => AllCapabilityValues;
     }
 
     internal sealed class FakeOfficeRepository(Office office) : IOfficeRepository

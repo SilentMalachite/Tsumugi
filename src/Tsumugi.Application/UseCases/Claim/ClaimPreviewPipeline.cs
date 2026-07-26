@@ -2,6 +2,7 @@ using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Domain.Logic.Claim;
+using Tsumugi.Domain.Logic.Claim.Models;
 using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.Application.UseCases.Claim;
@@ -18,10 +19,15 @@ internal sealed record ClaimPreviewComputation(
     IReadOnlyList<ClaimFinalizationDetailDraft> DetailDrafts,
     string PreviewHash,
     // 事前登録済みの将来版で必要になる項目（確定は止めない警告）。
-    IReadOnlyList<ClaimUpcomingSpecificationIssue> UpcomingSpecificationIssues = null!)
+    IReadOnlyList<ClaimUpcomingSpecificationIssue> UpcomingSpecificationIssues = null!,
+    // 体制届で宣言されたが当月に有効なマスタ行が無いキー（確定は止めない警告。ADR 0049）。
+    IReadOnlyList<string> CapabilityCoverageWarnings = null!)
 {
     public IReadOnlyList<ClaimUpcomingSpecificationIssue> UpcomingSpecificationIssues { get; init; } =
         UpcomingSpecificationIssues ?? [];
+
+    public IReadOnlyList<string> CapabilityCoverageWarnings { get; init; } =
+        CapabilityCoverageWarnings ?? [];
 }
 
 /// <summary>
@@ -83,15 +89,40 @@ internal sealed class ClaimPreviewPipeline(
                 .Concat(readinessResult.Issues)
                 .Concat(requestResult.Issues));
         var claimMasterVersion = release?.Version.Value ?? "";
-        if (issues.Length > 0 || requestResult.Request is not { } request || release is null)
+
+        // ADR 0049: 体制届で宣言されたキーは、readiness不成立やrequest構築の失敗に
+        // 関わらず snapshot から直接解決できる（request構築の成否に依存しない。
+        // ClaimCalculationRequestBuilder.ResolveDeclaredOfficeCapabilityKeys参照）。
+        // 宣言キーが1件も無ければ比較の必要が無いため、masters解決自体を試みない
+        // （Execute_returns_issues_and_skips_calculation_when_not_readyが固定する
+        // 「無関係な理由でのnot-readyでは算定マスタに触れない」という既存の遅延評価を保つ）。
+        // 宣言キーがある場合だけ、readiness不成立に関わらずここでmastersを先読みして
+        // 警告を計算する（ADR 0041のUpcomingSpecificationIssuesと同じ理由:
+        // ここで落とすと、無関係な理由でnot-readyな月は警告が消え、運用者が気付けない）。
+        var declaredCapabilityKeys = ClaimCalculationRequestBuilder.ResolveDeclaredOfficeCapabilityKeys(
+            snapshot, serviceMonth);
+        ClaimCalculationMasterBundle? masters = null;
+        IReadOnlyList<string> capabilityCoverageWarnings = [];
+        if (declaredCapabilityKeys.Count > 0 && release is not null)
         {
-            // 算定不成立でも「次の施行分での変更」は運ぶ。緩む方向はまさに not-ready のときに出るため、
-            // ここで落とすと運用者が気付けない。
-            return new ClaimPreviewComputation(
-                claimMasterVersion, issues, null, [], "", upcomingIssues);
+            masters = masterProvider.ResolveCalculationMasters(serviceMonth);
+            capabilityCoverageWarnings = OfficeCapabilityCoveragePolicy.FindUncoveredKeys(
+                declaredCapabilityKeys,
+                OfficeCapabilityCoveragePolicy.ExtractCapabilityValues(masters.ConditionDefinitions),
+                masterProvider.AllOfficeCapabilityConditionValues());
         }
 
-        var masters = masterProvider.ResolveCalculationMasters(serviceMonth);
+        if (issues.Length > 0 || requestResult.Request is not { } request || release is null)
+        {
+            // 算定不成立でも「次の施行分での変更」「体制届カバレッジ」は運ぶ。緩む方向・無音の
+            // 加算欠落はまさに not-ready のときにも起き得るため、ここで落とすと気付けない。
+            return new ClaimPreviewComputation(
+                claimMasterVersion, issues, null, [], "", upcomingIssues, capabilityCoverageWarnings);
+        }
+
+        // 宣言キーが無く上でmastersを解決していなければ、ここで初めて解決する
+        // （従来どおり、ready経路でのみ必要になる遅延評価）。
+        masters ??= masterProvider.ResolveCalculationMasters(serviceMonth);
 
         // Task 13 (ADR 0023): 経過措置（対象月のtransition-rules行 × profileの版・R8状態・
         // 版付きoption）の不一致は算定前にフェイルクローズする。R8-06境界で旧版profileや
@@ -101,7 +132,8 @@ internal sealed class ClaimPreviewPipeline(
         if (transitionIssues.Count > 0)
         {
             return new ClaimPreviewComputation(
-                claimMasterVersion, Normalize(transitionIssues), null, [], "", upcomingIssues);
+                claimMasterVersion, Normalize(transitionIssues), null, [], "", upcomingIssues,
+                capabilityCoverageWarnings);
         }
 
         var result = ClaimCalculator.Calculate(masters, request);
@@ -113,7 +145,8 @@ internal sealed class ClaimPreviewPipeline(
         var previewHash = ClaimPreviewHashing.Compute(
             officeId, serviceMonth, claimMasterVersion, result, detailDrafts, csvSpecificationVersion);
         return new ClaimPreviewComputation(
-            claimMasterVersion, issues, result, detailDrafts, previewHash, upcomingIssues);
+            claimMasterVersion, issues, result, detailDrafts, previewHash, upcomingIssues,
+            capabilityCoverageWarnings);
     }
 
     /// <summary>

@@ -214,6 +214,27 @@ public sealed class ViewInputWiringTests
             because: "契約一覧 Read が画面から到達不能だと AC1-1 CRUD を満たさない");
     }
 
+    // NOTE(teeth): TreatmentImprovementOption は選択肢一覧 TreatmentImprovementOptions の
+    // 前方一致になる（TreatmentImprovementVBand も同様に TreatmentImprovementVBandOptions と）。
+    // 閉じ中括弧までを含めて一致させないと、ItemsSource側のBindingだけで誤って検査を通過する
+    // （本ファイル冒頭に記載の前方一致の既知の限界）。
+    [Fact]
+    public void OfficeCapabilityView_exposes_treatment_improvement_option_and_v_band_inputs()
+    {
+        var xml = ReadView("OfficeCapabilityView.axaml");
+        xml.Should().Contain("{Binding TreatmentImprovementOption}",
+            because: "処遇改善加算 対象区分の入力欄が画面に無いと ADR 0021 の公式キーが書けない");
+        xml.Should().Contain("{Binding TreatmentImprovementVBand}",
+            because: "(Ⅴ)区分の入力欄が画面に無いと同区分の公式キーが書けない");
+
+        // ハード制約5（アクセシビリティ既定）: スクリーンリーダー・キーボード操作から
+        // 区別できない ComboBox が2つ並ぶ状態を作らない。
+        xml.Should().Contain("AutomationProperties.Name=\"福祉・介護職員等処遇改善加算 対象区分\"",
+            because: "対象区分ComboBoxに読み上げ名が無いと支援技術から区別できない");
+        xml.Should().Contain("AutomationProperties.Name=\"福祉・介護職員等処遇改善加算(Ⅴ) 区分\"",
+            because: "(Ⅴ)区分ComboBoxに読み上げ名が無いと支援技術から区別できない");
+    }
+
     // NOTE(teeth): ViewModel が集めた不足項目一覧が画面に出ていること（ADR 0040）。
     // VM が集めるだけで表示が無いと、利用者は「次の項目を入力してください」だけを見て
     // 1 項目ずつ潰すことになる（Codex 指摘で実際に抜けていた）。

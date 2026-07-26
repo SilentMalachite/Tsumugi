@@ -39,13 +39,17 @@ public sealed record ClaimPreviewDto(
     bool IsReady,
     // 事前登録済みの将来の施行分（適用開始前の版）で必要になる項目。**確定は止めない**
     // （IsReady には影響させない）。次の施行分に入る前に入力を促すための警告（ADR 0041）。
-    IReadOnlyList<ClaimUpcomingSpecificationIssue>? UpcomingSpecificationIssues = null)
+    IReadOnlyList<ClaimUpcomingSpecificationIssue>? UpcomingSpecificationIssues = null,
+    // 体制届で宣言されたが当月に有効なマスタ行が無いキー。**確定は止めない**
+    // （IsReadyには影響させない）。無音で加算0円になる経路を可視化する警告（ADR 0049）。
+    IReadOnlyList<string>? CapabilityCoverageWarnings = null)
 {
     public static ClaimPreviewDto NotReady(
         ServiceMonth serviceMonth,
         string claimMasterVersion,
         IReadOnlyList<ClaimPreparationIssue> issues,
-        IReadOnlyList<ClaimUpcomingSpecificationIssue>? upcomingSpecificationIssues = null)
+        IReadOnlyList<ClaimUpcomingSpecificationIssue>? upcomingSpecificationIssues = null,
+        IReadOnlyList<string>? capabilityCoverageWarnings = null)
         => new(
             serviceMonth,
             claimMasterVersion,
@@ -57,7 +61,8 @@ public sealed record ClaimPreviewDto(
             TotalBurdenYen: 0,
             issues,
             IsReady: false,
-            upcomingSpecificationIssues);
+            upcomingSpecificationIssues,
+            capabilityCoverageWarnings);
 }
 
 public sealed record ClaimBatchRevisionDto(Guid BatchId, int Revision, bool IsReplay);

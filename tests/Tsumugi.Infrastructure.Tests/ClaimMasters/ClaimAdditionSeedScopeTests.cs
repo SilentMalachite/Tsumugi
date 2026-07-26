@@ -39,6 +39,14 @@ namespace Tsumugi.Infrastructure.Tests.ClaimMasters;
 /// 対象外とし、施設区分条件を一切付けていない。処遇改善(Ⅴ)（選択番号6・14区分の経過措置）は
 /// 本タスクでも未確定につきseedしない。
 /// </para>
+/// <para>
+/// ADR 0048（Phase 3-6 Task 1）: 決定8がR6-06世代についても持ち越していた指定障害者支援施設
+/// variantのうち、(Ⅰ)・(Ⅲ)・(Ⅳ)の3区分（465138/465140/465141）を`r6-service-codes-2-xlsx`・
+/// `r6-service-codes-2-pdf`の2形式独立照合と`r6-fee-notice`の率で確定し、2024-06〜2026-05で
+/// seedした。この3コードはADR 0047のR8-06 (Ⅰ)イ・(Ⅲ)・(Ⅳ)施設variantと同一コードを継続使用
+/// するため、2024-06〜2026-05はR6-06行、2026-06以降はR8-06行が切れ目なく担う。(Ⅱ)は告示に
+/// 括弧書きが無くコードも存在しないため引き続き対象外。
+/// </para>
 /// </summary>
 public sealed class ClaimAdditionSeedScopeTests
 {
@@ -82,6 +90,18 @@ public sealed class ClaimAdditionSeedScopeTests
     ];
 
     /// <summary>
+    /// ADR 0048（Phase 3-6 Task 1）: 統一処遇改善(Ⅰ)・(Ⅲ)・(Ⅳ)の指定障害者支援施設variant
+    /// コード（2024-06〜2026-05）。(Ⅱ)は施設別立てが公式に存在しないため対象外
+    /// （<see cref="UnifiedTreatmentImprovementCodes"/>にも本配列にも現れない）。
+    /// この3コードは<see cref="R8TreatmentImprovementCodes"/>にも同一コードとして現れる
+    /// （ADR 0047のR8-06施設variantが2026-06以降を継続して担うため）。
+    /// </summary>
+    private static readonly string[] UnifiedTreatmentImprovementFacilityCodes =
+    [
+        "465138", "465140", "465141",
+    ];
+
+    /// <summary>
     /// ADR 0045・ADR 0047: R8処遇改善(Ⅰ)イ・(Ⅰ)ロ・(Ⅱ)イ・(Ⅱ)ロ・(Ⅲ)・(Ⅳ)の6区分（通常事業所
     /// コード）と、そのうち施設別立てが確認できた4区分（(Ⅰ)イ・(Ⅰ)ロ・(Ⅲ)・(Ⅳ)）の指定障害者
     /// 支援施設variantコード（2026-06〜）。(Ⅰ)イ・(Ⅱ)イ・(Ⅲ)・(Ⅳ)の通常コードは
@@ -103,7 +123,11 @@ public sealed class ClaimAdditionSeedScopeTests
             .Order(StringComparer.Ordinal);
 
         codes.Should().Equal(
-            FixedAdditionCodes.Concat(UnifiedTreatmentImprovementCodes).Order(StringComparer.Ordinal));
+            FixedAdditionCodes
+                .Concat(UnifiedTreatmentImprovementCodes)
+                .Concat(UnifiedTreatmentImprovementFacilityCodes)
+                .Order(StringComparer.Ordinal),
+            "ADR 0048（Phase 3-6 Task 1）でR6-06の指定障害者支援施設variant3区分がseed範囲に加わった");
     }
 
     [Fact]
@@ -114,6 +138,8 @@ public sealed class ClaimAdditionSeedScopeTests
         var r6PreCodes = AdditionRows(new ServiceMonth(2024, 4))
             .Select(row => row.ServiceCode).ToHashSet(StringComparer.Ordinal);
         r6PreCodes.Should().NotIntersectWith(UnifiedTreatmentImprovementCodes);
+        r6PreCodes.Should().NotIntersectWith(UnifiedTreatmentImprovementFacilityCodes,
+            "ADR 0048の施設variant3区分も統一処遇改善本体と同じ2024-06開始でなければならない");
         r6PreCodes.Should().Contain(FixedAdditionCodes);
 
         // ADR 0045: 2026-06はR8処遇改善へ世代交代する。465120/465121/465122/465123は公式資料上
@@ -158,16 +184,33 @@ public sealed class ClaimAdditionSeedScopeTests
             FixedAdditionCodes.Concat(R8TreatmentImprovementCodes).Order(StringComparer.Ordinal),
             "2026-06の加算コード集合は固定単位行＋R8処遇改善10区分（通常6＋施設variant4）ちょうどでなければならない");
 
-        // 465174/465175（新設区分）と465138/465176/465140/465141（施設variant）が2026-06で
-        // 新たに現れることを、リテラル同士ではなく2026-05・2026-06それぞれのseedから解決した
-        // 実データの差分で確認する。
+        // 465174/465175（新設区分）と465176（(Ⅰ)ロ施設variant）が2026-06で新たに現れることを、
+        // リテラル同士ではなく2026-05・2026-06それぞれのseedから解決した実データの差分で確認する。
+        // 465138/465140/465141（(Ⅰ)・(Ⅲ)・(Ⅳ)施設variant）はADR 0048（Phase 3-6 Task 1）で
+        // R6-06(2024-06〜2026-05)から既にseedされているため、2026-06で新たに現れるコードではない
+        // （2026-05のmayCodeSetにも含まれる）。
         var mayCodeSet = AdditionRows(new ServiceMonth(2026, 5))
             .Select(row => row.ServiceCode).ToHashSet(StringComparer.Ordinal);
         var juneCodeSet = AdditionRows(new ServiceMonth(2026, 6))
             .Select(row => row.ServiceCode).ToHashSet(StringComparer.Ordinal);
         juneCodeSet.Except(mayCodeSet).Order(StringComparer.Ordinal).Should().Equal(
-            ["465138", "465140", "465141", "465174", "465175", "465176"],
-            "新設区分(Ⅰ)ロ・(Ⅱ)ロと施設variant4区分（ADR 0047）だけが2026-06で新たに現れる");
+            ["465174", "465175", "465176"],
+            "新設区分(Ⅰ)ロ・(Ⅱ)ロと(Ⅰ)ロ施設variantだけが2026-06で新たに現れる。" +
+            "(Ⅰ)・(Ⅲ)・(Ⅳ)施設variantはADR 0048でR6-06から継続するため新規出現ではない");
+
+        // ADR 0048（Phase 3-6 Task 1）でservice-codeがR6-06/R8-06の生成境界をまたいで共有される
+        // ようになったため（465138/465140/465141）、上のservice-code差分だけではR8-06行の
+        // effectiveFromが誤って2026-05以前へ動く欠陥を検出できない（R6-06行が同じコードを
+        // 2026-05まで供給し続けるため、mayCodeSetの内容が変わらず差分に現れない）。行キーは
+        // 世代間で共有されないため、2026-05にR8-06キーが一切存在しないことを直接固定する
+        // （ClaimMasterR6FacilityTests.R6_facility_rows_do_not_reach_june_2026のミラー）。
+        var mayKeys = JsonClaimMasterProvider.LoadEmbedded()
+            .ResolveCalculationMasters(new ServiceMonth(2026, 5))
+            .ServiceCodes
+            .Select(row => row.Key);
+        mayKeys
+            .Where(key => key.StartsWith("b-addition.r8-06.treatment-improvement.", StringComparison.Ordinal))
+            .Should().BeEmpty("R8-06の処遇改善行は2026-06から開始するため2026-05には存在してはならない");
     }
 
     [Fact]

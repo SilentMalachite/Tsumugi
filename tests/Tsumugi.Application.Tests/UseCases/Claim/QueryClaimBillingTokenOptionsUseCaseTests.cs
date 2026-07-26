@@ -93,6 +93,9 @@ public sealed class QueryClaimBillingTokenOptionsUseCaseTests
             throw new NotSupportedException();
 
         public ClaimCalculationMasterBundle ResolveCalculationMasters(ServiceMonth serviceMonth) => masters;
+
+        public IReadOnlySet<string> AllOfficeCapabilityConditionValues() =>
+            new HashSet<string>(StringComparer.Ordinal);
     }
 
     private sealed class UnavailableMasterProvider : IClaimMasterProvider
@@ -102,5 +105,8 @@ public sealed class QueryClaimBillingTokenOptionsUseCaseTests
 
         public ClaimCalculationMasterBundle ResolveCalculationMasters(ServiceMonth serviceMonth) =>
             throw new ClaimMasterPolicyUnavailableException(ClaimMasterPolicyUnavailableCode.Unavailable);
+
+        public IReadOnlySet<string> AllOfficeCapabilityConditionValues() =>
+            new HashSet<string>(StringComparer.Ordinal);
     }
 }

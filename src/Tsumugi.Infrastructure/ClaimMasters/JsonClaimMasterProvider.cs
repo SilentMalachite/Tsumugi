@@ -150,6 +150,10 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider, IOfficeClaim
         }
     }
 
+    public IReadOnlySet<string> AllOfficeCapabilityConditionValues()
+        => OfficeCapabilityCoveragePolicy.ExtractCapabilityValues(_calculationMasters.ConditionDefinitions)
+            .ToHashSet(StringComparer.Ordinal);
+
     public OfficeClaimProfilePolicy Resolve(ClaimMasterVersion masterVersion)
     {
         try

@@ -480,12 +480,40 @@ internal static class ExternalSpecificationLiteralGuard
 
     private const string AllowedOptionsByR8ReformStatusPropertyName = "allowedOptionsByR8ReformStatus";
 
+    /// <summary>
+    /// Phase 3-6 Task 2 review (Important 1): <c>calculationOrder</c> is a versioned selector
+    /// identifier in the closed <c>percentageOfTargetAmount</c> shape of the claim-master
+    /// schema (<c>claim-master-file.schema.json</c>) — the internal application-order
+    /// bookkeeping among competing percentage-of-target additions sharing one
+    /// <c>targetSelector</c>, not a reward value (units/rates/thresholds). No official
+    /// document assigns these numbers; production C# consumes them only as a structured
+    /// <c>PercentageOfTargetAmount.CalculationOrder</c> and never needs to spell one.
+    /// Cataloging it floods the guard with calendar/type-ordinal coincidences every time a
+    /// percentage-of-target family's calculationOrder sequence grows past magnitude 10 (e.g.
+    /// Phase 3-6 Task 2 extended the R6-06 処遇改善統一 family from 1〜7 to 1〜30 and collided
+    /// with ~34 unrelated Domain/Application literals — see the removed allowlist entries in
+    /// this file's history for the exhaustive list this scanner-level skip replaces). Exactly
+    /// as with <see cref="OfficialOptionCodePropertyName"/> above, the exemption is scoped to
+    /// values nested under an <c>amount</c> ancestor — the only shape ADR-defined
+    /// percentage-of-target amounts carry this property in
+    /// (<c>claim-master-file.schema.json</c>'s <c>percentageOfTargetAmount</c> definition) —
+    /// so the same property name elsewhere still enters the catalog like any other number,
+    /// which <c>Scan_calculation_order_outside_an_amount_ancestor_is_cataloged</c> proves, and
+    /// every other number nested under <c>amount</c> is still cataloged, which
+    /// <c>Scan_still_detects_other_amount_numbers_beside_calculation_order</c> proves.
+    /// </summary>
+    private const string CalculationOrderPropertyName = "calculationOrder";
+
+    /// <summary>The one closed shape that carries a percentage-of-target's calculationOrder.</summary>
+    private const string AmountAncestorPropertyName = "amount";
+
     private static void CollectMasterValues(
         JsonElement element,
         string pointer,
         string relativePath,
         ICollection<CatalogLiteral> catalogLiterals,
-        bool insideAllowedBandOptionAncestor = false)
+        bool insideAllowedBandOptionAncestor = false,
+        bool insideAmountAncestor = false)
     {
         switch (element.ValueKind)
         {
@@ -502,16 +530,30 @@ internal static class ExternalSpecificationLiteralGuard
                         continue;
                     }
 
+                    if (insideAmountAncestor
+                        && string.Equals(
+                            property.Name,
+                            CalculationOrderPropertyName,
+                            StringComparison.Ordinal)
+                        && property.Value.ValueKind == JsonValueKind.Number)
+                    {
+                        continue;
+                    }
+
                     var childInsideAllowedBandOptionAncestor =
                         insideAllowedBandOptionAncestor
                         || IsAllowedBandOptionAncestorPropertyName(property.Name);
+                    var childInsideAmountAncestor =
+                        insideAmountAncestor
+                        || IsAmountAncestorPropertyName(property.Name);
 
                     CollectMasterValues(
                         property.Value,
                         pointer + "/" + EscapeJsonPointer(property.Name),
                         relativePath,
                         catalogLiterals,
-                        childInsideAllowedBandOptionAncestor);
+                        childInsideAllowedBandOptionAncestor,
+                        childInsideAmountAncestor);
                 }
                 break;
             case JsonValueKind.Array:
@@ -523,7 +565,8 @@ internal static class ExternalSpecificationLiteralGuard
                         pointer + "/" + index.ToString(CultureInfo.InvariantCulture),
                         relativePath,
                         catalogLiterals,
-                        insideAllowedBandOptionAncestor);
+                        insideAllowedBandOptionAncestor,
+                        insideAmountAncestor);
                     index++;
                 }
                 break;
@@ -917,6 +960,9 @@ internal static class ExternalSpecificationLiteralGuard
     private static bool IsAllowedBandOptionAncestorPropertyName(string propertyName) =>
         propertyName is AllowedAverageWageBandOptionsPropertyName
             or AllowedOptionsByR8ReformStatusPropertyName;
+
+    private static bool IsAmountAncestorPropertyName(string propertyName) =>
+        propertyName is AmountAncestorPropertyName;
 
     private static bool IsExcludedPath(string path) =>
         ContainsDirectory(path, "obj") ||
