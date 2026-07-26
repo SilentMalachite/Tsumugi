@@ -754,6 +754,9 @@ public sealed class ClaimInputViewModelTests
                     new ClaimConditionTokenOperand("staff-test"), [SourceRef()]),
             ]);
 
+        public IReadOnlySet<string> AllOfficeCapabilityConditionValues() =>
+            new HashSet<string>(StringComparer.Ordinal);
+
         private static ClaimSourceRef SourceRef() => new(
             "doc-1",
             "0000000000000000000000000000000000000000000000000000000000000000",

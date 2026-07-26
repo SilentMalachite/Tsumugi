@@ -290,4 +290,34 @@ public sealed class ClaimMasterR6FacilityTests
             .Which.Percentage.Should().Be(decimal.Parse(
                 expectedPercentage, System.Globalization.CultureInfo.InvariantCulture));
     }
+
+    /// <summary>
+    /// ADR 0049: 実seedに対して、(Ⅴ)は2025-04以降で「他の期間には有るが当月に無い」
+    /// 状態になる。R8世代（2026-06以降）でも同様。
+    /// </summary>
+    [Theory]
+    [InlineData(2025, 4)]
+    [InlineData(2026, 6)]
+    public void Category_v_becomes_an_uncovered_capability_after_it_expires(int year, int month)
+    {
+        var provider = Provider;
+        var target = new ServiceMonth(year, month);
+        var monthValues = provider.ResolveCalculationMasters(target).ConditionDefinitions
+            .Where(condition => condition.Kind == ClaimConditionKind.OfficeCapability)
+            .SelectMany(condition => condition.Operand switch
+            {
+                ClaimConditionTokenOperand token => new[] { token.Value },
+                ClaimConditionTokenSetOperand set => set.Values.ToArray(),
+                _ => [],
+            })
+            .ToArray();
+
+        var uncovered = OfficeCapabilityCoveragePolicy.FindUncoveredKeys(
+            declaredKeys: ["mhlw.b46.capability.treatment-improvement.6"],
+            monthConditionValues: monthValues,
+            allConditionValues: provider.AllOfficeCapabilityConditionValues());
+
+        uncovered.Should().ContainSingle()
+            .Which.Should().Be("mhlw.b46.capability.treatment-improvement.6");
+    }
 }

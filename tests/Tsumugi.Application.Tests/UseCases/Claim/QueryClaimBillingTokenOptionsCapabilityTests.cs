@@ -70,5 +70,8 @@ public sealed class QueryClaimBillingTokenOptionsCapabilityTests
             throw new NotSupportedException();
 
         public ClaimCalculationMasterBundle ResolveCalculationMasters(ServiceMonth serviceMonth) => masters;
+
+        public IReadOnlySet<string> AllOfficeCapabilityConditionValues() =>
+            new HashSet<string>(StringComparer.Ordinal);
     }
 }

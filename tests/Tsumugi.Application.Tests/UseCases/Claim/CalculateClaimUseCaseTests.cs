@@ -391,6 +391,66 @@ public sealed class CalculateClaimUseCaseTests
             issue.Code == ClaimPreparationIssueCode.MasterVersionUnavailable);
     }
 
+    // NOTE(teeth): 届け出たoptionに当月の行が無いのは「無音で0円」になる経路である。
+    // IsReady を落とす実装にすると、期間境界をまたぐ正当な体制届まで確定できなくなる（ADR 0049）。
+    [Fact]
+    public async Task Execute_warns_about_declared_capabilities_without_master_rows_this_month()
+    {
+        // Kit.Tokens() が宣言する体制届キーに、当月の条件定義に無いキーを1件混ぜる。
+        // Kit.SyntheticMasters() 側の条件定義には含めず、AllOfficeCapabilityConditionValues
+        // には含める（＝他の期間では使われているキー）。
+        var dto = await CreateUseCaseWithExpiredCapability()
+            .ExecuteAsync(new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeTrue("体制届optionの不一致で確定は止めない");
+        dto.CapabilityCoverageWarnings.Should().ContainSingle()
+            .Which.Should().Be("mhlw.b46.capability.treatment-improvement.6");
+    }
+
+    // NOTE(teeth): 「他の期間でも一切使われていないキー」は偽陽性になるため無視する
+    // （legacyな体制届項目、例: mealProvision、が毎月ノイズを出さないようにする2段構えの検証）。
+    [Fact]
+    public async Task Execute_does_not_warn_about_a_declared_capability_never_referenced_by_any_condition()
+    {
+        const string legacyKey = "mealProvision";
+        var snapshot = Kit.Snapshot(
+            officeCapabilities:
+            [
+                Kit.Capability(flags: new Dictionary<string, bool> { [legacyKey] = true }),
+            ]);
+        // AllOfficeCapabilityConditionValuesにも一切含めない＝算定に関与しないキー。
+        var masterProvider = new Kit.FakeMasterProvider(Kit.Release(), Kit.SyntheticMasters());
+        var useCase = CreateUseCase(snapshot, masterProvider: masterProvider);
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeTrue();
+        dto.CapabilityCoverageWarnings.Should().BeEmpty(
+            "算定に関与しない体制届項目は毎月ノイズを出してはならない");
+    }
+
+    /// <summary>
+    /// 体制届キー"mhlw.b46.capability.treatment-improvement.6"を宣言済みだが、
+    /// Kit.SyntheticMasters()の条件定義には含まれない（＝当月に無い）。
+    /// fake providerのAllOfficeCapabilityConditionValuesには含める（＝他の期間では使われている）。
+    /// </summary>
+    private static CalculateClaimUseCase CreateUseCaseWithExpiredCapability()
+    {
+        const string declaredKey = "mhlw.b46.capability.treatment-improvement.6";
+        var snapshot = Kit.Snapshot(
+            officeCapabilities:
+            [
+                Kit.Capability(flags: new Dictionary<string, bool> { [declaredKey] = true }),
+            ]);
+        var masterProvider = new Kit.FakeMasterProvider(
+            Kit.Release(),
+            Kit.SyntheticMasters(),
+            allOfficeCapabilityConditionValues: new HashSet<string>(StringComparer.Ordinal) { declaredKey });
+
+        return CreateUseCase(snapshot, masterProvider: masterProvider);
+    }
+
     [Fact]
     public async Task Execute_rejects_invalid_request()
     {

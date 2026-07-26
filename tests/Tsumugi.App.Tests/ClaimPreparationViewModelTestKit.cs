@@ -288,6 +288,9 @@ internal static class ClaimPreparationViewModelTestKit
         public ClaimCalculationMasterBundle ResolveCalculationMasters(ServiceMonth serviceMonth)
             => Masters ?? throw new ClaimMasterPolicyUnavailableException(
                 ClaimMasterPolicyUnavailableCode.Unavailable);
+
+        public IReadOnlySet<string> AllOfficeCapabilityConditionValues() =>
+            new HashSet<string>(StringComparer.Ordinal);
     }
 
     internal sealed class FakeOfficeRepository(Office office) : IOfficeRepository

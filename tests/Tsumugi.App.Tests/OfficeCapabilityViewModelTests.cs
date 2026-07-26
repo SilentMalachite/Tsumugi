@@ -318,6 +318,9 @@ public sealed class OfficeCapabilityViewModelTests
                 ConditionDefinitions: conditions);
         }
 
+        public IReadOnlySet<string> AllOfficeCapabilityConditionValues() =>
+            new HashSet<string>(StringComparer.Ordinal);
+
         private static ClaimConditionDefinition CapabilityCondition(string value) =>
             new("cond-" + value, new ServiceMonth(2024, 6), null, ClaimConditionKind.OfficeCapability,
                 ClaimConditionOperator.Equals, new ClaimConditionTokenOperand(value), [SourceRef()]);

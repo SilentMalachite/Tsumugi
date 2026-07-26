@@ -2,6 +2,7 @@ using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
 using Tsumugi.Application.Dtos;
 using Tsumugi.Domain.Logic.Claim;
+using Tsumugi.Domain.Logic.Claim.Models;
 using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.Application.UseCases.Claim;
@@ -18,10 +19,15 @@ internal sealed record ClaimPreviewComputation(
     IReadOnlyList<ClaimFinalizationDetailDraft> DetailDrafts,
     string PreviewHash,
     // 事前登録済みの将来版で必要になる項目（確定は止めない警告）。
-    IReadOnlyList<ClaimUpcomingSpecificationIssue> UpcomingSpecificationIssues = null!)
+    IReadOnlyList<ClaimUpcomingSpecificationIssue> UpcomingSpecificationIssues = null!,
+    // 体制届で宣言されたが当月に有効なマスタ行が無いキー（確定は止めない警告。ADR 0049）。
+    IReadOnlyList<string> CapabilityCoverageWarnings = null!)
 {
     public IReadOnlyList<ClaimUpcomingSpecificationIssue> UpcomingSpecificationIssues { get; init; } =
         UpcomingSpecificationIssues ?? [];
+
+    public IReadOnlyList<string> CapabilityCoverageWarnings { get; init; } =
+        CapabilityCoverageWarnings ?? [];
 }
 
 /// <summary>
@@ -93,6 +99,21 @@ internal sealed class ClaimPreviewPipeline(
 
         var masters = masterProvider.ResolveCalculationMasters(serviceMonth);
 
+        // ADR 0049: 体制届で宣言されたキーのうち、当月に有効なマスタ行へ結び付かないものを
+        // 警告として可視化する。確定は止めない（IsReadyには影響させない）。
+        var capabilityCoverageWarnings = OfficeCapabilityCoveragePolicy.FindUncoveredKeys(
+            declaredKeys: request.Conditions.OfficeCapabilityKeys ?? [],
+            monthConditionValues: masters.ConditionDefinitions
+                .Where(condition => condition.Kind == ClaimConditionKind.OfficeCapability)
+                .SelectMany(condition => condition.Operand switch
+                {
+                    ClaimConditionTokenOperand token => new[] { token.Value },
+                    ClaimConditionTokenSetOperand set => set.Values.ToArray(),
+                    _ => [],
+                })
+                .ToArray(),
+            allConditionValues: masterProvider.AllOfficeCapabilityConditionValues());
+
         // Task 13 (ADR 0023): 経過措置（対象月のtransition-rules行 × profileの版・R8状態・
         // 版付きoption）の不一致は算定前にフェイルクローズする。R8-06境界で旧版profileや
         // R6区分の残留による無検証の単価請求を生成しない（推測しない）。
@@ -101,7 +122,8 @@ internal sealed class ClaimPreviewPipeline(
         if (transitionIssues.Count > 0)
         {
             return new ClaimPreviewComputation(
-                claimMasterVersion, Normalize(transitionIssues), null, [], "", upcomingIssues);
+                claimMasterVersion, Normalize(transitionIssues), null, [], "", upcomingIssues,
+                capabilityCoverageWarnings);
         }
 
         var result = ClaimCalculator.Calculate(masters, request);
@@ -113,7 +135,8 @@ internal sealed class ClaimPreviewPipeline(
         var previewHash = ClaimPreviewHashing.Compute(
             officeId, serviceMonth, claimMasterVersion, result, detailDrafts, csvSpecificationVersion);
         return new ClaimPreviewComputation(
-            claimMasterVersion, issues, result, detailDrafts, previewHash, upcomingIssues);
+            claimMasterVersion, issues, result, detailDrafts, previewHash, upcomingIssues,
+            capabilityCoverageWarnings);
     }
 
     /// <summary>

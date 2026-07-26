@@ -33,7 +33,8 @@ public sealed class CalculateClaimUseCase(
                 request.ServiceMonth,
                 computation.ClaimMasterVersion,
                 computation.Issues,
-                computation.UpcomingSpecificationIssues);
+                computation.UpcomingSpecificationIssues,
+                computation.CapabilityCoverageWarnings);
         }
 
         return new ClaimPreviewDto(
@@ -57,7 +58,9 @@ public sealed class CalculateClaimUseCase(
             Issues: [],
             IsReady: true,
             // 将来の施行分で必要になる項目は警告として運ぶ（IsReady は変えない。ADR 0041）。
-            UpcomingSpecificationIssues: computation.UpcomingSpecificationIssues);
+            UpcomingSpecificationIssues: computation.UpcomingSpecificationIssues,
+            // 体制届optionに対応するマスタ行の不足も警告として運ぶ（IsReady は変えない。ADR 0049）。
+            CapabilityCoverageWarnings: computation.CapabilityCoverageWarnings);
     }
 }
 

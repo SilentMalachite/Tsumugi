@@ -419,7 +419,8 @@ internal static class ClaimPreparationTestKit
 
     internal sealed class FakeMasterProvider(
         ClaimMasterRelease? release,
-        ClaimCalculationMasterBundle? masters) : IClaimMasterProvider
+        ClaimCalculationMasterBundle? masters,
+        IReadOnlySet<string>? allOfficeCapabilityConditionValues = null) : IClaimMasterProvider
     {
         public int CalculationMasterResolutions { get; private set; }
 
@@ -433,6 +434,9 @@ internal static class ClaimPreparationTestKit
             return masters ?? throw new ClaimMasterPolicyUnavailableException(
                 ClaimMasterPolicyUnavailableCode.Unavailable);
         }
+
+        public IReadOnlySet<string> AllOfficeCapabilityConditionValues()
+            => allOfficeCapabilityConditionValues ?? new HashSet<string>(StringComparer.Ordinal);
     }
 
     internal sealed class FakeOfficeRepository(Office? office) : IOfficeRepository
