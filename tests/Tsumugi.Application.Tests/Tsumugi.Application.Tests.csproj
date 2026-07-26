@@ -25,6 +25,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Tsumugi.Application\Tsumugi.Application.csproj" />
+    <!-- テストのみ: 体制届選択肢の導出をJsonClaimMasterProvider.LoadEmbeddedの実seedで検証するため
+         （QueryClaimBillingTokenOptionsCapabilityTests）。ArchitectureTestsが検査するのは本番の
+         Tsumugi.Application.dllの直接参照のみでテストプロジェクトは対象外（依存方向は本番コードのみ）。 -->
+    <ProjectReference Include="..\..\src\Tsumugi.Infrastructure\Tsumugi.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
