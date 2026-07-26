@@ -465,6 +465,25 @@ public sealed class ClaimInputViewModelTests
     }
 
     [Fact]
+    public async Task Office_profile_round_trips_facility_classification_through_reload_and_clears_on_reenter()
+    {
+        var fixture = CreateFixture(withActiveClaimInput: false);
+        await fixture.Sut.LoadAsync();
+        ConfigureOfficeProfile(fixture.Sut);
+
+        await fixture.Sut.SaveOfficeProfileAsync();
+
+        fixture.Sut.FacilityClassification.Should().Be(
+            FacilityClassification.DesignatedSupportFacility);
+
+        await fixture.Sut.CancelOfficeProfileAsync();
+        fixture.Sut.ReenterOfficeProfile();
+
+        fixture.Sut.FacilityClassification.Should().BeNull(
+            because: "取消後の再入力は施設区分を含めて白紙に戻す");
+    }
+
+    [Fact]
     public async Task Load_populates_billing_token_options_from_master_without_hardcoding()
     {
         // Task 9b: StaffingKey/RegionKeyの選択肢はマスタ由来（FakeClaimMasterProviderが
@@ -551,6 +570,7 @@ public sealed class ClaimInputViewModelTests
         sut.CapacityHeadcount = 20;
         sut.StaffingKey = "staff-test";
         sut.RegionKey = "region-test";
+        sut.FacilityClassification = FacilityClassification.DesignatedSupportFacility;
     }
 
     private static void ConfigureCertificateEvidence(ClaimInputViewModel sut)
