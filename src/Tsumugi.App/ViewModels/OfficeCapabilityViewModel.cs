@@ -18,16 +18,37 @@ namespace Tsumugi.App.ViewModels;
 public sealed partial class OfficeCapabilityViewModel(
     RegisterOfficeCapabilityUseCase registerUseCase,
     ListOfficesUseCase listOfficesUseCase,
-    QueryClaimBillingTokenOptionsUseCase tokenOptionsUseCase) : ViewModelBase
+    QueryClaimBillingTokenOptionsUseCase tokenOptionsUseCase,
+    TimeProvider clock) : ViewModelBase
 {
-    // Discardは画面を「新規入力前の初期状態」へ戻す。DateOnlyの既定値(0001-01-01)は
-    // ServiceMonthの許容年(1900〜2200)の外側であり、体制届の選択肢再読込に失敗する
-    // 原因になるため、フィールド初期値と同じ有効な既定期間を単一箇所で共有する。
-    private static readonly DateOnly DefaultPeriodStart = new(2026, 4, 1);
+    private const string VBandRequiredMessage =
+        "選択した対象区分は(Ⅴ)区分の選択を併せて必要とします。(Ⅴ)区分を選択してください。";
+
+    /// <summary>
+    /// Discardは画面を「新規入力前の初期状態」へ戻す。DateOnlyの既定値(0001-01-01)は
+    /// ServiceMonthの許容年(1900〜2200)の外側であり、体制届の選択肢再読込に失敗する
+    /// 原因になるため、フィールド初期値と同じ有効な既定期間を単一箇所で共有する。
+    /// 固定日を書くと、その日が属する世代の選択肢しか出せなくなり（旧実装の 2026-04 固定では
+    /// 2026-06 施行の選択番号が一切選べない）、現在月の体制届を登録する運用で無音の
+    /// 過少宣言になる。兄弟の <c>ClaimPreparationViewModel</c> と同じく現在日から導く。
+    /// </summary>
+    private DateOnly DefaultPeriodStart => FirstDayOfMonth(clock);
+
+    private static DateOnly FirstDayOfMonth(TimeProvider timeProvider)
+    {
+        var today = DateOnly.FromDateTime(timeProvider.GetLocalNow().DateTime);
+        return new DateOnly(today.Year, today.Month, 1);
+    }
+
+    /// <summary>
+    /// 当月のマスタが「(Ⅴ)区分を併せて要求する」と宣言している処遇改善の選択番号。
+    /// 語彙はマスタから来る（ADR 0048・0049。UI側に選択番号を書かない）。
+    /// </summary>
+    private readonly HashSet<int> _optionsRequiringVBand = [];
 
     [ObservableProperty] private OfficeDto? _selectedOffice;
     [ObservableProperty] private Guid _officeId;
-    [ObservableProperty] private DateOnly _periodStart = DefaultPeriodStart;
+    [ObservableProperty] private DateOnly _periodStart = FirstDayOfMonth(clock);
     [ObservableProperty] private DateOnly? _periodEnd;
     [ObservableProperty] private bool _mealProvision;
     [ObservableProperty] private bool _transportSupport;
@@ -77,6 +98,7 @@ public sealed partial class OfficeCapabilityViewModel(
             // 漏らさず、選択肢を空にして再選択を促す。
             TreatmentImprovementOptions.Clear();
             TreatmentImprovementVBandOptions.Clear();
+            _optionsRequiringVBand.Clear();
             TreatmentImprovementOption = null;
             TreatmentImprovementVBand = null;
             return;
@@ -98,6 +120,9 @@ public sealed partial class OfficeCapabilityViewModel(
 
         TreatmentImprovementVBandOptions.Clear();
         foreach (var code in options.TreatmentImprovementVBandOptions) TreatmentImprovementVBandOptions.Add(code);
+
+        _optionsRequiringVBand.Clear();
+        foreach (var code in options.TreatmentImprovementOptionsRequiringVBand) _optionsRequiringVBand.Add(code);
 
         TreatmentImprovementOption =
             previousOption is { } selected && TreatmentImprovementOptions.Contains(selected) ? selected : null;
@@ -126,18 +151,29 @@ public sealed partial class OfficeCapabilityViewModel(
             // 書き込み時にも同じ語彙チェックを課す。
             if (TreatmentImprovementOption is { } option && TreatmentImprovementOptions.Contains(option))
             {
+                // 当月のマスタ行が(Ⅴ)区分を併せて要求している選択番号を、区分の選択なしに
+                // 宣言すると、その選択番号の行は1件も一致せず加算が**無音で0円**になる
+                // （ADR 0048・0049 が塞ごうとしている無音の過少請求そのもの）。
+                // 不完全な宣言を永続化する前に、保存エラーとして差し戻す。
+                if (_optionsRequiringVBand.Contains(option) && !HasSelectableVBand())
+                {
+                    SaveErrorMessage = VBandRequiredMessage;
+                    IsSaved = false;
+                    return;
+                }
+
                 flags[$"mhlw.b46.capability.treatment-improvement.{option}"] = true;
             }
 
             // (Ⅴ)区分は、その月に選択肢が存在し、かつ選択されているときに書く。
-            // 処遇改善対象の選択番号との突き合わせはここで行わない —— seedの(Ⅴ)行が
-            // `capability-treatment-improvement-v`（option 6）と`-v-band-{n}`の両方を
-            // 要求するため、対応関係はマスタ条件が強制する。UI側で「どの選択番号が(Ⅴ)か」を
-            // 導出すると選択番号の並びに暗黙依存する（ADR 0048・0049）。
-            if (TreatmentImprovementVBand is { } band
-                && TreatmentImprovementVBandOptions.Contains(band))
+            // 「bandだけがあってoptionが無い」向きは算定額に影響しない（seedの(Ⅴ)行が
+            // option側の条件も要求するため一致しない）のでここでは弾かない。逆向き
+            // （optionだけでbandが無い）は上の分岐で弾く —— そちらは無音で0円になる。
+            // どの選択番号が band を要求するかは常にマスタ行から導出しており、UI側に
+            // 「どの選択番号が(Ⅴ)か」という語彙は持たせない（ADR 0048・0049）。
+            if (HasSelectableVBand())
             {
-                flags[$"mhlw.b46.capability.treatment-improvement-v-band.{band}"] = true;
+                flags[$"mhlw.b46.capability.treatment-improvement-v-band.{TreatmentImprovementVBand}"] = true;
             }
 
             var (_, warnings) = await registerUseCase.ExecuteAsync(
@@ -153,6 +189,10 @@ public sealed partial class OfficeCapabilityViewModel(
             IsSaved = false;
         }
     }
+
+    /// <summary>(Ⅴ)区分が選択済みかつ当月の語彙に含まれる（＝書き込んで意味がある）か。</summary>
+    private bool HasSelectableVBand() =>
+        TreatmentImprovementVBand is { } band && TreatmentImprovementVBandOptions.Contains(band);
 
     [RelayCommand]
     private void Discard()

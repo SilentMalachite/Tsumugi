@@ -169,7 +169,11 @@ ADR 0047 の決定をそのまま踏襲する。
 - **`unified.ii`（465121）は無変更**。施設別立てが無いため、施設事業所も通常行で算定するのが正しい（施設条件を付けると一致0行になり無音の未算定になる。ADR 0047「(Ⅱ)を対象外にする理由」と同じ）。
 - (Ⅴ)についても同様に、施設variantを**持つ**9サブ区分の通常行にだけ `facility-classification-general-r6-06` を付け、**持たない**5サブ区分（⑶⑷⑹⑼⑿）には施設区分条件を一切付けない。
 
-**`conditionSelectors` の配列順**: `MatchesAll` は `.All` の短絡評価であるためフェイルクローズの発生順が配列順に依存する（`docs/phase3-5-acceptance.md` §9 の deferred minor）。施設条件は**既存要素の末尾**へ追加した（R8行が `reward-system…` → `capability-…` → `facility-classification-…` の順を採っているのと揃えた）。
+**`conditionSelectors` の配列順**: 施設条件は**既存要素の末尾**へ追加した（R8行が `reward-system…` → `capability-…` → `facility-classification-…` の順を採っているのと揃えた）。
+
+**当初この配列順はフェイルクローズの影響範囲そのものを決めていた。** `MatchesAll` が `.All` の短絡評価で、施設セレクタが体制届セレクタより後ろにあるおかげで「処遇改善を届け出ていない事業所は例外に当たらない」が成り立っていただけであり、**validator ルールもテストも無かった**（`docs/phase3-5-acceptance.md` §9 の deferred minor）。施設セレクタを先頭に置く行が1つ増えれば、2024-06〜2026-05 の**すべての**事業所がプレビュー不能になる。
+
+**本ブランチ最終レビューの修正（I3）で、`MatchesAll` を順序非依存にした。** 施設区分の未入力による判定不能だけを後回しにし、**他のすべての条件が一致した行に限って**表面化させる。以後、影響範囲は配列順ではなく行の条件そのものが決める。上記の末尾配置は可読性の慣習として維持するが、正しさはそれに依存しない。証拠: `ServiceCodeResolverTests.An_unresolved_facility_classification_does_not_throw_when_another_condition_fails`（Theory 2ケース。配列順を入れ替えても throw しない） / `..._still_fails_closed_when_every_other_condition_matches`（Theory 2ケース。意図した fail-close を弱めていない）。
 
 ### 決定6: `calculationOrder` は 1〜30 の連続集合になる
 
@@ -199,11 +203,13 @@ ADR 0047 の選択肢Cと同じ。resolver の意味論を変えず、マスタ�
 
 ### 1. 2024-06〜2026-05 の請求は施設区分の入力が必須になる（過去月へ遡る）
 
-**本ADR以降、`OfficeClaimProfile.FacilityClassification` が未入力（NULL）のまま処遇改善(Ⅰ)/(Ⅲ)/(Ⅳ)（体制届 option 2/4/5）を宣言している事業所は、2024-06〜2026-05 の全月について preview も再確定もできない。** `ServiceCodeResolver.EvaluateFacilityClassification` が `ServiceCodeResolutionErrorCode.FacilityClassificationUnresolved` で例外を投げ、`ServiceCodeResolutionException` は `Tsumugi.Application` にも `Tsumugi.App` にも捕捉箇所が無いため、そのまま伝播する。
+**本ADR以降、`OfficeClaimProfile.FacilityClassification` が未入力（NULL）のまま処遇改善(Ⅰ)/(Ⅲ)/(Ⅳ)（体制届 option 2/4/5）を宣言している事業所は、2024-06〜2026-05 の全月について preview も再確定もできない。** `ServiceCodeResolver.EvaluateFacilityClassification` が `ServiceCodeResolutionErrorCode.FacilityClassificationUnresolved` で例外を投げる。
+
+**当初「呼び出し元で未捕捉例外として表面化する」と記述したが、実際の挙動はエラー表示ではなく `Tsumugi.App` の終了だった。** `AsyncRelayCommand` は `FlowExceptionsToTaskScheduler` 無しで生成され、`App.axaml.cs` にグローバル例外ハンドラも無い。**この点は本ブランチ最終レビューの修正（C1）で是正済み**で、`ClaimPreparationViewModel.IsHandledClaimException` が `ServiceCodeResolutionException` を受け、`MapError` が `FacilityClassificationUnresolved` を「施設区分を入力してください」という固定文言へ写像する（入力すべき欄を名指しする）。ADR 0047 が施設区分を readiness の不足項目にしないと決めているため、欄を名指しできるのはこの境界だけである。
 
 **これは指定障害者支援施設に限らない。** `general`（非施設）も有効な解決可能値であり、fail-close するのは**未入力**のときだけである。施設区分を入力すれば施設・非施設のどちらも正しく解決する。
 
-**Phase 3-5（ADR 0047）の同種の帰結より影響が広い。** ADR 0047 のfail-closeは 2026-06 以降＝これからの確定にしか及ばなかったが、本ADRは **2024-06 まで遡る**。すなわち **既に旧挙動（無音の過少請求）で確定済みの過去月について、訂正や再確定を開こうとした時点で例外に当たる**。UI層に上流ガードは無く、`ClaimPreviewPipeline` 等の呼び出し元で未捕捉例外として表面化する。
+**Phase 3-5（ADR 0047）の同種の帰結より影響が広い。** ADR 0047 のfail-closeは 2026-06 以降＝これからの確定にしか及ばなかったが、本ADRは **2024-06 まで遡る**。すなわち **既に旧挙動（無音の過少請求）で確定済みの過去月について、訂正や再確定を開こうとした時点で fail-close に当たる**。readiness には現れず（ADR 0047 の決定）、`ClaimPreviewPipeline` 経由で ViewModel の境界まで伝播して固定文言のエラーになる。
 
 **それでもこれを選ぶ**: 決定2の理由により、通常行に非施設条件を付けずに施設行だけを足すことは二重計上になるため成立せず、片側投入という逃げ道が存在しない。したがって選択肢は「無音の過少請求を続ける」か「未入力を fail-close する」の2つしかない。Global Constraints「確定できない場合はfail-close側へ倒す」に従い後者を採る。**運用上は、2026-05以前の月を扱う可能性があるすべての事業所について、施設区分を先に入力しておく必要がある。**
 

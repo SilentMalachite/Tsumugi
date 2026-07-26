@@ -279,6 +279,32 @@ internal static class ClaimPreparationViewModelTestKit
                 new ClaimConditionTokenOperand("staff-a")),
         ]);
 
+    /// <summary>
+    /// 施設区分条件を持つ基本報酬行だけを含むマスタ束。<see cref="Tokens"/> は
+    /// <c>FacilityClassification</c> を持たない（null）ため、<c>ServiceCodeResolver</c> が
+    /// <c>FacilityClassificationUnresolved</c> でフェイルクローズする経路を合成語彙で再現する
+    /// （ADR 0047・0048。実seedでは 2024-06〜 の処遇改善行がこの形になる）。
+    /// </summary>
+    internal static ClaimCalculationMasterBundle MastersRequiringFacilityClassification()
+    {
+        var baseline = SyntheticMasters();
+        var row = baseline.ServiceCodes[0];
+        return baseline with
+        {
+            ServiceCodes =
+            [
+                row with { ConditionSelectors = [.. row.ConditionSelectors, "cond-facility-general"] },
+            ],
+            ConditionDefinitions =
+            [
+                .. baseline.ConditionDefinitions,
+                Condition(
+                    "cond-facility-general", ClaimConditionKind.FacilityClassification,
+                    ClaimConditionOperator.Equals, new ClaimConditionTokenOperand("general")),
+            ],
+        };
+    }
+
     internal sealed class MutableSnapshotReader(ClaimCalculationSnapshot snapshot)
         : IClaimCalculationSnapshotReader
     {

@@ -36,18 +36,27 @@
 | 13 | 体制届の選択肢が当月のマスタ条件定義から導出される（UIが語彙を持たない。ADR 0021） | `QueryClaimBillingTokenOptionsProductionWiringTests`（5件: R6の option 2〜6／(Ⅴ)の2025-03失効／R8の6区分に(Ⅴ)が無い／v-band が(Ⅴ)有効期間にだけ存在する／2系統が混ざらない） |
 | 14 | 2系統（`treatment-improvement.*` と `treatment-improvement-v-band.*`）が接頭辞一致で混ざらない | `QueryClaimBillingTokenOptionsCapabilityTests.Synthetic_condition_definitions_keep_the_two_capability_families_isolated` |
 | 15 | 公式体制届キー（処遇改善 対象区分・(Ⅴ)区分）が one-hot で保存される。語彙外は書かない | `OfficeCapabilityViewModelTests`（`SaveAsync_writes_the_official_treatment_improvement_key` / `..._writes_only_the_selected_option_as_one_hot` / `..._writes_the_selected_category_v_band` / `..._does_not_write_a_band_when_the_month_has_no_band_options` / `..._does_not_write_an_out_of_vocabulary_option_key`） |
-| 16 | (Ⅴ)区分は処遇改善の選択番号と相関させない（マスタ側の二重ゲートが対応を強制する） | `OfficeCapabilityViewModelTests.SaveAsync_writes_the_band_key_regardless_of_the_selected_option_number` |
+| 16 | band 側の書き込みは選択番号を条件にしない（無害な向き。§6-2）。**有害な逆向き（option だけで band が無い）は行28〜30 のとおり最終レビューで塞いだ** | `OfficeCapabilityViewModelTests.SaveAsync_writes_the_band_key_regardless_of_the_selected_option_number` |
 | 17 | 期間を変えると語彙が入れ替わり、旧語彙の選択は書かれない | `OfficeCapabilityViewModelTests.SaveAsync_does_not_write_the_option_key_after_the_period_changes_to_a_generation_lacking_it` |
 | 18 | `DiscardCommand` が既定期間へ戻し、選択肢が再充填される（空のまま使用不能にならない） | `OfficeCapabilityViewModelTests.DiscardCommand_resets_state_to_the_default_period_without_throwing` |
 | 19 | `ServiceMonth` の年範囲外を `PeriodStart` へ直接入力しても落ちない | `OfficeCapabilityViewModelTests.ReloadCapabilityOptions_does_not_throw_for_a_period_start_year_outside_the_service_month_range` |
 | 20 | View に2つの入力が結線されている（`ViewInputWiringTests` の検査対象に追加） | `ViewInputWiringTests.OfficeCapabilityView_exposes_treatment_improvement_option_and_v_band_inputs` |
 | 21 | 体制届option存在検査（2段構え。当月に無い ∧ 他の期間には有る） | `OfficeCapabilityCoveragePolicyTests`（9件: 判定4件＋`ExtractCapabilityValues` 5件） |
-| 22 | 警告が `IsReady` を落とさない／請求に効かないキーでは出ない（偽陽性の不在）／当月に有るキーでは出ない／無関係な理由の not-ready でも運ばれる | `CalculateClaimUseCaseTests`（`Execute_warns_about_declared_capabilities_without_master_rows_this_month` / `..._does_not_warn_about_a_declared_capability_never_referenced_by_any_condition` / `..._does_not_warn_when_the_declared_capability_is_covered_this_month` / `..._still_surfaces_capability_coverage_warnings_when_not_ready_for_an_unrelated_reason`） |
+| 22 | 警告が `IsReady` を落とさない／当月に有るキーでは出ない／無関係な理由の not-ready でも運ばれる | `CalculateClaimUseCaseTests`（`Execute_warns_about_declared_capabilities_without_master_rows_this_month` / `..._does_not_warn_when_the_declared_capability_is_covered_this_month` / `..._still_surfaces_capability_coverage_warnings_when_not_ready_for_an_unrelated_reason`） |
+| 22b | 請求に効かないキーでは警告が出ない（偽陽性の不在） | `OfficeCapabilityCoveragePolicyTests.A_key_never_used_by_any_condition_is_ignored`（Domain層。`allConditionValues` が非空の状態で判定するため主張が成立する）。**Application層の `CalculateClaimUseCaseTests..._does_not_warn_about_a_declared_capability_never_referenced_by_any_condition` はこの主張の証拠にはならない** —— §6-5 が開示するとおり `all` が空であるために通っており、判定関数が偽陽性を出さないことを示していない |
 | 23 | 実seedに対して(Ⅴ)が 2025-04・2026-06 で「未カバーの体制届キー」になる | `ClaimMasterR6FacilityTests.Category_v_becomes_an_uncovered_capability_after_it_expires`（Theory 2ケース） |
 | 24 | 警告がUIまで届き、`IsReady` を落とさない | `ClaimPreparationViewModelTests.PreviewAsync_surfaces_capability_coverage_warnings_without_blocking_readiness` |
 | 25 | `office-capability` トークンの ADR 0021 形状（ちょうど5セグメント）が強制される | `ClaimMasterSchemaPhase31Tests.Load_rejects_a_short_form_office_capability_key` / `..._rejects_a_nested_office_capability_key` |
 | 26 | 同一フィールドの条件衝突は引き続き拒否し、異なるフィールドの合成は許可する | `ClaimMasterSchemaPhase31Tests.Load_rejects_empty_office_capability_intersections_within_the_same_field` / `..._accepts_office_capability_conditions_composed_across_different_fields` |
 | 27 | `calculationOrder` のスキャナ除外が `amount` 祖先の直下に限定されている | `ClaimSpecificationBoundaryTests`（3件: 除外が効く／同じ `amount` 内の他の数値は除外しない／`amount` 外の同名プロパティは除外しない） |
+| 28 | 施設区分未入力の fail-close が**アプリを落とさず**、入力すべき欄を名指しする固定文言になる（C1。§3-1） | `ClaimPreparationViewModelTests.PreviewAsync_maps_an_unresolved_facility_classification_to_a_message_naming_the_field` / `..._CloseAsync_maps_an_unresolved_facility_classification_instead_of_terminating` |
+| 29 | band を要求する選択番号を band 未選択で保存できない（無音0円の入口を塞ぐ。I1。§6-2） | `OfficeCapabilityViewModelTests.SaveAsync_rejects_an_option_that_requires_a_v_band_when_no_band_is_selected` / `..._accepts_an_option_that_requires_a_v_band_when_the_band_is_selected` / `..._accepts_an_option_that_does_not_require_a_v_band_without_a_band` |
+| 30 | 「band を要求する選択番号」が実seedから導出される（R6 は option 6 のみ／失効後・R8 は該当なし） | `QueryClaimBillingTokenOptionsProductionWiringTests.Only_category_v_requires_a_band_in_the_r6_generation` / `..._No_option_requires_a_band_once_category_v_is_gone`（Theory 2ケース） |
+| 31 | 体制届画面の既定期間が現在月から導かれ、当該世代の選択番号が選べる（I2） | `OfficeCapabilityViewModelTests.The_default_period_start_follows_the_current_month_and_exposes_that_generation` / `..._DiscardCommand_returns_to_the_current_month_not_a_fixed_date` |
+| 32 | 施設区分未入力の fail-close の影響範囲が `conditionSelectors` の**配列順に依存しない**（I3。ADR 0048 決定5） | `ServiceCodeResolverTests.An_unresolved_facility_classification_does_not_throw_when_another_condition_fails`（Theory 2ケース） / `..._still_fails_closed_when_every_other_condition_matches`（Theory 2ケース） |
+| 33 | 有効な `office-capability` 条件定義は、有効な service-code 行から必ず参照されている（spec §6.1 条件2 の前提。item 6。§6-4） | `ClaimMasterCapabilityCoverageTests.Every_effective_office_capability_condition_is_referenced_by_an_effective_service_code_row` / `..._The_check_detects_a_capability_condition_that_no_service_code_row_references`（判定関数の歯） |
+| 34 | option 未選択のとき `treatment-improvement.*` を1件も書かない（one-hot の下限） | `OfficeCapabilityViewModelTests.SaveAsync_writes_no_option_key_when_no_option_is_selected` |
+| 35 | 新規2 ComboBox が `AutomationProperties.Name` を持つ（ハード制約5） | `ViewInputWiringTests.OfficeCapabilityView_exposes_treatment_improvement_option_and_v_band_inputs` |
 
 ---
 
@@ -85,7 +94,11 @@ seed の完全性は Task 2 完了時にコーディネータが `difflib` で�
 
 spec §7-1 が予告したとおりの帰結だが、**影響範囲が Phase 3-5 の同種の変更より広い**ため、ここに明記する。
 
-**本ブランチ以降、`OfficeClaimProfile.FacilityClassification` が NULL のまま処遇改善(Ⅰ)/(Ⅲ)/(Ⅳ)（体制届 option 2/4/5）を宣言している事業所は、2024-06 から 2026-05 までの *どの月も* preview も再確定もできない。** `ServiceCodeResolver.EvaluateFacilityClassification` が `ServiceCodeResolutionErrorCode.FacilityClassificationUnresolved` を投げ、Task 1 実装者が `src/Tsumugi.Application` と `src/Tsumugi.App` を検索して確認したとおり **`ServiceCodeResolutionException` はどちらの層でも捕捉されていない**ため、そのまま伝播する（呼び出し元での未捕捉例外として表面化する）。
+**本ブランチ以降、`OfficeClaimProfile.FacilityClassification` が NULL のまま処遇改善(Ⅰ)/(Ⅲ)/(Ⅳ)（体制届 option 2/4/5）を宣言している事業所は、2024-06 から 2026-05 までの *どの月も* preview も再確定もできない。** `ServiceCodeResolver.EvaluateFacilityClassification` が `ServiceCodeResolutionErrorCode.FacilityClassificationUnresolved` を投げる。
+
+**当初この帰結を「呼び出し元での未捕捉例外として表面化する」と記述したが、それは実際の挙動を過小に伝える表現だった。** `ServiceCodeResolutionException` は `src/Tsumugi.Application` にも `src/Tsumugi.App` にも捕捉箇所が無く、`ClaimPreparationViewModel` の `PreviewAsync` / `CloseAsync` の `when (IsHandledClaimException(ex))` フィルタも当時これを受け付けなかった。`AsyncRelayCommand` は `FlowExceptionsToTaskScheduler` 無しで生成され、`App.axaml.cs` にグローバルハンドラも無いため、**エラー表示ではなくアプリの終了**になっていた（施設区分が未入力であることは利用者に一切伝わらない）。
+
+**最終レビューの修正（C1）でこれを是正した。** `IsHandledClaimException` に `ServiceCodeResolutionException` を加え、`MapError` が `FacilityClassificationUnresolved` を「施設区分が未入力です。事業所請求設定で施設区分を入力してから、もう一度実行してください。」という固定文言（氏名・受給者証番号を含まない）へ写像する。ADR 0047 が「施設区分を readiness の不足項目にしない」と決めているため、入力すべき欄を名指しできるのはこの境界だけである。証拠: `ClaimPreparationViewModelTests.PreviewAsync_maps_an_unresolved_facility_classification_to_a_message_naming_the_field` / `..._CloseAsync_maps_an_unresolved_facility_classification_instead_of_terminating`。
 
 - **指定障害者支援施設に限らない。** `general`（非施設）も有効な解決可能値であり、fail-close するのは**未入力**のときだけである。
 - **`docs/phase3-5-acceptance.md:90` に記録した Phase 3-5 の同種の帰結より広い。** ADR 0047 のfail-closeは 2026-06 以降＝これからの確定にしか及ばなかった。本スライスは **2024-06 まで遡る**ため、**旧挙動（無音の過少請求）で既に確定済みの過去月について訂正や再確定を開こうとした時点で例外に当たる**。
@@ -103,6 +116,8 @@ spec §5 は「(Ⅴ)区分の14択 ComboBox を1つ追加する」としてい�
 spec §6.1 の条件2は「処理対象年月に有効な条件定義が無い、**または**有効な条件定義はあるがそれを参照するサービスコード行が処理対象年月に無い」の2つを含むが、実装（`FindUncoveredKeys`）は**前者だけ**である。
 
 現行seedでは差が出ない。全32件の `office-capability` 条件定義について、条件定義が有効でありながらそれを参照する行が1件も有効でない月は **0件**であることを本証跡作成時に機械的に確認した。ADR 0049「影響」節に限界として記録し、拡張方法（`monthConditionValues` の組み立てを狭める。判定関数は変更不要）も併記した。
+
+**この「0件」は最終レビューの修正（item 6）で常設アサーション化した**（§6-4）。判定関数は依然として未拡張だが、前提が崩れた瞬間に CI が赤になる。
 
 ### 3-4. Task 2 は spec のファイル一覧に無い production コードを変更した（validator 2箇所）
 
@@ -233,13 +248,19 @@ Task 0 が発見し、後続タスクへの注意として台帳へ記録した�
 
 なお ADR 0049 の存在検査は、これらのキーを「どの期間の条件定義からも参照されない」ものとして**意図的に無視する**（偽陽性の回避。決定1）。移行が済むまで毎月の警告ノイズにはならない。
 
-### 6-2. (Ⅴ)区分と処遇改善対象optionの組合せ検証が無い
+### 6-2. (Ⅴ)区分と処遇改善対象optionの組合せ — 2方向のうち有害な向きは最終レビューで塞いだ
 
-option 6 以外を届け出た事業所が(Ⅴ)のサブ区分を入力できてしまうが、弾かない（spec 決定5・非スコープ）。
+**本節は当初「算定額には影響しない」と一括りに書いていたが、それは片方の向きにしか当てはまらなかった。**
 
-**算定額には影響しない**: マスタ側の二重ゲート（ADR 0048 決定4）により、option 6 が立っていなければ(Ⅴ)行は一致しない。また 2025-04 以降は band キー自体が ADR 0049 の警告対象になるため、**失効後は存在検査が可視化する**。
+**無害な向き（band だけがあって option 6 が無い）**: マスタ側の二重ゲート（ADR 0048 決定4）により、option 6 が立っていなければ(Ⅴ)行は一致しない。よって算定額に影響しない。2025-04 以降は band キー自体が ADR 0049 の警告対象になるため、失効後は存在検査が可視化する。**現在も弾かない**（spec 決定5・非スコープのまま）。
 
-施設区分と体制届optionの組合せ検証を Phase 3-5 が非スコープとした理由（一次資料の再確認を要する）と同じであり、`docs/phase3-5-acceptance.md` §8-2 の既存課題へ合流させる。
+**有害な向き（option 6 だけがあって band が無い）**: (Ⅴ)行は option 6 と band の**両方**を条件に要求するため、band が無いと 2024-06〜2025-03 のどの(Ⅴ)行にも一致せず、**加算が無音で0円になる**。しかも ADR 0049 の存在検査は警告しない（`…treatment-improvement.6` は当該月に**有効**なので `!month.Contains(key)` が成立しない）。本ブランチが追加した入力画面（Task 4 の ComboBox 2つ）は、(Ⅴ)の ComboBox が表示される月ではまさにこの状態を保存可能にしていた。
+
+**最終レビューの修正（I1）で塞いだ。** `QueryClaimBillingTokenOptionsUseCase` が当月の service-code 行を走査して「`treatment-improvement-v-band.*` 条件を同じ行で要求している選択番号」を `TreatmentImprovementOptionsRequiringVBand` として返し、`OfficeCapabilityViewModel.SaveAsync` はその集合に属する選択番号を band 未選択で保存しようとしたとき保存エラーを返して**1件も永続化しない**。どの選択番号が(Ⅴ)かはコードに書かず常にマスタ行から導出する（ハード制約3）。実seedでは R6-06 で option 6 のみが該当し、2025-04 以降・R8-06 では該当ゼロであることを production wiring テストで固定した。
+
+証拠: `OfficeCapabilityViewModelTests.SaveAsync_rejects_an_option_that_requires_a_v_band_when_no_band_is_selected` / `..._accepts_an_option_that_requires_a_v_band_when_the_band_is_selected` / `..._accepts_an_option_that_does_not_require_a_v_band_without_a_band`、`QueryClaimBillingTokenOptionsProductionWiringTests.Only_category_v_requires_a_band_in_the_r6_generation` / `..._No_option_requires_a_band_once_category_v_is_gone`。
+
+**`OfficeClaimProfile` 側の施設区分と体制届optionの組合せ検証**は依然として未実施であり（Phase 3-5 が一次資料の再確認を要するとして非スコープにしたもの）、`docs/phase3-5-acceptance.md` §8-2 の既存課題へ合流させる。
 
 ### 6-3. GUI 手動貫通確認が Phase 1 から未実施のまま
 
@@ -249,13 +270,17 @@ option 6 以外を届け出た事業所が(Ⅴ)のサブ区分を入力できて
 
 > `OfficeCapabilityView` の処遇改善区分 ComboBox・(Ⅴ)区分 ComboBox が、`PeriodStart` を編集して語彙が入れ替わっても**選択を保持する**こと。修正はコードに入っているが、headless の ViewModel テストでは原理的に検証できない（Avalonia の `SelectingItemsControl` が Reset 通知に反応して `SelectedItem` を null 化し、TwoWay バインドがそれを書き戻す挙動が再現しないため）。
 
-### 6-4. spec §6.1 の第2の副条件が未実装
+### 6-4. spec §6.1 の第2の副条件 — 判定関数は未拡張だが、前提は機械判定になった
 
-§3-3 に記載。現行seedでは差が出ないことを機械的に確認済み。ADR 0049「影響」節に限界と拡張方法を記録した。
+§3-3 に記載のとおり `FindUncoveredKeys` は第1の副条件だけを見る。現行seedで差が出ないことは機械的に確認済みだったが、**それが崩れたときに何もfail-closeしない**状態が残っていた（本ブランチが世代境界テストの歯の喪失を見つけた §4-2 と同じ類型）。
+
+**最終レビューの修正（item 6）で常設アサーションへ格上げした**: `ClaimMasterCapabilityCoverageTests.Every_effective_office_capability_condition_is_referenced_by_an_effective_service_code_row` が 2024〜2030 の全月について production seed を走査し、有効な `office-capability` 条件定義がどの service-code 行からも参照されない月があれば赤にする。走査が空振りしていないこと（月数・条件件数が非ゼロ）も同テストが固定し、判定ロジックの歯は `..._The_check_detects_a_capability_condition_that_no_service_code_row_references` が合成データで実証する。判定関数の拡張自体は不要なまま（拡張が必要になった瞬間をこのテストが知らせる）。
 
 ### 6-5. 台帳の `minor (deferred)` 一覧
 
-`progress.md` の `minor (deferred)` 行は**13件**（`grep -c "minor (deferred)"` で実測。台帳の21・22・23・24・42・43・44・61・62・63・74・75・82行目）。うち1件（75行目「ADR 0049 は未作成（Task 6 で作る。0048 も同様）」）は本タスクで解消したため除外し、**残る12件を下記に列挙する**（列挙数は12で、除外後の件数と一致する）。いずれも実害が無いか、より広い課題へ合流するものとして繰り延べた。
+`progress.md` の `minor (deferred)` 行は**13件**（`grep -c "minor (deferred)"` で実測。台帳の21・22・23・24・42・43・44・61・62・63・74・75・82行目）。うち1件（75行目「ADR 0049 は未作成（Task 6 で作る。0048 も同様）」）は本タスクで解消したため除外し、**残る12件を下記に列挙する**（列挙数は12で、除外後の件数と一致する）。
+
+**最終レビューの修正ウェーブで、このうち2件（Task 4 の「option が null のときのテストが無い」と、Task 4 の `ViewInputWiringTests` の `AutomationProperties` 未検査）を解消した**（打ち消し線・注記で下記に反映）。残りは実害が無いか、より広い課題へ合流するものとして繰り延べたままである。
 
 - **Task 1**: `An_unresolved_facility_classification_fails_closed` が option 2 の1ケースのみ（R8側の同種テストは Theory 4件）。option 4・5 の未入力fail-closeは同一コードパスであり実害は無い。
 - **Task 1**: locator の項番表記が `additions.json` と `service-codes.json` で不統一（一方は「第14の17 イ」、他方は「物理236頁 ハ」のように前置が異なる）。指す位置は同一。
@@ -264,11 +289,35 @@ option 6 以外を届け出た事業所が(Ⅴ)のサブ区分を入力できて
 - **Task 2**: 歯の確認1件目（率）の失敗メッセージに `because` アンカーが無い（他4件は検証済み）。
 - **Task 2**: `decimal.Equals` は scale を無視するため、率を `"0.08"` と書いても `0.080` のテストが通る（末尾ゼロの表記ゆれは未検査）。
 - **Task 2**: `ConditionIntersectionGroupKey` が `Values[0]` を見るため、`in` 演算子の operand が来ると family の決定が恣意的になりうる。現行seedに該当なし。
-- **Task 4**: 体制届キーの接頭辞（`mhlw.b46.capability.…`）が書き側（ViewModel）と読み側（use case）で重複しており、共有定数が無い。
-- **Task 4**: option が null のとき `treatment-improvement.*` を1件も書かないことの直接テストが無い。
-- **Task 4**: 新規2コントロールだけが `AutomationProperties.Name` を持ち、同 View の既存の兄弟コントロールは未設定。かつ `ViewInputWiringTests` は `AutomationProperties` を検査していない。
-- **Task 5**: `Application` 層の「無視する」テストは `all` が空であるために通っており、テスト名が主張するほど強くない（Domain 層の同種テストが本来の主張を担保している）。
+- **Task 4**: 体制届キーの接頭辞（`mhlw.b46.capability.…`）が書き側（ViewModel）と読み側（use case）で重複しており、共有定数が無い。**リテラルは合計4箇所**（`OfficeCapabilityViewModel.cs` の option 側・band 側の2箇所と、`QueryClaimBillingTokenOptionsUseCase` の2つの接頭辞定数）。当初この証跡は「2箇所」と書いていたが、読み側の2件を数え落としていた。共有定数化には層跨ぎの定数置き場が要るため、繰延を維持する。
+- ~~**Task 4**: option が null のとき `treatment-improvement.*` を1件も書かないことの直接テストが無い。~~ → **最終レビューで解消**（`OfficeCapabilityViewModelTests.SaveAsync_writes_no_option_key_when_no_option_is_selected`）。請求に効く one-hot 不変条件であり、同メソッドで実欠陥（語彙外optionの無条件書き込み）が過去に見つかっているため昇格した。
+- **Task 4**: 新規2コントロール以外の同 View の既存の兄弟コントロールは `AutomationProperties.Name` 未設定（本スライスの追加分ではないため繰延）。**`ViewInputWiringTests` の未検査は最終レビューで解消**し、新規2 ComboBox の `AutomationProperties.Name` を検査対象に含めた（ハード制約5）。
+- **Task 5**: `Application` 層の「無視する」テストは `all` が空であるために通っており、テスト名が主張するほど強くない（Domain 層の `OfficeCapabilityCoveragePolicyTests.A_key_never_used_by_any_condition_is_ignored` が本来の主張を担保している）。§1 の行22/22b をこの実態に合わせて訂正済み。
 - **Task 5**: `QueryClaimBillingTokenOptionsUseCase.CapabilityOptionCodes` に4つ目の類似 operand 抽出が残る（下流の形が異なり——接頭辞フィルタ＋int パース——coverage 計算を汚染しないため、レビューが名指しした3箇所の統合からは意図的に外した。将来の整理候補）。
+
+---
+
+## 6-A. 最終レビュー（ブランチ全体）の修正ウェーブ
+
+マージ前の最終レビューで7件を適用した。**seed JSON は一切変更していない**（コードと文書のみ）。
+
+| 項目 | 重大度 | 内容 | 反映先 |
+|---|---|---|---|
+| C1 | Critical | 施設区分未入力の `ServiceCodeResolutionException` が `ClaimPreparationViewModel` の例外フィルタで受けられず、`AsyncRelayCommand` から**アプリの終了**になっていた。`IsHandledClaimException` に追加し、`FacilityClassificationUnresolved` を欄名入りの固定文言へ写像 | §3-1・ADR 0048「影響」1・§1 行28 |
+| I1 | Important | 処遇改善(Ⅴ)を band 未選択で宣言でき、**無音で0円**になった（存在検査も警告しない）。「band を要求する選択番号」をマスタ行から導出し、保存時に差し戻す | §6-2・ADR 0049・§1 行29〜30 |
+| I2 | Important | 体制届画面の既定期間が `2026-04-01` のハードコードで、現在月（2026-07）の登録で 2026-06 施行の選択番号が選べなかった。DI の `TimeProvider` から当月初日を導く | §1 行31 |
+| I3 | Important | 施設区分 fail-close の影響範囲が `conditionSelectors` の**配列順**でしか抑えられていなかった。`MatchesAll` を順序非依存にし、他条件がすべて一致した行でだけ表面化させる | ADR 0048 決定5・§1 行32 |
+| 5 | minor→昇格 | option 未選択のとき option キーを書かないことの直接テスト。併せて `ViewInputWiringTests` に `AutomationProperties.Name` の検査を追加 | §6-5・§1 行34〜35 |
+| 6 | — | spec §6.1 条件2 の前提（「該当0件」）を常設アサーション化 | §6-4・ADR 0049・§1 行33 |
+| 7 | — | 本証跡と ADR 0048/0049 の3件の記述の訂正（下記） | §1 行22/22b・§3-1・§6-2・§6-5 |
+
+**訂正した3件の記述**:
+
+1. 「(Ⅴ)區分/option の不一致は**算定額には影響しない**」（§6-2・ADR 0049）→ **無害な向き（band のみ）にしか当てはまらない**。有害な向き（option 6 のみ）は無音で0円になり、しかも ADR 0049 の存在検査は警告しない。I1 で塞いだ。
+2. §1 行22 が「偽陽性の不在」の証拠として `CalculateClaimUseCaseTests..._does_not_warn_about_a_declared_capability_never_referenced_by_any_condition` を挙げていたが、**§6-5 が同時に「そのテストは `all` が空だから通っている」と開示していた**（自己矛盾）。行22b を立て、Domain 層の `OfficeCapabilityCoveragePolicyTests.A_key_never_used_by_any_condition_is_ignored` を証拠として明示し、Application 層のテストは証拠にならない旨を書いた。
+3. 「呼び出し元での**未捕捉例外として表面化する**」（§3-1・ADR 0048「影響」1）→ 字義どおりではあるが「エラーが表示される」と読めた。実際の挙動は**アプリの終了**であり、C1 が変えた後の挙動へ文言を合わせた。
+
+加えて §6-5 の繰延項目の件数を実測へ訂正した（体制届キー接頭辞のリテラルは **4箇所**。ViewModel の2箇所と use case の2つの接頭辞定数。当初「2箇所」と書いて読み側を数え落としていた）。
 
 ---
 
@@ -300,26 +349,28 @@ option 6 以外を届け出た事業所が(Ⅴ)のサブ区分を入力できて
 
 ## 8. `./build/ci.sh` 実行証跡
 
-Task 6 完了時点（文書のみの変更、コード・seed は無変更）に 2026-07-27 実行、**全ゲート緑**。
+最終レビューの修正ウェーブ（§6-A）完了時点に 2026-07-27 実行、**全ゲート緑**（exit 0）。
 
 ```
 ==> restore
 ==> format verify (gate #2)
 ==> build warnings-as-errors (gate #1)
 ==> test + coverage (gate #3, arch=gate#4, offline=gate#5)
-成功!   -失敗:     0、合格:   700、スキップ:     0、合計:   700 - Tsumugi.Domain.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:   704、スキップ:     0、合計:   704 - Tsumugi.Domain.Tests.dll (net10.0)
 成功!   -失敗:     0、合格:   472、スキップ:     0、合計:   472 - Tsumugi.Application.Tests.dll (net10.0)
 成功!   -失敗:     0、合格:   313、スキップ:     0、合計:   313 - Tsumugi.Infrastructure.Csv.Tests.dll (net10.0)
 成功!   -失敗:     0、合格:    30、スキップ:     0、合計:    30 - Tsumugi.Infrastructure.Reporting.Tests.dll (net10.0)
-成功!   -失敗:     0、合格:   271、スキップ:     0、合計:   271 - Tsumugi.App.Tests.dll (net10.0)
-成功!   -失敗:     0、合格:   779、スキップ:     0、合計:   779 - Tsumugi.Infrastructure.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:   279、スキップ:     0、合計:   279 - Tsumugi.App.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:   784、スキップ:     0、合計:   784 - Tsumugi.Infrastructure.Tests.dll (net10.0)
 ==> coverage threshold gate (gate #3 enforcement — floor=Domain 95% / Application 70%, raise Application in Phase 3)
-Tsumugi.Domain      Line 95.29% / Branch 88.16% / Method 93.44%  (floor 95%)
-Tsumugi.Application Line  91.9% / Branch 83.58% / Method 85.11%  (floor 70%)
+Tsumugi.Domain      Line  95.3% / Branch 88.23% / Method 93.45%  (floor 95%)
+Tsumugi.Application Line 91.72% / Branch 83.46% / Method 85.14%  (floor 70%)
 ==> CI OK
 ```
 
-合計 **2,565テスト**（Task 5 完了時点から変化なし。本タスクは文書のみで `src/` `tests/` に変更なし）。`dotnet format --verify-no-changes` も別途 exit 0 を確認済み。
+合計 **2,582テスト**。`dotnet format --verify-no-changes` は `./build/ci.sh` の gate #2 として同一実行で緑。
+
+**注意（環境フレーク）**: 同日の実行のうち1回だけ、`Tsumugi.App.Tests` のテストホストプロセスが 248/279 の地点でクラッシュした（`テストのホスト プロセスがクラッシュしました`）。同一コミットで `./build/ci.sh` を続けて3回、`Tsumugi.App.Tests` 単体（Release ＋ coverage）を3回実行していずれも 279/279 緑であり、**再現しない**。失敗したテスト名は記録されず、特定のテストへ帰属できない。macOS 上の並列テストホスト＋coverage collector の既知の不安定性と判断し、環境要因として記録する。
 
 各 Task 完了時点の全件数（各 task report の `dotnet test` 実測値）:
 
@@ -330,6 +381,8 @@ Tsumugi.Application Line  91.9% / Branch 83.58% / Method 85.11%  (floor 70%)
 | Task 3 完了（`12a11b8`） | 2,539 | +6（内訳: 移設5件は増減なし、新規6件） |
 | Task 4 完了（`11fc53b`） | 2,549 | +10 |
 | Task 5 完了（`fdd6f58`） | 2,565 | +16 |
+| Task 6 完了（`d21af54`） | 2,565 | ±0（文書のみ） |
+| 最終レビュー修正ウェーブ | 2,582 | +17 |
 
 Task 3 の増分には、`Application.Tests` から `Infrastructure.Tests` へ移設した5件（アセンブリ間の移動であり総数は不変。§3-6）が含まれる。
 

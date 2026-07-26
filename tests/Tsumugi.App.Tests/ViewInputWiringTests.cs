@@ -226,6 +226,13 @@ public sealed class ViewInputWiringTests
             because: "処遇改善加算 対象区分の入力欄が画面に無いと ADR 0021 の公式キーが書けない");
         xml.Should().Contain("{Binding TreatmentImprovementVBand}",
             because: "(Ⅴ)区分の入力欄が画面に無いと同区分の公式キーが書けない");
+
+        // ハード制約5（アクセシビリティ既定）: スクリーンリーダー・キーボード操作から
+        // 区別できない ComboBox が2つ並ぶ状態を作らない。
+        xml.Should().Contain("AutomationProperties.Name=\"福祉・介護職員等処遇改善加算 対象区分\"",
+            because: "対象区分ComboBoxに読み上げ名が無いと支援技術から区別できない");
+        xml.Should().Contain("AutomationProperties.Name=\"福祉・介護職員等処遇改善加算(Ⅴ) 区分\"",
+            because: "(Ⅴ)区分ComboBoxに読み上げ名が無いと支援技術から区別できない");
     }
 
     // NOTE(teeth): ViewModel が集めた不足項目一覧が画面に出ていること（ADR 0040）。

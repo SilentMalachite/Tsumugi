@@ -46,6 +46,45 @@ public sealed class ClaimPreparationViewModelTests
             .Which.Should().Be(declaredKey);
     }
 
+    /// <summary>
+    /// C1: 施設区分が未入力のまま施設区分条件を持つ行へ到達すると
+    /// <c>ServiceCodeResolver</c> が <c>FacilityClassificationUnresolved</c> を投げる。
+    /// ViewModel の例外フィルタがこれを受けないと、<c>AsyncRelayCommand</c> は
+    /// <c>FlowExceptionsToTaskScheduler</c> 無しで生成されており、グローバルハンドラも
+    /// 無いため**アプリが終了する**。入力すべき欄（施設区分）を名指しする固定文言へ写像する。
+    /// </summary>
+    [Fact]
+    public async Task PreviewAsync_maps_an_unresolved_facility_classification_to_a_message_naming_the_field()
+    {
+        var fixture = CreateFixture();
+        fixture.MasterProvider.Masters = Kit.MastersRequiringFacilityClassification();
+
+        var act = async () => await fixture.Sut.PreviewAsync();
+
+        await act.Should().NotThrowAsync(
+            "未捕捉例外はAsyncRelayCommandからアプリの終了になる");
+        fixture.Sut.ErrorMessage.Should().Be(
+            "施設区分が未入力です。事業所請求設定で施設区分を入力してから、もう一度実行してください。");
+        fixture.Sut.Preview.Should().BeNull();
+    }
+
+    /// <summary>
+    /// C1: 確定（<c>CloseAsync</c>）も同じ算定経路を通るため、同じ例外フィルタで受ける。
+    /// </summary>
+    [Fact]
+    public async Task CloseAsync_maps_an_unresolved_facility_classification_instead_of_terminating()
+    {
+        var fixture = CreateFixture();
+        await fixture.Sut.PreviewAsync();
+        fixture.MasterProvider.Masters = Kit.MastersRequiringFacilityClassification();
+
+        var act = async () => await fixture.Sut.CloseAsync();
+
+        await act.Should().NotThrowAsync();
+        fixture.Sut.ErrorMessage.Should().Be(
+            "施設区分が未入力です。事業所請求設定で施設区分を入力してから、もう一度実行してください。");
+    }
+
     [Fact]
     public async Task PreviewAsync_without_office_selected_sets_context_required_message()
     {

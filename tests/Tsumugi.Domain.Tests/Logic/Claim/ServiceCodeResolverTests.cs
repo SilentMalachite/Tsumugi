@@ -132,6 +132,112 @@ public sealed class ServiceCodeResolverTests
         resolved.Should().HaveCount(expected ? 1 : 0);
     }
 
+    /// <summary>
+    /// I3: 施設区分未入力のフェイルクローズの影響範囲を、seedの条件配列の**並び順**で
+    /// なく構造で決める。旧実装は <c>ConditionSelectors.All(...)</c> の短絡評価に頼っており、
+    /// 処遇改善を届け出ていない事業所が例外に当たらないのは「施設区分セレクタが体制届
+    /// セレクタより後ろに並んでいる」からに過ぎなかった（ADR 0048 決定5。validatorルールも
+    /// テストも無し）。**どちらの並びでも**、他の条件が一致しない行は単に除外されること
+    /// （＝throwしないこと）を固定する。
+    /// </summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void An_unresolved_facility_classification_does_not_throw_when_another_condition_fails(
+        bool facilitySelectorFirst)
+    {
+        var masters = SyntheticMastersWithCapabilityAndFacilityAddition(facilitySelectorFirst);
+        // 体制届キーを1件も宣言していない事業所（＝当該加算を算定しない）。施設区分は未入力。
+        var context = DefaultContext() with
+        {
+            OfficeCapabilityKeys = new HashSet<string>(StringComparer.Ordinal),
+            FacilityClassification = null,
+        };
+
+        var action = () => ServiceCodeResolver.ResolveAdditions(masters, Month, context);
+
+        action.Should().NotThrow(
+            "施設区分セレクタの並び順がフェイルクローズの影響範囲を決めてはならない");
+        ServiceCodeResolver.ResolveAdditions(masters, Month, context).Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// I3: 逆に、他の条件がすべて一致する行では、並び順に依らずフェイルクローズする
+    /// （ADR 0047・0048 の意図した取引を弱めていないことの確認）。
+    /// </summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void An_unresolved_facility_classification_still_fails_closed_when_every_other_condition_matches(
+        bool facilitySelectorFirst)
+    {
+        var masters = SyntheticMastersWithCapabilityAndFacilityAddition(facilitySelectorFirst);
+        var context = DefaultContext() with
+        {
+            OfficeCapabilityKeys = new HashSet<string>(StringComparer.Ordinal) { "capability-x" },
+            FacilityClassification = null,
+        };
+
+        var action = () => ServiceCodeResolver.ResolveAdditions(masters, Month, context);
+
+        action.Should().Throw<ServiceCodeResolutionException>()
+            .Which.Code.Should().Be(ServiceCodeResolutionErrorCode.FacilityClassificationUnresolved);
+    }
+
+    /// <summary>
+    /// I3用: 体制届条件と施設区分条件の**両方**を持つ加算行1本。
+    /// <paramref name="facilitySelectorFirst"/> で条件配列の並びだけを入れ替える。
+    /// </summary>
+    private static ClaimCalculationMasterBundle SyntheticMastersWithCapabilityAndFacilityAddition(
+        bool facilitySelectorFirst)
+    {
+        const string adjustmentKey = "addition.capability-and-facility-test";
+        var amount = new FixedUnitsAmount(10);
+        string[] selectors = facilitySelectorFirst
+            ? ["cond-facility-addition", "cond-capability-x"]
+            : ["cond-capability-x", "cond-facility-addition"];
+
+        return new ClaimCalculationMasterBundle(
+            BasicRewards: [],
+            UnitAdjustments:
+            [
+                new UnitAdjustmentMasterRow(
+                    adjustmentKey, amount, "step-add", null, BillingUnit.PerDay,
+                    new ServiceMonth(2024, 4), null, [SourceRef()]),
+            ],
+            RegionUnitPrices: [],
+            BurdenCaps: [],
+            TransitionRules: [],
+            ServiceCodes:
+            [
+                new ServiceCodeMasterRow(
+                    "sc-capability-facility-addition",
+                    "999998",
+                    "体制届＋施設区分条件加算(合成)",
+                    "b-type",
+                    [],
+                    selectors,
+                    new UnitAdditionRule(adjustmentKey, amount, "step-add", null, BillingUnit.PerDay),
+                    [
+                        new ClaimComponentRef(
+                            ClaimComponentMasterKind.Additions, adjustmentKey, ClaimComponentRole.Adjustment),
+                    ],
+                    new ServiceMonth(2024, 4),
+                    null,
+                    [SourceRef()]),
+            ],
+            ConditionDefinitions:
+            [
+                ConditionDefinition(
+                    "cond-capability-x", ClaimConditionKind.OfficeCapability, ClaimConditionOperator.Equals,
+                    new ClaimConditionTokenOperand("capability-x")),
+                ConditionDefinition(
+                    "cond-facility-addition", ClaimConditionKind.FacilityClassification,
+                    ClaimConditionOperator.Equals,
+                    new ClaimConditionTokenOperand("designated-support-facility")),
+            ]);
+    }
+
     private static ClaimBillingConditionContext DefaultContext() => new(
         RewardSystem: "b-type",
         PaymentBand: "band-a",

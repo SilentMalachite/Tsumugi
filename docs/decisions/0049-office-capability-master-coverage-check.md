@@ -116,13 +116,24 @@ IReadOnlySet<string> AllOfficeCapabilityConditionValues();
 
 現行seedでは差が出ない。全32件の `office-capability` 条件定義について、条件定義が有効でありながらそれを参照する行が1件も有効でない月は**0件**であることを確認した（`ClaimMasterFileValidator.ValidateConditions` が「どの行からも参照されない条件定義」を load 時に拒否し、`condition does not cover the service period` 検査が条件期間 ⊇ 行期間を強制するため、条件定義が行より広い期間を持つ場合にのみ理論上の隙間が生じる）。
 
-将来この形の隙間が生じうるseedを追加する場合は、`monthConditionValues` の組み立てを「当月有効な行から参照されている条件定義の値」へ狭める形で拡張できる。判定関数自体は変更不要である。
+**この「0件」は当初は人手確認だけで、崩れてもfail-closeするものが何も無かった。** 本ブランチ最終レビューの修正（item 6）で常設アサーションへ格上げした:
+`tests/Tsumugi.Infrastructure.Tests/ClaimMasters/ClaimMasterCapabilityCoverageTests.Every_effective_office_capability_condition_is_referenced_by_an_effective_service_code_row` が 2024〜2030 の全月について production seed を走査し、有効な `office-capability` 条件定義がどの service-code 行からも参照されない月を検出したら赤にする。走査が空振りしていないこと（月数・条件件数が非ゼロ）も同テスト内で固定し、判定関数自体の歯は `..._The_check_detects_a_capability_condition_that_no_service_code_row_references` が合成データで実証する。
 
-### (Ⅴ)区分と処遇改善対象optionの組合せ検証は行わない
+**判定関数（`FindUncoveredKeys`）自体は依然として前者だけを見る。** 将来この形の隙間が生じうるseedを実際に追加する場合は、`monthConditionValues` の組み立てを「当月有効な行から参照されている条件定義の値」へ狭める形で拡張できる（判定関数は変更不要）。上記アサーションは、その拡張が必要になった瞬間を機械的に知らせるためのものである。
 
-option 6 以外を届け出た事業所が(Ⅴ)のサブ区分（`treatment-improvement-v-band.{n}`）を入力できてしまうが、本チェックは弾かない。マスタ側の二重ゲート（ADR 0048 決定4）により算定額には影響しない（option 6 が無ければ(Ⅴ)行は一致しない）。また 2025-04 以降は band キー自体が本チェックの警告対象になるため、失効後は可視化される。
+### (Ⅴ)区分と処遇改善対象optionの組合せ — 2方向を区別する
 
-施設区分と体制届optionの組合せ検証を Phase 3-5 が非スコープとした理由（一次資料の再確認を要する）と同じであり、`docs/phase3-5-acceptance.md` §8-2 の既存課題へ合流させる。
+当初この節は「本チェックは弾かないが**算定額には影響しない**」と一括りに書いていた。**それは片方の向きにしか当てはまらない。**
+
+**無害な向き（band だけがあって option 6 が無い）**: マスタ側の二重ゲート（ADR 0048 決定4）により、option 6 が立っていなければ(Ⅴ)行は一致しない。よって算定額には影響しない。また 2025-04 以降は band キー自体が本チェックの警告対象になるため、失効後は可視化される。本チェックでも入力側でも弾かない。
+
+**有害な向き（option 6 だけがあって band が無い）**: seed の(Ⅴ)行は `capability-treatment-improvement-v`（option 6）と `-v-band-{n}` の**両方**を要求するため、band が無いと 2024-06〜2025-03 のどの(Ⅴ)行にも一致せず、**加算が無音で0円になる**（本ADRが排除しようとしている無音の過少請求そのもの）。しかも本チェックは警告しない —— `…treatment-improvement.6` は当該月に**有効**なので `!month.Contains(key)` が成立しないからである。
+
+**本ブランチ最終レビューの修正（I1）で、この向きを入力側で塞いだ。** `QueryClaimBillingTokenOptionsUseCase` が当月の service-code 行を走査し、`treatment-improvement-v-band.*` 条件を**同じ行で**要求している `treatment-improvement.{n}` の選択番号を `TreatmentImprovementOptionsRequiringVBand` として返す。`OfficeCapabilityViewModel.SaveAsync` は、その集合に属する選択番号を band 未選択で保存しようとした場合に保存エラーを返し、**不完全な宣言を1件も永続化しない**。どの選択番号が(Ⅴ)かはコードに書かず、常にマスタ行から導出する（CLAUDE.md ハード制約3）。
+
+証拠: `OfficeCapabilityViewModelTests.SaveAsync_rejects_an_option_that_requires_a_v_band_when_no_band_is_selected` / `..._accepts_an_option_that_requires_a_v_band_when_the_band_is_selected` / `..._accepts_an_option_that_does_not_require_a_v_band_without_a_band`、`QueryClaimBillingTokenOptionsProductionWiringTests.Only_category_v_requires_a_band_in_the_r6_generation`（実seedで option 6 のみ） / `..._No_option_requires_a_band_once_category_v_is_gone`。
+
+なお **`OfficeClaimProfile` 側の施設区分と体制届optionの組合せ検証**（Phase 3-5 が一次資料の再確認を要するとして非スコープにしたもの）は依然として未実施であり、`docs/phase3-5-acceptance.md` §8-2 の既存課題へ合流させる。
 
 ### テスト
 

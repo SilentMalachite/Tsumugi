@@ -89,4 +89,29 @@ public sealed class QueryClaimBillingTokenOptionsProductionWiringTests
         // v-band側の選択肢には現れない（v-bandはサブ区分1〜14そのものを列挙する）。
         dto.TreatmentImprovementVBandOptions.Should().Equal(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14);
     }
+
+    /// <summary>
+    /// I1: 「(Ⅴ)区分を併せて要求する選択番号」は実seedの service-code 行から導出する
+    /// （どの選択番号が(Ⅴ)かをコードに書かない）。R6-06世代では option 6 の行だけが
+    /// <c>treatment-improvement-v-band.*</c> 条件を同じ行で要求する（ADR 0048 決定4の二重ゲート）。
+    /// </summary>
+    [Fact]
+    public void Only_category_v_requires_a_band_in_the_r6_generation()
+    {
+        UseCase.Execute(new ServiceMonth(2024, 6))
+            .TreatmentImprovementOptionsRequiringVBand.Should().Equal(6);
+    }
+
+    /// <summary>
+    /// I1: (Ⅴ)が失効した月・B型に(Ⅴ)が無いR8世代では、bandを要求する選択番号は存在しない。
+    /// 保存ガードが常時発火して体制届の登録を殺していないことをseed側から固定する。
+    /// </summary>
+    [Theory]
+    [InlineData(2025, 4)]
+    [InlineData(2026, 6)]
+    public void No_option_requires_a_band_once_category_v_is_gone(int year, int month)
+    {
+        UseCase.Execute(new ServiceMonth(year, month))
+            .TreatmentImprovementOptionsRequiringVBand.Should().BeEmpty();
+    }
 }

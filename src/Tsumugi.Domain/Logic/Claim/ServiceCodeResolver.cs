@@ -167,24 +167,61 @@ public static class ServiceCodeResolver
             adjustmentRow.BillingUnit);
     }
 
+    /// <summary>
+    /// 行の全条件を評価する。<b>条件の並び順に結果を依存させない</b>のが要点で、
+    /// 施設区分未入力のフェイルクローズ（<see cref="ServiceCodeResolutionErrorCode.FacilityClassificationUnresolved"/>）は
+    /// <b>他のすべての条件が一致した行でだけ</b>表面化させる。
+    /// </summary>
+    /// <remarks>
+    /// 旧実装は <c>ConditionSelectors.All(...)</c> の短絡評価に頼っており、処遇改善を届け出て
+    /// いない事業所が例外に当たらないのは「seedが施設区分セレクタを体制届セレクタより後ろに
+    /// 並べている」からに過ぎなかった（ADR 0048 決定5の注記。validatorルールもテストも無し）。
+    /// 施設区分セレクタを先頭に置くseed行が1つ増えるだけで、2024-06〜2026-05 の<b>すべての</b>
+    /// 事業所がプレビュー不能になる。順序非依存にすることで、影響範囲を配列順ではなく
+    /// 構造で決める。
+    /// </remarks>
     private static bool MatchesAll(
         ServiceCodeMasterRow row, ClaimCalculationMasterBundle masters, ClaimBillingConditionContext context)
-        => row.ConditionSelectors.All(selector =>
+    {
+        ClaimConditionDefinition? deferredUnresolved = null;
+
+        foreach (var selector in row.ConditionSelectors)
         {
-            var matches = masters.ConditionDefinitions
-                .Where(d => d.Key == selector)
-                .Take(2)
-                .ToArray();
+            var definition = ResolveConditionDefinition(masters, selector);
 
-            var definition = matches.Length switch
+            // 未入力による判定不能だけを後回しにする（値が入っていれば通常のtoken比較で、
+            // 不一致は単なる「一致しない行」）。
+            if (definition.Kind == ClaimConditionKind.FacilityClassification
+                && context.FacilityClassification is null)
             {
-                0 => throw new ServiceCodeResolutionException(ServiceCodeResolutionErrorCode.ConditionUnresolved),
-                1 => matches[0],
-                _ => throw new ServiceCodeResolutionException(ServiceCodeResolutionErrorCode.ConditionUnresolved),
-            };
+                deferredUnresolved ??= definition;
+                continue;
+            }
 
-            return Evaluate(definition, context);
-        });
+            if (!Evaluate(definition, context))
+                return false;
+        }
+
+        // 他の条件がすべて一致した行に限り、後回しにした判定不能を表面化させる
+        // （<see cref="EvaluateFacilityClassification"/> がフェイルクローズする）。
+        return deferredUnresolved is null || Evaluate(deferredUnresolved, context);
+    }
+
+    private static ClaimConditionDefinition ResolveConditionDefinition(
+        ClaimCalculationMasterBundle masters, string selector)
+    {
+        var matches = masters.ConditionDefinitions
+            .Where(d => d.Key == selector)
+            .Take(2)
+            .ToArray();
+
+        return matches.Length switch
+        {
+            0 => throw new ServiceCodeResolutionException(ServiceCodeResolutionErrorCode.ConditionUnresolved),
+            1 => matches[0],
+            _ => throw new ServiceCodeResolutionException(ServiceCodeResolutionErrorCode.ConditionUnresolved),
+        };
+    }
 
     private static bool Evaluate(ClaimConditionDefinition definition, ClaimBillingConditionContext context)
         => definition.Kind switch
