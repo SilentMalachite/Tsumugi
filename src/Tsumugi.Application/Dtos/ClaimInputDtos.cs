@@ -93,6 +93,12 @@ public sealed record SetOfficeClaimProfileRequest(
     public int? CapacityHeadcount { get; init; }
     public string? StaffingKey { get; init; }
     public string? RegionKey { get; init; }
+
+    /// <summary>
+    /// 施設区分（ADR 0021・ADR 0047）。<see cref="Domain.Entities.OfficeClaimProfile.FacilityClassification"/>
+    /// と同じ契約で、未入力は<c>null</c>のまま保存する（推測しない）。
+    /// </summary>
+    public FacilityClassification? FacilityClassification { get; init; }
 }
 
 public sealed record SetCertificateClaimEvidenceRequest(

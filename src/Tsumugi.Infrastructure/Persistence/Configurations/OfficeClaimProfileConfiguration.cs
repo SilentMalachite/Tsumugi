@@ -36,7 +36,7 @@ public sealed class OfficeClaimProfileConfiguration : IEntityTypeConfiguration<O
             "AND \"FiledTransitionPeriod\" IS NULL AND \"FiledTransitionEvidenceDocumentId\" IS NULL " +
             "AND \"EvidenceDocumentId\" IS NULL AND \"ConfirmedAt\" IS NULL AND \"ConfirmedBy\" IS NULL " +
             "AND \"ConfirmationReason\" IS NULL AND \"CapacityHeadcount\" IS NULL " +
-            "AND \"StaffingKey\" IS NULL AND \"RegionKey\" IS NULL)",
+            "AND \"StaffingKey\" IS NULL AND \"RegionKey\" IS NULL AND \"FacilityClassification\" IS NULL)",
             table =>
             {
                 table.HasCheckConstraint(
@@ -49,6 +49,9 @@ public sealed class OfficeClaimProfileConfiguration : IEntityTypeConfiguration<O
                 table.HasCheckConstraint(
                     "CK_OfficeClaimProfiles_ReformStatus_ClosedSet",
                     "\"ReformStatus\" IS NULL OR \"ReformStatus\" IN (1, 2, 3, 4)");
+                table.HasCheckConstraint(
+                    "CK_OfficeClaimProfiles_FacilityClassification_ClosedSet",
+                    "\"FacilityClassification\" IS NULL OR \"FacilityClassification\" IN (1, 2)");
                 AddVersionedOptionCheck(table, "EarlierRegisteredBandOption");
                 AddVersionedOptionCheck(table, "LaterRegisteredBandOption");
             });
@@ -61,6 +64,7 @@ public sealed class OfficeClaimProfileConfiguration : IEntityTypeConfiguration<O
                 value => value == null ? (ClaimMasterVersion?)null : new ClaimMasterVersion(value))
             .HasMaxLength(ClaimMasterVersion.MaxLength);
         builder.Property(x => x.ReformStatus).HasConversion<int?>();
+        builder.Property(x => x.FacilityClassification).HasConversion<int?>();
         builder.Property(x => x.EarlierRegistrationMonth)
             .HasConversion(
                 value => value.HasValue ? value.Value.ToInt() : (int?)null,

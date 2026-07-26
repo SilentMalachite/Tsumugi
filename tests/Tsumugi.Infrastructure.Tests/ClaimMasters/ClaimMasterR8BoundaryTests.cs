@@ -382,6 +382,47 @@ public sealed class ClaimMasterR8BoundaryTests
     }
 
     /// <summary>
+    /// ADR 0047: 施設variant4行の率(percentage)をproduction seedから解決した実データでpinする。
+    /// ADR 0047決定表（率はADR 0045の抽出結果からの転記）がこの期待値の唯一の出典。
+    /// <see cref="R8_treatment_improvement_percentages_match_adr_0045"/>と同じ理由（Fix Round 1
+    /// I-2の再発防止）で、施設variantの率もgolden case（<c>ClaimCalculatorGoldenCaseTests</c>は
+    /// Domain層でInfrastructureのseedを読めない）とは独立にproduction seedそのものへ対して固定する。
+    /// </summary>
+    [Fact]
+    public void R8_treatment_improvement_facility_percentages_match_adr_0047()
+    {
+        var june = Provider.ResolveCalculationMasters(June2026);
+
+        // ADR 0047決定表（唯一の出典）: (Ⅰ)イ施設0.116/(Ⅰ)ロ施設0.120/(Ⅲ)施設0.098/(Ⅳ)施設0.081。
+        var expectedPercentages = new Dictionary<string, decimal>(StringComparer.Ordinal)
+        {
+            ["addition.treatment-improvement.r8.i-i.facility"] = 0.116m,
+            ["addition.treatment-improvement.r8.i-ro.facility"] = 0.120m,
+            ["addition.treatment-improvement.r8.iii.facility"] = 0.098m,
+            ["addition.treatment-improvement.r8.iv.facility"] = 0.081m,
+        };
+
+        var actualPercentages = june.UnitAdjustments
+            .Where(row => expectedPercentages.ContainsKey(row.Key))
+            .ToDictionary(
+                row => row.Key,
+                row => row.Amount switch
+                {
+                    PercentageOfTargetAmount percentage => percentage.Percentage,
+                    _ => throw new InvalidOperationException(
+                        $"{row.Key} はpercentage-of-target形式ではない"),
+                },
+                StringComparer.Ordinal);
+
+        actualPercentages.Keys.Should().BeEquivalentTo(
+            expectedPercentages.Keys,
+            "ADR 0047の施設variant4区分すべてがseedされていなければならない");
+        foreach (var (key, expected) in expectedPercentages)
+            actualPercentages[key].Should().Be(
+                expected, $"{key} の率はADR 0047決定表の値と一致しなければならない");
+    }
+
+    /// <summary>
     /// Task 6（ADR 0044・AC3-4-4）: 地域単価・負担上限はR8出典に裏付けられて2026-06でも
     /// **R6行のまま無変更で継続する**（Task 1の分岐(a)。分岐(c)＝確定できず閉じる、を
     /// 採らなかったことを固定する）。これが空/未解決のまま2026-06の請求を通すと、給付単位数は
@@ -581,6 +622,176 @@ public sealed class ClaimMasterR8BoundaryTests
             "cap-81-plus", "staff-10-1",
             new[] { 535, 519, 512, 497, 480, 467, 467, 453, 449, 437, 437, 424 },
         ];
+    }
+
+    private static ClaimBillingConditionContext FacilityContext(
+        int officialOptionCode, string? facilityClassification) => new(
+        RewardSystem: "employment-continuation-support-b",
+        PaymentBand: "",
+        CapacityHeadcount: 15,
+        StaffingKey: "staff-6-1",
+        AverageWageBandOption: Numeric(3),
+        R8ReformStatus: R8ReformStatus.ReformExempt,
+        OfficeCapabilityKeys: new HashSet<string>(StringComparer.Ordinal)
+        {
+            $"mhlw.b46.capability.treatment-improvement.{officialOptionCode}",
+        },
+        FacilityClassification: facilityClassification);
+
+    /// <summary>
+    /// <see cref="ServiceCodeResolver.ResolveAdditions"/>は、宣言した施設区分・体制届に
+    /// 一致する加算行を<b>すべて</b>返す（複数加算の同時算定が正しい挙動のため）。
+    /// <c>b-addition.r6.absence-response</c>（466040・欠席時対応加算）はreward-system条件
+    /// しか持たず、<see cref="FacilityContext"/>のどの呼び出しでも無条件に一致するため、
+    /// 単純な<c>ContainSingle</c>は処遇改善加算family以外の行の混入で常に失敗する。
+    /// ADR 0047が検証したいのは「処遇改善(Ⅰ)イ等 1区分内でのAmbiguousMatch」であり、
+    /// 無関係な加算の有無ではないため、<see cref="ResolvedUnitAddition.AdjustmentComponentKey"/>で
+    /// 処遇改善r8 familyへ絞り込んでから一意性を検証する。
+    /// </summary>
+    private static ResolvedUnitAddition[] TreatmentImprovementRows(
+        IReadOnlyList<ResolvedUnitAddition> rows) => rows
+        .Where(row => row.AdjustmentComponentKey.StartsWith(
+            "addition.treatment-improvement.r8.", StringComparison.Ordinal))
+        .ToArray();
+
+    /// <summary>
+    /// ADR 0047: 施設variantを持つ4区分（体制届option 2・7・4・5）は、施設区分ごとに
+    /// ちょうど1行へ解決する。通常行と施設行の両方が一致する（AmbiguousMatch）状態は
+    /// 条件の付け方を誤った証拠であり、ここで検出する。
+    /// </summary>
+    [Theory]
+    [InlineData(2, "465120", "465138")]
+    [InlineData(7, "465174", "465176")]
+    [InlineData(4, "465122", "465140")]
+    [InlineData(5, "465123", "465141")]
+    public void Facility_variants_resolve_to_exactly_one_row_per_classification(
+        int officialOptionCode, string generalCode, string facilityCode)
+    {
+        var june = Provider.ResolveCalculationMasters(June2026);
+
+        var general = TreatmentImprovementRows(ServiceCodeResolver.ResolveAdditions(
+            june, June2026, FacilityContext(officialOptionCode, "general")));
+        var facility = TreatmentImprovementRows(ServiceCodeResolver.ResolveAdditions(
+            june, June2026, FacilityContext(officialOptionCode, "designated-support-facility")));
+
+        general.Should().ContainSingle(
+            $"非施設 × option {officialOptionCode} は通常行だけに一致する")
+            .Which.ServiceCode.Should().Be(generalCode);
+        facility.Should().ContainSingle(
+            $"施設 × option {officialOptionCode} は施設行だけに一致する")
+            .Which.ServiceCode.Should().Be(facilityCode);
+    }
+
+    /// <summary>
+    /// ADR 0047: (Ⅱ)イ・(Ⅱ)ロ（option 3・8）は公式に施設別立てが存在しないため
+    /// 施設区分条件を付けない。施設事業所でも通常行へ解決しなければならない
+    /// （条件を付けると施設事業所が算定できなくなる＝無音の未算定）。
+    /// </summary>
+    [Theory]
+    [InlineData(3, "465121")]
+    [InlineData(8, "465175")]
+    public void Tiers_without_a_facility_variant_resolve_for_both_classifications(
+        int officialOptionCode, string expectedCode)
+    {
+        var june = Provider.ResolveCalculationMasters(June2026);
+
+        foreach (var classification in new[] { "general", "designated-support-facility" })
+        {
+            var rows = TreatmentImprovementRows(ServiceCodeResolver.ResolveAdditions(
+                june, June2026, FacilityContext(officialOptionCode, classification)));
+
+            rows.Should().ContainSingle(
+                $"施設区分 {classification} でも option {officialOptionCode} は通常行へ解決する")
+                .Which.ServiceCode.Should().Be(expectedCode);
+        }
+    }
+
+    /// <summary>
+    /// ADR 0047: 施設区分が未入力のまま施設variantを持つ区分を算定しようとすると、
+    /// 専用コードでフェイルクローズする（推測して通常行を選ばない）。
+    /// </summary>
+    [Theory]
+    [InlineData(2)]
+    [InlineData(7)]
+    [InlineData(4)]
+    [InlineData(5)]
+    public void Facility_variant_tiers_fail_closed_without_a_facility_classification(
+        int officialOptionCode)
+    {
+        var june = Provider.ResolveCalculationMasters(June2026);
+
+        var action = () => ServiceCodeResolver.ResolveAdditions(
+            june, June2026, FacilityContext(officialOptionCode, null));
+
+        action.Should().Throw<ServiceCodeResolutionException>()
+            .Which.Code.Should().Be(
+                ServiceCodeResolutionErrorCode.FacilityClassificationUnresolved);
+    }
+
+    /// <summary>
+    /// Phase 3-5 Task 4: <c>OfficeClaimBillingTokenProvider</c>（Infrastructure）が解決した
+    /// tokenを<c>ServiceCodeResolver</c>（Domain）へそのまま渡し、施設variantが実際に
+    /// end-to-endで正しい1行へ解決されることを固定する（結線の最終証跡。
+    /// <see cref="Facility_variants_resolve_to_exactly_one_row_per_classification"/>は
+    /// context を手組みするため token provider を経由しない。本テストはそのギャップを埋める）。
+    /// </summary>
+    [Theory]
+    [InlineData(2, "465120", "465138")]
+    [InlineData(7, "465174", "465176")]
+    [InlineData(4, "465122", "465140")]
+    [InlineData(5, "465123", "465141")]
+    public void Facility_variants_resolve_end_to_end_through_the_production_token_provider(
+        int officialOptionCode, string generalCode, string facilityCode)
+    {
+        var june = Provider.ResolveCalculationMasters(June2026);
+        var tokenProvider = new OfficeClaimBillingTokenProvider();
+        var office = FacilityTestOffice();
+
+        var generalTokens = tokenProvider.Resolve(
+            office, FacilityProfile(FacilityClassification.General), June2026);
+        var facilityTokens = tokenProvider.Resolve(
+            office, FacilityProfile(FacilityClassification.DesignatedSupportFacility), June2026);
+
+        var general = TreatmentImprovementRows(ServiceCodeResolver.ResolveAdditions(
+            june, June2026, FacilityContext(officialOptionCode, generalTokens.FacilityClassification)));
+        var facility = TreatmentImprovementRows(ServiceCodeResolver.ResolveAdditions(
+            june, June2026, FacilityContext(officialOptionCode, facilityTokens.FacilityClassification)));
+
+        general.Should().ContainSingle(
+            $"token provider経由の非施設token × option {officialOptionCode} は通常行だけに一致する")
+            .Which.ServiceCode.Should().Be(generalCode);
+        facility.Should().ContainSingle(
+            $"token provider経由の施設token × option {officialOptionCode} は施設行だけに一致する")
+            .Which.ServiceCode.Should().Be(facilityCode);
+    }
+
+    private static Office FacilityTestOffice() => Domain.Entities.Office.Create(
+        Guid.NewGuid(),
+        "1310000001",
+        "テスト事業所",
+        ServiceCategory.TypeB,
+        RegionGrade.Grade2,
+        "tester",
+        DateTimeOffset.UnixEpoch,
+        Guid.NewGuid());
+
+    private static OfficeClaimProfile FacilityProfile(FacilityClassification classification)
+    {
+        var id = Guid.NewGuid();
+        return new OfficeClaimProfile
+        {
+            Id = id,
+            OfficeId = Guid.NewGuid(),
+            EffectiveFrom = new DateOnly(2024, 4, 1),
+            EffectiveTo = null,
+            RootId = id,
+            Revision = 1,
+            Kind = RecordKind.New,
+            FacilityClassification = classification,
+            CreatedAt = DateTimeOffset.UnixEpoch,
+            CreatedBy = "tester",
+            ConcurrencyToken = Guid.NewGuid(),
+        };
     }
 
     private static OfficeClaimProfile ReformTargetProfile(AverageWageBandOption option)

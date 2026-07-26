@@ -65,6 +65,8 @@
 
 いずれも`docs/open-questions.md`へ個別の項目として起票済み（クローズ・起票の一覧は §7・`task-7-report.md`を参照）。
 
+**追記（2026-07-26、Phase 3-5 / ADR 0047）**: 上表の障害者支援施設variant行はPhase 3-5で解消した。一次資料から一意に確定できた4区分（465138・465176・465140・465141）を投入し、施設区分を入力した事業所が正しい率・コードへ解決するようになった。詳細は[`docs/phase3-5-acceptance.md`](phase3-5-acceptance.md)。処遇改善(Ⅴ)・`r8-reform-status-exempt`・option 8は本追記時点でも未確定のまま。
+
 ---
 
 ## 5. spec / plan からの逸脱と理由
@@ -111,7 +113,7 @@
 ## 7. 残課題
 
 1. **GUI 手動貫通確認が Phase 1 から未実施のまま**: `docs/open-questions.md`の「Avalonia GUI 目視確認 (AC1-8 補完)」項目が示すとおり、Phase 1着手前の予定だった実機QAはPhase 2・3-1・3-2・3-3を経て本Phase 3-4でも未実施である。本タスクはCSV生成そのものやUIに変更を加えていないため対象は増えていないが、継続課題として維持する。
-2. **処遇改善(Ⅴ)・障害者支援施設variantの未投入と現在の挙動**: 処遇改善(Ⅴ)を届け出た事業所は**無音で加算0円**（fail-closeではない）、障害者支援施設は通常事業所向け条件に一致してしまい**無音の過少請求**（465120@0.105、本来は465138@0.116）が成立し得る。いずれもエラーは出ない。詳細と解除条件は`docs/open-questions.md`の該当項目・ADR 0045「確定できなかった区分」節を参照。
+2. **処遇改善(Ⅴ)・障害者支援施設variantの未投入と現在の挙動**: 処遇改善(Ⅴ)を届け出た事業所は**無音で加算0円**（fail-closeではない）、障害者支援施設は通常事業所向け条件に一致してしまい**無音の過少請求**（465120@0.105、本来は465138@0.116）が成立し得る。いずれもエラーは出ない。詳細と解除条件は`docs/open-questions.md`の該当項目・ADR 0045「確定できなかった区分」節を参照。**追記（2026-07-26）**: 障害者支援施設variantはPhase 3-5で解消した（詳細は`docs/phase3-5-acceptance.md`）。処遇改善(Ⅴ)は引き続き未投入のまま残る。
 3. **`r8-reform-status-exempt`の不投入**: 現状は必要ない（R6の135行が制約なし一致で正しく機能している）が、将来`effectiveFrom: "2026-06"`以降の新規行でreform-exempt/targetを明示的に区別する必要が生じた場合に備え、`docs/open-questions.md`へ解除条件付きで起票済み。schema・validatorの変更は不要（既に対応済みの語彙）。
 4. **option 8（filed-transition）に一致する条件が無い**: `transition-rules.json`はoption 8を`reform-target`に許可しているが、対応する`average-wage-band`条件定義がR6・R8いずれのseedにも存在しない。`ServiceCodeResolver`は0行一致で`MasterUnavailable`によりfail-closeする（本タスクの前後で挙動は変わらない、既存の未確定事項）。
 5. **「宣言された体制届optionに対応する有効なマスタ行が当月に存在しない場合のreadiness警告」の不在**: 上記2の無音経路を将来的に検出するための恒久的なreadinessチェックは未実装（処遇改善に限らず`OfficeCapability`参照全般に共通する構造的課題）。`docs/open-questions.md`へ別項目として起票済み。

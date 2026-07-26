@@ -156,6 +156,8 @@
               <ComboBox ItemsSource="{Binding StaffingKeyOptions}" SelectedItem="{Binding StaffingKey}" />
               <TextBlock Text="地域区分" />
               <ComboBox ItemsSource="{Binding RegionKeyOptions}" SelectedItem="{Binding RegionKey}" />
+              <TextBlock Text="施設区分" />
+              <ComboBox ItemsSource="{Binding FacilityClassificationOptions}" SelectedItem="{Binding FacilityClassification}" />
               <TextBox Text="{Binding DesignationDate, Mode=TwoWay, Converter={x:Static conv:DateOnlyConverter.Instance}}" Watermark="指定日 (yyyy-MM-dd)" />
               <TextBox Text="{Binding SupportStartDate, Mode=TwoWay, Converter={x:Static conv:DateOnlyConverter.Instance}}" Watermark="支援開始日 (yyyy-MM-dd)" />
               <TextBox Text="{Binding EarlierRegisteredBandOption, Mode=TwoWay, Converter={x:Static conv:VersionedAverageWageBandOptionConverter.Instance}}" Watermark="前登録option (Version|Kind:Code)" />

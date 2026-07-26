@@ -48,6 +48,12 @@ public static class ClaimRecipientSnapshotWriter
             writer.WriteNumber("r8ReformStatus", (int)request.Conditions.R8ReformStatus);
             writer.WriteString("regionKey", request.RegionKey);
             writer.WriteString("serviceKind", request.ServiceKind);
+            // Phase 3-5 で追加（既存キーの順序は変えず末尾へ追記する）。施設区分は処遇改善加算の
+            // 率を分ける算定条件であり（ADR 0047: (Ⅰ)イ は通常0.105・施設0.116）、確定時点の入力として
+            // 凍結しないと、確定済み請求からどちらの区分で算定したかを復元できない（ADR 0026）。
+            // 未入力（null）もそのまま記録する。推測してgeneralへ落とさない。
+            WriteStringOrNull(
+                writer, "facilityClassification", request.Conditions.FacilityClassification);
             writer.WriteEndObject();
 
             if (claimInput is null)
@@ -143,6 +149,12 @@ public static class ClaimRecipientSnapshotWriter
     private static void WriteNumberOrNull(Utf8JsonWriter writer, string propertyName, int? value)
     {
         if (value is { } number) writer.WriteNumber(propertyName, number);
+        else writer.WriteNull(propertyName);
+    }
+
+    private static void WriteStringOrNull(Utf8JsonWriter writer, string propertyName, string? value)
+    {
+        if (value is { } text) writer.WriteString(propertyName, text);
         else writer.WriteNull(propertyName);
     }
 

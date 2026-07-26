@@ -162,6 +162,7 @@ public sealed class SetOfficeClaimProfileUseCase(
             CapacityHeadcount = request.CapacityHeadcount,
             StaffingKey = request.StaffingKey,
             RegionKey = request.RegionKey,
+            FacilityClassification = request.FacilityClassification,
             CreatedAt = clock.GetUtcNow(),
             CreatedBy = actor,
             ConcurrencyToken = Guid.NewGuid(),

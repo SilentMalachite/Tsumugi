@@ -88,8 +88,23 @@ public sealed class OfficeClaimBillingTokenProvider : IClaimBillingTokenProvider
             StaffingKey: profile?.StaffingKey,
             RegionKeyConflict: regionKeyConflict,
             CountSelectorBindings: CountSelectorBindings,
-            BurdenCategoryTokens: BurdenCategoryTokens);
+            BurdenCategoryTokens: BurdenCategoryTokens,
+            FacilityClassification: TokenFor(profile?.FacilityClassification));
     }
+
+    /// <summary>
+    /// 施設区分enum→seedのfacility-classificationトークン（ADR 0047。
+    /// <c>service-codes.json</c>の<c>conditionDefinitions</c>、<c>kind: "facility-classification"</c>の
+    /// 2件と完全一致）。未入力（<c>null</c>／<see cref="FacilityClassification.Unknown"/>）は
+    /// nullを返し、推測しない（呼び出し側resolverが専用コードでフェイルクローズする）。
+    /// </summary>
+    private static string? TokenFor(FacilityClassification? classification)
+        => classification switch
+        {
+            FacilityClassification.General => "general",
+            FacilityClassification.DesignatedSupportFacility => "designated-support-facility",
+            _ => null,
+        };
 
     private static (string? RegionKey, bool Conflict) ResolveRegionKey(
         Office office, OfficeClaimProfile? profile)

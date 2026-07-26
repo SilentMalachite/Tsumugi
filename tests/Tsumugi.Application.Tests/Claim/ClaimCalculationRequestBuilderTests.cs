@@ -387,6 +387,27 @@ public sealed class ClaimCalculationRequestBuilderTests
             && issue.FieldCode == "CertificateClaimEvidence.Original");
     }
 
+    /// <summary>
+    /// Phase 3-5 Task 4: token providerが解決した施設区分tokenが、readiness issueを追加せずに
+    /// そのままcontextへ渡ることを固定する（結線の証跡）。未入力（null）でもissue化しない
+    /// （検出はresolver側のFacilityClassificationUnresolvedが担う。Global Constraintsの意図的判断）。
+    /// </summary>
+    [Theory]
+    [InlineData("designated-support-facility")]
+    [InlineData("general")]
+    [InlineData(null)]
+    public void Build_threads_the_facility_classification_token_into_the_context_without_an_issue(
+        string? facilityClassification)
+    {
+        var tokens = Kit.Tokens() with { FacilityClassification = facilityClassification };
+
+        var result = ClaimCalculationRequestBuilder.Build(Kit.Snapshot(), Kit.Month, tokens);
+
+        result.Issues.Should().BeEmpty();
+        result.Request.Should().NotBeNull();
+        result.Request!.Conditions.FacilityClassification.Should().Be(facilityClassification);
+    }
+
     [Fact]
     public void Build_without_profile_reports_missing_profile_evidence()
     {

@@ -49,6 +49,26 @@
 - 未投入: 処遇改善(Ⅴ)・障害者支援施設variant・`r8-reform-status-exempt`・option 8（filed-transition）
   対応。詳細は [`docs/phase3-4-acceptance.md`](docs/phase3-4-acceptance.md) と `docs/open-questions.md`
 
+## Phase 3-5 完了 (2026-07-26)
+
+- ADR 0045 が「確定できなかった区分」として持ち越した指定障害者支援施設variant
+  （(Ⅰ)イ=465138・(Ⅰ)ロ=465176・(Ⅲ)=465140・(Ⅳ)=465141）のうち、一次資料から
+  一意に確定できた4区分を出典付きで投入した（ADR 0047）
+- Domain の受け皿（`FacilityClassification` enum・条件評価・専用エラーコード
+  `FacilityClassificationUnresolved`）、`additions.json`・`service-codes.json` への
+  施設variant4行＋条件トークン2件の投入、既存4行への非施設条件付与、
+  `OfficeClaimProfile` の永続化（migration・閉集合制約）、token provider・
+  `ClaimCalculationRequestBuilder` の結線、`ClaimInputView` の入力ComboBoxを実装した
+- 施設区分を入力した事業所は該当区分が施設コード・施設率へ一意に解決するようになった。
+  未入力のままだと `FacilityClassificationUnresolved` でフェイルクローズする
+  （推測で通常行を選ばない）
+- spec §3.7 が要求した readiness の非ブロッキング警告は実装せず、専用エラーコードでの
+  fail-closeで代替した（`ClaimCalculationRequestBuilder` の `UpcomingSpecificationIssues` は
+  将来施行分専用で意味論が合わないため）
+- 未投入: 処遇改善(Ⅴ)（14区分の経過措置）、施設での体制届option集合の絞り込み
+  （ADR 0021: R8-06は`{1,2,4,5,7}`）。詳細は [`docs/phase3-5-acceptance.md`](docs/phase3-5-acceptance.md)
+  と `docs/open-questions.md`
+
 ## Phase 3-2 完了 (2026-07-20)
 
 - Claim snapshot codec v2 (`claim-snapshot-v2`) で office / recipient / certificate / dailyRecord[] / claimInput / intensiveSupportEpisode / claimLines[] を確定時に凍結

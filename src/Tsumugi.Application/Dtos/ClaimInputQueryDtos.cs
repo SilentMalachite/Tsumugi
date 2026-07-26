@@ -119,7 +119,9 @@ public sealed record OfficeClaimProfileQueryRevisionDto(
     string CreatedBy,
     int? CapacityHeadcount,
     string? StaffingKey,
-    string? RegionKey);
+    string? RegionKey,
+    /// <summary>施設区分（ADR 0021・ADR 0047）。Phase 3-5 Task 4で末尾へ追記する。</summary>
+    FacilityClassification? FacilityClassification = null);
 
 public sealed record CertificateClaimEvidenceQueryRevisionDto(
     Guid Id,

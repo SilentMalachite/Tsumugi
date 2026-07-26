@@ -122,6 +122,7 @@ public sealed partial class ClaimInputViewModel(
     [ObservableProperty] private DateOnly? _profileEffectiveTo;
     [ObservableProperty] private ClaimMasterVersion? _masterVersion;
     [ObservableProperty] private R8ReformStatus? _reformStatus;
+    [ObservableProperty] private FacilityClassification? _facilityClassification;
     [ObservableProperty] private AverageWageBandOption? _averageWageBandOption;
     [ObservableProperty] private DateOnly? _designationDate;
     [ObservableProperty] private DateOnly? _supportStartDate;
@@ -231,6 +232,8 @@ public sealed partial class ClaimInputViewModel(
         Enum.GetValues<FiscalYearCompleteness>();
     public IReadOnlyList<R8ReformStatus> ReformStatusOptions { get; } =
         Enum.GetValues<R8ReformStatus>();
+    public IReadOnlyList<FacilityClassification> FacilityClassificationOptions { get; } =
+        Enum.GetValues<FacilityClassification>();
     public IReadOnlyList<UpperLimitManagementApplicability> ApplicabilityOptions { get; } =
         Enum.GetValues<UpperLimitManagementApplicability>();
     public IReadOnlyList<Article31SpecialBurdenStatus> Article31StatusOptions { get; } =
@@ -435,6 +438,7 @@ public sealed partial class ClaimInputViewModel(
             {
                 MasterVersion = MasterVersion,
                 ReformStatus = ReformStatus,
+                FacilityClassification = FacilityClassification,
                 AverageWageBandOption = AverageWageBandOption,
                 DesignationDate = DesignationDate,
                 SupportStartDate = SupportStartDate,
@@ -800,6 +804,7 @@ public sealed partial class ClaimInputViewModel(
         ProfileEffectiveTo = value?.EffectiveTo;
         MasterVersion = value?.MasterVersion;
         ReformStatus = value?.ReformStatus;
+        FacilityClassification = value?.FacilityClassification;
         AverageWageBandOption = value?.AverageWageBandOption;
         DesignationDate = value?.DesignationDate;
         SupportStartDate = value?.SupportStartDate;
@@ -1019,6 +1024,7 @@ public sealed partial class ClaimInputViewModel(
     {
         MasterVersion = null;
         ReformStatus = null;
+        FacilityClassification = null;
         AverageWageBandOption = null;
         DesignationDate = null;
         SupportStartDate = null;
