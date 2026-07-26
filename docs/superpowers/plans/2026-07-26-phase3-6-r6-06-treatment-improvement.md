@@ -1110,11 +1110,14 @@ R6は2〜6、R8は2〜5・7・8が自動的に出る。(Ⅴ)区分は(Ⅴ)の有
     }
 
     /// <summary>
-    /// (Ⅴ)区分は処遇改善対象がoption 6のときだけ書く。他の区分を選んでいるのに
-    /// (Ⅴ)区分のキーが残ると、失効後の月で不要なキーが宣言されたままになる。
+    /// (Ⅴ)区分は、その月に選択肢が存在し、かつ選択されているときに書く。
+    /// 処遇改善対象の選択番号との突き合わせはViewModelで行わない —— seedの(Ⅴ)行が
+    /// `capability-treatment-improvement-v`（option 6）と`-v-band-{n}`の**両方**を
+    /// conditionSelectorsに要求するため、対応関係はマスタ条件が強制する。
+    /// UI側で「どの選択番号が(Ⅴ)か」を導出すると選択番号の並びに暗黙依存する。
     /// </summary>
     [Fact]
-    public async Task SaveAsync_writes_the_category_v_band_only_for_option_six()
+    public async Task SaveAsync_writes_the_selected_category_v_band()
     {
         var vm = CreateViewModel();
         await vm.InitializeAsync();
@@ -1124,15 +1127,25 @@ R6は2〜6、R8は2〜5・7・8が自動的に出る。(Ⅴ)区分は(Ⅴ)の有
 
         await vm.SaveCommand.ExecuteAsync(null);
 
-        SavedFlags.Should().ContainKey("mhlw.b46.capability.treatment-improvement-v-band.3");
+        SavedFlags.Should().ContainKey("mhlw.b46.capability.treatment-improvement-v-band.3")
+            .WhoseValue.Should().BeTrue();
+    }
 
-        var other = CreateViewModel();
-        await other.InitializeAsync();
-        other.OfficeId = Guid.NewGuid();
-        other.TreatmentImprovementOption = 2;
-        other.TreatmentImprovementVBand = 3;
+    /// <summary>
+    /// (Ⅴ)区分の選択肢が存在しない月（R8世代など）では、band が選ばれていても書かない。
+    /// 存在しない語彙のキーを宣言すると、存在検査（ADR 0049）が毎月警告する。
+    /// </summary>
+    [Fact]
+    public async Task SaveAsync_does_not_write_a_band_when_the_month_has_no_band_options()
+    {
+        var vm = CreateViewModel();
+        await vm.InitializeAsync();
+        vm.OfficeId = Guid.NewGuid();
+        vm.PeriodStart = new DateOnly(2026, 6, 1);   // R8世代: (Ⅴ)区分の選択肢は空
+        vm.TreatmentImprovementOption = 2;
+        vm.TreatmentImprovementVBand = 3;
 
-        await other.SaveCommand.ExecuteAsync(null);
+        await vm.SaveCommand.ExecuteAsync(null);
 
         SavedFlags.Keys.Should().NotContain(
             k => k.StartsWith("mhlw.b46.capability.treatment-improvement-v-band.", StringComparison.Ordinal));
@@ -1208,32 +1221,21 @@ dotnet test tests/Tsumugi.App.Tests --filter "FullyQualifiedName~OfficeCapabilit
             {
                 flags[$"mhlw.b46.capability.treatment-improvement.{option}"] = true;
 
-                // (Ⅴ)区分は処遇改善対象が(Ⅴ)のときにのみ意味を持つ。
-                if (TreatmentImprovementVBandOptions.Count > 0
-                    && TreatmentImprovementVBand is { } band
-                    && TreatmentImprovementVBandOptions.Contains(band)
-                    && option == CategoryVOptionCode)
-                {
-                    flags[$"mhlw.b46.capability.treatment-improvement-v-band.{band}"] = true;
-                }
+            }
+
+            // (Ⅴ)区分は、その月に選択肢が存在し、かつ選択されているときに書く。
+            // 処遇改善対象の選択番号との突き合わせはここで行わない —— seedの(Ⅴ)行が
+            // `capability-treatment-improvement-v`（option 6）と`-v-band-{n}`の両方を
+            // 要求するため、対応関係はマスタ条件が強制する。UI側で「どの選択番号が(Ⅴ)か」を
+            // 導出すると選択番号の並びに暗黙依存する（ADR 0048・0049）。
+            if (TreatmentImprovementVBand is { } band
+                && TreatmentImprovementVBandOptions.Contains(band))
+            {
+                flags[$"mhlw.b46.capability.treatment-improvement-v-band.{band}"] = true;
             }
 ```
 
-`CategoryVOptionCode` は「(Ⅴ)区分の選択肢が存在するとき、それに対応する処遇改善対象の選択番号」である。**この値をハードコードしない**ため、次のように導出する。
-
-```csharp
-    /// <summary>
-    /// (Ⅴ)区分が有効な世代では、(Ⅴ)区分の選択肢と処遇改善対象の選択肢が同時に存在する。
-    /// (Ⅴ)に対応する処遇改善対象の選択番号は、(Ⅴ)区分が存在する月にのみ現れる選択番号
-    /// として一意に定まる（R6: {2,3,4,5,6} のうち6、R8: (Ⅴ)区分が空なので該当なし）。
-    /// この導出はseedの条件定義の有効期間が一致していることに依存する（ADR 0048）。
-    /// </summary>
-    private int? CategoryVOptionCode => TreatmentImprovementVBandOptions.Count == 0
-        ? null
-        : TreatmentImprovementOptions.Count == 0 ? null : TreatmentImprovementOptions.Max();
-```
-
-> **判断の記録**: `Max()` を使うのは、R6世代で(Ⅴ)が最後の選択番号（6）であり、(Ⅴ)区分が存在しない世代では `null` になるため。この導出が将来の版で崩れる可能性はあるので、Task 6 の証跡へ「導出の前提」として明記し、Step 5 のテストで固定する。
+> **判断の記録**: (Ⅴ)以外の選択番号と band が同時に宣言されても**算定額は変わらない**（(Ⅴ)行は両条件を要求するため一致しない）。(Ⅴ)失効後に band キーが宣言されたまま残った場合は、Task 5 の存在検査が警告として可視化する。この整理を Task 6 の証跡へ記録する。
 
 `Discard` へも `TreatmentImprovementOption = null; TreatmentImprovementVBand = null;` を追加する。
 
@@ -1646,7 +1648,7 @@ Phase 3-6 完了を追記し、ハード制約3の記述へ「R6-06世代の処�
 3. spec からの逸脱と理由
 4. 実装者が発見したこと（`Task 4` の「公式キーの入力経路が存在しなかった」は spec 段階で判明済みだが、実装中に追加で判明したことがあれば記録）
 5. 歯の確認の一覧（Task 1 Step 9・Task 2 Step 9・Task 5 Step 10 の結果）
-6. **残課題**: (a) 旧暫定キーの移行（Step 3 で起票した新項目）、(b) (Ⅴ)区分と処遇改善対象optionの組合せ検証が無いこと、(c) `CategoryVOptionCode` の `Max()` 導出が将来の版で崩れうること、(d) GUI手動貫通確認が Phase 1 から未実施のままであること
+6. **残課題**: (a) 旧暫定キーの移行（Step 3 で起票した新項目）、(b) (Ⅴ)区分と処遇改善対象optionの組合せ検証が無いこと（算定額には影響せず、失効後は存在検査が可視化する）、(c) GUI手動貫通確認が Phase 1 から未実施のままであること
 7. `./build/ci.sh` 実行証跡
 
 - [ ] **Step 7: 品質ゲートを通す**
