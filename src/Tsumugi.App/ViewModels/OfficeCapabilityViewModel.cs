@@ -20,9 +20,14 @@ public sealed partial class OfficeCapabilityViewModel(
     ListOfficesUseCase listOfficesUseCase,
     QueryClaimBillingTokenOptionsUseCase tokenOptionsUseCase) : ViewModelBase
 {
+    // Discardは画面を「新規入力前の初期状態」へ戻す。DateOnlyの既定値(0001-01-01)は
+    // ServiceMonthの許容年(1900〜2200)の外側であり、体制届の選択肢再読込に失敗する
+    // 原因になるため、フィールド初期値と同じ有効な既定期間を単一箇所で共有する。
+    private static readonly DateOnly DefaultPeriodStart = new(2026, 4, 1);
+
     [ObservableProperty] private OfficeDto? _selectedOffice;
     [ObservableProperty] private Guid _officeId;
-    [ObservableProperty] private DateOnly _periodStart = new(2026, 4, 1);
+    [ObservableProperty] private DateOnly _periodStart = DefaultPeriodStart;
     [ObservableProperty] private DateOnly? _periodEnd;
     [ObservableProperty] private bool _mealProvision;
     [ObservableProperty] private bool _transportSupport;
@@ -66,8 +71,10 @@ public sealed partial class OfficeCapabilityViewModel(
         }
         catch (ArgumentOutOfRangeException)
         {
-            // Discard等でPeriodStartが未設定(既定値)に戻ると年がServiceMonthの許容範囲外になる。
-            // 例外を握りつぶさず、選択肢を空にして再選択を促す。
+            // PeriodStartはDiscard（既定値へ戻す。今はDefaultPeriodStartで有効な年に固定済み）
+            // 以外に、画面のテキスト入力（DateOnlyConverter経由のTwoWayバインド）からも
+            // ServiceMonthの許容年（1900〜2200）外の値を直接受け取り得る。例外を外へ
+            // 漏らさず、選択肢を空にして再選択を促す。
             TreatmentImprovementOptions.Clear();
             TreatmentImprovementVBandOptions.Clear();
             TreatmentImprovementOption = null;
@@ -77,21 +84,25 @@ public sealed partial class OfficeCapabilityViewModel(
 
         var options = tokenOptionsUseCase.Execute(month);
 
+        // Clear()に続くAdd()はItemsSourceへReset通知を出す。画面に束縛された
+        // SelectingItemsControlはResetでSelectedItemをnullへ戻し、TwoWayバインドにより
+        // それがこのVMへ書き戻る（再構築の最中に選択値を失う）。再構築前の値を退避し、
+        // 再構築後に明示的に代入し直すことで、新しい語彙にまだ含まれる選択を実際に
+        // 保持させる（ヘッドレスなVMテストではこの書き戻りが起きないため、この経路の
+        // 効果はVMテストだけでは証明できず、画面での手動確認に委ねる）。
+        var previousOption = TreatmentImprovementOption;
+        var previousBand = TreatmentImprovementVBand;
+
         TreatmentImprovementOptions.Clear();
         foreach (var code in options.TreatmentImprovementOptions) TreatmentImprovementOptions.Add(code);
 
         TreatmentImprovementVBandOptions.Clear();
         foreach (var code in options.TreatmentImprovementVBandOptions) TreatmentImprovementVBandOptions.Add(code);
 
-        if (TreatmentImprovementOption is { } selected && !TreatmentImprovementOptions.Contains(selected))
-        {
-            TreatmentImprovementOption = null;
-        }
-
-        if (TreatmentImprovementVBand is { } band && !TreatmentImprovementVBandOptions.Contains(band))
-        {
-            TreatmentImprovementVBand = null;
-        }
+        TreatmentImprovementOption =
+            previousOption is { } selected && TreatmentImprovementOptions.Contains(selected) ? selected : null;
+        TreatmentImprovementVBand =
+            previousBand is { } band && TreatmentImprovementVBandOptions.Contains(band) ? band : null;
     }
 
     partial void OnPeriodStartChanged(DateOnly value) => ReloadCapabilityOptions();
@@ -109,7 +120,11 @@ public sealed partial class OfficeCapabilityViewModel(
 
             // ADR 0021: 公式体制届キーはone-hot。選択された選択番号のキーだけをtrueで置く。
             // 未選択なら1件も置かない（「なし」＝option 1 は加算行を持たないため宣言しない）。
-            if (TreatmentImprovementOption is { } option)
+            // bandと対称に、月の語彙(TreatmentImprovementOptions)に無い値は書かない
+            // ——通常はReloadCapabilityOptionsの失効選択リセットが先に選択をnullへ戻すが、
+            // それを経由しない値の混入（プログラム的な直接代入等）に対する防波堤として、
+            // 書き込み時にも同じ語彙チェックを課す。
+            if (TreatmentImprovementOption is { } option && TreatmentImprovementOptions.Contains(option))
             {
                 flags[$"mhlw.b46.capability.treatment-improvement.{option}"] = true;
             }
@@ -143,7 +158,7 @@ public sealed partial class OfficeCapabilityViewModel(
     private void Discard()
     {
         SelectedOffice = null;
-        PeriodStart = default;
+        PeriodStart = DefaultPeriodStart;
         PeriodEnd = null;
         MealProvision = false;
         TransportSupport = false;
