@@ -728,6 +728,72 @@ public sealed class ClaimMasterR8BoundaryTests
                 ServiceCodeResolutionErrorCode.FacilityClassificationUnresolved);
     }
 
+    /// <summary>
+    /// Phase 3-5 Task 4: <c>OfficeClaimBillingTokenProvider</c>（Infrastructure）が解決した
+    /// tokenを<c>ServiceCodeResolver</c>（Domain）へそのまま渡し、施設variantが実際に
+    /// end-to-endで正しい1行へ解決されることを固定する（結線の最終証跡。
+    /// <see cref="Facility_variants_resolve_to_exactly_one_row_per_classification"/>は
+    /// context を手組みするため token provider を経由しない。本テストはそのギャップを埋める）。
+    /// </summary>
+    [Theory]
+    [InlineData(2, "465120", "465138")]
+    [InlineData(7, "465174", "465176")]
+    [InlineData(4, "465122", "465140")]
+    [InlineData(5, "465123", "465141")]
+    public void Facility_variants_resolve_end_to_end_through_the_production_token_provider(
+        int officialOptionCode, string generalCode, string facilityCode)
+    {
+        var june = Provider.ResolveCalculationMasters(June2026);
+        var tokenProvider = new OfficeClaimBillingTokenProvider();
+        var office = FacilityTestOffice();
+
+        var generalTokens = tokenProvider.Resolve(
+            office, FacilityProfile(FacilityClassification.General), June2026);
+        var facilityTokens = tokenProvider.Resolve(
+            office, FacilityProfile(FacilityClassification.DesignatedSupportFacility), June2026);
+
+        var general = TreatmentImprovementRows(ServiceCodeResolver.ResolveAdditions(
+            june, June2026, FacilityContext(officialOptionCode, generalTokens.FacilityClassification)));
+        var facility = TreatmentImprovementRows(ServiceCodeResolver.ResolveAdditions(
+            june, June2026, FacilityContext(officialOptionCode, facilityTokens.FacilityClassification)));
+
+        general.Should().ContainSingle(
+            $"token provider経由の非施設token × option {officialOptionCode} は通常行だけに一致する")
+            .Which.ServiceCode.Should().Be(generalCode);
+        facility.Should().ContainSingle(
+            $"token provider経由の施設token × option {officialOptionCode} は施設行だけに一致する")
+            .Which.ServiceCode.Should().Be(facilityCode);
+    }
+
+    private static Office FacilityTestOffice() => Domain.Entities.Office.Create(
+        Guid.NewGuid(),
+        "1310000001",
+        "テスト事業所",
+        ServiceCategory.TypeB,
+        RegionGrade.Grade2,
+        "tester",
+        DateTimeOffset.UnixEpoch,
+        Guid.NewGuid());
+
+    private static OfficeClaimProfile FacilityProfile(FacilityClassification classification)
+    {
+        var id = Guid.NewGuid();
+        return new OfficeClaimProfile
+        {
+            Id = id,
+            OfficeId = Guid.NewGuid(),
+            EffectiveFrom = new DateOnly(2024, 4, 1),
+            EffectiveTo = null,
+            RootId = id,
+            Revision = 1,
+            Kind = RecordKind.New,
+            FacilityClassification = classification,
+            CreatedAt = DateTimeOffset.UnixEpoch,
+            CreatedBy = "tester",
+            ConcurrencyToken = Guid.NewGuid(),
+        };
+    }
+
     private static OfficeClaimProfile ReformTargetProfile(AverageWageBandOption option)
     {
         var id = Guid.NewGuid();

@@ -118,6 +118,62 @@ public sealed class OfficeClaimBillingTokenProviderTests
         tokens.RegionKey.Should().Be("region-grade-4");
     }
 
+    /// <summary>
+    /// ADR 0047: enum→seedのfacility-classificationトークンへの写像が正しいことを固定する。
+    /// トークン文字列はseed（<c>service-codes.json</c>の<c>conditionDefinitions</c>、
+    /// <c>kind: "facility-classification"</c>の2件）と完全一致していなければならない。
+    /// </summary>
+    [Theory]
+    [InlineData(FacilityClassification.General, "general")]
+    [InlineData(FacilityClassification.DesignatedSupportFacility, "designated-support-facility")]
+    public void Resolve_maps_the_facility_classification_to_its_token(
+        FacilityClassification classification, string expected)
+    {
+        var provider = new OfficeClaimBillingTokenProvider();
+        var office = TestOffice(RegionGrade.Grade2);
+        var profile = Profile(
+            capacityHeadcount: 20, staffingKey: "staff-a", regionKey: null,
+            facilityClassification: classification);
+
+        var tokens = provider.Resolve(office, profile, Month);
+
+        tokens.FacilityClassification.Should().Be(expected);
+    }
+
+    /// <summary>
+    /// 未入力（profileなし・<see cref="FacilityClassification.Unknown"/>）は推測せずnullのまま運ぶ。
+    /// 施設variantを持つ区分の解決は<c>ServiceCodeResolver</c>側の
+    /// <c>FacilityClassificationUnresolved</c>でフェイルクローズさせる。
+    /// </summary>
+    [Theory]
+    [InlineData(null)]
+    [InlineData(FacilityClassification.Unknown)]
+    public void Resolve_returns_no_token_when_the_facility_classification_is_unset(
+        FacilityClassification? classification)
+    {
+        var provider = new OfficeClaimBillingTokenProvider();
+        var office = TestOffice(RegionGrade.Grade2);
+        var profile = Profile(
+            capacityHeadcount: 20, staffingKey: "staff-a", regionKey: null,
+            facilityClassification: classification);
+
+        var tokens = provider.Resolve(office, profile, Month);
+
+        tokens.FacilityClassification.Should().BeNull(
+            "未入力は推測せずnullのまま運び、施設条件つき行の解決でフェイルクローズさせる");
+    }
+
+    [Fact]
+    public void Resolve_returns_no_facility_classification_token_when_profile_is_absent()
+    {
+        var provider = new OfficeClaimBillingTokenProvider();
+        var office = TestOffice(RegionGrade.Grade2);
+
+        var tokens = provider.Resolve(office, profile: null, Month);
+
+        tokens.FacilityClassification.Should().BeNull();
+    }
+
     private static Office TestOffice(RegionGrade regionGrade) => Domain.Entities.Office.Create(
         OfficeId,
         "1310000001",
@@ -129,7 +185,10 @@ public sealed class OfficeClaimBillingTokenProviderTests
         Guid.NewGuid());
 
     private static OfficeClaimProfile Profile(
-        int? capacityHeadcount, string? staffingKey, string? regionKey)
+        int? capacityHeadcount,
+        string? staffingKey,
+        string? regionKey,
+        FacilityClassification? facilityClassification = null)
     {
         var id = Guid.NewGuid();
         return new OfficeClaimProfile
@@ -151,6 +210,7 @@ public sealed class OfficeClaimBillingTokenProviderTests
             CapacityHeadcount = capacityHeadcount,
             StaffingKey = staffingKey,
             RegionKey = regionKey,
+            FacilityClassification = facilityClassification,
             CreatedAt = DateTimeOffset.UnixEpoch,
             CreatedBy = "tester",
             ConcurrencyToken = Guid.NewGuid(),

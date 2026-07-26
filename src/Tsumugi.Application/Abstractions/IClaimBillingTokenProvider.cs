@@ -50,6 +50,14 @@ public interface IClaimBillingTokenProvider
 /// （<c>Unspecified</c>含む）は、呼び出し側（<c>ClaimCalculationRequestBuilder</c>）が
 /// readiness issueへ変換してフェイルクローズする（推測しない）。
 /// </param>
+/// <param name="FacilityClassification">
+/// 施設区分token（ADR 0047・Phase 3-5 Task 4）。<c>OfficeClaimProfile.FacilityClassification</c>
+/// （enum）→seedの正準文字列への写像は<c>OfficeClaimBillingTokenProvider</c>が担う。
+/// <c>null</c>は未入力（<c>FacilityClassification.Unknown</c>含む）を意味し、推測して
+/// いずれかの区分へ倒さない。readiness issueは追加しない（Global Constraintsの意図的判断）。
+/// 施設variantを持つ区分の解決は<c>ServiceCodeResolver</c>が
+/// <c>ServiceCodeResolutionErrorCode.FacilityClassificationUnresolved</c>でフェイルクローズする。
+/// </param>
 public sealed record ClaimBillingConditionTokens(
     string? RewardSystem,
     string? RegionKey,
@@ -58,4 +66,5 @@ public sealed record ClaimBillingConditionTokens(
     string? StaffingKey,
     bool RegionKeyConflict = false,
     IReadOnlyDictionary<string, ClaimCountMetric>? CountSelectorBindings = null,
-    IReadOnlyDictionary<PaymentBurdenCategory, string>? BurdenCategoryTokens = null);
+    IReadOnlyDictionary<PaymentBurdenCategory, string>? BurdenCategoryTokens = null,
+    string? FacilityClassification = null);
