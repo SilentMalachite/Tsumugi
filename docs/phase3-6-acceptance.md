@@ -255,7 +255,7 @@ option 6 以外を届け出た事業所が(Ⅴ)のサブ区分を入力できて
 
 ### 6-5. 台帳の `minor (deferred)` 一覧
 
-`progress.md` の `minor (deferred)` 行は9件（うち1件「ADR 0048/0049 が未作成」は本タスクで解消したため除外し、残る8件を列挙する）。いずれも実害が無いか、より広い課題へ合流するものとして繰り延べた。
+`progress.md` の `minor (deferred)` 行は**13件**（`grep -c "minor (deferred)"` で実測。台帳の21・22・23・24・42・43・44・61・62・63・74・75・82行目）。うち1件（75行目「ADR 0049 は未作成（Task 6 で作る。0048 も同様）」）は本タスクで解消したため除外し、**残る12件を下記に列挙する**（列挙数は12で、除外後の件数と一致する）。いずれも実害が無いか、より広い課題へ合流するものとして繰り延べた。
 
 - **Task 1**: `An_unresolved_facility_classification_fails_closed` が option 2 の1ケースのみ（R8側の同種テストは Theory 4件）。option 4・5 の未入力fail-closeは同一コードパスであり実害は無い。
 - **Task 1**: locator の項番表記が `additions.json` と `service-codes.json` で不統一（一方は「第14の17 イ」、他方は「物理236頁 ハ」のように前置が異なる）。指す位置は同一。
