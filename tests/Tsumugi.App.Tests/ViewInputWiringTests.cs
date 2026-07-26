@@ -114,7 +114,7 @@ public sealed class ViewInputWiringTests
             "AverageWageEvidenceDocumentId", "DailyEvidenceReference", "MonthlyEvidenceReference",
             "OfficeProfileChains", "SelectedOfficeProfileChain", "OfficeProfileCurrentHeadId",
             "OfficeProfileEffectiveHeadId", "MasterVersion", "ReformStatus",
-            "FacilityClassification",
+            "FacilityClassification", "CapacityHeadcount", "StaffingKey", "RegionKey",
             "AverageWageBandOption", "DesignationDate", "SupportStartDate",
             "EarlierRegisteredBandOption", "EarlierRegistrationMonth",
             "LaterRegisteredBandOption", "LaterRegistrationMonth",
