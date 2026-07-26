@@ -158,7 +158,7 @@ IReadOnlySet<string> AllOfficeCapabilityConditionValues();
 `Expected dto.IncompleteCapabilityDeclarationWarnings to be empty because facility-classification条件はcapability種別ではないため、行の充足可否に含めてはならない, but found at least one item {"mhlw.b46.capability.treatment-improvement.2"}.`
 で失敗し、同時に `Declaring_the_v_option_together_with_its_band_is_not_reported` も
 `Expected dto.IncompleteCapabilityDeclarationWarnings to be empty, but found at least one item {"mhlw.b46.capability.treatment-improvement-v-band.3"}.`
-で失敗した（kind フィルタを外すと `reward-system` 種別の値まで混入し、実質すべての行が「不成立」に見えるため）。kind フィルタを戻すと3件とも green に戻る。
+で失敗した（kind フィルタを外すと `reward-system` 種別の値まで混入し、実質すべての行が「不成立」に見えるため）。kind フィルタを戻すと同クラスの4件とも green に戻る。
 
 ### (3) 入口ガード（`OfficeCapabilityViewModel.SaveAsync` の I1）との役割分担
 
