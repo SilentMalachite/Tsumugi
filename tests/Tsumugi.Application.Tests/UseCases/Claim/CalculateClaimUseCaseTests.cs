@@ -430,6 +430,66 @@ public sealed class CalculateClaimUseCaseTests
             "算定に関与しない体制届項目は毎月ノイズを出してはならない");
     }
 
+    // NOTE(teeth, review Important 1): 当月の条件定義に宣言キーが実在する経路を直接ピン止めする。
+    // 既存の2テストはどちらもmonthConditionValuesが空のSyntheticMasters()しか使わないため、
+    // month側の抽出式（kind比較・SelectManyのoperand分岐）を丸ごと[]へ固定する粗いmutationでも
+    // 検出できなかった（Important 1レビュー指摘）。Kit.SyntheticMasters(coveredOfficeCapabilityKey:)
+    // で当月にkind: office-capabilityの条件定義を実際に1件持たせ、月側抽出が正しく動くことを
+    // 直接検査する。
+    [Fact]
+    public async Task Execute_does_not_warn_when_the_declared_capability_is_covered_this_month()
+    {
+        const string coveredKey = "mhlw.b46.capability.treatment-improvement.2";
+        var snapshot = Kit.Snapshot(
+            officeCapabilities:
+            [
+                Kit.Capability(flags: new Dictionary<string, bool> { [coveredKey] = true }),
+            ]);
+        var masterProvider = new Kit.FakeMasterProvider(
+            Kit.Release(),
+            Kit.SyntheticMasters(coveredOfficeCapabilityKey: coveredKey),
+            allOfficeCapabilityConditionValues: new HashSet<string>(StringComparer.Ordinal) { coveredKey });
+        var useCase = CreateUseCase(snapshot, masterProvider: masterProvider);
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeTrue();
+        dto.CapabilityCoverageWarnings.Should().BeEmpty(
+            "当月の条件定義に実在するキーは警告しない（偽陽性を作ってはならない）");
+    }
+
+    // NOTE(teeth, review Important 2): 無関係な理由（事業所請求設定=profile未登録）でnot-readyな
+    // 月でも、体制届カバレッジ警告は消えてはならない。ADR 0041のUpcomingSpecificationIssuesと
+    // 同じ理由で、警告の計算をrequest構築の成否に連動させると、この経路（readinessが他の理由で
+    // 落ちている月）で無音になってしまう（Important 2レビュー指摘）。
+    [Fact]
+    public async Task Execute_still_surfaces_capability_coverage_warnings_when_not_ready_for_an_unrelated_reason()
+    {
+        const string declaredKey = "mhlw.b46.capability.treatment-improvement.6";
+        var snapshot = Kit.Snapshot(
+            includeProfile: false,
+            officeCapabilities:
+            [
+                Kit.Capability(flags: new Dictionary<string, bool> { [declaredKey] = true }),
+            ]);
+        var masterProvider = new Kit.FakeMasterProvider(
+            Kit.Release(),
+            Kit.SyntheticMasters(),
+            allOfficeCapabilityConditionValues: new HashSet<string>(StringComparer.Ordinal) { declaredKey });
+        var useCase = CreateUseCase(snapshot, masterProvider: masterProvider);
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(Kit.OfficeId, Kit.Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeFalse("事業所請求設定(profile)未登録という無関係な理由でnot-ready");
+        dto.Issues.Should().Contain(issue =>
+            issue.Code == ClaimPreparationIssueCode.MissingRequiredEvidence
+            && issue.FieldCode == "OfficeClaimProfile.Effective");
+        dto.CapabilityCoverageWarnings.Should().ContainSingle()
+            .Which.Should().Be(declaredKey);
+    }
+
     /// <summary>
     /// 体制届キー"mhlw.b46.capability.treatment-improvement.6"を宣言済みだが、
     /// Kit.SyntheticMasters()の条件定義には含まれない（＝当月に無い）。

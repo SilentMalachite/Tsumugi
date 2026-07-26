@@ -105,28 +105,48 @@ public static class ClaimCalculationRequestBuilder
         ServiceMonth serviceMonth,
         List<ClaimPreparationIssue> issues)
     {
-        if (snapshot.OfficeCapabilities is not { Count: > 0 } records)
-            return [];
-
-        var asOf = new DateOnly(serviceMonth.Year, serviceMonth.Month, 1);
-        var resolution = OfficeCapabilityPolicy.Resolve(records, asOf);
-        if (resolution.IsAmbiguous)
+        var (isAmbiguous, keys) = ResolveOfficeCapabilityKeysCore(snapshot, serviceMonth);
+        if (isAmbiguous)
         {
             issues.Add(new ClaimPreparationIssue(
                 ClaimPreparationIssueCode.InvalidEffectiveHistory,
                 RecipientId: null,
                 OfficeCapabilityField,
                 ClaimInputDestination.Office));
-            return [];
         }
 
-        if (resolution.Effective is not { } effective)
-            return [];
+        return keys;
+    }
 
-        return effective.Flags
+    /// <summary>
+    /// ADR 0049: 体制届カバレッジ警告（<c>ClaimPreviewPipeline</c>）が、
+    /// <see cref="ClaimCalculationRequest"/>の構築成否に関わらず宣言キーを読めるようにする
+    /// ための公開版。<see cref="ResolveOfficeCapabilityKeys"/>と同じ解決ロジックを使うが、
+    /// 曖昧な実効レコードをissue化しない（警告経路の重複issue化を避けるため、空集合を返すだけ）。
+    /// readiness側の唯一の権威issueは<see cref="ResolveOfficeCapabilityKeys"/>が引き続き担う。
+    /// </summary>
+    internal static HashSet<string> ResolveDeclaredOfficeCapabilityKeys(
+        ClaimCalculationSnapshot snapshot, ServiceMonth serviceMonth)
+        => ResolveOfficeCapabilityKeysCore(snapshot, serviceMonth).Keys;
+
+    private static (bool IsAmbiguous, HashSet<string> Keys) ResolveOfficeCapabilityKeysCore(
+        ClaimCalculationSnapshot snapshot, ServiceMonth serviceMonth)
+    {
+        if (snapshot.OfficeCapabilities is not { Count: > 0 } records)
+            return (false, []);
+
+        var asOf = new DateOnly(serviceMonth.Year, serviceMonth.Month, 1);
+        var resolution = OfficeCapabilityPolicy.Resolve(records, asOf);
+        if (resolution.IsAmbiguous)
+            return (true, []);
+
+        if (resolution.Effective is not { } effective)
+            return (false, []);
+
+        return (false, effective.Flags
             .Where(flag => flag.Value)
             .Select(flag => flag.Key)
-            .ToHashSet(StringComparer.Ordinal);
+            .ToHashSet(StringComparer.Ordinal));
     }
 
     private static AverageWageBandOption? ResolveNumericBandOption(

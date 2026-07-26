@@ -151,14 +151,7 @@ public sealed class JsonClaimMasterProvider : IClaimMasterProvider, IOfficeClaim
     }
 
     public IReadOnlySet<string> AllOfficeCapabilityConditionValues()
-        => _calculationMasters.ConditionDefinitions
-            .Where(condition => condition.Kind == ClaimConditionKind.OfficeCapability)
-            .SelectMany(condition => condition.Operand switch
-            {
-                ClaimConditionTokenOperand token => new[] { token.Value },
-                ClaimConditionTokenSetOperand set => set.Values.ToArray(),
-                _ => [],
-            })
+        => OfficeCapabilityCoveragePolicy.ExtractCapabilityValues(_calculationMasters.ConditionDefinitions)
             .ToHashSet(StringComparer.Ordinal);
 
     public OfficeClaimProfilePolicy Resolve(ClaimMasterVersion masterVersion)

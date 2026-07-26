@@ -66,6 +66,13 @@ public sealed partial class ClaimPreparationViewModel(
     /// 表示は項目コードと版だけ（氏名・受給者証番号は出さない）。
     /// </summary>
     public ObservableCollection<string> UpcomingSpecificationWarnings { get; } = [];
+
+    /// <summary>
+    /// 体制届で宣言されたが当月に有効なマスタ行が無いキー（ADR 0049）。**確定を止めない情報**で、
+    /// 無音で加算0円になる経路を可視化する警告。表示はキー文字列のみ（氏名・受給者証番号は出さない）。
+    /// </summary>
+    public ObservableCollection<string> CapabilityCoverageWarnings { get; } = [];
+
     public ObservableCollection<ClaimBatchHistoryDto> History { get; } = [];
 
     /// <summary>「帳票出力」セクション（Task 14）。確定済revisionの有無と受給者一覧は
@@ -101,6 +108,7 @@ public sealed partial class ClaimPreparationViewModel(
             Replace(
                 UpcomingSpecificationWarnings,
                 (preview.UpcomingSpecificationIssues ?? []).Select(FormatUpcomingChange));
+            Replace(CapabilityCoverageWarnings, preview.CapabilityCoverageWarnings ?? []);
             ErrorMessage = null;
             await RefreshHistoryAsync(context, ct);
         }
@@ -129,6 +137,7 @@ public sealed partial class ClaimPreparationViewModel(
             Preview = null;
             Issues.Clear();
             UpcomingSpecificationWarnings.Clear();
+            CapabilityCoverageWarnings.Clear();
             ErrorMessage = null;
             await RefreshHistoryAsync(context, ct);
         }
@@ -166,6 +175,7 @@ public sealed partial class ClaimPreparationViewModel(
             Preview = null;
             Issues.Clear();
             UpcomingSpecificationWarnings.Clear();
+            CapabilityCoverageWarnings.Clear();
             ErrorMessage = null;
             await RefreshHistoryAsync(context, ct);
         }
@@ -194,6 +204,7 @@ public sealed partial class ClaimPreparationViewModel(
         Preview = null;
         Issues.Clear();
         UpcomingSpecificationWarnings.Clear();
+        CapabilityCoverageWarnings.Clear();
         History.Clear();
         ErrorMessage = null;
         CancelCommand.NotifyCanExecuteChanged();

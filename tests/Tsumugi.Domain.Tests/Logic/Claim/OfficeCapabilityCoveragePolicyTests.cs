@@ -1,5 +1,7 @@
 using FluentAssertions;
 using Tsumugi.Domain.Logic.Claim;
+using Tsumugi.Domain.Logic.Claim.Models;
+using Tsumugi.Domain.ValueObjects;
 
 namespace Tsumugi.Domain.Tests.Logic.Claim;
 
@@ -71,5 +73,91 @@ public sealed class OfficeCapabilityCoveragePolicyTests
             allConditionValues: ["a.key", "b.key"]);
 
         result.Should().Equal("a.key", "b.key");
+    }
+
+    private static ClaimSourceRef SourceRef() => new(
+        "doc-1",
+        "0000000000000000000000000000000000000000000000000000000000000000",
+        "loc",
+        ClaimSourceEvidenceRole.Authoritative,
+        [ClaimSourceSupport.Conditions]);
+
+    private static ClaimConditionDefinition Condition(
+        string key, ClaimConditionKind kind, ClaimConditionOperand operand) => new(
+        key, new ServiceMonth(2024, 4), null, kind, ClaimConditionOperator.Equals, operand, [SourceRef()]);
+
+    /// <summary>
+    /// <c>kind: office-capability</c>以外の条件定義（例: staffing）は対象外。
+    /// 月側・全期間側どちらの抽出にもkind比較を効かせる必要がある（レビューImportant 1）。
+    /// </summary>
+    [Fact]
+    public void ExtractCapabilityValues_ignores_conditions_of_other_kinds()
+    {
+        var result = OfficeCapabilityCoveragePolicy.ExtractCapabilityValues(
+        [
+            Condition("cond-staff", ClaimConditionKind.Staffing, new ClaimConditionTokenOperand("staff-a")),
+        ]);
+
+        result.Should().BeEmpty();
+    }
+
+    /// <summary>token operand（単一値）はその1値だけを返す。</summary>
+    [Fact]
+    public void ExtractCapabilityValues_extracts_a_single_value_from_a_token_operand()
+    {
+        var result = OfficeCapabilityCoveragePolicy.ExtractCapabilityValues(
+        [
+            Condition(
+                "cond-cap", ClaimConditionKind.OfficeCapability,
+                new ClaimConditionTokenOperand("mhlw.b46.capability.treatment-improvement.2")),
+        ]);
+
+        result.Should().Equal("mhlw.b46.capability.treatment-improvement.2");
+    }
+
+    /// <summary>token set operand（複数値）は全値を返す（In条件が束ねる複数option）。</summary>
+    [Fact]
+    public void ExtractCapabilityValues_extracts_every_value_from_a_token_set_operand()
+    {
+        var result = OfficeCapabilityCoveragePolicy.ExtractCapabilityValues(
+        [
+            Condition(
+                "cond-cap-set", ClaimConditionKind.OfficeCapability,
+                new ClaimConditionTokenSetOperand(
+                [
+                    "mhlw.b46.capability.treatment-improvement.2",
+                    "mhlw.b46.capability.treatment-improvement.4",
+                ])),
+        ]);
+
+        result.Should().BeEquivalentTo(
+        [
+            "mhlw.b46.capability.treatment-improvement.2",
+            "mhlw.b46.capability.treatment-improvement.4",
+        ]);
+    }
+
+    /// <summary>
+    /// token・token set以外のoperand（例: 整数条件）はkindがoffice-capabilityでも値を持たない
+    /// ため対象外。将来operand型が増えても、ここに来ない限り無音で取りこぼす契約を明示する。
+    /// </summary>
+    [Fact]
+    public void ExtractCapabilityValues_ignores_operands_that_are_not_token_shaped()
+    {
+        var result = OfficeCapabilityCoveragePolicy.ExtractCapabilityValues(
+        [
+            Condition(
+                "cond-cap-int", ClaimConditionKind.OfficeCapability, new ClaimConditionIntegerOperand(1)),
+        ]);
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void ExtractCapabilityValues_rejects_null_input()
+    {
+        var act = () => OfficeCapabilityCoveragePolicy.ExtractCapabilityValues(null!);
+
+        act.Should().Throw<ArgumentNullException>();
     }
 }

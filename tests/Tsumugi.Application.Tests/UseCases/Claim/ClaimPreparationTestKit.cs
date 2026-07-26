@@ -263,9 +263,22 @@ internal static class ClaimPreparationTestKit
         ClaimConditionOperand operand)
         => new(key, new ServiceMonth(2024, 4), null, kind, @operator, operand, [SourceRef()]);
 
+    /// <summary>
+    /// ADR 0049テスト専用: <paramref name="coveredKey"/>が指定されたときだけ
+    /// <c>kind: office-capability</c>の条件定義を1件追加する（「当月に有効な行が実在する」
+    /// 経路を、実データから独立して直接ピン止めするため）。
+    /// </summary>
+    private static IEnumerable<ClaimConditionDefinition> OfficeCapabilityConditions(string? coveredKey) =>
+        coveredKey is null
+            ? []
+            : [Condition(
+                "cond-office-capability-covered", ClaimConditionKind.OfficeCapability,
+                ClaimConditionOperator.Equals, new ClaimConditionTokenOperand(coveredKey))];
+
     internal static ClaimCalculationMasterBundle SyntheticMasters(
         int unitsPerDay = 700,
-        bool includeTransitionRule = true) => new(
+        bool includeTransitionRule = true,
+        string? coveredOfficeCapabilityKey = null) => new(
         BasicRewards:
         [
             new BasicRewardMasterRow(
@@ -338,6 +351,7 @@ internal static class ClaimPreparationTestKit
             Condition(
                 "cond-staff-a", ClaimConditionKind.Staffing, ClaimConditionOperator.Equals,
                 new ClaimConditionTokenOperand("staff-a")),
+            .. OfficeCapabilityConditions(coveredOfficeCapabilityKey),
         ]);
 
     internal static ClaimBatch Batch(

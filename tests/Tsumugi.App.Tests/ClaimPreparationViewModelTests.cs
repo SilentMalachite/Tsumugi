@@ -26,6 +26,26 @@ public sealed class ClaimPreparationViewModelTests
         fixture.Sut.ErrorMessage.Should().BeNull();
     }
 
+    // ADR 0049: 体制届で宣言されたが当月に有効なマスタ行が無いキーは、UpcomingSpecificationWarnings
+    // (ADR 0041)と同じく確定を止めない情報としてViewModelへ公開される。
+    [Fact]
+    public async Task PreviewAsync_surfaces_capability_coverage_warnings_without_blocking_readiness()
+    {
+        const string declaredKey = "mhlw.b46.capability.treatment-improvement.6";
+        var fixture = CreateFixture();
+        fixture.SnapshotReader.Snapshot = fixture.SnapshotReader.Snapshot with
+        {
+            OfficeCapabilities = [Kit.Capability(new Dictionary<string, bool> { [declaredKey] = true })],
+        };
+        fixture.MasterProvider.AllCapabilityValues = new HashSet<string>(StringComparer.Ordinal) { declaredKey };
+
+        await fixture.Sut.PreviewAsync();
+
+        fixture.Sut.Preview!.IsReady.Should().BeTrue("体制届optionの不一致で確定は止めない");
+        fixture.Sut.CapabilityCoverageWarnings.Should().ContainSingle()
+            .Which.Should().Be(declaredKey);
+    }
+
     [Fact]
     public async Task PreviewAsync_without_office_selected_sets_context_required_message()
     {

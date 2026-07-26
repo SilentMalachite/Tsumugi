@@ -302,15 +302,8 @@ public sealed class ClaimMasterR6FacilityTests
     {
         var provider = Provider;
         var target = new ServiceMonth(year, month);
-        var monthValues = provider.ResolveCalculationMasters(target).ConditionDefinitions
-            .Where(condition => condition.Kind == ClaimConditionKind.OfficeCapability)
-            .SelectMany(condition => condition.Operand switch
-            {
-                ClaimConditionTokenOperand token => new[] { token.Value },
-                ClaimConditionTokenSetOperand set => set.Values.ToArray(),
-                _ => [],
-            })
-            .ToArray();
+        var monthValues = OfficeCapabilityCoveragePolicy.ExtractCapabilityValues(
+            provider.ResolveCalculationMasters(target).ConditionDefinitions);
 
         var uncovered = OfficeCapabilityCoveragePolicy.FindUncoveredKeys(
             declaredKeys: ["mhlw.b46.capability.treatment-improvement.6"],
