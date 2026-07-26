@@ -396,13 +396,12 @@ Task 3 の増分には、`Application.Tests` から `Infrastructure.Tests` へ�
 
 - ブランチ: `feature/capability-declaration-satisfiability`
 - ブリーフ: `.superpowers/sdd/capability-satisfiability/brief.md`
-- 報告: `.superpowers/sdd/capability-satisfiability/report.md`
 
 Task 5 の存在検査（`FindUncoveredKeys`）は「宣言キー K が当月のどの条件定義にも無い」（失効・未施行）だけを拾い、「K は当月に生きているが、K を含む行がすべて追加の体制届キーを要求していて宣言集合では1行も成立しない」場合は無音のまま残っていた（実例: 処遇改善(Ⅴ)＝option 6 のみ宣言し `-v-band.{n}` を宣言していない事業所。option 6 自体は 2024-06〜2025-03 に有効なため `FindUncoveredKeys` は沈黙するが、(Ⅴ)行23件はすべて option 6 と band の両方を要求するため0行一致し、加算は無音の¥0になる）。
 
 本追補は `OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys` を新設してこの穴を塞いだ。判定は**capability種別の条件だけ**を見る（`ExtractCapabilityValueSets`）。行には facility-classification 等の条件も同居するため、それらを混ぜると偽陽性になる（処遇改善(Ⅰ)行 465120/465138 は capability条件と facility-classification 条件を同じ行に持つ）。既存の `FindUncoveredKeys` とは排反（前者は「K が当月に無い」、本検査は「K が当月にある」が前提）であり、判定関数自体は変更していない。
 
-DTOは既存の `CapabilityCoverageWarnings` と**並列の別リスト**（`IncompleteCapabilityDeclarationWarnings`）にした。同一リストへ混ぜると、運用者が「失効した option」と「宣言が不完全（companion option 未選択）」のどちらか判別できず、対処（体制届の見直し vs companion option の追加宣言）を誤る。
+DTOは既存の `CapabilityCoverageWarnings` と**並列の別リスト**（`IncompleteCapabilityDeclarationWarnings`）にした。同一リストへ混ぜると、運用者が「失効した option」と「宣言が不完全（companion option の過不足）」のどちらか判別できず、対処（体制届の見直し vs companion option の追加・削除）を誤る。**不完全になる原因は「不足しているキーがある」場合と「不要なキーが残っている」場合の両方があり得るため（§9-A参照）、UI見出しはどちらか一方の対処だけを指示しない中立な表現にした。**
 
 検出位置は `ClaimPreviewPipeline`（プレビュー時のマスタ照合）に置き、Phase 3-6 の I1（`OfficeCapabilityViewModel.SaveAsync` の入口ガード）とは役割が異なる。入口ガードは**新規保存時**にしか効かず、`RegisterOfficeCapabilityUseCase` 自体はフラグ辞書を検証しないため、将来の取込機能・別の入力面・テスト用シード・DB直接操作は入口ガードを素通りする。本検査は**永続化済みの任意のレコード**（書き手・作成時期を問わない）に対して、確認のたびに再評価される。また入口ガードは `PeriodStart` の月の語彙しか見ないため、世代境界をまたぐ体制届は開始月しか検査されないが、本検査は処理対象月ごとに独立して評価する。
 
@@ -414,9 +413,49 @@ DTOは既存の `CapabilityCoverageWarnings` と**並列の別リスト**（`Inc
 
 | # | 内容 | 証拠 |
 |---|---|---|
-| 1 | Domain: 充足可能／companion欠落で不充足／当月に無いキーは対象外／`in` operand の代替値で充足／決定論的順序 | `OfficeCapabilityCoveragePolicyTests`（`FindUnsatisfiableDeclaredKeys` 6件＋`ExtractCapabilityValueSets` 5件） |
+| 1 | Domain: 充足可能／companion欠落で不充足／当月に無いキーは対象外／`in` operand の代替値で充足／決定論的順序／companion単独宣言も報告／複数行中1つでも充足可能なら報告しない（rule 3のピン止め） | `OfficeCapabilityCoveragePolicyTests`（`FindUnsatisfiableDeclaredKeys` 10件＋`ExtractCapabilityValueSets` 5件） |
 | 2 | Application: 警告する／companion併宣言で警告しない／無関係な理由の not-ready でも運ばれる | `CalculateClaimUseCaseTests.Execute_warns_about_an_incomplete_capability_declaration_missing_a_companion_key` / `..._does_not_warn_about_an_incomplete_capability_declaration_when_the_companion_key_is_also_declared` / `..._still_surfaces_incomplete_capability_declaration_warnings_when_not_ready_for_an_unrelated_reason` |
-| 3 | Infrastructure（実seed。2024-06）: option6のみ宣言→警告／option6+band3→警告なし／option2のみ宣言→facility-classification条件混在でも偽陽性なし | `CapabilityDeclarationSatisfiabilityProductionWiringTests`（3件） |
+| 3 | Infrastructure（実seed。2024-06）: option6のみ宣言→警告／option6+band3→警告なし／option2のみ宣言→facility-classification条件混在でも偽陽性なし／band単独宣言（orphan band）→警告 | `CapabilityDeclarationSatisfiabilityProductionWiringTests`（4件） |
 | 4 | UI: 別枠のリストとして到達し `IsReady` を落とさない | `ClaimPreparationViewModelTests.PreviewAsync_surfaces_incomplete_capability_declaration_warnings_without_blocking_readiness` |
 
-`./build/ci.sh` は本追補の変更を含めて全ゲート緑（詳細・実測値は `.superpowers/sdd/capability-satisfiability/report.md` 参照）。
+### 9-A. 追加レビュー対応（orphan band 等、2026-07-27）
+
+独立レビューで3件の指摘を受け、いずれも本ブランチのまま解消した。
+
+| 項目 | 重大度 | 内容 | 反映先 |
+|---|---|---|---|
+| 1 | Important | `docs/decisions/0049-…md` と本ファイルが `.superpowers/sdd/capability-satisfiability/report.md`（gitignore対象・harnessが書き込みを拒否したため実在しない）を4箇所引用しており、うち1箇所（ADR §(2)）はkindフィルタのRED検証という最も根拠性の高い主張の唯一の証拠になっていた。RED時の実際の失敗文字列をADR §(2)へ直接引用し、4引用すべてを除去した | ADR §(2)・末尾、本節（report.md参照を削除） |
+| 2 | Important | ADR:128「無害な向き（band だけがあって option 6 が無い）」の「本チェックでも入力側でも弾かない」が、本タスクの追加により**誤りになっていた**（band単独宣言は2024-06で実際に警告される）。加えて `OfficeCapabilityView.axaml` は band を要求しない選択番号のままband選択を保存できる（保存後もエラーにならない）ため、(Ⅴ)から他区分へ切り替えた事業所がorphanなband宣言を持ったまま10ヶ月警告を受け続けるという、実運用で到達可能な経路だった。UI見出しの文言（旧: 「他に必要なoptionが未選択」）も「追加」だけを指示しており、正しい対処が「削除」であるケースで誤った操作へ誘導しかねなかった | ADR:128訂正・追補(5)、`OfficeCapabilityViewModel.SaveAsync`（orphan band書き込みガード）、`ClaimPreparationView.axaml`（中立な見出しへ変更）、`ClaimPreparationViewModel.cs`のdocコメント |
+| 3 | Minor | Domain契約が rule 3（「Kを含む行が複数あり、1つでも充足可能なら報告しない」）を単一行のテストでしかピン止めしておらず、`OfficeCapabilityCoveragePolicy.cs`の`row.Any(IsSatisfiable)`を`row.All(IsSatisfiable)`へ変異させても既存22件が全緑のまま通過した（実seedのwiringテストでしか検出できなかった） | `OfficeCapabilityCoveragePolicyTests.A_declared_key_with_one_unsatisfiable_and_one_satisfiable_row_is_not_reported`（2行構成でこの変異を直接RED化） |
+
+**項目2の修正詳細**: `OfficeCapabilityViewModel.SaveAsync` の band 書き込みを、既存の I1 ガード（option側がband併宣言を要求するのにband未選択なら保存エラー）の**逆向き**に改めた——選択中の選択番号が `_optionsRequiringVBand`（`QueryClaimBillingTokenOptionsUseCase.TreatmentImprovementOptionsRequiringVBand`、マスタ行から導出。I1と同じデータ）に含まれない場合、band を選択していても band キー自体を書き込まない。保存エラーにはせず黙って落とす（option側の不足をエラーにする非対称性は、band側の不要分を落とすだけなら再入力コストが不釣り合いに高くないため意図的）。証拠: `OfficeCapabilityViewModelTests.SaveAsync_does_not_write_an_orphan_band_when_the_selected_option_does_not_require_it`（option=2固定でband単独保存を試みる） / `..._does_not_write_an_orphan_band_after_switching_away_from_the_option_that_required_it`（option 6→2 の実運用切替経路を再現。`ReloadCapabilityOptions`はoption変更単体ではband選択をクリアしないことも合わせて固定）。既存テスト`SaveAsync_writes_the_band_key_regardless_of_the_selected_option_number`（前提が今回の修正で偽になった）は上記2件へ置き換えた。`CapabilityDeclarationSatisfiabilityProductionWiringTests.Declaring_only_the_band_without_the_v_option_is_reported_as_an_incomplete_capability_declaration`が、この書き込みガードを経由しない既存データに対しても検査自体が実seedで機能し続けることを固定する。
+
+各RED確認の失敗文字列は `docs/decisions/0049-office-capability-master-coverage-check.md` §(2)（kindフィルタ）と、以下（本節限定の3項目）に引用する。
+
+- 項目2（orphan band、修正前の`SaveAsync`へ一時的に戻して確認）:
+  `Expected SavedFlags.Keys ... to not have any items matching k.StartsWith("mhlw.b46.capability.treatment-improvement-v-band.", Ordinal), but found {"mhlw.b46.capability.treatment-improvement-v-band.3"}.`（2件とも同型）
+- 項目2（Infrastructure、`FindUnsatisfiableDeclaredKeys`を一時的に常に空へ差し替えて確認）:
+  `Expected dto.IncompleteCapabilityDeclarationWarnings to contain a single item, but the collection is empty.`
+- 項目3（rule 3、`row.Any(IsSatisfiable)`→`row.All(IsSatisfiable)`へ変異させて確認）:
+  `Expected result to be empty, but found at least one item {"mhlw.b46.capability.treatment-improvement.6"}.`（新設テスト1件だけがFAILし、既存23件はすべてPASSのまま——レビュー指摘どおり既存テストがこの変異に対して盲目であることも同時に確認した）
+
+`./build/ci.sh` は本追補（review round含む）の変更を含めて全ゲート緑（2026-07-27実行、exit 0）。
+
+```
+==> format verify (gate #2)
+==> build warnings-as-errors (gate #1)
+    0 個の警告 / 0 エラー
+==> test + coverage (gate #3, arch=gate#4, offline=gate#5)
+成功!   -失敗:     0、合格:   719、スキップ:     0、合計:   719 - Tsumugi.Domain.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:   475、スキップ:     0、合計:   475 - Tsumugi.Application.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:   313、スキップ:     0、合計:   313 - Tsumugi.Infrastructure.Csv.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:    30、スキップ:     0、合計:    30 - Tsumugi.Infrastructure.Reporting.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:   281、スキップ:     0、合計:   281 - Tsumugi.App.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:   788、スキップ:     0、合計:   788 - Tsumugi.Infrastructure.Tests.dll (net10.0)
+==> coverage threshold gate (gate #3 enforcement — floor=Domain 95% / Application 70%, raise Application in Phase 3)
+Tsumugi.Domain      Line 95.34% / Branch 88.27% / Method 93.47%  (floor 95%)
+Tsumugi.Application Line 91.77% / Branch 83.46% / Method 85.16%  (floor 70%)
+==> CI OK
+```
+
+合計 **2,606テスト**（review round前の2,602から純増4件: Domain +2、App +1、Infrastructure +1。Application層は今回の指摘に新規テスト追加が無く増減0）。

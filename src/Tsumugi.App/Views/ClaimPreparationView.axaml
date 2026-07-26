@@ -84,11 +84,13 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <!-- ADR 0049の一般化: 宣言キーは当月に有効だが、companionキー未宣言で行が1件も
+            <!-- ADR 0049の一般化: 宣言キーは当月に有効だが、companionキーとの組合せで行が1件も
                  成立しない。原因（失効・未施行 vs 宣言不完全）が異なるため上のブロックとは
-                 別枠にし、対処（体制届の見直し vs companion optionの追加宣言）を混同させない。
-                 確定は止めない情報。 -->
-            <TextBlock Text="体制届の宣言が不完全です（他に必要なoptionが未選択。今月の確定には影響しません）" FontWeight="Bold"
+                 別枠にし、対処（体制届の見直し vs companion optionの過不足の是正）を混同させない。
+                 不完全になる原因は「不足しているoptionがある」場合と「不要なoptionが残っている」
+                 場合の両方があり得るため（レビュー指摘。ADR 0049追補(5)）、見出しは
+                 どちらか一方の対処だけを指示しない中立な表現にする。確定は止めない情報。 -->
+            <TextBlock Text="体制届の宣言の組み合わせが成立していません（不足しているoptionの追加、または不要なoptionの削除が必要な場合があります。今月の確定には影響しません）" FontWeight="Bold"
                        IsVisible="{Binding IncompleteCapabilityDeclarationWarnings.Count, Converter={x:Static conv:CountGreaterThanZeroConverter.Instance}}" />
             <ItemsControl ItemsSource="{Binding IncompleteCapabilityDeclarationWarnings}"
                           IsVisible="{Binding IncompleteCapabilityDeclarationWarnings.Count, Converter={x:Static conv:CountGreaterThanZeroConverter.Instance}}">

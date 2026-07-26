@@ -234,6 +234,60 @@ public sealed class OfficeCapabilityCoveragePolicyTests
     }
 
     /// <summary>
+    /// 実運用で到達しうる逆向き: band だけを宣言し、option（6）を宣言していない
+    /// （例: (Ⅴ)からいったん他区分へ切り替えた後もorphanなbandキーが残っている状態）。
+    /// rule 2 は宣言キーの役割（「主」か「companion」か）を区別しないため、この向きも
+    /// 同じ判定で報告されることを固定する。レビュー指摘: この向きはどの層でも未検査だった。
+    /// </summary>
+    [Fact]
+    public void A_declared_key_used_only_as_a_companion_without_its_primary_key_is_reported()
+    {
+        IReadOnlyList<IReadOnlyList<IReadOnlySet<string>>> rows =
+        [
+            [
+                Set("mhlw.b46.capability.treatment-improvement.6"),
+                Set("mhlw.b46.capability.treatment-improvement-v-band.3"),
+            ],
+        ];
+
+        var result = OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys(
+            declaredKeys: ["mhlw.b46.capability.treatment-improvement-v-band.3"],
+            monthCapabilityRows: rows);
+
+        result.Should().ContainSingle()
+            .Which.Should().Be("mhlw.b46.capability.treatment-improvement-v-band.3");
+    }
+
+    /// <summary>
+    /// rule 3 のピン止め: K を含む行が複数あり、そのうち1つでも充足可能なら報告しない。
+    /// 単一行のケース（他の全テスト）だけでは、実装の <c>row.Any(IsSatisfiable)</c> を
+    /// <c>row.All(IsSatisfiable)</c> に変異させても本ファイルの全テストが緑のまま通り抜けてしまう
+    /// （レビュー指摘。実seedのwiring検査でしか検出できていなかった）。2行構成（1行目は
+    /// companion未宣言で不充足、2行目はKだけを要求する単一条件行で充足）でこの変異を
+    /// Domain層に直接固定する。
+    /// </summary>
+    [Fact]
+    public void A_declared_key_with_one_unsatisfiable_and_one_satisfiable_row_is_not_reported()
+    {
+        IReadOnlyList<IReadOnlyList<IReadOnlySet<string>>> rows =
+        [
+            [
+                Set("mhlw.b46.capability.treatment-improvement.6"),
+                Set("mhlw.b46.capability.treatment-improvement-v-band.3"),
+            ],
+            [
+                Set("mhlw.b46.capability.treatment-improvement.6"),
+            ],
+        ];
+
+        var result = OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys(
+            declaredKeys: ["mhlw.b46.capability.treatment-improvement.6"],
+            monthCapabilityRows: rows);
+
+        result.Should().BeEmpty();
+    }
+
+    /// <summary>
     /// 当月のどの行のcapability条件にも現れないキーは対象外（FindUncoveredKeysの領分、
     /// または請求に効かないキー）。ここを報告すると、算定に関与しないキーで毎月ノイズが出る。
     /// </summary>

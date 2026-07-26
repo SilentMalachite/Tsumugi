@@ -127,11 +127,11 @@ public sealed class OfficeCapabilityViewModelTests
     }
 
     /// <summary>
-    /// (Ⅴ)区分は、その月に選択肢が存在し、かつ選択されているときに書く。
-    /// 処遇改善対象の選択番号との突き合わせはViewModelで行わない —— seedの(Ⅴ)行が
-    /// `capability-treatment-improvement-v`（option 6）と`-v-band-{n}`の**両方**を
-    /// conditionSelectorsに要求するため、対応関係はマスタ条件が強制する。
-    /// UI側で「どの選択番号が(Ⅴ)か」を導出すると選択番号の並びに暗黙依存する。
+    /// (Ⅴ)区分は、その月に選択肢が存在し、選択されており、かつ選択中の選択番号が
+    /// band併宣言を要求している（<c>_optionsRequiringVBand</c>に含まれる）ときに書く。
+    /// レビュー指摘（orphan band）を機に、band単独の書き込みは選択番号が要求する場合に
+    /// 限るよう改めた（この対応関係自体はコードに書かず、マスタ行から導出した
+    /// <c>_optionsRequiringVBand</c>を参照するだけなので、選択番号の並びには依存しない）。
     /// </summary>
     [Fact]
     public async Task SaveAsync_writes_the_selected_category_v_band()
@@ -209,25 +209,70 @@ public sealed class OfficeCapabilityViewModelTests
     }
 
     /// <summary>
-    /// (Ⅴ)区分bandの書き込みは、選択中の処遇改善対象の選択番号が何であっても、
-    /// bandそのものが月の語彙にあれば行う。option番号が6かどうかをここで判定して
-    /// bandの書き込みを条件付けると、seedの(Ⅴ)行が option 6 と band の両方を要求する
-    /// 設計（対応関係はマスタ条件側が強制する）と重複判定になり、将来 option の
-    /// 並びが変わった際に暗黙依存で壊れる。
+    /// レビュー指摘（orphan band）: band の書き込みは、選択中の選択番号が当月のマスタ行で
+    /// band 併宣言を実際に要求している場合に限る。band を要求しない選択番号（ここでは 2）を
+    /// 選んだまま band だけを選択・保存すると、band 単独では宣言集合がどの(Ⅴ)行にも一致
+    /// しないorphanなキーになり、体制届の充足可能性検査
+    /// （`OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys`）が毎月警告する。
+    /// このシナリオは実運用で到達しうる: (Ⅴ)（option 6）から他区分へ切り替えた後も、
+    /// <see cref="OfficeCapabilityViewModel.ReloadCapabilityOptions"/> が band 選択を
+    /// 温存する（月の語彙に残っていれば）ため、切り替え後の保存操作がこの状態を作る。
+    /// どの選択番号が band を要求するかはマスタ行から導出しており（UI側の決め打ちではない）、
+    /// その導出結果（`_optionsRequiringVBand`）を書き込みガードにもそのまま使う
+    /// （保存エラーで拒否する既存ガードの逆向き）。
     /// </summary>
     [Fact]
-    public async Task SaveAsync_writes_the_band_key_regardless_of_the_selected_option_number()
+    public async Task SaveAsync_does_not_write_an_orphan_band_when_the_selected_option_does_not_require_it()
     {
         var vm = CreateViewModel();
         await vm.InitializeAsync();
         vm.OfficeId = Guid.NewGuid();
-        vm.TreatmentImprovementOption = 2; // (Ⅴ)を示す6ではない
+        vm.TreatmentImprovementOption = 2; // (Ⅴ)を示す6ではない。合成マスタではbandを要求しない
         vm.TreatmentImprovementVBand = 3;
 
         await vm.SaveCommand.ExecuteAsync(null);
 
-        SavedFlags.Should().ContainKey("mhlw.b46.capability.treatment-improvement-v-band.3")
-            .WhoseValue.Should().BeTrue();
+        vm.SaveErrorMessage.Should().BeNull("bandを要求しない選択番号は保存エラーにならない");
+        vm.IsSaved.Should().BeTrue();
+        SavedFlags.Should().ContainKey("mhlw.b46.capability.treatment-improvement.2");
+        SavedFlags.Keys.Should().NotContain(
+            k => k.StartsWith(
+                "mhlw.b46.capability.treatment-improvement-v-band.", StringComparison.Ordinal),
+            "band を要求しない選択番号のままband を書くと、宣言集合ではどの行にも一致しない" +
+            "orphanなキーになる");
+    }
+
+    /// <summary>
+    /// 同じ orphan band シナリオを、実運用で到達する経路（(Ⅴ)から他区分へ切り替えた後の保存）
+    /// で再現する。<see cref="OfficeCapabilityViewModel.TreatmentImprovementOption"/> の変更に
+    /// 連動して band 選択をクリアする仕組みは無い（band がクリアされるのは
+    /// <see cref="OfficeCapabilityViewModel.ReloadCapabilityOptions"/> が
+    /// <see cref="OfficeCapabilityViewModel.PeriodStart"/> 変更時に新しい月の語彙から外れた
+    /// 選択を落とす経路だけであり、option 単独の変更では起きない）。そのため option を 6→2 へ
+    /// 変更しても <see cref="OfficeCapabilityViewModel.TreatmentImprovementVBand"/> は
+    /// 3 のまま残り、保存時に書き込みガードで初めて防がれる。
+    /// </summary>
+    [Fact]
+    public async Task
+        SaveAsync_does_not_write_an_orphan_band_after_switching_away_from_the_option_that_required_it()
+    {
+        var vm = CreateViewModel();
+        await vm.InitializeAsync();
+        vm.OfficeId = Guid.NewGuid();
+        vm.TreatmentImprovementOption = 6;
+        vm.TreatmentImprovementVBand = 3;
+
+        vm.TreatmentImprovementOption = 2; // (Ⅴ)から他区分へ切り替え。
+
+        vm.TreatmentImprovementVBand.Should().Be(
+            3, "option変更に連動してbandをクリアする仕組みは無く、保存時のガードだけが頼り");
+
+        await vm.SaveCommand.ExecuteAsync(null);
+
+        vm.IsSaved.Should().BeTrue();
+        SavedFlags.Keys.Should().NotContain(
+            k => k.StartsWith(
+                "mhlw.b46.capability.treatment-improvement-v-band.", StringComparison.Ordinal));
     }
 
     /// <summary>

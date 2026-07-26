@@ -87,8 +87,9 @@ public sealed partial class ClaimPreparationViewModel(
     /// （companion）も要求していて宣言集合では1行も成立しないキー（本タスク。ADR 0049の一般化）。
     /// **確定を止めない情報**。<see cref="CapabilityCoverageWarnings"/>（失効・未施行）とは原因が
     /// 異なるため別枠で表示する（運用者が「失効したoption」と「宣言が不完全」を区別できるように
-    /// する。対処が違う — 前者は体制届の見直し、後者はcompanionのoptionの追加宣言）。
-    /// 表示はキー文字列のみ（氏名・受給者証番号は出さない）。
+    /// する）。**不完全になる原因はcompanion optionの不足（追加が必要）と、不要になった
+    /// companion optionの残留（削除が必要）の両方があり得る**ため、対処を一方向に決め打ちしない
+    /// （レビュー指摘。ADR 0049追補(5)）。表示はキー文字列のみ（氏名・受給者証番号は出さない）。
     /// </summary>
     public ObservableCollection<string> IncompleteCapabilityDeclarationWarnings { get; } = [];
 

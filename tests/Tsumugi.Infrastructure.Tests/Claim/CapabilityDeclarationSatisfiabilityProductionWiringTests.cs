@@ -88,6 +88,32 @@ public sealed class CapabilityDeclarationSatisfiabilityProductionWiringTests
         dto.CapabilityCoverageWarnings.Should().BeEmpty();
     }
 
+    // NOTE(teeth, RED confirmed): レビュー指摘（orphan band）: band だけを宣言しoption6を
+    // 宣言していない向き。以前は`OfficeCapabilityViewModel`が(Ⅴ)から他区分へ切り替えた後も
+    // band選択を無条件に書いていたため、実運用でこの宣言集合（band単独）が実際に永続化され
+    // 得た。band.3自体は2024-06に有効な条件定義を持つ（`CapabilityCoverageWarnings`は沈黙する）
+    // が、band.3を要求する行（465126）は同じ行でoption6も要求するため、option6が無いと
+    // 1行も一致しない。判定関数は宣言キーの役割（主/companion）を区別しないため、この向きも
+    // 実seedで同じ判定になることを固定する。
+    [Fact]
+    public async Task Declaring_only_the_band_without_the_v_option_is_reported_as_an_incomplete_capability_declaration()
+    {
+        var useCase = CreateUseCase(BuildSnapshot(
+            officeCapabilities:
+            [
+                Capability(new Dictionary<string, bool> { [TreatmentImprovementVBand3] = true }),
+            ]));
+
+        var dto = await useCase.ExecuteAsync(
+            new CalculateClaimRequest(OfficeId, Month), CancellationToken.None);
+
+        dto.IsReady.Should().BeTrue("宣言不完全は確定を止めない（ADR 0049と同じ非ブロッキング契約）");
+        dto.IncompleteCapabilityDeclarationWarnings.Should().ContainSingle()
+            .Which.Should().Be(TreatmentImprovementVBand3);
+        dto.CapabilityCoverageWarnings.Should().BeEmpty(
+            "band.3自体は2024-06に有効なため、失効・未施行の既存警告は出ない（排反性の実証）");
+    }
+
     // NOTE(teeth, RED confirmed): 処遇改善(Ⅰ)＝option2を要求する行(465120/465138)は、実seedでは
     // どちらも同じ行にfacility-classification条件（general/designated-support-facility）を
     // 併記する。capability種別だけを見ないと、この施設条件が偽陽性の原因になる
