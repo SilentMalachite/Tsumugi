@@ -19,7 +19,7 @@ public static class BackupGenerationPolicy
         var parsed = new List<(string Name, DateTimeOffset At)>();
         foreach (var name in fileNames)
         {
-            if (BackupFileName.TryParse(name, out var at)) parsed.Add((name, at));
+            if (BackupFileName.TryReadTimestamp(name, out var at)) parsed.Add((name, at));
         }
 
         var deletions = new List<string>();

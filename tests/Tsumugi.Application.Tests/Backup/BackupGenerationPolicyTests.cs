@@ -140,30 +140,30 @@ public sealed class BackupGenerationPolicyTests
         var name = BackupFileName.Create(at);
         name.Should().Be("tsumugi-backup-20260815-160000.db");
 
-        BackupFileName.TryParse(name, out var parsed).Should().BeTrue();
+        BackupFileName.TryReadTimestamp(name, out var parsed).Should().BeTrue();
         parsed.Should().Be(at);          // 同じ瞬間を指すこと
         parsed.Offset.Should().Be(TimeSpan.Zero);
     }
 
     [Fact]
-    public void Create_and_TryParse_round_trip()
+    public void Create_and_TryReadTimestamp_round_trip()
     {
         var at = new DateTimeOffset(2026, 8, 16, 13, 45, 7, TimeSpan.Zero);
 
         var name = BackupFileName.Create(at);
         name.Should().Be("tsumugi-backup-20260816-134507.db");
 
-        BackupFileName.TryParse(name, out var parsed).Should().BeTrue();
+        BackupFileName.TryReadTimestamp(name, out var parsed).Should().BeTrue();
         parsed.Should().Be(new DateTimeOffset(2026, 8, 16, 13, 45, 7, TimeSpan.Zero));
     }
 
     [Fact]
-    public void TryParse_rejects_pre_restore_names()
+    public void TryReadTimestamp_rejects_pre_restore_names()
     {
         var name = BackupFileName.CreatePreRestore(
             new DateTimeOffset(2026, 8, 16, 13, 45, 7, TimeSpan.Zero));
         name.Should().Be("pre-restore-20260816-134507.db");
 
-        BackupFileName.TryParse(name, out _).Should().BeFalse();
+        BackupFileName.TryReadTimestamp(name, out _).Should().BeFalse();
     }
 }
