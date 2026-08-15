@@ -47,6 +47,38 @@ public sealed class BulkOperationsGuardTests
 
         BulkOperationsGuard.IsBulkOperationLine(line).Should().Be(expected);
     }
+
+    [Fact]
+    public void Source_does_not_execute_mutating_raw_sql()
+    {
+        var hits = SourceCodeScanner.Scan(
+            ruleName: "raw-sql-dml",
+            predicate: BulkOperationsGuard.IsMutatingRawSqlLine);
+
+        hits.Should().BeEmpty(
+            because: "raw SQL も ChangeTracker を経由しない。行を書き換える SQL と、行内で内容を確認できない " +
+                     "SQL（変数渡し・複数行リテラル）を禁止する（ADR 0050 決定2）。" +
+                     Environment.NewLine +
+                     "違反: " + string.Join(Environment.NewLine, hits.Select(h => h.ToString())));
+    }
+
+    [Theory]
+    [InlineData("await db.Database.ExecuteSqlRawAsync(\"DELETE FROM ClaimBatches\", ct);", true)]
+    [InlineData("await db.Database.ExecuteSqlAsync($\"UPDATE Certificates SET Revision = {n}\", ct);", true)]
+    [InlineData("await db.Database.ExecuteSqlRawAsync(sql, ct);", true)]                    // 検証不能 → fail-close
+    [InlineData("await db.Database.ExecuteSqlRawAsync(", true)]                             // 複数行 → fail-close
+    [InlineData("await db.Database.ExecuteSqlRawAsync($\"VACUUM INTO '{escaped}'\", ct);", false)]
+    [InlineData("var rows = db.Set<Office>().FromSqlRaw(\"SELECT * FROM Offices\").ToList();", false)]
+    [InlineData("await db.SaveChangesAsync(ct);", false)]                                   // 対象APIではない
+    [InlineData("// ExecuteSqlRawAsync(\"DELETE FROM X\") は禁止", false)]                   // コメント行
+    public void IsMutatingRawSqlLine_distinguishes(string line, bool expected)
+    {
+        ArgumentNullException.ThrowIfNull(line);
+        var isCommentOnly = line.TrimStart().StartsWith("//", StringComparison.Ordinal);
+        if (isCommentOnly) { expected.Should().BeFalse(); return; }
+
+        BulkOperationsGuard.IsMutatingRawSqlLine(line).Should().Be(expected);
+    }
 }
 
 internal static class BulkOperationsGuard
@@ -60,5 +92,31 @@ internal static class BulkOperationsGuard
     {
         ArgumentNullException.ThrowIfNull(line);
         return BulkCall.IsMatch(line);
+    }
+
+    // ChangeTracker を経由しない raw SQL の実行・問い合わせ API。
+    private static readonly Regex RawSqlCall = new(
+        @"\b(ExecuteSql|FromSql)[A-Za-z]*\s*\(", RegexOptions.Compiled);
+
+    // 同一行内の "…" 区間。$ / @ 接頭辞は問わない（spec 決定2「検証可能な文字列リテラル」の定義）。
+    private static readonly Regex StringLiteral = new(
+        "\"([^\"]*)\"", RegexOptions.Compiled);
+
+    // 行を書き換える DML と、破壊的 DDL。CREATE は一時テーブル等の正当な読み取り用途を巻き込むため含めない。
+    private static readonly Regex MutatingKeyword = new(
+        @"\b(INSERT|UPDATE|DELETE|REPLACE|DROP|ALTER|TRUNCATE)\b",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    public static bool IsMutatingRawSqlLine(string line)
+    {
+        ArgumentNullException.ThrowIfNull(line);
+        if (!RawSqlCall.IsMatch(line)) return false;
+
+        var literals = StringLiteral.Matches(line);
+        // 行内で SQL の内容を確認できない形（変数渡し・複数行リテラル）は fail-close で違反にする。
+        // ここを「通す」にすると ExecuteSqlRawAsync(sql) と書くだけでルールを無力化できる。
+        if (literals.Count == 0) return true;
+
+        return literals.Any(m => MutatingKeyword.IsMatch(m.Groups[1].Value));
     }
 }
