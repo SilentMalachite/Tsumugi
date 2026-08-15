@@ -28,10 +28,8 @@ public sealed class RunScheduledBackupUseCase(
         await backupService.BackupToAsync(destination, ct);
 
         var asOf = DateOnly.FromDateTime(now.UtcDateTime);
-        // 今書いたばかりのファイルはディレクトリ一覧の取得タイミングによっては含まれないため、
-        // 明示的に候補へ加える（当日の生き残り判定を正しく「今回のバックアップ」に合わせるため）。
-        var candidates = backupDirectory.ListFileNames().Append(fileName);
-        var doomed = Application.Backup.BackupGenerationPolicy.SelectForDeletion(candidates, asOf);
+        var doomed = Application.Backup.BackupGenerationPolicy.SelectForDeletion(
+            backupDirectory.ListFileNames(), asOf);
         foreach (var name in doomed) backupDirectory.Delete(name);
 
         // 監査にはファイル名だけを書く（固定ディレクトリなのでフルパスは不要。ハード制約4）。
