@@ -44,7 +44,9 @@
   `ExecuteUpdate*`/`ExecuteDelete*` は無条件に禁止し、`ExecuteSql*`/`FromSql*` は SQL リテラルの内容
   （INSERT/UPDATE/DELETE/REPLACE/DROP/ALTER/TRUNCATE）で判定する。allowlist は設けていない
 - `VACUUM INTO`（ハード制約7 のバックアップ手段）は内容で通るため、パス単位の例外を1件も作らずに済んだ。
-  行内で内容を確認できない形（変数渡し・複数行リテラル）は fail-close で違反にする
+  行内で内容を確認できない形（変数渡し・複数行リテラル）は fail-close で違反にする。最終ブランチレビューで
+  生文字列リテラル（`"""…"""`）が空キャプチャで素通りする穴が見つかり、`RawStringLiteralStart` による
+  fail-close を追加した
 - NetArchTest の採否を「見送り」で決着させた（ADR 0051）。推移的参照が未検査である事実は変わらないため、
   残る限界と再検討トリガ3件を ADR に明記した
 - `docs/open-questions.md` の2項（アーキテクチャテストの推移的参照・AppendOnlyGuard と bulk operations）を

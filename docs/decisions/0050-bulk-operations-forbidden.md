@@ -37,6 +37,8 @@ await db.Database.ExecuteSqlRawAsync(sql, ct); // caller: "AdminPanel"
 
 SQL 本体は変数 `sql` であり内容を検証できないにもかかわらず、行末コメントの `"AdminPanel"` というリテラルが拾われて `MutatingKeyword` に一致しないため、fail-close に入らず通過してしまう。`SourceCodeScanner.StripLineComment` は行頭が空白＋`//`の場合のみコメントを除去し、行末コメントは除去しないため、この形は実コードで到達可能である。この指摘を受け、判定基準を「呼び出しの第1引数だけを見る」定義へ改訂した。第1引数が文字列リテラルでなければ、行に無関係なリテラルが同居していても無条件で違反（fail-close）にする。
 
+**生文字列リテラル（`"""…"""`）も検証不能な形として fail-close する（最終ブランチレビュー指摘、2026-08-15）。** 第1引数の判定に使う `FirstArgumentLiteral`（`^[$@]{0,2}"([^"]*)"`）は最初の2つの `"` を対にして正規表現を組んでいるため、`"""DELETE FROM ClaimBatches"""` のような生文字列を与えると**先頭2つの `"` が対になって空キャプチャでマッチ成功**する。`if (!literal.Success)` の fail-close に入らず、`MutatingKeyword.IsMatch("")` が `false` を返すため素通りしていた。生文字列リテラルは複数行にまたがりうるうえ区切りの `"` の数も可変（3個以上）で、行単位走査ではそもそも内容を確定できない。そこで `FirstArgumentLiteral` を試す前に `RawStringLiteralStart`（`^[$@]*"{3,}`）で開き `"""` を検出し、無条件で fail-close にする改修を加えた。**この結果、`ExecuteSqlRawAsync("""SELECT 1""")` のような無害な生文字列も違反になるが、これはバグではなく「行内で内容を確認できない形は fail-close」という本決定の方針どおりの意図した挙動である。** 現在の `src/` に生文字列の raw SQL は0件のため、fail-close にしても実害はない。
+
 `MutatingKeyword` は `INSERT`/`UPDATE`/`DELETE`/`REPLACE`/`DROP`/`ALTER`/`TRUNCATE` を対象とし、`CREATE` は含めない。`CREATE TEMP TABLE` 等の一時テーブル作成は行の書き換えを伴わない正当な読み取り用途で使われうるため、これを一律禁止に巻き込まないためである。
 
 ### 決定3: 配置は既存レイアウトへ合わせる
@@ -65,20 +67,28 @@ SQL 本体は変数 `sql` であり内容を検証できないにもかかわら
 
 ### 残る限界
 
-1. **行単位走査のため、意図的な回避は検出できない。** `ExecuteDeleteAsync` を別名メソッドでラップして呼ぶ、SQL 文字列を複数の変数へ分割してから連結する、といった意図的な迂回は検出できない。本ガードは「気付かずに混入する」事故を止めるものであり、悪意ある回避を防ぐものではない。あわせて `tests/` と `Migrations/`（EF Core の機械生成物）は `SourceCodeScanner.EnumerateSourceFiles` が既定で除外しているため対象外である。
+1. **行単位走査のため、意図的な回避は検出できない。** `ExecuteDeleteAsync` を別名メソッドでラップして呼ぶ、SQL 文字列を複数の変数へ分割してから連結する、といった意図的な迂回は検出できない。本ガードは「気付かずに混入する」事故を止めるものであり、悪意ある回避を防ぐものではない。
+   **`tests/` と `Migrations/` の除外理由は異なる。** `tests/` はそもそも走査範囲外である — `SourceCodeScanner.EnumerateSourceFiles()`（`SourceCodeScanner.cs:26`）が列挙する走査根はソリューションルート直下の `src` であり、`tests/` はこの列挙に一度も現れない。一方 `Migrations/` は `src` の内側にあるため明示的な除外が要る — `SourceCodeScanner.cs:32` の `if (file.Contains(...Migrations...)) continue;` が個別に弾いている。
+   **ADO.NET を直接叩く経路も未カバーである。** `src/Tsumugi.Infrastructure/Persistence/ClaimCalculationSnapshotReader.cs` と `ClaimFinalizationStore.cs` は既に `(SqliteConnection)db.Database.GetDbConnection()` で生の `SqliteConnection` を取得している。ここから `connection.CreateCommand()` で DML を撃つ経路や `Database.SqlQueryRaw<T>("DELETE … RETURNING …")` は、`RawSqlCall` が `ExecuteSql|FromSql` しか見ないため検出できない。意図的な回避ではなく素直な代替手段であり、本質的に同じ限界の一部である。もっとも**現状この2ファイルの用途は `BeginTransaction(deferred:)` のみ**で、`CreateCommand`/`CommandText`/`ExecuteNonQuery` は `src/` に0件のため、現時点でこの穴は実害なく塞がっている。
 2. **リテラル内のエスケープされた二重引用符でキーワードが引用符ペアの外に落ちると見逃す。** `FirstArgumentLiteral` は `"([^"]*)"` で最初の `"..."` を単純に対にするため、`"SELECT \"DELETE ME\""` のようにエスケープされた `"` を含むリテラルでは、意図した文字列より手前で閉じたと誤認識し、キーワードが引用符ペアの外側に落ちて判定から漏れる可能性がある。現在の `src/` にこの形は存在しない（該当なし）。
 3. **同一の物理行に `ExecuteSql*` 呼び出しが2つ以上あると、2つ目を見逃す。** `RawSqlCall.Match(line)` は leftmost match のみを返すため、`if (ro) …ExecuteSqlRaw("SELECT 1"); else …ExecuteSqlRaw("DELETE FROM X");` のような行では1つ目の呼び出ししか判定されず、2つ目（`DELETE FROM X`）を見逃す。現在の `src/` に `ExecuteSql*` 呼び出しは `SqliteBackupService.cs:16` の1箇所しかないため該当なし。
+4. **偽陽性側の性質。** ここまでは偽陰性（見逃し）だが、逆に無害なコードが違反として弾かれる形もある。`SourceCodeScanner.StripLineComment` は**行頭が空白＋`//`の行のみ**をコメント除去の対象にするため、`src/` に次のような解説コメントを書くと違反になる。
+   ```csharp
+   var x = 1; // 旧実装は db.Offices.ExecuteDeleteAsync(ct) を使っていた
+   var x = 1; // FromSqlRaw("DELETE FROM X") は禁止
+   ```
+   前者は `bulk-operations`、後者は `raw-sql-dml` の違反として報告される。allowlist を作らない設計（決定1）のため、直す手段はコメントの言い換えだけである。**将来の運用者は「allowlist を足せば黙る」とは考えず、対象 API の綴りをコメントに書かない形へ言い換えること。** 同様に、生文字列リテラル（`"""…"""`。決定2 参照）と、名前付き引数で渡した第1引数（`ExecuteSqlRawAsync(sql: "SELECT 1", ct)`）も内容を行内で確定できない形として fail-close 側に倒れ、無害でも違反になる。いずれも安全側（見逃しではなく過検知）に倒す設計判断であり、バグではない。
 
 ②③はいずれも Task 2 のレビュー（Minor 指摘）で識別されたものであり、現在の `src/` には該当する形が存在しないことを確認している。将来これらの形が現れた場合は、本 ADR を改訂して判定ロジックを拡張する。
 
 ## テスト
 
-`tests/Tsumugi.Infrastructure.Tests/BulkOperationsGuardTests.cs` に次の4件を実装した（`[Fact]` 2件・`[Theory]` 17ケースの合計19件）。
+`tests/Tsumugi.Infrastructure.Tests/BulkOperationsGuardTests.cs` に次の4件を実装した（`[Fact]` 2件・`[Theory]` 19ケースの合計21件。最終ブランチレビューで生文字列リテラルのケースを2件追加し、`[Theory] IsMutatingRawSqlLine_distinguishes` が9ケースから11ケースへ増えた）。
 
 - `[Fact] Source_does_not_call_bulk_update_or_delete()` — ルール名 `bulk-operations`。`src/` 全体を `BulkOperationsGuard.IsBulkOperationLine` で走査する。
 - `[Fact] Source_does_not_execute_mutating_raw_sql()` — ルール名 `raw-sql-dml`。`src/` 全体を `BulkOperationsGuard.IsMutatingRawSqlLine` で走査する。
 - `[Theory] IsBulkOperationLine_distinguishes` — 8ケース。
-- `[Theory] IsMutatingRawSqlLine_distinguishes` — 9ケース。
+- `[Theory] IsMutatingRawSqlLine_distinguishes` — 11ケース（うち2件は生文字列リテラルの fail-close: `"""DELETE FROM ClaimBatches"""` と、生文字列の開始行のみの `"""`）。
 
 ### 歯の確認（意図的な違反を一時挿入した実測。`SqliteBackupService.cs` を対象に4回実施、いずれも revert 済み）
 

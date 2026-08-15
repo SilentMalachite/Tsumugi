@@ -1,8 +1,8 @@
 # Tsumugi Phase 4 残余 実装ロードマップ（S2〜S5）
 
 > **Source**: `07_ClaudeCode_Phase4実装指示_リリース準備_Tsumugi.md` を接地したもの。
-> **Status**: 設計合意済（2026-07-05）/ 現況追記（2026-07-12）/ 現況追記（2026-07-26）。S0・S1完了、S2〜S5未着手。各未着手スライスの詳細 spec は着手直前に本書から派生させる。Phase 3-4（R8-06制度実値投入。証跡: `docs/phase3-4-acceptance.md`）が2026-07-26に完了し、S2（bulk operations禁止＋NetArchTest ADR）は着手可能（S2自体に元々ブロッカーは無いが、Phase 3という並行系統の一区切りとして記録する）。
-> **位置づけ**: Phase 4 全 6 スライスのうち **S0**（`v0.3.0-phase4-s0`）と **S1**（`v0.3.1-phase4-s1`）は完了。本書は残り4スライスを管理する。平均工賃の正式定義はADR 0023で確定し、請求用実装をPhase 3-1 Task 15へ移管した。
+> **Status**: 設計合意済（2026-07-05）/ 現況追記（2026-07-12）/ 現況追記（2026-07-26）/ 現況追記（2026-08-15）。S0・S1・S2完了、S3〜S5未着手。各未着手スライスの詳細 spec は着手直前に本書から派生させる。Phase 3-4（R8-06制度実値投入。証跡: `docs/phase3-4-acceptance.md`）が2026-07-26に完了し、S2（bulk operations禁止＋NetArchTest ADR）に着手、2026-08-15に完了した（ADR 0050・0051、証跡: 本書 §2・§5、`CHANGELOG.md` Phase 4 S2 節）。
+> **位置づけ**: Phase 4 全 6 スライスのうち **S0**（`v0.3.0-phase4-s0`）・**S1**（`v0.3.1-phase4-s1`）・**S2**（2026-08-15完了、版タグ未付与）は完了。本書は残り3スライスを管理する。平均工賃の正式定義はADR 0023で確定し、請求用実装をPhase 3-1 Task 15へ移管した。
 
 ---
 
@@ -17,7 +17,7 @@ Phase 4残余（S2〜S5）を独立レビュー可能な単位に分割し、着
 | Slice | 対応系統 | 主成果物 | 主 AC | 主 ADR | 想定サイズ | ブロッカー |
 |---|---|---|---|---|---|---|
 | **S1 ✅** | (A) フォント埋込＋QuestPDF ライセンス | Noto Sans JP同梱／`QuestPdfLicenseConfigurator`拡張／CJK assertion／NOTICE OFL追記／ADR 0013確定 | AC4-1, AC4-2 | 0013 改 | 完了（`v0.3.1-phase4-s1`） | 解消済み |
-| **S2** | (E) bulk operations 禁止＋NetArchTest ADR | `src/` ソース走査テスト（`ExecuteUpdate*/ExecuteDelete*` 検出）／NetArchTest 見送り ADR／CHANGELOG 更新 | AC4-12 | 着手時に再採番 | 小（1 PR） | なし |
+| **S2 ✅** | (E) bulk operations 禁止＋NetArchTest ADR | `src/` ソース走査テスト（`ExecuteUpdate*/ExecuteDelete*` 検出）／NetArchTest 見送り ADR／CHANGELOG 更新 | AC4-12 | 0050・0051 | 完了（2026-08-15） | 解消済み |
 | **S3** | (B) バックアップ運用化＋暗号化決着 | 終了時自動バックアップ／世代管理／復元 UseCase／保存先権限強制／暗号化 ADR 0003 決着（推奨: OS ディスク暗号化 + 現状権限）／CHANGELOG＋運用ガイド橋渡し | AC4-3, AC4-4 | 0003 改／新規ADRは再採番 | 中大（2〜3 PR） | 暗号化採否は一次情報（SQLCipher 脅威モデル）確認 |
 | **S4** | (C) UI 補完 3 点＋ContractedProvider ADR | `DisabilityCertificatePolicy.FindRenewalDue`／`FaceSheetDiff.Compare`／障害種別整合警告純粋関数／View × 3／ContractedProvider ADR | AC4-5〜AC4-8 | 着手時に再採番 | 中大（1〜2 PR、View 3 枚） | なし |
 | **S5** | (D) 発行＋初回セットアップ＋運用ガイド＋手動 QA | `build/publish.sh`／`build/publish.ps1`／初回セットアップウィザード VM＋View／`docs/operations.md`／`docs/manual-qa.md`／両 OS smoke 実施記録 | AC4-9〜AC4-11 | 着手時に再採番 | 中（1〜2 PR＋実機 QA） | 実機（macOS/Windows）が必要 |
@@ -29,7 +29,7 @@ Phase 4残余（S2〜S5）を独立レビュー可能な単位に分割し、着
 
 ## 3. 着手順
 
-S1完了後の残順序は **S2 → S3 → S4 → S5**（Phase 4文書 §8）。並行に独立系統として動かせるが、レビュー波を作らないため直列で回す。請求用平均工賃はPhase 3-1計画で別管理する。
+S1完了後の残順序は **S2 → S3 → S4 → S5**（Phase 4文書 §8）。並行に独立系統として動かせるが、レビュー波を作らないため直列で回す。請求用平均工賃はPhase 3-1計画で別管理する。S2完了（2026-08-15）後の残順序は **S3 → S4 → S5**。
 
 ---
 
@@ -66,7 +66,7 @@ S1→S5の依存はS1完了により解消済み。残る強い依存はS3→S5�
 | AC4-9 self-contained 発行 smoke | S5 | 未着手 | `win-x64` / `osx-arm64` |
 | AC4-10 初回セットアップウィザード | S5 | 未着手 | DBなし判定＋事業所登録 |
 | AC4-11 運用ガイド＋手動 QA 実施記録 | S5 | 未着手 | 両OS各1回 |
-| AC4-12 bulk 禁止スキャナ＋NetArchTest ADR | S2 | 未着手 | 意図的違反で赤確認 |
+| AC4-12 bulk 禁止スキャナ＋NetArchTest ADR | S2 | ✅ 完了 | 意図的違反で赤確認済み（T1〜T3で実測。証跡: ADR 0050 テスト節） |
 | AC4-13 KouchinModule 突合正式化 | S0 | ✅ 完了 | ADR 0012 v2 |
 | AC4-14 平均工賃月額 正式化 | Phase 3-1へ移管 | 定義確定 | ADR 0023。請求用実装はPhase 3-1 Task 15 |
 

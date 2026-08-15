@@ -261,6 +261,8 @@ Expected: `IsMutatingRawSqlLine_distinguishes` の**陽性5ケースが FAIL**�
 
 > `VACUUM INTO '{escaped}'` はリテラルとして抽出されるが DML キーワードを含まないため通る。これが `SqliteBackupService.cs:16`（CLAUDE.md ハード制約7）へ例外を切らずに済む理由である。
 
+> **注記（最終ブランチレビュー、2026-08-15）**: 最終ブランチレビューで生文字列リテラルの穴が見つかり、`RawStringLiteralStart` による fail-close を追加した（ADR 0050 決定2）。上のコードブロックは実装当時の履歴のため書き換えていない。
+
 - [ ] **Step 4: テストが通ることを確認する**
 
 Run: `dotnet test tests/Tsumugi.Infrastructure.Tests --filter "FullyQualifiedName~BulkOperationsGuardTests"`

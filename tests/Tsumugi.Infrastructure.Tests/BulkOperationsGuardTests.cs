@@ -68,6 +68,8 @@ public sealed class BulkOperationsGuardTests
     [InlineData("await db.Database.ExecuteSqlRawAsync(sql, ct);", true)]                    // 検証不能 → fail-close
     [InlineData("await db.Database.ExecuteSqlRawAsync(sql, ct); // caller: \"AdminPanel\"", true)] // 無関係リテラル同居
     [InlineData("await db.Database.ExecuteSqlRawAsync(", true)]                             // 複数行 → fail-close
+    [InlineData("await db.Database.ExecuteSqlRawAsync(\"\"\"DELETE FROM ClaimBatches\"\"\", ct);", true)] // 生文字列 → fail-close
+    [InlineData("await db.Database.ExecuteSqlRawAsync(\"\"\"", true)]                       // 生文字列の開始行 → fail-close
     [InlineData("await db.Database.ExecuteSqlRawAsync($\"VACUUM INTO '{escaped}'\", ct);", false)]
     [InlineData("var rows = db.Set<Office>().FromSqlRaw(\"SELECT * FROM Offices\").ToList();", false)]
     [InlineData("await db.SaveChangesAsync(ct);", false)]                                   // 対象APIではない
@@ -101,6 +103,13 @@ internal static class BulkOperationsGuard
     private static readonly Regex RawSqlCall = new(
         @"\b(ExecuteSql|FromSql)[A-Za-z]*\s*\(", RegexOptions.Compiled);
 
+    // 生文字列リテラル（"""…）の開始。複数行にまたがりうるうえ区切りの " の数も可変で、
+    // 行単位走査では内容を確定できない。FirstArgumentLiteral は先頭2つの " を対にして
+    // 空キャプチャでマッチ成功してしまう（"""DELETE FROM X""" → キャプチャ群が空文字列）ため、
+    // FirstArgumentLiteral を試す前に fail-close で弾く（最終レビュー指摘・ADR 0050 決定2 改訂）。
+    private static readonly Regex RawStringLiteralStart = new(
+        "^[$@]*\"{3,}", RegexOptions.Compiled);
+
     // 呼び出しの第1引数の文字列リテラル。$ / @ 接頭辞を許し、開き括弧の直後に来ることを要求する
     // （spec 決定2。行のどこかにあるリテラルを拾うと、行末コメントの "…" で fail-close が無効化される）。
     private static readonly Regex FirstArgumentLiteral = new(
@@ -121,6 +130,13 @@ internal static class BulkOperationsGuard
         // fail-close で違反にする。ここを「通す」にすると ExecuteSqlRawAsync(sql) と書くだけで
         // ルールを無力化できる。無関係なリテラルが同じ行に居ても第1引数だけを見るので影響されない。
         var afterOpenParen = line[(call.Index + call.Length)..].TrimStart();
+
+        // 生文字列リテラルは行内で内容を確定できない（複数行になりうる・区切りの " の数が可変）ため、
+        // FirstArgumentLiteral を試す前に弾く。この結果、無害な生文字列（例:
+        // ExecuteSqlRawAsync("""SELECT 1""")）も違反になるが、これは「行内で内容を確認できない形は
+        // fail-close」という決定2 の方針どおりの意図した挙動であり、バグではない（最終レビュー指摘）。
+        if (RawStringLiteralStart.IsMatch(afterOpenParen)) return true;
+
         var literal = FirstArgumentLiteral.Match(afterOpenParen);
         if (!literal.Success) return true;
 
