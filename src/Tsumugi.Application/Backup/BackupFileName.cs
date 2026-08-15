@@ -6,6 +6,8 @@ namespace Tsumugi.Application.Backup;
 /// バックアップファイル名の生成と解析。時刻に依存しない（生成時刻は引数で受け取る）。
 /// 自動バックアップ: tsumugi-backup-yyyyMMdd-HHmmss.db
 /// 復元前の退避:     pre-restore-yyyyMMdd-HHmmss.db（世代管理の対象外）
+/// ファイル名に埋め込む時刻は常に UTC（入力 <see cref="DateTimeOffset"/> のオフセットに依らず正規化する）。
+/// <see cref="TryParse"/> も同じ数字を UTC として読み戻すため、この正規化と対になっている。
 /// </summary>
 public static class BackupFileName
 {
@@ -16,10 +18,10 @@ public static class BackupFileName
     private const string TimestampFormat = "yyyyMMdd-HHmmss";
 
     public static string Create(DateTimeOffset at) =>
-        AutomaticPrefix + at.ToString(TimestampFormat, CultureInfo.InvariantCulture) + Extension;
+        AutomaticPrefix + at.UtcDateTime.ToString(TimestampFormat, CultureInfo.InvariantCulture) + Extension;
 
     public static string CreatePreRestore(DateTimeOffset at) =>
-        PreRestorePrefix + at.ToString(TimestampFormat, CultureInfo.InvariantCulture) + Extension;
+        PreRestorePrefix + at.UtcDateTime.ToString(TimestampFormat, CultureInfo.InvariantCulture) + Extension;
 
     /// <summary>自動バックアップ名だけを解析する。pre-restore や規則外の名前は false。</summary>
     public static bool TryParse(string fileName, out DateTimeOffset at)

@@ -116,6 +116,36 @@ public sealed class BackupGenerationPolicyTests
     }
 
     [Fact]
+    public void Does_not_delete_files_dated_after_the_reference_day()
+    {
+        // 時計のずれ・タイムゾーン差で未来日付のファイルが混ざりうる。即座に削除対象にしない。
+        string[] files =
+        [
+            "tsumugi-backup-20260820-100000.db",   // asOf より未来
+            "tsumugi-backup-20260816-100000.db",
+        ];
+
+        var deleted = BackupGenerationPolicy.SelectForDeletion(files, AsOf);
+
+        deleted.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Create_normalises_to_utc_so_the_round_trip_preserves_the_instant()
+    {
+        // +09:00 の 08-16 01:00 は UTC では 08-15 16:00。ファイル名は UTC 側でなければ
+        // SelectForDeletion の日付バケットが1日ずれ、7日境界の判定を誤る。
+        var at = new DateTimeOffset(2026, 8, 16, 1, 0, 0, TimeSpan.FromHours(9));
+
+        var name = BackupFileName.Create(at);
+        name.Should().Be("tsumugi-backup-20260815-160000.db");
+
+        BackupFileName.TryParse(name, out var parsed).Should().BeTrue();
+        parsed.Should().Be(at);          // 同じ瞬間を指すこと
+        parsed.Offset.Should().Be(TimeSpan.Zero);
+    }
+
+    [Fact]
     public void Create_and_TryParse_round_trip()
     {
         var at = new DateTimeOffset(2026, 8, 16, 13, 45, 7, TimeSpan.Zero);
