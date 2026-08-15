@@ -28,6 +28,7 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
         WageStatementViewModel wageStatement,
         ClaimInputViewModel claimInput,
         ClaimPreparationViewModel claimPreparation,
+        BackupViewModel backup,
         IMessenger messenger)
     {
         ArgumentNullException.ThrowIfNull(messenger);
@@ -48,6 +49,7 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
         WageStatement = wageStatement;
         ClaimInput = claimInput;
         ClaimPreparation = claimPreparation;
+        Backup = backup;
         messenger.Register<MainViewModel, AppNavigationMessage>(
             this,
             static (recipient, message) => message.Reply(
@@ -80,6 +82,9 @@ public sealed partial class MainViewModel : ViewModelBase, IDisposable
 
     public ClaimInputViewModel ClaimInput { get; }
     public ClaimPreparationViewModel ClaimPreparation { get; }
+
+    // Phase 4 S3a: バックアップ・復元
+    public BackupViewModel Backup { get; }
 
     // Phase 4 S0 tabs
     public RecipientHourlyRateViewModel RecipientHourlyRate { get; }

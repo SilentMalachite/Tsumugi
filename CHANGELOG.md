@@ -36,7 +36,19 @@
 - **2026-05以前の月を扱う事業所は施設区分（`OfficeClaimProfile.FacilityClassification`）の入力が必須**。Phase 3-6（ADR 0048）以降、未入力のまま処遇改善(Ⅰ)/(Ⅲ)/(Ⅳ)を宣言していると 2024-06〜2026-05 の全月で preview・再確定が fail-close する（過去月の訂正に及ぶ）。
 - **未投入の制度実値**: 保護施設事務費の実値record・runtime算定、`PaymentBand` 境界マスタ（平均工賃月額からの band 自動導出）、R8-06 の定員超過・生活支援員等欠員・サービス管理責任者欠員3シート、`r8-reform-status-exempt`、体制届 option 8（filed-transition）、option 10（生産活動支援）と参加評価型。詳細は `docs/open-questions.md`。
 - **旧暫定体制届キー（`mealProvision` / `transportSupport`）が公式キーへ未移行**。算定に効かないまま書かれ続けている。送迎体制加算・食事提供体制加算のマスタ投入と同時に移行する。
-- SQLite 暗号化方針の決定、NuGet audit suppression（GHSA-2m69-gcr7-jv3q）の解除、バックアップ自動化、配布パッケージング、運用ガイド。
+- NuGet audit suppression（GHSA-2m69-gcr7-jv3q）の解除、配布パッケージング、運用ガイド。
+- **FileVault（macOS）／BitLocker（Windows）の有効化が運用要件になった**（ADR 0003 追補）。本アプリはDB本体を暗号化しないため、端末盗難への備えはOSディスク暗号化に委ねている。
+- **終了時自動バックアップ・復元の実機確認が未実施**。`ShutdownRequested` 経路とAvalonia実画面の挙動はheadlessテストで検証できず、かつWindows実機が無いため、macOS/Windows双方での手動QAが必要。
+
+## Phase 4 S3a 完了 (2026-08-16)
+
+- SQLite 暗号化採否を確定した（ADR 0003 追補）。**(a) 平文＋OSファイル権限 ＋ (c) OSディスク暗号化への委譲**で決着し、SQLCipherは不採用とした。根拠は運用実測（1台を複数職員で共有・OSアカウントも共通・鍵の紛失は許容できない）と、構造的な理由（共有OSアカウント運用ではDB暗号化が職員間の分離を提供しない — DBは1つ・鍵も1つなので全職員が同じ鍵を使うことになる）。FileVault／BitLockerの有効化を運用要件とし、再評価トリガ3件（OSアカウント分離／端末持ち出し／鍵の預け先確保）をADRに明記した
+- 終了時自動バックアップ・世代管理（同日最新1つ×直近7日分）・復元・保存先権限強制を実装した（ADR 0052）。`RunScheduledBackupUseCase`（バックアップ→世代削除→監査）と`RestoreDatabaseUseCase`（監査→保存→退避→置換）をApplication層のユースケースとして追加し、`App.axaml.cs`の`ShutdownRequested`から一度だけ配線した
+- 権限適用ロジックを`SecureFileSystem`（Infrastructure）へ抽出し、DBとバックアップの双方へ同じポリシー（Unix: ディレクトリ0700／ファイル0600、Windows: 現在ユーザーのみDACL・継承無効）を適用した。既存の`SqliteLocationServiceTests`は無変更のまま回帰検出に使えることを確認した
+- `VACUUM INTO`が既存ファイルへ書けない制約（一次資料: sqlite.org）を、一時名へ書いてから移動する方式で回避した。復元側も同じ理由でコピー→サイドカー削除→移動の順にし、コピー失敗時も現行DBが無傷で残るようにした
+- 画面（`BackupView`）から「今すぐバックアップ」「控えを保存」「選択した世代へ復元」の3操作が到達可能になった。復元はarm→confirmの2段階（誤操作防止）、「控えを保存」は保護ディレクトリ内に一時ファイルを作り読み出し後に削除する方式でシステム一時ディレクトリへ平文コピーを置かない
+- 最終レビュー指摘を解消: 復元成功後に`IApplicationShutdown`経由でアプリを実際に終了するようにした（稼働中のDbContext下でDBファイルを差し替えるため、ADR 0052 決定6は運用上の推奨ではなく要件。従来はメッセージ表示のみで全タブが操作可能なまま残っていた）。UIから到達しない第2のバックアップ経路だった`BackupDatabaseUseCase`を削除した（世代管理も監査も通らないため死にコードとして残す理由がなかった）
+- AC4-3（暗号化ADR決着）・AC4-4（バックアップ運用化）達成
 
 ## Phase 4 S2 完了 (2026-08-15)
 

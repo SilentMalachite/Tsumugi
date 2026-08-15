@@ -1,9 +1,6 @@
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
-using System.Security.AccessControl;
-using System.Security.Principal;
+using Tsumugi.Application.Abstractions;
 
 namespace Tsumugi.Infrastructure.Persistence;
 
@@ -12,7 +9,7 @@ namespace Tsumugi.Infrastructure.Persistence;
 /// Unix: dir 0700 / db 0600。Windows: 現在ユーザーのみフルコントロール / 継承無効。
 /// WAL/SHM サイドカーはディレクトリ権限（0700 / Windows は親 DACL）で保護される。
 /// </summary>
-public sealed class SqliteLocationService : ISqliteLocation
+public sealed class SqliteLocationService : ISqliteLocation, IDatabaseFileLocation
 {
     private readonly string _directory;
 
@@ -21,98 +18,18 @@ public sealed class SqliteLocationService : ISqliteLocation
         ArgumentException.ThrowIfNullOrWhiteSpace(applicationDataRoot);
         _directory = applicationDataRoot;
         DatabasePath = Path.Combine(applicationDataRoot, "tsumugi.db");
+        BackupDirectory = Path.Combine(applicationDataRoot, "backups");
         ConnectionString = $"Data Source={DatabasePath}";
     }
 
     public string DatabasePath { get; }
+    public string BackupDirectory { get; }
     public string ConnectionString { get; }
 
     public void EnsureSecuredStorage()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-            || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            EnsureUnix();
-            return;
-        }
-
-        if (OperatingSystem.IsWindows())
-        {
-            EnsureWindows();
-            return;
-        }
-
-        throw new PlatformNotSupportedException(
-            "サポートされないOSで Tsumugi の保存先を初期化しようとした。");
-    }
-
-    [System.Runtime.Versioning.UnsupportedOSPlatform("windows")]
-    private void EnsureUnix()
-    {
-        const UnixFileMode dirMode =
-            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute;
-        const UnixFileMode fileMode =
-            UnixFileMode.UserRead | UnixFileMode.UserWrite;
-
-        if (!Directory.Exists(_directory))
-        {
-            Directory.CreateDirectory(_directory, dirMode);
-        }
-        else
-        {
-            // 既存ディレクトリは「広い→狭める」方向にのみ更新する
-            File.SetUnixFileMode(_directory, dirMode);
-        }
-
-        // File.Create はデフォルト権限(プロセス umask 経由)でファイルを作成し、直後に SetUnixFileMode で 0600 に締める。
-        // 管理コードでは「DACL/モード付きアトミック作成」API は提供されないため、この瞬間は不可避。
-        // ディレクトリ 0700 の保護が外部ユーザーからのアクセスを遮るため、実害は無視できる。
-        if (!File.Exists(DatabasePath))
-        {
-            using (File.Create(DatabasePath)) { }
-        }
-        // 既存ファイルも含めて常に 0600 に揃える（冪等）
-        File.SetUnixFileMode(DatabasePath, fileMode);
-    }
-
-    [SupportedOSPlatform("windows")]
-    private void EnsureWindows()
-    {
-        var currentUser = WindowsIdentity.GetCurrent().User!;
-
-        var dirSecurity = new DirectorySecurity();
-        dirSecurity.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
-        dirSecurity.AddAccessRule(new FileSystemAccessRule(
-            currentUser,
-            FileSystemRights.FullControl,
-            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
-            PropagationFlags.None,
-            AccessControlType.Allow));
-
-        if (!Directory.Exists(_directory))
-        {
-            var di = Directory.CreateDirectory(_directory);
-            di.SetAccessControl(dirSecurity);
-        }
-        else
-        {
-            new DirectoryInfo(_directory).SetAccessControl(dirSecurity);
-        }
-
-        var fileSecurity = new FileSecurity();
-        fileSecurity.SetAccessRuleProtection(isProtected: true, preserveInheritance: false);
-        fileSecurity.AddAccessRule(new FileSystemAccessRule(
-            currentUser,
-            FileSystemRights.FullControl,
-            AccessControlType.Allow));
-
-        // File.Create は親ディレクトリ継承の ACL でファイルを作成し、直後に SetAccessControl で「現在ユーザーのみ」DACL に締める。
-        // 管理コードでは「DACL 付きアトミック作成」API は提供されないため、この瞬間は不可避。
-        // ディレクトリの DACL が既に「現在ユーザーのみ」+ 継承無効になっているため、実害は無視できる。
-        if (!File.Exists(DatabasePath))
-        {
-            using (File.Create(DatabasePath)) { }
-        }
-        new FileInfo(DatabasePath).SetAccessControl(fileSecurity);
+        SecureFileSystem.EnsureDirectory(_directory);
+        SecureFileSystem.EnsureFile(DatabasePath);
+        SecureFileSystem.EnsureDirectory(BackupDirectory);
     }
 }

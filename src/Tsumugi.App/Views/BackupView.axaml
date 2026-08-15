@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Tsumugi.App.ViewModels"
+             x:Class="Tsumugi.App.Views.BackupView"
+             x:DataType="vm:BackupViewModel">
+    <ScrollViewer>
+        <StackPanel Margin="8" Spacing="8">
+            <TextBlock Text="バックアップと復元"
+                       FontSize="{DynamicResource HeadingFontSize}" />
+
+            <TextBlock TextWrapping="Wrap"
+                       Text="アプリの終了時に自動でバックアップを作成します。同じ日のものは最新の1件だけを残し、直近7日分を保持します。" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="今すぐバックアップ(_N)" Command="{Binding BackupNowCommand}" />
+                <Button Content="控えを保存(_S)" Command="{Binding SaveCopyCommand}" />
+            </StackPanel>
+
+            <TextBlock Text="世代一覧" FontWeight="Bold" />
+            <ListBox ItemsSource="{Binding Generations}"
+                     SelectedItem="{Binding SelectedGeneration}"
+                     Height="220" />
+
+            <Button Content="選択した世代へ復元(_R)" Command="{Binding RestoreCommand}" />
+
+            <Border IsVisible="{Binding RestoreArmed}"
+                    Padding="8" CornerRadius="4"
+                    Background="#553300">
+                <TextBlock TextWrapping="Wrap"
+                           Text="確認: もう一度「選択した世代へ復元」を押すと、現在のデータベースを置き換えます。" />
+            </Border>
+
+            <Border IsVisible="{Binding RestartRequired}"
+                    Padding="8" CornerRadius="4"
+                    Background="#553300">
+                <TextBlock TextWrapping="Wrap"
+                           Text="復元しました。アプリを終了します。再起動してください。" />
+            </Border>
+
+            <TextBlock Text="{Binding StatusMessage}"
+                       IsVisible="{Binding StatusMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
+                       TextWrapping="Wrap" />
+            <TextBlock Text="{Binding ErrorMessage}"
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
+                       Foreground="Red"
+                       TextWrapping="Wrap" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

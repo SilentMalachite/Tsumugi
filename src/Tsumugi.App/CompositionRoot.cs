@@ -5,6 +5,7 @@ using Tsumugi.App.ViewModels;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
 using Tsumugi.Application.UseCases;
+using Tsumugi.Application.UseCases.Backup;
 using Tsumugi.Application.UseCases.Certificate;
 using Tsumugi.Application.UseCases.Claim;
 using Tsumugi.Application.UseCases.Contract;
@@ -19,6 +20,7 @@ using Tsumugi.Infrastructure;
 using Tsumugi.Infrastructure.Csv.Generation;
 using Tsumugi.Infrastructure.Csv.Mapping;
 using Tsumugi.Infrastructure.Csv.Specifications;
+using Tsumugi.Infrastructure.Persistence;
 using Tsumugi.Infrastructure.Reporting;
 
 namespace Tsumugi.App;
@@ -35,9 +37,8 @@ public static class CompositionRoot
         services.AddSingleton(TimeProvider.System);
         services.AddTsumugiInfrastructure(connectionString);
 
-        // Phase 0: 事業所・バックアップ
+        // Phase 0: 事業所
         services.AddScoped<RegisterOfficeUseCase>();
-        services.AddScoped<BackupDatabaseUseCase>();
 
         // Phase 1: 事業所 (更新・一覧)
         services.AddScoped<UpdateOfficeUseCase>();
@@ -181,6 +182,36 @@ public static class CompositionRoot
         // Phase 4 S0 ViewModels
         services.AddTransient<RecipientHourlyRateViewModel>();
         services.AddTransient<WageAdjustmentViewModel>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// 保存先を知る合成ルート。バックアップ・復元は DB ファイルの実体パスを要するため、
+    /// 接続文字列だけの版では登録しない（接続文字列から保存先を推測しない）。
+    /// MainViewModel は Phase 4 S3a で BackupViewModel を必須依存に持つため、ここへ登録する
+    /// （接続文字列だけの版に置くと、そちらでは組み立てられないものを登録することになる）。
+    /// </summary>
+    public static IServiceProvider Build(SqliteLocationService location)
+        => new ServiceCollection().AddTsumugiServices(location).BuildServiceProvider();
+
+    public static IServiceCollection AddTsumugiServices(
+        this IServiceCollection services, SqliteLocationService location)
+    {
+        ArgumentNullException.ThrowIfNull(location);
+
+        services.AddTsumugiServices(location.ConnectionString);
+
+        services.AddSingleton<ISqliteLocation>(location);
+        services.AddSingleton<IDatabaseFileLocation>(location);
+        services.AddScoped<IDatabaseRestoreService, SqliteRestoreService>();
+        services.AddScoped<IBackupDirectory, BackupDirectoryService>();
+        services.AddScoped<RunScheduledBackupUseCase>();
+        services.AddScoped<RestoreDatabaseUseCase>();
+        services.AddScoped<ListBackupGenerationsUseCase>();
+        services.AddScoped<ExportBackupCopyUseCase>();
+        services.AddSingleton<Tsumugi.App.Services.IApplicationShutdown, Tsumugi.App.Services.AvaloniaApplicationShutdown>();
+        services.AddTransient<BackupViewModel>();
         services.AddScoped<MainViewModel>();
 
         return services;
