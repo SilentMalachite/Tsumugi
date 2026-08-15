@@ -191,6 +191,7 @@ git commit -m "test(phase4-s2): ExecuteUpdate*/ExecuteDelete* の src 走査ガ�
     [InlineData("await db.Database.ExecuteSqlRawAsync(\"DELETE FROM ClaimBatches\", ct);", true)]
     [InlineData("await db.Database.ExecuteSqlAsync($\"UPDATE Certificates SET Revision = {n}\", ct);", true)]
     [InlineData("await db.Database.ExecuteSqlRawAsync(sql, ct);", true)]                    // 検証不能 → fail-close
+    [InlineData("await db.Database.ExecuteSqlRawAsync(sql, ct); // caller: \"AdminPanel\"", true)] // 無関係リテラル同居
     [InlineData("await db.Database.ExecuteSqlRawAsync(", true)]                             // 複数行 → fail-close
     [InlineData("await db.Database.ExecuteSqlRawAsync($\"VACUUM INTO '{escaped}'\", ct);", false)]
     [InlineData("var rows = db.Set<Office>().FromSqlRaw(\"SELECT * FROM Offices\").ToList();", false)]
@@ -220,7 +221,7 @@ git commit -m "test(phase4-s2): ExecuteUpdate*/ExecuteDelete* の src 走査ガ�
 
 Run: `dotnet test tests/Tsumugi.Infrastructure.Tests --filter "FullyQualifiedName~BulkOperationsGuardTests"`
 
-Expected: `IsMutatingRawSqlLine_distinguishes` の**陽性4ケースが FAIL**。`Source_does_not_execute_mutating_raw_sql` は PASS。
+Expected: `IsMutatingRawSqlLine_distinguishes` の**陽性5ケースが FAIL**。`Source_does_not_execute_mutating_raw_sql` は PASS。
 
 - [ ] **Step 3: 判定関数を実装する**
 
@@ -231,9 +232,10 @@ Expected: `IsMutatingRawSqlLine_distinguishes` の**陽性4ケースが FAIL**�
     private static readonly Regex RawSqlCall = new(
         @"\b(ExecuteSql|FromSql)[A-Za-z]*\s*\(", RegexOptions.Compiled);
 
-    // 同一行内の "…" 区間。$ / @ 接頭辞は問わない（spec 決定2「検証可能な文字列リテラル」の定義）。
-    private static readonly Regex StringLiteral = new(
-        "\"([^\"]*)\"", RegexOptions.Compiled);
+    // 呼び出しの第1引数の文字列リテラル。$ / @ 接頭辞を許し、開き括弧の直後に来ることを要求する
+    // （spec 決定2。行のどこかにあるリテラルを拾うと、行末コメントの "…" で fail-close が無効化される）。
+    private static readonly Regex FirstArgumentLiteral = new(
+        "^[$@]{0,2}\"([^\"]*)\"", RegexOptions.Compiled);
 
     // 行を書き換える DML と、破壊的 DDL。CREATE は一時テーブル等の正当な読み取り用途を巻き込むため含めない。
     private static readonly Regex MutatingKeyword = new(
@@ -243,14 +245,17 @@ Expected: `IsMutatingRawSqlLine_distinguishes` の**陽性4ケースが FAIL**�
     public static bool IsMutatingRawSqlLine(string line)
     {
         ArgumentNullException.ThrowIfNull(line);
-        if (!RawSqlCall.IsMatch(line)) return false;
+        var call = RawSqlCall.Match(line);
+        if (!call.Success) return false;
 
-        var literals = StringLiteral.Matches(line);
-        // 行内で SQL の内容を確認できない形（変数渡し・複数行リテラル）は fail-close で違反にする。
-        // ここを「通す」にすると ExecuteSqlRawAsync(sql) と書くだけでルールを無力化できる。
-        if (literals.Count == 0) return true;
+        // 第1引数が文字列リテラルでなければ SQL の内容を確認できない（変数渡し・複数行リテラル）。
+        // fail-close で違反にする。ここを「通す」にすると ExecuteSqlRawAsync(sql) と書くだけで
+        // ルールを無力化できる。無関係なリテラルが同じ行に居ても第1引数だけを見るので影響されない。
+        var afterOpenParen = line[(call.Index + call.Length)..].TrimStart();
+        var literal = FirstArgumentLiteral.Match(afterOpenParen);
+        if (!literal.Success) return true;
 
-        return literals.Any(m => MutatingKeyword.IsMatch(m.Groups[1].Value));
+        return MutatingKeyword.IsMatch(literal.Groups[1].Value);
     }
 ```
 
@@ -260,7 +265,7 @@ Expected: `IsMutatingRawSqlLine_distinguishes` の**陽性4ケースが FAIL**�
 
 Run: `dotnet test tests/Tsumugi.Infrastructure.Tests --filter "FullyQualifiedName~BulkOperationsGuardTests"`
 
-Expected: PASS（`[Theory]` 16ケース＝ルール1が8・ルール2が8、＋`[Fact]` 2件）。
+Expected: PASS（`[Theory]` 17ケース＝ルール1が8・ルール2が9、＋`[Fact]` 2件）。
 
 - [ ] **Step 5: 走査が既存の src 全体で緑であることを、Infrastructure テスト全体で確認する**
 
@@ -381,10 +386,10 @@ Task 4 で ADR へ転記するため、T1〜T4 の「テスト名・失敗メッ
 - **結論**: `src/**/*.cs` において `ExecuteUpdate*` / `ExecuteDelete*` を無条件に禁止し、`ExecuteSql*` / `FromSql*` は SQL リテラルの内容で判定する。allowlist は設けない。判定は `tests/Tsumugi.Infrastructure.Tests/BulkOperationsGuardTests.cs` の `BulkOperationsGuard` に閉じ、走査は既存の `SourceCodeScanner` を再利用する。
 - **背景**: `AppendOnlyGuard.Inspect` は ChangeTracker の `Modified`/`Deleted` しか見ない。bulk operations と raw SQL はどちらも ChangeTracker を経由しないため、追記型エンティティを書き換えても実行時ガードが沈黙する。本 ADR 作成時点の `src/` に該当呼び出しは 0 件（`ExecuteSql*` は `SqliteBackupService.cs:16` の `VACUUM INTO` 1件のみで、行を書き換えない）。
 - **決定1（allowlist を作らない）**: spec §決定1 の3理由を書く — ①現在0件なので初日から成立する、②「不可避な使用」が想定できない（ハード制約1 のオフライン検査が allowlist を持つのは推移的な不可避依存が実在するためで、bulk にその事情は無い）、③Phase 3-6 §3-5 で literal guard の allowlist を誤用しレビューで機構ごと差し替えた前例がある。**将来例外が必要になった場合は本 ADR を改訂して例外機構ごと設計する**ことを明記する。
-- **決定2（raw SQL は内容基準）**: `VACUUM INTO` をパス単位の例外にせず内容で通す。「検証可能な文字列リテラル」＝同一行内の `"…"` 区間（`$`/`@` 接頭辞は問わない）。検証不能な形は fail-close。`CREATE` をキーワードに含めない理由（一時テーブル等の読み取り用途を巻き込む）も書く。
+- **決定2（raw SQL は内容基準）**: `VACUUM INTO` をパス単位の例外にせず内容で通す。判定対象は**呼び出しの第1引数**であり、行のどこかにあるリテラルではない（`"` / `$"` / `@"` で始まるかを開き括弧の直後で見る）。検証不能な形は fail-close。**当初 spec は「同一行内の `"…"` 区間のいずれか」を見る定義だったが、Task 2 レビューで `ExecuteSqlRawAsync(sql, ct); // caller: "AdminPanel"` が素通りすると判明したため第1引数基準へ改訂した経緯を書く**（`SourceCodeScanner` は行頭コメントしか除去しないので実コードで到達可能）。`CREATE` をキーワードに含めない理由（一時テーブル等の読み取り用途を巻き込む）も書く。
 - **決定3（配置の逸脱）**: ロードマップ §8.2 は `Architecture/BulkOperationsForbiddenTests.cs` を指定したが、本リポジトリの同種ガードはすべて `tests/Tsumugi.Infrastructure.Tests/` 直下にフラット配置のため既存レイアウトへ合わせた。
 - **選択肢**: A 検査しない（不採用）／B append-only 型限定で禁止（不採用: 行単位走査では対象型を判定できず Roslyn 意味解析が要る）／C 識別子基準で `ExecuteSql*` を一律禁止し `SqliteBackupService` を allowlist（不採用: 決定1と矛盾する）／D 採用案。
-- **影響 — 残る限界**: 行単位走査のため、`ExecuteDeleteAsync` を別名メソッドでラップして呼ぶ・SQL を複数行に分割して組み立てる、といった**意図的な回避は検出できない**。本ガードは「気付かずに混入する」事故を止めるものである。また `tests/` と `Migrations/` は対象外である。
+- **影響 — 残る限界**: 行単位走査のため、`ExecuteDeleteAsync` を別名メソッドでラップして呼ぶ・SQL を複数行に分割して組み立てる、といった**意図的な回避は検出できない**。本ガードは「気付かずに混入する」事故を止めるものである。また `tests/` と `Migrations/` は対象外である。**リテラル内のエスケープされた二重引用符**（`"SELECT \"DELETE ME\""`）は、`"` を素朴に対にするため引用符ペアの外側にキーワードが落ちて見逃す可能性がある（現在の `src/` に該当形は無い。Task 2 レビューの Minor 指摘）。
 - **テスト**: Task 1・2 のテスト名4件を列挙し、**Task 3 の T1〜T4 の実測結果を転記する**（失敗したテスト名と、報告された `ファイル:行 [ルール名]`）。T3 が「SQL の中身が無害でも変数渡しなら落ちる」ことの証拠であることを明記する。
 
 - [ ] **Step 2: ADR 0051 を書く**
@@ -447,7 +452,7 @@ git commit -m "docs(phase4-s2): ADR 0050/0051 とopen-questions・CHANGELOGを�
 
 ## 完了条件
 
-- [ ] `tests/Tsumugi.Infrastructure.Tests/BulkOperationsGuardTests.cs` が存在し、`[Fact]` 2件・`[Theory]` 16ケースが緑
+- [ ] `tests/Tsumugi.Infrastructure.Tests/BulkOperationsGuardTests.cs` が存在し、`[Fact]` 2件・`[Theory]` 17ケースが緑
 - [ ] Task 3 の T1〜T4 を実測し、結果が ADR 0050 のテスト節に転記されている
 - [ ] `src/` に一時挿入した違反行が 1 行も残っていない（`git status --short` が空、`git diff main -- src/` が空）
 - [ ] ADR 0050・0051 が存在し、どちらも「残る限界」を持つ

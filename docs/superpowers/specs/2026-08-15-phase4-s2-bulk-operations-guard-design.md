@@ -78,15 +78,21 @@ await db.Database.ExecuteSqlRawAsync($"VACUUM INTO '{escaped}'", ct);
 `ExecuteSql*` / `FromSql*` を含む行は、**SQL リテラルの中身**を見て判定する。
 
 ```
-違反 ⟺ 行内に検証可能な文字列リテラルが無い
-      ∨ リテラルが DML キーワード（INSERT|UPDATE|DELETE|REPLACE|DROP|ALTER|TRUNCATE）を単語境界で含む
+違反 ⟺ 呼び出しの第1引数が文字列リテラルでない
+      ∨ そのリテラルが DML キーワード（INSERT|UPDATE|DELETE|REPLACE|DROP|ALTER|TRUNCATE）を単語境界で含む
 ```
 
 こうすると `VACUUM INTO` は**内容によって通る**ため、§2.1 の唯一の呼び出しに対してパス単位の例外を切らずに済む。決定1の「allowlist を作らない」を両ルールで貫ける。
 
 `$"VACUUM INTO '{escaped}'"` の補間穴が保持するのは保存先パスであって SQL 命令ではないため、キーワード判定はリテラル本文（補間穴を含んだままの文字列）に対して行えばよい。
 
-**「検証可能な文字列リテラル」の定義**: 同一行内に現れる `"` で囲まれた区間（直前の `$` / `@` 接頭辞は問わない）。この定義を採るため、リテラルが次行以降にある呼び出しは自動的に「検証不能」に落ちる。
+**判定対象は「呼び出しの第1引数」であり、「行のどこかにあるリテラル」ではない**（Task 2 レビュー指摘を受けた改訂、2026-08-15）。マッチした `ExecuteSql*` / `FromSql*` の開き括弧の直後を見て、`"` / `$"` / `@"` で始まっていなければ**その時点で検証不能**とする。当初は「同一行内に現れる `"…"` 区間のいずれか」を見る定義だったが、それだと次が素通りする。
+
+```csharp
+await db.Database.ExecuteSqlRawAsync(sql, ct); // caller: "AdminPanel"
+```
+
+SQL 本体は変数 `sql` で検証できないのに、行末コメントの `"AdminPanel"` がリテラルとして拾われるため「リテラルが 0 件」に該当せず、DML キーワードも含まないので合格してしまう。`SourceCodeScanner` は行頭コメントしか除去しないため、この形は実コードで到達可能である。第1引数だけを見る定義にすると、無関係なリテラルが同居しても fail-close が効く。
 
 **検証不能な形（変数渡し・複数行にまたがるリテラル）は違反として扱う（fail-close）。** 「行内で確認できないものは通す」にすると、`ExecuteSqlRawAsync(sql)` と書くだけでルール2を無力化でき、歯の無い門番になる。現在の `src/` には検証不能な形の呼び出しが存在しないため、fail-close にしても初日から緑である。
 
@@ -142,6 +148,7 @@ internal static class BulkOperationsGuard
 | `db.Database.ExecuteSqlRawAsync("DELETE FROM ClaimBatches", ct);` | 非違反 | 違反 |
 | `db.Database.ExecuteSqlRawAsync(sql, ct);` | 非違反 | **違反（検証不能）** |
 | `db.Set<X>().FromSqlRaw("SELECT * FROM X");` | 非違反 | 非違反 |
+| `db.Database.ExecuteSqlRawAsync(sql, ct); // caller: "AdminPanel"` | 非違反 | **違反（第1引数がリテラルでない）** |
 | `// ExecuteDeleteAsync は禁止` | 非違反（基盤が除去） | 非違反 |
 | `var name = nameof(ExecuteDeleteMarker);` | 非違反（`.` 前置を要求） | — |
 
