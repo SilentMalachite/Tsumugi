@@ -2229,12 +2229,11 @@ Expected: 全緑（既存の `MainViewModel` 構築テストがあれば、引�
 
 ```bash
 dotnet build
-git add src/Tsumugi.App/ViewModels/BackupViewModel.cs src/Tsumugi.App/Views/BackupView.axaml* \
+git add src/Tsumugi.Application/UseCases/Backup/ExportBackupCopyUseCase.cs \
+        src/Tsumugi.App/ViewModels/BackupViewModel.cs src/Tsumugi.App/Views/BackupView.axaml* \
         src/Tsumugi.App/ViewModels/MainViewModel.cs src/Tsumugi.App/MainWindow.axaml \
         src/Tsumugi.App/CompositionRoot.cs \
-        src/Tsumugi.Application/UseCases/Backup/RestoreDatabaseUseCase.cs \
-        tests/Tsumugi.App.Tests/ViewModels/BackupViewModelTests.cs \
-        tests/Tsumugi.Application.Tests/Backup/RestoreDatabaseUseCaseTests.cs
+        tests/Tsumugi.App.Tests/ViewModels/BackupViewModelTests.cs
 git commit -m "feat(phase4-s3a): バックアップ・復元の画面を追加する"
 ```
 
