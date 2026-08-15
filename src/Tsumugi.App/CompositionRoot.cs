@@ -209,6 +209,8 @@ public static class CompositionRoot
         services.AddScoped<RunScheduledBackupUseCase>();
         services.AddScoped<RestoreDatabaseUseCase>();
         services.AddScoped<ListBackupGenerationsUseCase>();
+        services.AddScoped<ExportBackupCopyUseCase>();
+        services.AddTransient<BackupViewModel>();
 
         return services;
     }

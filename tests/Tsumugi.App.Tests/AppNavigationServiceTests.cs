@@ -80,50 +80,71 @@ public sealed class AppNavigationServiceTests
     [Fact]
     public async Task Navigation_service_messenger_and_main_coordinator_are_scoped()
     {
-        var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
+        // MainViewModel が BackupViewModel を要求するため、保存先を知る版で組み立てる。
+        var root = NewTempLocationRoot();
+        try
+        {
+            var location = new SqliteLocationService(root);
+            location.EnsureSecuredStorage();
+            var services = new ServiceCollection().AddTsumugiServices(location);
 
-        services.Single(x => x.ServiceType == typeof(IAppNavigationService)).Lifetime
-            .Should().Be(ServiceLifetime.Scoped);
-        services.Single(x => x.ServiceType == typeof(IMessenger)).Lifetime
-            .Should().Be(ServiceLifetime.Scoped);
-        services.Single(x => x.ServiceType == typeof(MainViewModel)).Lifetime
-            .Should().Be(ServiceLifetime.Scoped);
+            services.Single(x => x.ServiceType == typeof(IAppNavigationService)).Lifetime
+                .Should().Be(ServiceLifetime.Scoped);
+            services.Single(x => x.ServiceType == typeof(IMessenger)).Lifetime
+                .Should().Be(ServiceLifetime.Scoped);
+            services.Single(x => x.ServiceType == typeof(MainViewModel)).Lifetime
+                .Should().Be(ServiceLifetime.Scoped);
 
-        using var provider = services.BuildServiceProvider();
-        using var firstScope = provider.CreateScope();
-        using var secondScope = provider.CreateScope();
-        var first = firstScope.ServiceProvider.GetRequiredService<MainViewModel>();
+            using var provider = services.BuildServiceProvider();
+            using var firstScope = provider.CreateScope();
+            using var secondScope = provider.CreateScope();
+            var first = firstScope.ServiceProvider.GetRequiredService<MainViewModel>();
 
-        firstScope.ServiceProvider.GetRequiredService<MainViewModel>()
-            .Should().BeSameAs(first);
-        secondScope.ServiceProvider.GetRequiredService<MainViewModel>()
-            .Should().NotBeSameAs(first);
+            firstScope.ServiceProvider.GetRequiredService<MainViewModel>()
+                .Should().BeSameAs(first);
+            secondScope.ServiceProvider.GetRequiredService<MainViewModel>()
+                .Should().NotBeSameAs(first);
 
-        var navigation = firstScope.ServiceProvider.GetRequiredService<IAppNavigationService>();
-        var result = await navigation.NavigateAsync(
-            new NavigationRequest(AppSection.RecipientList));
-        result.IsSuccess.Should().BeTrue();
+            var navigation = firstScope.ServiceProvider.GetRequiredService<IAppNavigationService>();
+            var result = await navigation.NavigateAsync(
+                new NavigationRequest(AppSection.RecipientList));
+            result.IsSuccess.Should().BeTrue();
+        }
+        finally
+        {
+            CleanUpLocationRoot(root);
+        }
     }
 
     [Fact]
     public async Task Navigation_service_does_not_strongly_retain_main_or_owned_view_models()
     {
-        using var provider = (ServiceProvider)CompositionRoot.Build("Data Source=:memory:");
-        using var scope = provider.CreateScope();
-        var navigation = scope.ServiceProvider.GetRequiredService<IAppNavigationService>();
-        var weakReferences = ResolveMainAndCaptureWeakReferences(scope.ServiceProvider);
+        var root = NewTempLocationRoot();
+        try
+        {
+            var location = new SqliteLocationService(root);
+            location.EnsureSecuredStorage();
+            using var provider = (ServiceProvider)CompositionRoot.Build(location);
+            using var scope = provider.CreateScope();
+            var navigation = scope.ServiceProvider.GetRequiredService<IAppNavigationService>();
+            var weakReferences = ResolveMainAndCaptureWeakReferences(scope.ServiceProvider);
 
-        ForceFullGarbageCollection();
+            ForceFullGarbageCollection();
 
-        weakReferences.Should().OnlyContain(
-            item => !item.Reference.IsAlive,
-            "the scoped navigation service must not strongly retain {0}",
-            string.Join(", ", weakReferences.Select(item => item.Name)));
-        var request = new NavigationRequest(AppSection.RecipientList);
-        var result = await navigation.NavigateAsync(request);
-        result.IsSuccess.Should().BeFalse();
-        result.ErrorCode.Should().Be(NavigationErrorCode.NavigationTargetUnavailable);
-        result.Request.Should().BeSameAs(request);
+            weakReferences.Should().OnlyContain(
+                item => !item.Reference.IsAlive,
+                "the scoped navigation service must not strongly retain {0}",
+                string.Join(", ", weakReferences.Select(item => item.Name)));
+            var request = new NavigationRequest(AppSection.RecipientList);
+            var result = await navigation.NavigateAsync(request);
+            result.IsSuccess.Should().BeFalse();
+            result.ErrorCode.Should().Be(NavigationErrorCode.NavigationTargetUnavailable);
+            result.Request.Should().BeSameAs(request);
+        }
+        finally
+        {
+            CleanUpLocationRoot(root);
+        }
     }
 
     [Fact]
@@ -136,45 +157,55 @@ public sealed class AppNavigationServiceTests
             Guid.NewGuid(), "二人目", "フタリメ", new DateOnly(1991, 1, 1),
             "test", DateTimeOffset.UnixEpoch, Guid.NewGuid());
         var recipients = new BlockingRecipientRepository([firstRecipient, secondRecipient]);
-        var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
+        var root = NewTempLocationRoot();
+        var location = new SqliteLocationService(root);
+        location.EnsureSecuredStorage();
+        var services = new ServiceCollection().AddTsumugiServices(location);
         services.AddScoped<IRecipientRepository>(_ => recipients);
         services.AddScoped<ICertificateRepository>(_ => new InMemoryCertRepo());
 
-        using var provider = services.BuildServiceProvider();
-        using var scope = provider.CreateScope();
-        var main = scope.ServiceProvider.GetRequiredService<MainViewModel>();
-        var navigation = scope.ServiceProvider.GetRequiredService<IAppNavigationService>();
-        var firstRequest = new NavigationRequest(
-            AppSection.Certificate,
-            firstRecipient.Id);
-        var firstNavigation = navigation.NavigateAsync(firstRequest);
-        await recipients.FirstCallStarted.WaitAsync(TimeSpan.FromSeconds(5));
+        try
+        {
+            using var provider = services.BuildServiceProvider();
+            using var scope = provider.CreateScope();
+            var main = scope.ServiceProvider.GetRequiredService<MainViewModel>();
+            var navigation = scope.ServiceProvider.GetRequiredService<IAppNavigationService>();
+            var firstRequest = new NavigationRequest(
+                AppSection.Certificate,
+                firstRecipient.Id);
+            var firstNavigation = navigation.NavigateAsync(firstRequest);
+            await recipients.FirstCallStarted.WaitAsync(TimeSpan.FromSeconds(5));
 
-        using var waitingCancellation = new CancellationTokenSource();
-        var secondRequest = new NavigationRequest(
-            AppSection.Certificate,
-            secondRecipient.Id);
-        var secondNavigation = navigation.NavigateAsync(
-            secondRequest,
-            waitingCancellation.Token);
-        var targetCallsBeforeCancellation = recipients.CallCount;
-        var selectionBeforeCancellation = main.SelectedSection;
-        var lastResultBeforeCancellation = main.LastNavigationResult;
+            using var waitingCancellation = new CancellationTokenSource();
+            var secondRequest = new NavigationRequest(
+                AppSection.Certificate,
+                secondRecipient.Id);
+            var secondNavigation = navigation.NavigateAsync(
+                secondRequest,
+                waitingCancellation.Token);
+            var targetCallsBeforeCancellation = recipients.CallCount;
+            var selectionBeforeCancellation = main.SelectedSection;
+            var lastResultBeforeCancellation = main.LastNavigationResult;
 
-        waitingCancellation.Cancel();
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            async () => await secondNavigation);
-        recipients.ReleaseFirstCall();
-        var firstResult = await firstNavigation;
+            waitingCancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                async () => await secondNavigation);
+            recipients.ReleaseFirstCall();
+            var firstResult = await firstNavigation;
 
-        targetCallsBeforeCancellation.Should().Be(1);
-        selectionBeforeCancellation.Should().Be(AppSection.RecipientList);
-        lastResultBeforeCancellation.Should().BeNull();
-        recipients.CallCount.Should().Be(1);
-        firstResult.IsSuccess.Should().BeTrue();
-        main.SelectedSection.Should().Be(AppSection.Certificate);
-        main.LastNavigationResult.Should().BeSameAs(firstResult);
-        main.LastNavigationResult!.Request.Should().BeSameAs(firstRequest);
+            targetCallsBeforeCancellation.Should().Be(1);
+            selectionBeforeCancellation.Should().Be(AppSection.RecipientList);
+            lastResultBeforeCancellation.Should().BeNull();
+            recipients.CallCount.Should().Be(1);
+            firstResult.IsSuccess.Should().BeTrue();
+            main.SelectedSection.Should().Be(AppSection.Certificate);
+            main.LastNavigationResult.Should().BeSameAs(firstResult);
+            main.LastNavigationResult!.Request.Should().BeSameAs(firstRequest);
+        }
+        finally
+        {
+            CleanUpLocationRoot(root);
+        }
     }
 
     [Fact]
@@ -438,6 +469,18 @@ public sealed class AppNavigationServiceTests
         fixture.Main.LastNavigationResult.Should().BeSameAs(result);
     }
 
+    // MainViewModel が BackupViewModel を要求するため、DI 経由で MainViewModel を組み立てる
+    // テストは保存先を知る版（AddTsumugiServices(location)）を使う必要がある。
+    private static string NewTempLocationRoot() =>
+        Path.Combine(Path.GetTempPath(), "tsumugi-nav-" + Guid.NewGuid().ToString("N"));
+
+    private static void CleanUpLocationRoot(string root)
+    {
+        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+        if (Directory.Exists(root))
+            Directory.Delete(root, recursive: true);
+    }
+
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -520,12 +563,12 @@ public sealed class AppNavigationServiceTests
     {
         private readonly ServiceProvider _provider;
         private readonly AsyncServiceScope _scope;
-        private readonly string _dbPath;
+        private readonly string _root;
 
         private NavigationFixture(
             ServiceProvider provider,
             AsyncServiceScope scope,
-            string dbPath,
+            string root,
             MainViewModel main,
             IAppNavigationService navigation,
             Guid recipientId,
@@ -534,7 +577,7 @@ public sealed class AppNavigationServiceTests
         {
             _provider = provider;
             _scope = scope;
-            _dbPath = dbPath;
+            _root = root;
             Main = main;
             Navigation = navigation;
             RecipientId = recipientId;
@@ -551,10 +594,13 @@ public sealed class AppNavigationServiceTests
         public static async Task<NavigationFixture> CreateAsync(
             IDailyRecordRepository? dailyRecordRepository = null)
         {
-            var dbPath = Path.Combine(
+            var root = Path.Combine(
                 Path.GetTempPath(),
-                $"tsumugi-navigation-{Guid.NewGuid():N}.db");
-            var services = new ServiceCollection().AddTsumugiServices($"Data Source={dbPath}");
+                $"tsumugi-navigation-{Guid.NewGuid():N}");
+            var location = new SqliteLocationService(root);
+            location.EnsureSecuredStorage();
+            // MainViewModel が BackupViewModel を要求するため、保存先を知る版で組み立てる。
+            var services = new ServiceCollection().AddTsumugiServices(location);
             if (dailyRecordRepository is not null)
                 services.AddScoped<IDailyRecordRepository>(_ => dailyRecordRepository);
             var provider = services.BuildServiceProvider();
@@ -613,7 +659,7 @@ public sealed class AppNavigationServiceTests
             return new NavigationFixture(
                 provider,
                 scope,
-                dbPath,
+                root,
                 main,
                 navigation,
                 recipient.Id,
@@ -626,11 +672,8 @@ public sealed class AppNavigationServiceTests
             await _scope.DisposeAsync();
             await _provider.DisposeAsync();
             Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
-            foreach (var path in new[] { _dbPath, _dbPath + "-shm", _dbPath + "-wal" })
-            {
-                if (File.Exists(path))
-                    File.Delete(path);
-            }
+            if (Directory.Exists(_root))
+                Directory.Delete(_root, recursive: true);
         }
     }
 

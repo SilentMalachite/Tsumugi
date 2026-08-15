@@ -10,6 +10,7 @@ using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Audit;
 using Tsumugi.Application.Claim;
 using Tsumugi.Application.UseCases;
+using Tsumugi.Application.UseCases.Backup;
 using Tsumugi.Application.UseCases.Certificate;
 using Tsumugi.Application.UseCases.Claim;
 using Tsumugi.Application.UseCases.Recipient;
@@ -28,36 +29,50 @@ public sealed class CompositionRootTests
     [Fact]
     public void Claim_input_workspace_is_registered_with_the_master_backed_policy_provider()
     {
-        var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
+        var root = Path.Combine(Path.GetTempPath(), "tsumugi-claim-input-di-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            // MainViewModel が BackupViewModel を要求するため、保存先を知る版で組み立てる。
+            var location = new SqliteLocationService(root);
+            location.EnsureSecuredStorage();
+            var services = new ServiceCollection().AddTsumugiServices(location);
 
-        services.Should().Contain(service => service.ServiceType == typeof(SetClaimInputUseCase));
-        services.Should().Contain(service =>
-            service.ServiceType == typeof(SetAverageWageAnnualEvidenceUseCase));
-        services.Should().Contain(service =>
-            service.ServiceType == typeof(SetCertificateClaimEvidenceUseCase));
-        services.Should().Contain(service =>
-            service.ServiceType == typeof(SetUpperLimitManagementStatementUseCase));
-        services.Should().NotContain(service =>
-            service.ServiceType == typeof(Tsumugi.Domain.Logic.Claim.OfficeClaimProfilePolicy));
-        services.Should().Contain(service =>
-            service.ServiceType == typeof(SetOfficeClaimProfileUseCase));
-        services.Should().Contain(service =>
-            service.ServiceType == typeof(QueryClaimInputWorkspaceUseCase));
-        services.Should().Contain(service => service.ServiceType == typeof(ClaimInputViewModel));
+            services.Should().Contain(service => service.ServiceType == typeof(SetClaimInputUseCase));
+            services.Should().Contain(service =>
+                service.ServiceType == typeof(SetAverageWageAnnualEvidenceUseCase));
+            services.Should().Contain(service =>
+                service.ServiceType == typeof(SetCertificateClaimEvidenceUseCase));
+            services.Should().Contain(service =>
+                service.ServiceType == typeof(SetUpperLimitManagementStatementUseCase));
+            services.Should().NotContain(service =>
+                service.ServiceType == typeof(Tsumugi.Domain.Logic.Claim.OfficeClaimProfilePolicy));
+            services.Should().Contain(service =>
+                service.ServiceType == typeof(SetOfficeClaimProfileUseCase));
+            services.Should().Contain(service =>
+                service.ServiceType == typeof(QueryClaimInputWorkspaceUseCase));
+            services.Should().Contain(service => service.ServiceType == typeof(ClaimInputViewModel));
 
-        using var provider = services.BuildServiceProvider();
-        using var scope = provider.CreateScope();
-        var main = scope.ServiceProvider.GetRequiredService<MainViewModel>();
-        main.ClaimInput.Should().NotBeNull();
+            using var provider = services.BuildServiceProvider();
+            using var scope = provider.CreateScope();
+            var main = scope.ServiceProvider.GetRequiredService<MainViewModel>();
+            main.ClaimInput.Should().NotBeNull();
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
     }
 
     [Fact]
     public async Task Production_navigation_loads_empty_claim_input_workspace_without_policy_rows()
     {
-        var dbPath = Path.Combine(Path.GetTempPath(), $"tsumugi-claim-input-{Guid.NewGuid():N}.db");
+        var root = Path.Combine(Path.GetTempPath(), $"tsumugi-claim-input-{Guid.NewGuid():N}");
         try
         {
-            var services = new ServiceCollection().AddTsumugiServices($"Data Source={dbPath}");
+            var location = new SqliteLocationService(root);
+            location.EnsureSecuredStorage();
+            var services = new ServiceCollection().AddTsumugiServices(location);
             using var provider = services.BuildServiceProvider();
             using var scope = provider.CreateScope();
             await scope.ServiceProvider.GetRequiredService<TsumugiDbContext>().Database.MigrateAsync();
@@ -94,8 +109,7 @@ public sealed class CompositionRootTests
         finally
         {
             Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
-            foreach (var path in new[] { dbPath, dbPath + "-shm", dbPath + "-wal" })
-                if (File.Exists(path)) File.Delete(path);
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
         }
     }
 
@@ -179,10 +193,12 @@ public sealed class CompositionRootTests
     [Fact]
     public void Build_resolves_use_cases_from_root()
     {
-        var dbPath = Path.Combine(Path.GetTempPath(), $"tsumugi-ci-{Guid.NewGuid():N}.db");
+        var root = Path.Combine(Path.GetTempPath(), $"tsumugi-ci-{Guid.NewGuid():N}");
         try
         {
-            using var provider = (ServiceProvider)CompositionRoot.Build($"Data Source={dbPath}");
+            var location = new SqliteLocationService(root);
+            location.EnsureSecuredStorage();
+            using var provider = (ServiceProvider)CompositionRoot.Build(location);
             using var scope = provider.CreateScope();
 
             scope.ServiceProvider.GetRequiredService<RegisterOfficeUseCase>().Should().NotBeNull();
@@ -226,12 +242,15 @@ public sealed class CompositionRootTests
             // Phase 4 S0 ViewModels resolve
             scope.ServiceProvider.GetRequiredService<RecipientHourlyRateViewModel>().Should().NotBeNull();
             scope.ServiceProvider.GetRequiredService<WageAdjustmentViewModel>().Should().NotBeNull();
+
+            // Phase 4 S3a: バックアップ・復元
+            scope.ServiceProvider.GetRequiredService<ExportBackupCopyUseCase>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<BackupViewModel>().Should().NotBeNull();
         }
         finally
         {
             Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
-            foreach (var f in new[] { dbPath, dbPath + "-shm", dbPath + "-wal" })
-                if (File.Exists(f)) File.Delete(f);
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
         }
     }
 

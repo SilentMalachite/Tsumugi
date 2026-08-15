@@ -4,6 +4,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Tsumugi.App;
 using Tsumugi.App.ViewModels;
+using Tsumugi.Infrastructure.Persistence;
 using Xunit;
 
 namespace Tsumugi.App.Tests;
@@ -11,16 +12,20 @@ namespace Tsumugi.App.Tests;
 /// <summary>
 /// MainViewModel が Phase 4 S0 で追加された 2 タブ VM プロパティを公開することを確認する。
 /// CompositionRoot 経由で解決し、DI 配線の通し確認も兼ねる。
+/// MainViewModel は Phase 4 S3a で BackupViewModel も要求するため、保存先を知る版
+/// （CompositionRoot.Build(SqliteLocationService)）で組み立てる。
 /// </summary>
 public sealed class MainViewModelTests
 {
     [Fact]
     public void MainViewModel_exposes_RecipientHourlyRate_and_WageAdjustment()
     {
-        var dbPath = Path.Combine(Path.GetTempPath(), $"tsumugi-main-vm-{Guid.NewGuid():N}.db");
+        var root = Path.Combine(Path.GetTempPath(), $"tsumugi-main-vm-{Guid.NewGuid():N}");
         try
         {
-            using var provider = (ServiceProvider)CompositionRoot.Build($"Data Source={dbPath}");
+            var location = new SqliteLocationService(root);
+            location.EnsureSecuredStorage();
+            using var provider = (ServiceProvider)CompositionRoot.Build(location);
             using var scope = provider.CreateScope();
 
             var vm = scope.ServiceProvider.GetRequiredService<MainViewModel>();
@@ -33,8 +38,7 @@ public sealed class MainViewModelTests
         finally
         {
             Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
-            foreach (var f in new[] { dbPath, dbPath + "-shm", dbPath + "-wal" })
-                if (File.Exists(f)) File.Delete(f);
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
         }
     }
 
@@ -43,10 +47,12 @@ public sealed class MainViewModelTests
     {
         // TransientなVMなので、スコープが異なれば別インスタンス。
         // ここでは同一スコープ内でMainViewModelが持つ参照が一貫していることを確認。
-        var dbPath = Path.Combine(Path.GetTempPath(), $"tsumugi-main-vm2-{Guid.NewGuid():N}.db");
+        var root = Path.Combine(Path.GetTempPath(), $"tsumugi-main-vm2-{Guid.NewGuid():N}");
         try
         {
-            using var provider = (ServiceProvider)CompositionRoot.Build($"Data Source={dbPath}");
+            var location = new SqliteLocationService(root);
+            location.EnsureSecuredStorage();
+            using var provider = (ServiceProvider)CompositionRoot.Build(location);
             using var scope = provider.CreateScope();
 
             var vm = scope.ServiceProvider.GetRequiredService<MainViewModel>();
@@ -58,8 +64,7 @@ public sealed class MainViewModelTests
         finally
         {
             Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
-            foreach (var f in new[] { dbPath, dbPath + "-shm", dbPath + "-wal" })
-                if (File.Exists(f)) File.Delete(f);
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
         }
     }
 }
