@@ -38,6 +38,25 @@
 - **旧暫定体制届キー（`mealProvision` / `transportSupport`）が公式キーへ未移行**。算定に効かないまま書かれ続けている。送迎体制加算・食事提供体制加算のマスタ投入と同時に移行する。
 - SQLite 暗号化方針の決定、NuGet audit suppression（GHSA-2m69-gcr7-jv3q）の解除、バックアップ自動化、配布パッケージング、運用ガイド。
 
+## 体制届宣言の充足可能性検査 (2026-07-27)
+
+- ADR 0049 の存在検査が拾えなかった**隣接する穴**を塞いだ（ADR 0049 追補）。宣言キーが当月に生きていても、
+  そのキーを含む行が**すべて別の体制届キー（companion）も要求している**場合は1行も成立せず、加算が
+  無音で¥0になる。処遇改善(Ⅴ)を `…treatment-improvement.6` だけ宣言し `…-v-band.{n}` を宣言していない
+  事業所が典型例（実seedの(Ⅴ)23行はすべて両方を要求する）
+- Domain に `OfficeCapabilityCoveragePolicy.FindUnsatisfiableDeclaredKeys` / `ExtractCapabilityValueSets`
+  を追加。行の要件を「条件ごとの受理可能値の集合」としてモデル化し、`kind: office-capability` の条件だけを
+  見ることで、facility-classification 条件と同居する行（465120／465138）での偽陽性を構造的に排除する
+- 判定は `ClaimPreviewPipeline`（プレビュー時のマスタ照合）に置いたため、入口ガード I1 を素通りする経路
+  （永続化済みデータ・世代境界をまたぐ宣言・use case 直呼び）にも効く。既存の `FindUncoveredKeys` は無変更
+  （両者は排反）
+- DTO は `ClaimPreviewDto.IncompleteCapabilityDeclarationWarnings` として `CapabilityCoverageWarnings` とは
+  **別リスト**にし、UI も別ブロックで表示する（「失効した option」と「宣言が不完全」で対処が異なるため）
+- 発生源も断った。`OfficeCapabilityViewModel.SaveAsync` が、band を要求しない選択番号のときに band キーを
+  書かないよう修正（(Ⅴ)から他区分へ切り替えた後に残る orphan band が実運用で到達可能だった）
+- `IsReady` は変えない警告のままである点、および average-wage-band / capacity 起因の不成立は依然として
+  拾わない点は ADR 0049 §追補 (4) のとおり。証跡: [`docs/phase3-6-acceptance.md`](docs/phase3-6-acceptance.md) §9
+
 ## Phase 3-6 完了 (2026-07-26)
 
 - Phase 3-5 最終レビューが持ち越したR6-06世代（2024-06〜2026-05）の施設区分欠落を塞いだ（ADR 0048）。
