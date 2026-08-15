@@ -83,11 +83,22 @@ public partial class App : AvaloniaApplication
             // 「終了できないアプリ」は「バックアップされないアプリ」より悪いという判断（ADR、Task 8）。
         }
 
-        _appScope?.Dispose();
-
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        // Dispose の失敗で終了を妨げない。async void なので、ここで例外が漏れると
+        // 「きれいに終了する」代わりにプロセスが落ちる（このハンドラの目的と正反対）。
+        try
         {
-            desktop.Shutdown();
+            _appScope?.Dispose();
+        }
+        catch (Exception)
+        {
+            // 破棄の失敗は終了を止める理由にならない。パスを含む情報は残さない（ハード制約4）。
+        }
+        finally
+        {
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.Shutdown();
+            }
         }
     }
 }
