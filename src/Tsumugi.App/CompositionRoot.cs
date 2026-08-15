@@ -183,7 +183,6 @@ public static class CompositionRoot
         // Phase 4 S0 ViewModels
         services.AddTransient<RecipientHourlyRateViewModel>();
         services.AddTransient<WageAdjustmentViewModel>();
-        services.AddScoped<MainViewModel>();
 
         return services;
     }
@@ -191,6 +190,8 @@ public static class CompositionRoot
     /// <summary>
     /// 保存先を知る合成ルート。バックアップ・復元は DB ファイルの実体パスを要するため、
     /// 接続文字列だけの版では登録しない（接続文字列から保存先を推測しない）。
+    /// MainViewModel は Phase 4 S3a で BackupViewModel を必須依存に持つため、ここへ登録する
+    /// （接続文字列だけの版に置くと、そちらでは組み立てられないものを登録することになる）。
     /// </summary>
     public static IServiceProvider Build(SqliteLocationService location)
         => new ServiceCollection().AddTsumugiServices(location).BuildServiceProvider();
@@ -211,6 +212,7 @@ public static class CompositionRoot
         services.AddScoped<ListBackupGenerationsUseCase>();
         services.AddScoped<ExportBackupCopyUseCase>();
         services.AddTransient<BackupViewModel>();
+        services.AddScoped<MainViewModel>();
 
         return services;
     }

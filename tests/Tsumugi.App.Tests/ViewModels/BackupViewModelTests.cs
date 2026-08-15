@@ -17,18 +17,14 @@ namespace Tsumugi.App.Tests.ViewModels;
 
 public sealed class BackupViewModelTests
 {
-    private sealed class FakeLocation : IDatabaseFileLocation
-    {
-        public string DatabasePath => Path.Combine("/data", "tsumugi.db");
-        public string BackupDirectory => Path.Combine("/data", "backups");
-    }
-
     private sealed class FakeBackupService : IBackupService
     {
         public List<string> Destinations { get; } = [];
         public byte[] Payload { get; set; } = [1, 2, 3];
+        public Exception? Throws { get; set; }
         public Task BackupToAsync(string destinationPath, CancellationToken ct)
         {
+            if (Throws is not null) throw Throws;
             Destinations.Add(destinationPath);
             Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
             return File.WriteAllBytesAsync(destinationPath, Payload, ct);
@@ -90,8 +86,10 @@ public sealed class BackupViewModelTests
     private sealed record Harness(
         BackupViewModel ViewModel,
         FakeBackupDirectory Directory,
+        FakeBackupService BackupService,
         FakeRestoreService Restore,
-        FakeFileSave FileSave);
+        FakeFileSave FileSave,
+        string BackupDirectoryPath);
 
     private static Harness Build(string tempRoot)
     {
@@ -110,7 +108,8 @@ public sealed class BackupViewModelTests
         var export = new ExportBackupCopyUseCase(location, backup, clock);
 
         return new Harness(
-            new BackupViewModel(run, list, restoreUc, export, fileSave), dir, restore, fileSave);
+            new BackupViewModel(run, list, restoreUc, export, fileSave),
+            dir, backup, restore, fileSave, location.BackupDirectory);
     }
 
     private sealed class TempLocation(string root) : IDatabaseFileLocation
@@ -152,19 +151,50 @@ public sealed class BackupViewModelTests
 
         h.Restore.Source.Should().BeNull();
         h.ViewModel.RestartRequired.Should().BeFalse();
+        h.ViewModel.RestoreArmed.Should().BeFalse();
     }
 
     [Fact]
-    public async Task RestoreAsync_sets_restart_required_after_a_successful_restore()
+    public async Task RestoreAsync_first_call_arms_the_confirmation_without_executing()
     {
         var h = Build(NewTempRoot());
         h.ViewModel.SelectedGeneration = "tsumugi-backup-20260810-100000.db";
 
         await h.ViewModel.RestoreAsync();
 
+        h.Restore.Source.Should().BeNull();
+        h.ViewModel.RestartRequired.Should().BeFalse();
+        h.ViewModel.RestoreArmed.Should().BeTrue();
+        h.ViewModel.StatusMessage.Should().Contain("もう一度");
+    }
+
+    [Fact]
+    public async Task RestoreAsync_second_call_executes_and_sets_restart_required()
+    {
+        var h = Build(NewTempRoot());
+        h.ViewModel.SelectedGeneration = "tsumugi-backup-20260810-100000.db";
+
+        await h.ViewModel.RestoreAsync();
+        await h.ViewModel.RestoreAsync();
+
+        h.Restore.Source.Should().NotBeNull();
         h.ViewModel.RestartRequired.Should().BeTrue();
+        h.ViewModel.RestoreArmed.Should().BeFalse();
         h.ViewModel.StatusMessage.Should().Contain("再起動");
         h.ViewModel.ErrorMessage.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task RestoreAsync_disarms_when_the_selected_generation_changes()
+    {
+        var h = Build(NewTempRoot());
+        h.ViewModel.SelectedGeneration = "tsumugi-backup-20260810-100000.db";
+        await h.ViewModel.RestoreAsync();
+        h.ViewModel.RestoreArmed.Should().BeTrue();
+
+        h.ViewModel.SelectedGeneration = "tsumugi-backup-20260816-100000.db";
+
+        h.ViewModel.RestoreArmed.Should().BeFalse();
     }
 
     [Fact]
@@ -175,9 +205,41 @@ public sealed class BackupViewModelTests
         h.ViewModel.SelectedGeneration = "tsumugi-backup-20260810-100000.db";
 
         await h.ViewModel.RestoreAsync();
+        await h.ViewModel.RestoreAsync();
 
         h.ViewModel.RestartRequired.Should().BeFalse();
+        h.ViewModel.RestoreArmed.Should().BeFalse();
         h.ViewModel.ErrorMessage.Should().Contain("復元に失敗");
+    }
+
+    [Fact]
+    public async Task RestoreAsync_failure_message_does_not_leak_the_full_path_from_the_exception()
+    {
+        var h = Build(NewTempRoot());
+        h.Restore.Throws = new IOException(
+            "/Users/someone/Library/Application Support/Tsumugi/tsumugi.db は使用中です");
+        h.ViewModel.SelectedGeneration = "tsumugi-backup-20260810-100000.db";
+
+        await h.ViewModel.RestoreAsync();
+        await h.ViewModel.RestoreAsync();
+
+        h.ViewModel.ErrorMessage.Should().NotBeNullOrEmpty();
+        h.ViewModel.ErrorMessage.Should().NotContain("/Users/someone");
+        h.ViewModel.ErrorMessage.Should().NotContain(".db");
+    }
+
+    [Fact]
+    public async Task BackupNowAsync_failure_message_does_not_leak_the_full_path_from_the_exception()
+    {
+        var h = Build(NewTempRoot());
+        h.BackupService.Throws = new IOException(
+            "/Users/someone/Library/Application Support/Tsumugi/tsumugi.db は使用中です");
+
+        await h.ViewModel.BackupNowAsync();
+
+        h.ViewModel.ErrorMessage.Should().NotBeNullOrEmpty();
+        h.ViewModel.ErrorMessage.Should().NotContain("/Users/someone");
+        h.ViewModel.ErrorMessage.Should().NotContain(".db");
     }
 
     [Fact]
@@ -189,5 +251,15 @@ public sealed class BackupViewModelTests
 
         h.FileSave.Saved.Should().NotBeNull().And.NotBeEmpty();
         h.FileSave.SuggestedFileName.Should().Be("tsumugi-backup-20260816-173000.db");
+    }
+
+    [Fact]
+    public async Task SaveCopyAsync_deletes_the_temporary_export_file_afterwards()
+    {
+        var h = Build(NewTempRoot());
+
+        await h.ViewModel.SaveCopyAsync();
+
+        Directory.GetFiles(h.BackupDirectoryPath, "*.export").Should().BeEmpty();
     }
 }

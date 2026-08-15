@@ -24,7 +24,15 @@ public sealed partial class BackupViewModel(
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private bool _restartRequired;
 
+    /// <summary>
+    /// 復元の2段階確認（arm → confirm）の1段目が済んでいるかどうか。
+    /// 稼働中の DB を置き換える破壊的操作のため、キー1発で実行させない（レビュー指摘1）。
+    /// </summary>
+    [ObservableProperty] private bool _restoreArmed;
+
     public ObservableCollection<string> Generations { get; } = new();
+
+    partial void OnSelectedGenerationChanged(string? value) => RestoreArmed = false;
 
     [RelayCommand]
     public Task LoadAsync()
@@ -38,16 +46,18 @@ public sealed partial class BackupViewModel(
     public async Task BackupNowAsync()
     {
         ErrorMessage = null;
+        StatusMessage = null;
         try
         {
             await runBackup.ExecuteAsync(CancellationToken.None);
             await LoadAsync();
             StatusMessage = "バックアップを作成しました。";
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            // 例外メッセージにパスが載らないことは各サービス側で保証している（ハード制約4）。
-            ErrorMessage = "バックアップに失敗しました: " + ex.Message;
+            // 例外メッセージには生のファイル I/O 由来のフルパスが載りうるため、画面へ出さない
+            // （CLAUDE.md ハード制約4）。本アプリはログ機構を持たないので詳細は保持しない。
+            ErrorMessage = "バックアップに失敗しました。保存先の空き容量とアクセス権を確認してください。";
         }
     }
 
@@ -55,6 +65,7 @@ public sealed partial class BackupViewModel(
     public async Task SaveCopyAsync()
     {
         ErrorMessage = null;
+        StatusMessage = null;
         try
         {
             var (suggestedFileName, content) = await exportCopy.ExecuteAsync(CancellationToken.None);
@@ -62,17 +73,32 @@ public sealed partial class BackupViewModel(
                 content, suggestedFileName, "SQLite データベース", ".db", CancellationToken.None);
             StatusMessage = saved ? "控えを保存しました。" : null;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            ErrorMessage = "控えの保存に失敗しました: " + ex.Message;
+            // 例外メッセージには生のファイル I/O 由来のフルパスが載りうるため、画面へ出さない
+            // （CLAUDE.md ハード制約4）。本アプリはログ機構を持たないので詳細は保持しない。
+            ErrorMessage = "控えの保存に失敗しました。保存先の空き容量とアクセス権を確認してください。";
         }
     }
 
+    /// <summary>
+    /// 選択した世代への復元。稼働中の DB を置き換える破壊的操作のため、
+    /// 1回目の呼び出しは実行せず確認の関門（<see cref="RestoreArmed"/>）を立てるだけにし、
+    /// 2回目の呼び出しで実際に復元する。<see cref="SelectedGeneration"/> が変わると関門は下がる。
+    /// </summary>
     [RelayCommand]
     public async Task RestoreAsync()
     {
         ErrorMessage = null;
+        StatusMessage = null;
         if (string.IsNullOrWhiteSpace(SelectedGeneration)) return;
+
+        if (!RestoreArmed)
+        {
+            RestoreArmed = true;
+            StatusMessage = "復元すると現在のデータベースは置き換わります。もう一度「復元」を押すと実行します。";
+            return;
+        }
 
         try
         {
@@ -81,9 +107,15 @@ public sealed partial class BackupViewModel(
             RestartRequired = true;
             StatusMessage = "復元しました。反映するにはアプリを再起動してください。";
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            ErrorMessage = "復元に失敗しました: " + ex.Message;
+            // 例外メッセージには生のファイル I/O 由来のフルパスが載りうるため、画面へ出さない
+            // （CLAUDE.md ハード制約4）。本アプリはログ機構を持たないので詳細は保持しない。
+            ErrorMessage = "復元に失敗しました。バックアップファイルの状態と保存先のアクセス権を確認してください。";
+        }
+        finally
+        {
+            RestoreArmed = false;
         }
     }
 }
