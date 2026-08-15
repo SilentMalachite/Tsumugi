@@ -5,6 +5,7 @@ using Tsumugi.App.ViewModels;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
 using Tsumugi.Application.UseCases;
+using Tsumugi.Application.UseCases.Backup;
 using Tsumugi.Application.UseCases.Certificate;
 using Tsumugi.Application.UseCases.Claim;
 using Tsumugi.Application.UseCases.Contract;
@@ -19,6 +20,7 @@ using Tsumugi.Infrastructure;
 using Tsumugi.Infrastructure.Csv.Generation;
 using Tsumugi.Infrastructure.Csv.Mapping;
 using Tsumugi.Infrastructure.Csv.Specifications;
+using Tsumugi.Infrastructure.Persistence;
 using Tsumugi.Infrastructure.Reporting;
 
 namespace Tsumugi.App;
@@ -182,6 +184,31 @@ public static class CompositionRoot
         services.AddTransient<RecipientHourlyRateViewModel>();
         services.AddTransient<WageAdjustmentViewModel>();
         services.AddScoped<MainViewModel>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// 保存先を知る合成ルート。バックアップ・復元は DB ファイルの実体パスを要するため、
+    /// 接続文字列だけの版では登録しない（接続文字列から保存先を推測しない）。
+    /// </summary>
+    public static IServiceProvider Build(SqliteLocationService location)
+        => new ServiceCollection().AddTsumugiServices(location).BuildServiceProvider();
+
+    public static IServiceCollection AddTsumugiServices(
+        this IServiceCollection services, SqliteLocationService location)
+    {
+        ArgumentNullException.ThrowIfNull(location);
+
+        services.AddTsumugiServices(location.ConnectionString);
+
+        services.AddSingleton<ISqliteLocation>(location);
+        services.AddSingleton<IDatabaseFileLocation>(location);
+        services.AddScoped<IDatabaseRestoreService, SqliteRestoreService>();
+        services.AddScoped<IBackupDirectory, BackupDirectoryService>();
+        services.AddScoped<RunScheduledBackupUseCase>();
+        services.AddScoped<RestoreDatabaseUseCase>();
+        services.AddScoped<ListBackupGenerationsUseCase>();
 
         return services;
     }

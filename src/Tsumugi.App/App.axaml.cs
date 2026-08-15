@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -7,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tsumugi.App.Settings;
 using Tsumugi.App.ViewModels;
+using Tsumugi.Application.UseCases.Backup;
 using Tsumugi.Infrastructure.Persistence;
 using Tsumugi.Infrastructure.Reporting;
 using AvaloniaApplication = Avalonia.Application;
@@ -37,7 +39,7 @@ public partial class App : AvaloniaApplication
         var location = new SqliteLocationService(appDataRoot);
         location.EnsureSecuredStorage();
 
-        _services = CompositionRoot.Build(location.ConnectionString);
+        _services = CompositionRoot.Build(location);
 
         // アプリ全体で一つのスコープを維持する（ScopedサービスをTransient VMが参照できるよう）
         _appScope = _services.CreateScope();
@@ -49,9 +51,43 @@ public partial class App : AvaloniaApplication
         {
             var mainVm = _appScope.ServiceProvider.GetRequiredService<MainViewModel>();
             desktop.MainWindow = new MainWindow(mainVm);
-            desktop.ShutdownRequested += (_, _) => _appScope?.Dispose();
+            desktop.ShutdownRequested += OnShutdownRequested;
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private bool _shutdownBackupDone;
+
+    /// <summary>
+    /// 終了時の自動バックアップ（spec 決定2）。ShutdownRequested は同期イベントなので、
+    /// 一度だけ終了をキャンセルして非同期にバックアップし、完了後に改めて終了する。
+    /// ここで同期待ちすると UI スレッドでデッドロックしうる。
+    /// </summary>
+    private async void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
+    {
+        if (_shutdownBackupDone) return;
+
+        e.Cancel = true;
+        _shutdownBackupDone = true;
+
+        try
+        {
+            var useCase = _appScope!.ServiceProvider
+                .GetRequiredService<RunScheduledBackupUseCase>();
+            await useCase.ExecuteAsync(CancellationToken.None);
+        }
+        catch (Exception)
+        {
+            // バックアップの失敗で終了を妨げない。パスを含む情報は残さない（ハード制約4）。
+            // 「終了できないアプリ」は「バックアップされないアプリ」より悪いという判断（ADR、Task 8）。
+        }
+
+        _appScope?.Dispose();
+
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.Shutdown();
+        }
     }
 }
