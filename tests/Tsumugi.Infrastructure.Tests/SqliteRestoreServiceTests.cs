@@ -39,11 +39,17 @@ public sealed class SqliteRestoreServiceTests : IDisposable
         // 3. 復元する
         await new SqliteRestoreService(location).RestoreFromAsync(backupPath, CancellationToken.None);
 
-        // 4. 復元後の DB が SQLite として開けること
+        // 4a. 復元後のファイルがバックアップと同一内容であること（CanConnect() は生の接続を
+        //     開くだけで、SQLite はファイル形式の検証を最初のページアクセスまで遅延するため
+        //     「壊れたDB」に対しても true を返してしまう。中身そのものを見る）。
+        var expected = await File.ReadAllBytesAsync(backupPath, CancellationToken.None);
+        var actual = await File.ReadAllBytesAsync(location.DatabasePath, CancellationToken.None);
+        actual.Should().Equal(expected);
+
+        // 4b. 復元後の DB が実際に SQLite として読めること。CanConnect() ではなくテーブルへの
+        //     クエリを1本投げる（ゴミファイルなら SqliteException: file is not a database で落ちる）。
         using var restored = new TsumugiDbContext(options);
-        var act = () => restored.Database.CanConnect();
-        act.Should().NotThrow();
-        restored.Database.CanConnect().Should().BeTrue();
+        restored.Offices.Count().Should().Be(0);
     }
 
     [Fact]
