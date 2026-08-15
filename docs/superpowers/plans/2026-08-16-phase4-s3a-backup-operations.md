@@ -503,11 +503,14 @@ public static class BackupFileName
 
     private const string TimestampFormat = "yyyyMMdd-HHmmss";
 
+    // 埋め込む時刻は常に UTC（入力のオフセットに依らない）。TryParse が UTC として読み戻す契約と対になる。
+    // at.ToString(...) にすると入力のオフセットローカルな数字が入り、SelectForDeletion の
+    // 日付バケットが最大1日ずれて 7 日境界の判定を誤る（Task 2 レビューで実測。2026-08-16 訂正）。
     public static string Create(DateTimeOffset at) =>
-        AutomaticPrefix + at.ToString(TimestampFormat, CultureInfo.InvariantCulture) + Extension;
+        AutomaticPrefix + at.UtcDateTime.ToString(TimestampFormat, CultureInfo.InvariantCulture) + Extension;
 
     public static string CreatePreRestore(DateTimeOffset at) =>
-        PreRestorePrefix + at.ToString(TimestampFormat, CultureInfo.InvariantCulture) + Extension;
+        PreRestorePrefix + at.UtcDateTime.ToString(TimestampFormat, CultureInfo.InvariantCulture) + Extension;
 
     /// <summary>自動バックアップ名だけを解析する。pre-restore や規則外の名前は false。</summary>
     public static bool TryParse(string fileName, out DateTimeOffset at)
