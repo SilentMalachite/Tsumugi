@@ -269,6 +269,8 @@ Run: `dotnet test tests/Tsumugi.Infrastructure.Tests --filter "FullyQualifiedNam
 
 Expected: PASS（`[Theory]` 17ケース＝ルール1が8・ルール2が9、＋`[Fact]` 2件）。
 
+> **最終実測（最終ブランチレビューの修正後）**: 生文字列リテラルの fail-close 2ケースが加わり、`[Theory]` は **19ケース**（ルール1が8・ルール2が11）＋`[Fact]` 2件＝**21件**が緑。
+
 - [ ] **Step 5: 走査が既存の src 全体で緑であることを、Infrastructure テスト全体で確認する**
 
 Run: `dotnet test tests/Tsumugi.Infrastructure.Tests`
@@ -454,7 +456,7 @@ git commit -m "docs(phase4-s2): ADR 0050/0051 とopen-questions・CHANGELOGを�
 
 ## 完了条件
 
-- [ ] `tests/Tsumugi.Infrastructure.Tests/BulkOperationsGuardTests.cs` が存在し、`[Fact]` 2件・`[Theory]` 17ケースが緑
+- [ ] `tests/Tsumugi.Infrastructure.Tests/BulkOperationsGuardTests.cs` が存在し、`[Fact]` 2件・`[Theory]` 19ケースが緑（計21件。最終ブランチレビューの修正で生文字列2ケースが加わった）
 - [ ] Task 3 の T1〜T4 を実測し、結果が ADR 0050 のテスト節に転記されている
 - [ ] `src/` に一時挿入した違反行が 1 行も残っていない（`git status --short` が空、`git diff main -- src/` が空）
 - [ ] ADR 0050・0051 が存在し、どちらも「残る限界」を持つ
