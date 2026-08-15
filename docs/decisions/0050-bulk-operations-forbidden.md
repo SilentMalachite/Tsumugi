@@ -1,0 +1,122 @@
+# ADR 0050: EF Core bulk operations と行を書き換える raw SQL の禁止
+
+- 状態: 確定（2026-08-15）
+- 関連: [ADR 0026](0026-claim-batch-snapshot.md)
+
+## 結論
+
+`src/**/*.cs` において `ExecuteUpdate*` / `ExecuteDelete*` を無条件に禁止し、`ExecuteSql*` / `FromSql*` は SQL リテラルの内容で判定する。allowlist は設けない。判定は `tests/Tsumugi.Infrastructure.Tests/BulkOperationsGuardTests.cs` の `BulkOperationsGuard` に閉じ、走査は既存の `SourceCodeScanner` を再利用する。
+
+## 背景
+
+`AppendOnlyGuard.Inspect` は ChangeTracker の `Modified`/`Deleted` しか見ない。EF Core の bulk operations（`ExecuteUpdateAsync`/`ExecuteDeleteAsync`）と raw SQL（`ExecuteSqlRaw`/`ExecuteSqlInterpolated`等）はどちらも ChangeTracker を経由しないため、追記型エンティティ（CLAUDE.md §コーディング規約）を書き換えても実行時ガードが沈黙する。この穴は `docs/open-questions.md`（「AppendOnlyGuard と EF Core bulk operations」）に「現在の Repository 実装に bulk 呼び出しはないが、将来追加する際は別途ガードが必要」として起票されていた。
+
+本 ADR 作成時点の `src/` に該当呼び出しは 0 件である。`ExecuteSql*` は `SqliteBackupService.cs:16` の `VACUUM INTO` 1件のみで、これは行を書き換えない（ハード制約7 のバックアップ手段）。
+
+## 決定
+
+### 決定1: allowlist を作らない
+
+理由は3つ。
+
+1. **現在0件なので初日から成立する。** 例外を許す前提そのものが存在しない状態で allowlist を用意する必要はない。
+2. **「不可避な使用」が想定できない。** ハード制約1（オフライン検査）が allowlist を持つのは、サードパーティライブラリの推移的な参照など回避不能な依存が実在するためである。bulk operations と行を書き換える raw SQL にはそのような不可避性が無い — 通常の EF Core 追跡更新／追記で代替できる。
+3. **前例。** Phase 3-6 §3-5（`docs/phase3-6-acceptance.md`）で literal guard の allowlist を誤用し、レビューで機構ごと差し替えた経緯がある。allowlist は「本来閉じるべき穴を運用でふさぐ」誘惑を生みやすい。
+
+将来例外が必要になった場合は、本 ADR を改訂して例外機構ごと設計する（無断で allowlist を後付けしない）。
+
+### 決定2: raw SQL は内容基準で判定する
+
+`VACUUM INTO` をパス単位の例外にせず、内容で通す。判定対象は**呼び出しの第1引数**であり、行のどこかにあるリテラルではない（`"` / `$"` / `@"` で始まるかを開き括弧の直後で見る）。第1引数が文字列リテラルでない場合（変数渡し・複数行にまたがるリテラル等、内容を確認できない形）は fail-close で違反として扱う。
+
+**当初 spec は「同一行内に現れる `"…"` 区間のいずれか」を見る定義だった。** しかし Task 2 のレビューで、次の形が素通りすることが判明した。
+
+```csharp
+await db.Database.ExecuteSqlRawAsync(sql, ct); // caller: "AdminPanel"
+```
+
+SQL 本体は変数 `sql` であり内容を検証できないにもかかわらず、行末コメントの `"AdminPanel"` というリテラルが拾われて `MutatingKeyword` に一致しないため、fail-close に入らず通過してしまう。`SourceCodeScanner.StripLineComment` は行頭が空白＋`//`の場合のみコメントを除去し、行末コメントは除去しないため、この形は実コードで到達可能である。この指摘を受け、判定基準を「呼び出しの第1引数だけを見る」定義へ改訂した。第1引数が文字列リテラルでなければ、行に無関係なリテラルが同居していても無条件で違反（fail-close）にする。
+
+`MutatingKeyword` は `INSERT`/`UPDATE`/`DELETE`/`REPLACE`/`DROP`/`ALTER`/`TRUNCATE` を対象とし、`CREATE` は含めない。`CREATE TEMP TABLE` 等の一時テーブル作成は行の書き換えを伴わない正当な読み取り用途で使われうるため、これを一律禁止に巻き込まないためである。
+
+### 決定3: 配置は既存レイアウトへ合わせる
+
+ロードマップ（`07_ClaudeCode_Phase4実装指示_リリース準備_Tsumugi.md` §8.2）は `Architecture/BulkOperationsForbiddenTests.cs` という配置を指定していたが、本リポジトリの同種ガード（`ClaimSpecificationBoundaryTests`・`AppOfflineComplianceTests` 等）はすべて `tests/Tsumugi.Infrastructure.Tests/` 直下にフラット配置されているため、新規に `Architecture/` サブディレクトリを作らず既存レイアウトへ合わせた。
+
+## 選択肢
+
+### A: 検査しない（不採用）
+
+現状維持。`AppendOnlyGuard` の穴が open-questions に起票されたまま放置される。不採用。
+
+### B: append-only 型に対する呼び出しだけを禁止する（不採用）
+
+ロードマップの元案。行単位の正規表現走査では、`ExecuteDeleteAsync` の呼び出し対象が append-only 型（`ClaimBatch`・`ClaimDetail`等）かどうかを判定できない（型解決には Roslyn の意味解析が要る）。src/ 全体を対象にした方が実装が単純で、かつ「非 append-only 型に対する bulk operations」も将来の追記型化に対して安全側に倒せる。不採用。
+
+### C: 識別子基準で `ExecuteSql*` を一律禁止し `SqliteBackupService` を allowlist する（不採用）
+
+内容ではなく識別子だけで判定する案。決定1（allowlist を作らない）と矛盾するため不採用。
+
+### D: 採用案
+
+決定1〜3のとおり。allowlist なし・内容基準・既存レイアウト踏襲。
+
+## 影響
+
+### 残る限界
+
+1. **行単位走査のため、意図的な回避は検出できない。** `ExecuteDeleteAsync` を別名メソッドでラップして呼ぶ、SQL 文字列を複数の変数へ分割してから連結する、といった意図的な迂回は検出できない。本ガードは「気付かずに混入する」事故を止めるものであり、悪意ある回避を防ぐものではない。あわせて `tests/` と `Migrations/`（EF Core の機械生成物）は `SourceCodeScanner.EnumerateSourceFiles` が既定で除外しているため対象外である。
+2. **リテラル内のエスケープされた二重引用符でキーワードが引用符ペアの外に落ちると見逃す。** `FirstArgumentLiteral` は `"([^"]*)"` で最初の `"..."` を単純に対にするため、`"SELECT \"DELETE ME\""` のようにエスケープされた `"` を含むリテラルでは、意図した文字列より手前で閉じたと誤認識し、キーワードが引用符ペアの外側に落ちて判定から漏れる可能性がある。現在の `src/` にこの形は存在しない（該当なし）。
+3. **同一の物理行に `ExecuteSql*` 呼び出しが2つ以上あると、2つ目を見逃す。** `RawSqlCall.Match(line)` は leftmost match のみを返すため、`if (ro) …ExecuteSqlRaw("SELECT 1"); else …ExecuteSqlRaw("DELETE FROM X");` のような行では1つ目の呼び出ししか判定されず、2つ目（`DELETE FROM X`）を見逃す。現在の `src/` に `ExecuteSql*` 呼び出しは `SqliteBackupService.cs:16` の1箇所しかないため該当なし。
+
+②③はいずれも Task 2 のレビュー（Minor 指摘）で識別されたものであり、現在の `src/` には該当する形が存在しないことを確認している。将来これらの形が現れた場合は、本 ADR を改訂して判定ロジックを拡張する。
+
+## テスト
+
+`tests/Tsumugi.Infrastructure.Tests/BulkOperationsGuardTests.cs` に次の4件を実装した（`[Fact]` 2件・`[Theory]` 17ケースの合計19件）。
+
+- `[Fact] Source_does_not_call_bulk_update_or_delete()` — ルール名 `bulk-operations`。`src/` 全体を `BulkOperationsGuard.IsBulkOperationLine` で走査する。
+- `[Fact] Source_does_not_execute_mutating_raw_sql()` — ルール名 `raw-sql-dml`。`src/` 全体を `BulkOperationsGuard.IsMutatingRawSqlLine` で走査する。
+- `[Theory] IsBulkOperationLine_distinguishes` — 8ケース。
+- `[Theory] IsMutatingRawSqlLine_distinguishes` — 9ケース。
+
+### 歯の確認（意図的な違反を一時挿入した実測。`SqliteBackupService.cs` を対象に4回実施、いずれも revert 済み）
+
+**T1: bulk delete（`await db.Offices.ExecuteDeleteAsync(ct);` を `BackupToAsync` 本体先頭に挿入）**
+
+`Source_does_not_call_bulk_update_or_delete` が FAIL（他18件は合格、19件中1件失敗）。報告された文字列:
+
+```
+src/Tsumugi.Infrastructure/Persistence/SqliteBackupService.cs:11 [bulk-operations]: await db.Offices.ExecuteDeleteAsync(ct);
+```
+
+**T2: DML を含む raw SQL（`await db.Database.ExecuteSqlRawAsync("DELETE FROM ClaimBatches", ct);` を既存の `VACUUM INTO` 行の直前・同じ pragma 領域内に挿入）**
+
+`Source_does_not_execute_mutating_raw_sql` が FAIL（他18件は合格、19件中1件失敗）。報告された文字列:
+
+```
+src/Tsumugi.Infrastructure/Persistence/SqliteBackupService.cs:16 [raw-sql-dml]: await db.Database.ExecuteSqlRawAsync("DELETE FROM ClaimBatches", ct);
+```
+
+同じ pragma 領域内に無害な `VACUUM INTO` 行が同居していたが、誤検知せず違反行のみが単独で報告された。
+
+**T3: 検証不能な raw SQL（変数渡し。fail-close の証拠）**
+
+```csharp
+var sql = "VACUUM";
+await db.Database.ExecuteSqlRawAsync(sql, ct);
+```
+
+を同じ pragma 領域内に挿入。`Source_does_not_execute_mutating_raw_sql` が FAIL（他18件は合格、19件中1件失敗）。報告された文字列:
+
+```
+src/Tsumugi.Infrastructure/Persistence/SqliteBackupService.cs:17 [raw-sql-dml]: await db.Database.ExecuteSqlRawAsync(sql, ct);
+```
+
+**SQL の中身自体は無害（`"VACUUM"`）だが、第1引数が文字列リテラルでなく変数（`sql`）であるため `FirstArgumentLiteral` にマッチせず、fail-close 経路が発火して違反と判定された。** これは「SQL の中身が無害でも変数渡しなら落ちる」ことの実測上の証拠である。
+
+**T4: 無変更のベースライン確認**
+
+挿入なし。既存コードの `await db.Database.ExecuteSqlRawAsync($"VACUUM INTO '{escaped}'", ct);` のみが残る状態で、19件全緑（失敗0・合格19・スキップ0）。既存の `VACUUM INTO` 呼び出しが例外を1件も切らずに通過することを確認した。
+
+各回とも `git status --short` は空に復元し、コミットは作成していない。詳細は `.superpowers/sdd/2026-08-15-phase4-s2-bulk-operations-guard/task-3-report.md` を参照。

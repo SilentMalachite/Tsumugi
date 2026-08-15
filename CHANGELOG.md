@@ -9,7 +9,7 @@
 ### 計画
 - フェーズ 3-0（出典・契約・土台）— final-fix後のtargeted test、fresh full quality gate、最終レビュー（Critical / High / Medium 0件）を通過し、2026-07-11に受け入れ済み。詳細は [`docs/phase3-0-acceptance.md`](docs/phase3-0-acceptance.md)。
 - フェーズ 3-1（請求計算・入力基盤）— 現行計画Tasks 2〜10の入力契約スライス、Task 12のclaim-master schema v2、Task 13の基準該当B型公式計算契約・source inventoryを実装済み。Task 11の入力UIから継続し、Phase 3-1全体は未受け入れ。
-- フェーズ 4（リリース準備・運用ハードニング）残り: 暗号化方針決定・バックアップ自動化・記録UI補完・配布パッケージング・運用ガイド・bulk operations ガード。詳細は `07_ClaudeCode_Phase4実装指示_リリース準備_Tsumugi.md`。
+- フェーズ 4（リリース準備・運用ハードニング）残り: 暗号化方針決定・バックアップ自動化・記録UI補完・配布パッケージング・運用ガイド。詳細は `07_ClaudeCode_Phase4実装指示_リリース準備_Tsumugi.md`。
 
 ### 追加（Added）— Phase 3-0: 国保連請求の出典・契約・土台
 - ADR 0020〜0026に、令和6/8報酬・地域単価・サービスコード、事業所体制、負担上限、平均工賃月額、国保連CSV、端数、append-only請求snapshotの出典・版・規則を記録。負担上限は令和6年4月から令和8年6月以降まで連続するR6/R7/R8の5-version source chainで固定。
@@ -37,6 +37,18 @@
 - **未投入の制度実値**: 保護施設事務費の実値record・runtime算定、`PaymentBand` 境界マスタ（平均工賃月額からの band 自動導出）、R8-06 の定員超過・生活支援員等欠員・サービス管理責任者欠員3シート、`r8-reform-status-exempt`、体制届 option 8（filed-transition）、option 10（生産活動支援）と参加評価型。詳細は `docs/open-questions.md`。
 - **旧暫定体制届キー（`mealProvision` / `transportSupport`）が公式キーへ未移行**。算定に効かないまま書かれ続けている。送迎体制加算・食事提供体制加算のマスタ投入と同時に移行する。
 - SQLite 暗号化方針の決定、NuGet audit suppression（GHSA-2m69-gcr7-jv3q）の解除、バックアップ自動化、配布パッケージング、運用ガイド。
+
+## Phase 4 S2 完了 (2026-08-15)
+
+- `AppendOnlyGuard` が ChangeTracker しか見ないことに由来する穴を、`src/` のソース走査で塞いだ（ADR 0050）。
+  `ExecuteUpdate*`/`ExecuteDelete*` は無条件に禁止し、`ExecuteSql*`/`FromSql*` は SQL リテラルの内容
+  （INSERT/UPDATE/DELETE/REPLACE/DROP/ALTER/TRUNCATE）で判定する。allowlist は設けていない
+- `VACUUM INTO`（ハード制約7 のバックアップ手段）は内容で通るため、パス単位の例外を1件も作らずに済んだ。
+  行内で内容を確認できない形（変数渡し・複数行リテラル）は fail-close で違反にする
+- NetArchTest の採否を「見送り」で決着させた（ADR 0051）。推移的参照が未検査である事実は変わらないため、
+  残る限界と再検討トリガ3件を ADR に明記した
+- `docs/open-questions.md` の2項（アーキテクチャテストの推移的参照・AppendOnlyGuard と bulk operations）を
+  クローズした。AC4-12 達成
 
 ## 体制届宣言の充足可能性検査 (2026-07-27)
 
