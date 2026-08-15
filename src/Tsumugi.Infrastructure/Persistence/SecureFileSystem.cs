@@ -61,13 +61,16 @@ internal static class SecureFileSystem
     /// 権限適用を試み、失敗しても例外にしない版。外部媒体（FAT32/exFAT 等、
     /// Unix パーミッションも Windows ACL も持たないファイルシステム）向け。
     /// 「安全のための操作」が安全機構のせいで失敗するのを避ける。
+    /// 注意: 外部媒体で「権限適用そのもの」が失敗する経路（chmod/ACL 非対応）は
+    /// 単体テストで安定に再現できないため未検証。テストが検証しているのは
+    /// ファイル作成自体が失敗するケース（例: 親ディレクトリが存在しない）のみ。
     /// </summary>
     public static bool TryEnsureFile(string path)
     {
         try { EnsureFile(path); return true; }
         catch (IOException) { return false; }
         catch (UnauthorizedAccessException) { return false; }
-        catch (PlatformNotSupportedException) { return false; }
+        catch (NotSupportedException) { return false; } // PlatformNotSupportedException もこれで捕まる
     }
 
     // CA1416（プラットフォーム互換性アナライザ）に「true を返せば Windows 以外」と

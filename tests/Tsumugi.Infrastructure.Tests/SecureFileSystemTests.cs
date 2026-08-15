@@ -80,8 +80,10 @@ public sealed class SecureFileSystemTests : IDisposable
     [Fact]
     public void TryEnsureFile_returns_false_instead_of_throwing_when_the_path_is_unusable()
     {
-        // 存在しないディレクトリ配下のファイルには権限を適用できない。
-        // 外部媒体（FAT32/exFAT 等）で権限適用が失敗する状況の代理。
+        // 存在しないディレクトリ配下のファイルは File.Create 自体が
+        // DirectoryNotFoundException(IOException) で失敗する。理由を問わず、
+        // パスが使えないときに例外を投げず false を返すことを検証する。
+        // （権限適用そのものの失敗はここでは再現していない。SecureFileSystem.TryEnsureFile の doc 参照）
         var unusable = Path.Combine(_root, "no-such-dir", "x.db");
         SecureFileSystem.TryEnsureFile(unusable).Should().BeFalse();
     }
