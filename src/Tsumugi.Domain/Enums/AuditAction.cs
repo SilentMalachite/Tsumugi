@@ -6,4 +6,5 @@ public enum AuditAction
     Update = 1,
     Archive = 2,
     Restore = 3,
+    Backup = 4,
 }
