@@ -34,7 +34,7 @@
                     Padding="8" CornerRadius="4"
                     Background="#553300">
                 <TextBlock TextWrapping="Wrap"
-                           Text="復元を反映するにはアプリを再起動してください。" />
+                           Text="復元しました。アプリを終了します。再起動してください。" />
             </Border>
 
             <TextBlock Text="{Binding StatusMessage}"

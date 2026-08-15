@@ -17,7 +17,8 @@ public sealed partial class BackupViewModel(
     ListBackupGenerationsUseCase listGenerations,
     RestoreDatabaseUseCase restore,
     ExportBackupCopyUseCase exportCopy,
-    IFileSaveService fileSave) : ViewModelBase
+    IFileSaveService fileSave,
+    IApplicationShutdown shutdown) : ViewModelBase
 {
     [ObservableProperty] private string? _selectedGeneration;
     [ObservableProperty] private string? _statusMessage;
@@ -30,9 +31,23 @@ public sealed partial class BackupViewModel(
     /// </summary>
     [ObservableProperty] private bool _restoreArmed;
 
+    /// <summary>
+    /// 「今すぐバックアップ」「控えを保存」「選択した世代へ復元」のいずれかが実行中かどうか。
+    /// <see cref="IBackupService"/> は scoped で同一 <c>TsumugiDbContext</c> を共有するため、
+    /// 3操作が重なると EF Core が例外を投げる。窓を狭めるためボタンを無効化する
+    /// （最終レビュー指摘5。終了時フックは VM を経由しないため完全には塞がらない）。
+    /// </summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(BackupNowCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SaveCopyCommand))]
+    [NotifyCanExecuteChangedFor(nameof(RestoreCommand))]
+    private bool _isBusy;
+
     public ObservableCollection<string> Generations { get; } = new();
 
     partial void OnSelectedGenerationChanged(string? value) => RestoreArmed = false;
+
+    private bool CanRunBackupOperation() => !IsBusy;
 
     [RelayCommand]
     public Task LoadAsync()
@@ -42,11 +57,13 @@ public sealed partial class BackupViewModel(
         return Task.CompletedTask;
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRunBackupOperation))]
     public async Task BackupNowAsync()
     {
+        if (IsBusy) return;
         ErrorMessage = null;
         StatusMessage = null;
+        IsBusy = true;
         try
         {
             await runBackup.ExecuteAsync(CancellationToken.None);
@@ -59,13 +76,19 @@ public sealed partial class BackupViewModel(
             // （CLAUDE.md ハード制約4）。本アプリはログ機構を持たないので詳細は保持しない。
             ErrorMessage = "バックアップに失敗しました。保存先の空き容量とアクセス権を確認してください。";
         }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRunBackupOperation))]
     public async Task SaveCopyAsync()
     {
+        if (IsBusy) return;
         ErrorMessage = null;
         StatusMessage = null;
+        IsBusy = true;
         try
         {
             var (suggestedFileName, content) = await exportCopy.ExecuteAsync(CancellationToken.None);
@@ -79,6 +102,10 @@ public sealed partial class BackupViewModel(
             // （CLAUDE.md ハード制約4）。本アプリはログ機構を持たないので詳細は保持しない。
             ErrorMessage = "控えの保存に失敗しました。保存先の空き容量とアクセス権を確認してください。";
         }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     /// <summary>
@@ -86,9 +113,10 @@ public sealed partial class BackupViewModel(
     /// 1回目の呼び出しは実行せず確認の関門（<see cref="RestoreArmed"/>）を立てるだけにし、
     /// 2回目の呼び出しで実際に復元する。<see cref="SelectedGeneration"/> が変わると関門は下がる。
     /// </summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRunBackupOperation))]
     public async Task RestoreAsync()
     {
+        if (IsBusy) return;
         ErrorMessage = null;
         StatusMessage = null;
         if (string.IsNullOrWhiteSpace(SelectedGeneration)) return;
@@ -100,12 +128,18 @@ public sealed partial class BackupViewModel(
             return;
         }
 
+        IsBusy = true;
         try
         {
             // 引数はバックアップディレクトリ直下のファイル名。VM は保存先を知らない。
             await restore.ExecuteAsync(SelectedGeneration, actor: "operator", CancellationToken.None);
             RestartRequired = true;
-            StatusMessage = "復元しました。反映するにはアプリを再起動してください。";
+            StatusMessage = "復元しました。アプリを終了します。再起動してください。";
+
+            // 稼働中の DbContext の下で DB ファイルを差し替えたため、そのまま使い続けると
+            // 接続・ChangeTracker が古い DB を指したまま残る（ADR 0052 決定6。運用上の推奨
+            // ではなく要件）。復元が成功したときだけ終了する。arm 段階・失敗時は呼ばない。
+            shutdown.RequestShutdown();
         }
         catch (Exception)
         {
@@ -116,6 +150,7 @@ public sealed partial class BackupViewModel(
         finally
         {
             RestoreArmed = false;
+            IsBusy = false;
         }
     }
 }

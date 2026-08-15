@@ -81,6 +81,12 @@ public sealed class BackupViewModelTests
         public override DateTimeOffset GetUtcNow() => now;
     }
 
+    private sealed class FakeApplicationShutdown : IApplicationShutdown
+    {
+        public int CallCount { get; private set; }
+        public void RequestShutdown() => CallCount++;
+    }
+
     private static readonly DateTimeOffset Now = new(2026, 8, 16, 17, 30, 0, TimeSpan.Zero);
 
     private sealed record Harness(
@@ -89,6 +95,7 @@ public sealed class BackupViewModelTests
         FakeBackupService BackupService,
         FakeRestoreService Restore,
         FakeFileSave FileSave,
+        FakeApplicationShutdown Shutdown,
         string BackupDirectoryPath);
 
     private static Harness Build(string tempRoot)
@@ -98,6 +105,7 @@ public sealed class BackupViewModelTests
         var dir = new FakeBackupDirectory();
         var restore = new FakeRestoreService();
         var fileSave = new FakeFileSave();
+        var shutdown = new FakeApplicationShutdown();
         var clock = new FixedTimeProvider(Now);
 
         var run = new RunScheduledBackupUseCase(
@@ -108,8 +116,8 @@ public sealed class BackupViewModelTests
         var export = new ExportBackupCopyUseCase(location, backup, clock);
 
         return new Harness(
-            new BackupViewModel(run, list, restoreUc, export, fileSave),
-            dir, backup, restore, fileSave, location.BackupDirectory);
+            new BackupViewModel(run, list, restoreUc, export, fileSave, shutdown),
+            dir, backup, restore, fileSave, shutdown, location.BackupDirectory);
     }
 
     private sealed class TempLocation(string root) : IDatabaseFileLocation
@@ -182,6 +190,42 @@ public sealed class BackupViewModelTests
         h.ViewModel.RestoreArmed.Should().BeFalse();
         h.ViewModel.StatusMessage.Should().Contain("再起動");
         h.ViewModel.ErrorMessage.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task RestoreAsync_first_call_does_not_request_shutdown()
+    {
+        var h = Build(NewTempRoot());
+        h.ViewModel.SelectedGeneration = "tsumugi-backup-20260810-100000.db";
+
+        await h.ViewModel.RestoreAsync();
+
+        h.Shutdown.CallCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task RestoreAsync_second_call_requests_shutdown_exactly_once()
+    {
+        var h = Build(NewTempRoot());
+        h.ViewModel.SelectedGeneration = "tsumugi-backup-20260810-100000.db";
+
+        await h.ViewModel.RestoreAsync();
+        await h.ViewModel.RestoreAsync();
+
+        h.Shutdown.CallCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task RestoreAsync_does_not_request_shutdown_when_restore_throws()
+    {
+        var h = Build(NewTempRoot());
+        h.Restore.Throws = new IOException("置換に失敗");
+        h.ViewModel.SelectedGeneration = "tsumugi-backup-20260810-100000.db";
+
+        await h.ViewModel.RestoreAsync();
+        await h.ViewModel.RestoreAsync();
+
+        h.Shutdown.CallCount.Should().Be(0);
     }
 
     [Fact]
@@ -261,5 +305,10 @@ public sealed class BackupViewModelTests
         await h.ViewModel.SaveCopyAsync();
 
         Directory.GetFiles(h.BackupDirectoryPath, "*.export").Should().BeEmpty();
+
+        // ADR 0052 が主張する「一時ファイルは保護ディレクトリ内に作られる」ことを固定する
+        // （システムの一時ディレクトリは 0700 で保護されていないため使わない。最終レビュー指摘8）。
+        h.BackupService.Destinations.Should().ContainSingle()
+            .Which.Should().StartWith(h.BackupDirectoryPath);
     }
 }

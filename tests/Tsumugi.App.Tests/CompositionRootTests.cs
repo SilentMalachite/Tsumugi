@@ -202,7 +202,6 @@ public sealed class CompositionRootTests
             using var scope = provider.CreateScope();
 
             scope.ServiceProvider.GetRequiredService<RegisterOfficeUseCase>().Should().NotBeNull();
-            scope.ServiceProvider.GetRequiredService<BackupDatabaseUseCase>().Should().NotBeNull();
 
             // Phase 2 D-group use cases resolve
             scope.ServiceProvider.GetRequiredService<RecordWorkUseCase>().Should().NotBeNull();

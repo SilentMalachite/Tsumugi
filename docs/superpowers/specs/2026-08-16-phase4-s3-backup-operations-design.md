@@ -187,7 +187,7 @@ TryEnsureFile(string path) → bool               // 失敗を許容する版（
 | 層 | ファイル | 内容 |
 |---|---|---|
 | Application | `Abstractions/IBackupService.cs` | **既存の `BackupToAsync(destinationPath, ct)` のまま変えない**。これは「1ファイルを書き出す」プリミティブであり、保存先の決定・世代削除・監査は UseCase 側が持つ（Infrastructure を賢くしない） |
-| Application | `Abstractions/ISqliteLocation.cs` | `BackupDirectory` を追加（`<appdata>/Tsumugi/backups/`）。保存先の知識は保存先を知る型に置く |
+| Application | `Abstractions/IDatabaseFileLocation.cs`（新規） | `DatabasePath` / `BackupDirectory`（`<appdata>/Tsumugi/backups/`）を持つ。保存先の知識は保存先を知る型に置く。Infrastructure の `ISqliteLocation.cs` とは別で、`SqliteLocationService` が両方を実装する |
 | Application | `Logic/BackupGenerationPolicy.cs`（新規） | 決定4の純粋関数 |
 | Application | `UseCases/RunScheduledBackupUseCase.cs`（新規） | 終了時に呼ぶ。バックアップ→世代削除→監査 |
 | Application | `UseCases/RestoreDatabaseUseCase.cs`（新規） | 決定5 |
@@ -203,7 +203,9 @@ UI の3操作は保存先で分かれる。
 |---|---|---|
 | **今すぐバックアップ** | 固定 backups ディレクトリ（終了時自動と同じ経路を手動で叩くだけ） | あり |
 | **控えを保存** | 利用者がダイアログで選ぶ（外部媒体想定）。S3b でパスフレーズ任意 | 無し |
-| **復元** | backups ディレクトリの世代一覧から選ぶ。外部ファイルの選択も可 | — |
+| **復元** | backups ディレクトリの世代一覧から選ぶ。**外部ファイルピッカーは無い**（実装との差異。下記の穴を参照） | — |
+
+**既知の穴**: 「控えを保存」で外部媒体へ出したファイルを画面から戻す手段が無い。復旧するには利用者が `<appdata>/Tsumugi/backups/` へファイルを手でコピーする必要があるが、そのパスはハード制約4（ログ・画面にフルパスを出さない）により画面のどこにも表示されない。ADR 0052 の残る限界へも記録した。S3b または S5（運用ガイド）で扱う。
 
 `BackupGenerationPolicy` を Application に置く理由: Domain は業務ドメイン（報酬算定・工賃）の純粋ロジックの場であり、ファイル名の保持規則はアプリケーションの都合であるため。純粋関数である点は変わらない。
 

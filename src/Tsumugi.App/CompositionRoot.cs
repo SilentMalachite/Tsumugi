@@ -37,9 +37,8 @@ public static class CompositionRoot
         services.AddSingleton(TimeProvider.System);
         services.AddTsumugiInfrastructure(connectionString);
 
-        // Phase 0: 事業所・バックアップ
+        // Phase 0: 事業所
         services.AddScoped<RegisterOfficeUseCase>();
-        services.AddScoped<BackupDatabaseUseCase>();
 
         // Phase 1: 事業所 (更新・一覧)
         services.AddScoped<UpdateOfficeUseCase>();
@@ -211,6 +210,7 @@ public static class CompositionRoot
         services.AddScoped<RestoreDatabaseUseCase>();
         services.AddScoped<ListBackupGenerationsUseCase>();
         services.AddScoped<ExportBackupCopyUseCase>();
+        services.AddSingleton<Tsumugi.App.Services.IApplicationShutdown, Tsumugi.App.Services.AvaloniaApplicationShutdown>();
         services.AddTransient<BackupViewModel>();
         services.AddScoped<MainViewModel>();
 

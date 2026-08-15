@@ -57,7 +57,7 @@
 
 `RestoreDatabaseUseCase` は次の順で実行する。
 
-1. `AuditEntry`（`AuditAction.Backup`）を記録し、保存する。
+1. `AuditEntry`（`AuditAction.Restore`）を記録し、保存する。`AuditAction.Restore` は利用者のアーカイブ解除（`RestoreRecipientUseCase`）とも共用しており、`TargetType`（DB復元は `"Database"`、利用者復元は `"Recipient"`）でしか両者を区別できない。
 2. 現行 DB を `pre-restore-YYYYMMDD-HHmmss.db` として backups ディレクトリへ退避する。
 3. `SqliteConnection.ClearAllPools()` を呼び、`Microsoft.Data.Sqlite` の接続プールが握っているファイルハンドルを解放する。
 4. バックアップを一時名へコピーし、`-wal` / `-shm` サイドカーを削除してから、一時ファイルを DB ファイルへ移動する（`SqliteRestoreService`。コピー失敗時は `finally` で一時ファイルを後始末し、現行 DB は無傷のまま残る）。
@@ -74,11 +74,13 @@
 
 ### 決定6: 復元後は再起動
 
-置換後にアプリを終了し、再起動を促す。稼働中の `DbContext` の下でファイルを差し替えると、EF Core の内部状態・開いている接続・`ChangeTracker` が古い DB を指したまま残る。`ClearAllPools()` が閉じるのは**アイドル状態のプール接続だけ**で、他所で開きっぱなしの接続を強制的に閉じるわけではない。再起動が最も確実で、実装も検証も単純になるため、復元後の再起動は運用上の推奨ではなく、この前提を成立させるための要件とする。
+置換後にアプリを終了し、再起動を促す。稼働中の `DbContext` の下でファイルを差し替えると、EF Core の内部状態・開いている接続・`ChangeTracker` が古い DB を指したまま残る。`ClearAllPools()` が閉じるのは**アイドル状態のプール接続だけ**で、他所で開きっぱなしの接続を強制的に閉じるわけではない。再起動が最も確実で、実装も検証も単純になるため、復元後の再起動は運用上の推奨ではなく、この前提を成立させるための要件とする。実装は `BackupViewModel` から Avalonia のライフタイムを直接触らない薄い抽象 `IApplicationShutdown` を経由し、`RestoreDatabaseUseCase` が成功したときだけ呼ぶ（arm 段階・失敗時は呼ばない）。終了は `App.axaml.cs` の `ShutdownRequested` を経由するため、復元直後に終了時バックアップフックが1回走り、**復元直後の DB を新しい世代として書く**（想定どおりの挙動であり、復元と終了時バックアップの間で二重に手を打つ必要はない）。
 
-### 決定7: 外部媒体では権限適用の失敗を許容
+### 決定7: 保存先ごとの権限適用方針
 
-「控えを保存」は利用者が任意の保存先を選べるため、FAT32/exFAT のような Unix パーミッションも Windows ACL も適用できないファイルシステムが対象になりうる。ここで例外にすると、**「安全のための操作」が安全機構のせいで失敗する**ことになる。`SecureFileSystem.TryEnsureFile` は失敗を許容する版として用意し、権限適用に失敗しても警告のうえ処理を続行する。自動バックアップ（固定保存先・`<appdata>` 配下）は通常 NTFS/APFS 等であるため、こちらは `EnsureDirectory` / `EnsureFile`（失敗時は例外）を使う。
+「控えを保存」は利用者が任意の保存先を選べるため、FAT32/exFAT のような Unix パーミッションも Windows ACL も適用できないファイルシステムが対象になりうる。**実装（`AvaloniaFileSaveService`）は素の `File.WriteAllBytesAsync` + `File.Replace` で書き出すのみで、権限適用（`SecureFileSystem` の呼び出し）を一切行わない。** 共有 OS アカウント運用では、外部媒体へ出た時点でファイルの mode/ACL 差が持つ意味は薄い（その OS アカウントを使う全職員が読める前提のため）が、これは実装として権限を適用していないという事実を変えるものではない（残る限界を参照）。
+
+自動バックアップ（固定保存先・`<appdata>` 配下、`SqliteBackupService`）は `SecureFileSystem.TryEnsureFile`（失敗を許容する版）を使い、権限適用に失敗しても警告のうえ処理を続行する。「例外にすると『安全のための操作』が安全機構のせいで失敗する」ことを避けるための設計であり、固定保存先の親ディレクトリは `<appdata>/Tsumugi/backups/` 自体が 0700（Windows は現在ユーザーのみ DACL）で保護されているため、ファイル単位の権限適用が失敗しても保護は親ディレクトリ側に残る。
 
 ### 決定8: 権限適用ロジックを `SecureFileSystem` へ抽出する
 
@@ -104,7 +106,7 @@
 
 ### E: 採用案
 
-決定1〜8のとおり。設定なし・同日最新1つ×7日・一時名経由の書き込み／復元・監査優先・`pre-restore-` を世代管理から除外・復元後再起動・外部媒体では権限失敗を許容・権限ロジックの共通化。
+決定1〜8のとおり。設定なし・同日最新1つ×7日・一時名経由の書き込み／復元・監査優先・`pre-restore-` を世代管理から除外・復元後再起動・利用者が選ぶ保存先には権限ポリシーを適用せず固定保存先は失敗許容で適用・権限ロジックの共通化。
 
 ## 影響
 
@@ -120,6 +122,10 @@
 8. **画面のエラー文言は固定文字列で、例外の詳細を出さない。** 生のファイル I/O 例外（`File.Move` / `File.Copy` / `File.Delete`）の `.Message` にはフルパスが埋め込まれることがあり（CLAUDE.md ハード制約4）、それを画面へそのまま出すことはできない。本アプリはログ機構を持たないため詳細情報はどこにも残らず、診断性とのトレードオフになっている。
 9. **`MainViewModel` が `BackupViewModel` を必須依存に持つため、接続文字列だけの `CompositionRoot.Build(string)` オーバーロードでは `MainViewModel` を解決できない。** バックアップ・復元は DB ファイルの実体パスを要するため、保存先を知る `CompositionRoot.Build(SqliteLocationService)` オーバーロードでのみ `BackupViewModel` 一式を登録する。接続文字列版は DI の部分検査（該当4箇所）専用になった。既存の接続文字列版の**シグネチャ・振る舞いは不変**である。
 10. **Windows 実機での確認ができない。** 利用可能な実機は macOS のみである。DACL 適用・`ClearAllPools()` 後のファイル置換・非 NTFS 媒体での `SetAccessControl` の例外型は、自動テストとレビューで担保している。
+11. **利用者が選んだ保存先（「控えを保存」）のファイルには権限ポリシーが適用されない。** 決定7のとおり `AvaloniaFileSaveService` は `SecureFileSystem` を呼ばない。固定保存先（自動バックアップ・退避スナップショット）は親ディレクトリが 0700 で保護されるが、外部媒体へ出たコピーはそれを引き継がない。
+12. **復元は画面上、backups ディレクトリの世代一覧からしか選べない。** 外部ファイルピッカーは無い。「控えを保存」で外部媒体へ出したファイルを画面から戻す手段が無く、復旧には利用者が `<appdata>/Tsumugi/backups/` へ手でコピーする必要があるが、そのパスはハード制約4により画面のどこにも出ない。S3b または S5（運用ガイド）で扱う。
+13. **実行中フラグ（`BackupViewModel.IsBusy`）は3コマンド間の同時発火の窓を狭めるだけで、完全には塞がらない。** 終了時フック（`App.axaml.cs`）は VM を経由せず直接 `RunScheduledBackupUseCase` を呼ぶため、「今すぐバックアップ」「控えを保存」「選択した世代へ復元」のいずれかが実行中にウィンドウを閉じると、`IBackupService` が scoped で同一 `TsumugiDbContext` を共有していることから EF Core が「A second operation was started on this context...」で例外を投げる。終了時フックの `catch (Exception)`（残る限界#1）に飲まれ、その回のバックアップが静かにスキップされる。
+14. **`RestoreDatabaseUseCase` のディレクトリ脱出ガード（パス区切りを含む入力を `ArgumentException` にする）にテストが無い。** 同型のガードを持つ `BackupDirectoryService` 側にはテストがある（`BackupDirectoryServiceTests.cs`）。
 
 ## テスト
 
@@ -127,9 +133,9 @@
 - `tests/Tsumugi.Infrastructure.Tests/SqliteLocationServiceTests.cs`（無変更） — 抽出前と同じ OS 別権限テストが回帰検出として機能することを確認。
 - `tests/Tsumugi.Application.Tests/Backup/BackupGenerationPolicyTests.cs`（11件） — 決定2の同日最新1つ・直近7日分・`pre-restore-` 除外・命名規則外ファイル除外をテーブル駆動で固定。
 - `tests/Tsumugi.Infrastructure.Tests/SqliteBackupServiceTests.cs`（5件） / `BackupServiceTests.cs`（1件） — 一時名→移動、既存ファイルがある宛先への書き込みが失敗しないこと、書き出し後の権限締めを検証。
-- `tests/Tsumugi.Infrastructure.Tests/SqliteRestoreServiceTests.cs`（3件） — コピー→サイドカー削除→移動の順序、コピー失敗時に現行 DB が無傷であること、一時ファイルの後始末を検証。
-- `tests/Tsumugi.Application.Tests/Backup/RestoreDatabaseUseCaseTests.cs`（3件） — 監査→保存→退避→置換の順序、`pre-restore-` 命名、ファイル名以外（パス区切りを含む入力）を渡すと `ArgumentException` になることを検証。
+- `tests/Tsumugi.Infrastructure.Tests/SqliteRestoreServiceTests.cs`（3件） — 復元後のファイル内容がバックアップと一致し SQLite として読めること（`Restore_brings_back_the_content_of_the_backup`）、古い `-wal`/`-shm` サイドカーが削除されること（`Restore_deletes_stale_wal_and_shm_sidecars`）、復元元が存在しないときに `FileNotFoundException` となりメッセージにフルパスを含まないこと（`Restore_throws_when_the_source_is_missing_and_the_message_has_no_path`）を検証。
+- `tests/Tsumugi.Application.Tests/Backup/RestoreDatabaseUseCaseTests.cs`（3件） — 監査→保存→退避→置換の順序（`Runs_audit_save_snapshot_then_replace_in_that_order`）、`pre-restore-` 命名でのスナップショット（`Snapshots_the_current_database_with_the_pre_restore_prefix`）、監査記録がファイル名を含みフルパスを含まないこと（`Records_the_restore_with_file_names_but_no_full_path`）を検証。**ディレクトリ脱出（パス区切りを含む入力）に対する `ArgumentException` のテストは無い**（残る限界#14）。
 - `tests/Tsumugi.Application.Tests/Backup/RunScheduledBackupUseCaseTests.cs`（3件） — バックアップ→世代削除→監査の順序を検証。
 - `tests/Tsumugi.Application.Tests/Backup/ListBackupGenerationsUseCaseTests.cs`（3件） / `tests/Tsumugi.Infrastructure.Tests/BackupDirectoryServiceTests.cs`（5件） — ディレクトリ直下の列挙・削除、パス区切りを含む入力の `ArgumentException` を検証。
-- `tests/Tsumugi.App.Tests/ViewModels/BackupViewModelTests.cs`（10件） — 「今すぐバックアップ」「控えを保存」「選択した世代へ復元」の3操作、復元の arm→confirm 2段階（選択変更での arm 解除を含む）、`ExportBackupCopyUseCase` の一時ファイルが保護ディレクトリ内に作られ `finally` で削除されることを検証。
-- `tests/Tsumugi.App.Tests/BackupWiringTests.cs`（1件） / `CompositionRootTests.cs` — 終了時フックとDI配線（`CompositionRoot.Build(SqliteLocationService)` 経由）を検証。
+- `tests/Tsumugi.App.Tests/ViewModels/BackupViewModelTests.cs`（13件） — 「今すぐバックアップ」「控えを保存」「選択した世代へ復元」の3操作、復元の arm→confirm 2段階（選択変更での arm 解除を含む）、復元成功後にのみ `IApplicationShutdown.RequestShutdown` が1回呼ばれ arm 段階・失敗時は呼ばれないこと、`ExportBackupCopyUseCase` の一時ファイルが保護ディレクトリ内（backups ディレクトリ配下）に作られ `finally` で削除されることを検証。
+- `tests/Tsumugi.App.Tests/BackupWiringTests.cs`（1件） — `CompositionRoot.Build(SqliteLocationService)` からのDI解決のみを検証。終了時フック自体は検証していない（残る限界#4のとおり headless テストでは検証できない）。
