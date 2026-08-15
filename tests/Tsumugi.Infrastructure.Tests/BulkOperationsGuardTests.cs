@@ -66,6 +66,7 @@ public sealed class BulkOperationsGuardTests
     [InlineData("await db.Database.ExecuteSqlRawAsync(\"DELETE FROM ClaimBatches\", ct);", true)]
     [InlineData("await db.Database.ExecuteSqlAsync($\"UPDATE Certificates SET Revision = {n}\", ct);", true)]
     [InlineData("await db.Database.ExecuteSqlRawAsync(sql, ct);", true)]                    // 検証不能 → fail-close
+    [InlineData("await db.Database.ExecuteSqlRawAsync(sql, ct); // caller: \"AdminPanel\"", true)] // 無関係リテラル同居
     [InlineData("await db.Database.ExecuteSqlRawAsync(", true)]                             // 複数行 → fail-close
     [InlineData("await db.Database.ExecuteSqlRawAsync($\"VACUUM INTO '{escaped}'\", ct);", false)]
     [InlineData("var rows = db.Set<Office>().FromSqlRaw(\"SELECT * FROM Offices\").ToList();", false)]
@@ -74,6 +75,8 @@ public sealed class BulkOperationsGuardTests
     public void IsMutatingRawSqlLine_distinguishes(string line, bool expected)
     {
         ArgumentNullException.ThrowIfNull(line);
+        // 注意: SourceCodeScanner は行頭コメントを除去してから predicate を呼ぶ。
+        // ここでは predicate 単体の契約を検証するため、コメント行は素通しで false を期待する。
         var isCommentOnly = line.TrimStart().StartsWith("//", StringComparison.Ordinal);
         if (isCommentOnly) { expected.Should().BeFalse(); return; }
 
@@ -98,9 +101,10 @@ internal static class BulkOperationsGuard
     private static readonly Regex RawSqlCall = new(
         @"\b(ExecuteSql|FromSql)[A-Za-z]*\s*\(", RegexOptions.Compiled);
 
-    // 同一行内の "…" 区間。$ / @ 接頭辞は問わない（spec 決定2「検証可能な文字列リテラル」の定義）。
-    private static readonly Regex StringLiteral = new(
-        "\"([^\"]*)\"", RegexOptions.Compiled);
+    // 呼び出しの第1引数の文字列リテラル。$ / @ 接頭辞を許し、開き括弧の直後に来ることを要求する
+    // （spec 決定2。行のどこかにあるリテラルを拾うと、行末コメントの "…" で fail-close が無効化される）。
+    private static readonly Regex FirstArgumentLiteral = new(
+        "^[$@]{0,2}\"([^\"]*)\"", RegexOptions.Compiled);
 
     // 行を書き換える DML と、破壊的 DDL。CREATE は一時テーブル等の正当な読み取り用途を巻き込むため含めない。
     private static readonly Regex MutatingKeyword = new(
@@ -110,13 +114,16 @@ internal static class BulkOperationsGuard
     public static bool IsMutatingRawSqlLine(string line)
     {
         ArgumentNullException.ThrowIfNull(line);
-        if (!RawSqlCall.IsMatch(line)) return false;
+        var call = RawSqlCall.Match(line);
+        if (!call.Success) return false;
 
-        var literals = StringLiteral.Matches(line);
-        // 行内で SQL の内容を確認できない形（変数渡し・複数行リテラル）は fail-close で違反にする。
-        // ここを「通す」にすると ExecuteSqlRawAsync(sql) と書くだけでルールを無力化できる。
-        if (literals.Count == 0) return true;
+        // 第1引数が文字列リテラルでなければ SQL の内容を確認できない（変数渡し・複数行リテラル）。
+        // fail-close で違反にする。ここを「通す」にすると ExecuteSqlRawAsync(sql) と書くだけで
+        // ルールを無力化できる。無関係なリテラルが同じ行に居ても第1引数だけを見るので影響されない。
+        var afterOpenParen = line[(call.Index + call.Length)..].TrimStart();
+        var literal = FirstArgumentLiteral.Match(afterOpenParen);
+        if (!literal.Success) return true;
 
-        return literals.Any(m => MutatingKeyword.IsMatch(m.Groups[1].Value));
+        return MutatingKeyword.IsMatch(literal.Groups[1].Value);
     }
 }
