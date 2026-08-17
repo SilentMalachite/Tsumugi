@@ -121,7 +121,7 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
     [Fact]
     public void FirstRunWizardWindow_wires_commands_events_and_required_choices()
     {
-        var root = FindRepositoryRoot();
+        var root = RepositoryPaths.Root;
         var xaml = File.ReadAllText(Path.Combine(
             root, "src", "Tsumugi.App", "FirstRunWizardWindow.axaml"));
         var codeBehind = File.ReadAllText(Path.Combine(
@@ -147,7 +147,7 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
     [Fact]
     public void AvaloniaInitialWindowHost_shutdown_requests_via_TryShutdown_not_direct_Shutdown()
     {
-        var root = FindRepositoryRoot();
+        var root = RepositoryPaths.Root;
         var host = File.ReadAllText(Path.Combine(
             root, "src", "Tsumugi.App", "Startup", "AvaloniaInitialWindowHost.cs"));
         var app = File.ReadAllText(Path.Combine(
@@ -169,7 +169,7 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
     [Fact]
     public void AvaloniaInitialWindowHost_shows_each_window_before_replacing_or_closing_wizard()
     {
-        var root = FindRepositoryRoot();
+        var root = RepositoryPaths.Root;
         var host = File.ReadAllText(Path.Combine(
             root, "src", "Tsumugi.App", "Startup", "AvaloniaInitialWindowHost.cs"));
 
@@ -187,7 +187,7 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
     [Fact]
     public void FirstRunWizardWindow_cancels_unfinished_close_and_disables_interaction_before_single_shutdown_request()
     {
-        var root = FindRepositoryRoot();
+        var root = RepositoryPaths.Root;
         var codeBehind = File.ReadAllText(Path.Combine(
             root, "src", "Tsumugi.App", "FirstRunWizardWindow.axaml.cs"));
 
@@ -232,19 +232,6 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
         public void Shutdown() => ShutdownCount++;
     }
 
-    private static string FindRepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null)
-        {
-            if (directory.EnumerateFiles("Tsumugi.sln").Any())
-                return directory.FullName;
-
-            directory = directory.Parent;
-        }
-
-        throw new InvalidOperationException("Tsumugi.sln が祖先方向に見つからない");
-    }
 
     private static int CountOccurrences(string text, string value)
     {

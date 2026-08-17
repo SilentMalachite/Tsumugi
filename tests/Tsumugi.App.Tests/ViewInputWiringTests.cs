@@ -271,18 +271,6 @@ public sealed class ViewInputWiringTests
             because: "更新予定一覧は RecipientName（未取得時はフォールバック文言）を表示する必要がある");
     }
 
-    private static string ReadView(string fileName)
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null)
-        {
-            if (dir.EnumerateFiles("Tsumugi.sln").Any())
-            {
-                return File.ReadAllText(
-                    Path.Combine(dir.FullName, "src", "Tsumugi.App", "Views", fileName));
-            }
-            dir = dir.Parent;
-        }
-        throw new InvalidOperationException("Tsumugi.sln が祖先方向に見つからない");
-    }
+    private static string ReadView(string fileName) =>
+        File.ReadAllText(RepositoryPaths.View(fileName));
 }

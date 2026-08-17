@@ -8,7 +8,7 @@ public sealed class PublishScriptContractTests
     [Fact]
     public void publish_sh_contains_fixed_osx_arm64_self_contained_contract()
     {
-        var root = FindRepositoryRoot();
+        var root = RepositoryPaths.Root;
         var script = File.ReadAllText(Path.Combine(root, "build", "publish.sh"));
 
         script.Should().Contain("osx-arm64");
@@ -23,7 +23,7 @@ public sealed class PublishScriptContractTests
     [Fact]
     public void publish_ps1_contains_fixed_win_x64_self_contained_contract()
     {
-        var root = FindRepositoryRoot();
+        var root = RepositoryPaths.Root;
         var script = File.ReadAllText(Path.Combine(root, "build", "publish.ps1"));
 
         script.Should().Contain("win-x64");
@@ -38,7 +38,7 @@ public sealed class PublishScriptContractTests
     [Fact]
     public void publish_scripts_abort_when_dotnet_publish_fails()
     {
-        var root = FindRepositoryRoot();
+        var root = RepositoryPaths.Root;
         var sh = File.ReadAllText(Path.Combine(root, "build", "publish.sh"));
         var ps1 = File.ReadAllText(Path.Combine(root, "build", "publish.ps1"));
 
@@ -57,7 +57,7 @@ public sealed class PublishScriptContractTests
     [Fact]
     public void publish_scripts_tell_the_operator_to_copy_the_whole_output_directory()
     {
-        var root = FindRepositoryRoot();
+        var root = RepositoryPaths.Root;
         var csproj = File.ReadAllText(
             Path.Combine(root, "src", "Tsumugi.App", "Tsumugi.App.csproj"));
         var sh = File.ReadAllText(Path.Combine(root, "build", "publish.sh"));
@@ -78,24 +78,20 @@ public sealed class PublishScriptContractTests
     }
 
     [Fact]
-    public void gitignore_excludes_artifacts_directory()
+    public void gitignore_excludes_exactly_the_publish_output_directory_named_by_adr_0054()
     {
-        var root = FindRepositoryRoot();
-        var gitignore = File.ReadAllText(Path.Combine(root, ".gitignore"));
+        var root = RepositoryPaths.Root;
+        var entries = File.ReadAllLines(Path.Combine(root, ".gitignore"))
+            .Select(line => line.Trim())
+            .ToArray();
 
-        gitignore.Should().Contain("artifacts/");
+        entries.Should().Contain("artifacts/publish/",
+            because: "ADR 0054 決定2 が除外対象として名指ししているのはこの1ディレクトリ");
+
+        // artifacts/ は .NET SDK の既定 ArtifactsPath ルートでもある。ツリー全体を
+        // 無視すると、将来そこへ置いた追跡対象がエラーも無く commit から落ちる。
+        entries.Should().NotContain("artifacts/",
+            because: "除外はADRが名指しした範囲に留める");
     }
 
-    private static string FindRepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null
-            && !File.Exists(Path.Combine(directory.FullName, "Tsumugi.sln")))
-        {
-            directory = directory.Parent;
-        }
-
-        return directory?.FullName
-            ?? throw new DirectoryNotFoundException("Repository root was not found.");
-    }
 }
