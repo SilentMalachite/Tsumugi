@@ -270,27 +270,27 @@ public sealed partial class CertificateViewModel(
                 new DateRange(ValidityStart, ValidityEnd),
                 SupplyDays, MonthlyCostCap, Municipality)
             {
-                RecipientAddress = NullIfEmpty(RecipientAddress),
+                RecipientAddress = InputText.NullIfEmpty(RecipientAddress),
                 RecipientGender = RecipientGender,
-                GuardianName = NullIfEmpty(GuardianName),
-                GuardianRelationship = NullIfEmpty(GuardianRelationship),
+                GuardianName = InputText.NullIfEmpty(GuardianName),
+                GuardianRelationship = InputText.NullIfEmpty(GuardianRelationship),
                 Disabilities = new DisabilityCategories(
                     DisabilityPhysical, DisabilityIntellectual, DisabilityMental, DisabilityIntractable),
                 SupportCategory = SupportCategory,
                 BenefitType = BenefitType,
                 ServiceCategory = ServiceCategory,
-                SupplyNotes = NullIfEmpty(SupplyNotes),
-                ConsultationProviderName = NullIfEmpty(ConsultationProviderName),
-                ConsultationProviderNumber = NullIfEmpty(ConsultationProviderNumber),
+                SupplyNotes = InputText.NullIfEmpty(SupplyNotes),
+                ConsultationProviderName = InputText.NullIfEmpty(ConsultationProviderName),
+                ConsultationProviderNumber = InputText.NullIfEmpty(ConsultationProviderNumber),
                 ConsultationStart = ConsultationStart,
                 ConsultationEnd = ConsultationEnd,
                 PaymentBurden = PaymentBurden,
-                UpperLimitManagementProvider = NullIfEmpty(UpperLimitManagementProvider),
+                UpperLimitManagementProvider = InputText.NullIfEmpty(UpperLimitManagementProvider),
                 MealProvisionApplicable = MealProvisionApplicable,
                 HighCostBenefitApplicable = HighCostBenefitApplicable,
-                MunicipalityNumber = NullIfEmpty(MunicipalityNumber),
-                SubsidyMunicipalityNumber = NullIfEmpty(SubsidyMunicipalityNumber),
-                UpperLimitManagementProviderNumber = NullIfEmpty(UpperLimitManagementProviderNumber),
+                MunicipalityNumber = InputText.NullIfEmpty(MunicipalityNumber),
+                SubsidyMunicipalityNumber = InputText.NullIfEmpty(SubsidyMunicipalityNumber),
+                UpperLimitManagementProviderNumber = InputText.NullIfEmpty(UpperLimitManagementProviderNumber),
             };
 
             var (_, warnings) = await registerUseCase.ExecuteAsync(input, Environment.UserName, default);
@@ -333,8 +333,8 @@ public sealed partial class CertificateViewModel(
                     selected.Id,
                     MunicipalityNumber)
                 {
-                    SubsidyMunicipalityNumber = NullIfEmpty(SubsidyMunicipalityNumber),
-                    UpperLimitManagementProviderNumber = NullIfEmpty(UpperLimitManagementProviderNumber),
+                    SubsidyMunicipalityNumber = InputText.NullIfEmpty(SubsidyMunicipalityNumber),
+                    UpperLimitManagementProviderNumber = InputText.NullIfEmpty(UpperLimitManagementProviderNumber),
                 },
                 Environment.UserName,
                 default);
@@ -420,7 +420,7 @@ public sealed partial class CertificateViewModel(
             await registerProvider.ExecuteAsync(
                 cert.Id, ProviderNumber, ProviderName, ProviderServiceCategory,
                 ProviderSupplyDays, ProviderContractDate, ProviderTerminationDate,
-                NullIfEmpty(ProviderNotes),
+                InputText.NullIfEmpty(ProviderNotes),
                 ProviderCertificateEntryNumber,
                 ProviderFirstServiceDate,
                 Environment.UserName, default);
@@ -485,7 +485,7 @@ public sealed partial class CertificateViewModel(
                 ProviderSupplyDays,
                 ProviderContractDate,
                 ProviderTerminationDate,
-                NullIfEmpty(ProviderNotes),
+                InputText.NullIfEmpty(ProviderNotes),
                 ProviderCertificateEntryNumber,
                 ProviderFirstServiceDate,
                 Environment.UserName,
@@ -560,5 +560,4 @@ public sealed partial class CertificateViewModel(
         if (clearError) ProviderSaveErrorMessage = null;
     }
 
-    private static string? NullIfEmpty(string? s) => string.IsNullOrWhiteSpace(s) ? null : s;
 }

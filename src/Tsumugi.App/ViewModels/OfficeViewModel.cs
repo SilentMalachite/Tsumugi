@@ -11,17 +11,8 @@ namespace Tsumugi.App.ViewModels;
 public sealed partial class OfficeViewModel(
     RegisterOfficeUseCase registerUseCase,
     ListOfficesUseCase listUseCase,
-    UpdateOfficeUseCase updateUseCase) : ViewModelBase
+    UpdateOfficeUseCase updateUseCase) : OfficeFormViewModelBase
 {
-    [ObservableProperty] private string _officeNumber = string.Empty;
-    [ObservableProperty] private string _name = string.Empty;
-    [ObservableProperty] private ServiceCategory _category = ServiceCategory.TypeB;
-    [ObservableProperty] private RegionGrade _region = RegionGrade.None;
-    [ObservableProperty] private string _postalCode = string.Empty;
-    [ObservableProperty] private string _address = string.Empty;
-    [ObservableProperty] private string _phoneNumber = string.Empty;
-    [ObservableProperty] private string _representativeTitleAndName = string.Empty;
-    [ObservableProperty] private string? _saveErrorMessage;
     [ObservableProperty] private bool _isSaved;
 
     // 編集モード: 既存事業所を選ぶとフォームが populate され、UpdateCommand が有効になる。
@@ -81,8 +72,8 @@ public sealed partial class OfficeViewModel(
         {
             await registerUseCase.ExecuteAsync(
                 OfficeNumber, Name, Category, Region,
-                NullIfEmpty(PostalCode), NullIfEmpty(Address), NullIfEmpty(PhoneNumber),
-                NullIfEmpty(RepresentativeTitleAndName),
+                OptionalPostalCodeInput, OptionalAddressInput, OptionalPhoneNumberInput,
+                OptionalRepresentativeTitleAndNameInput,
                 actor: Environment.UserName, default);
             SaveErrorMessage = null;
             IsSaved = true;
@@ -108,8 +99,8 @@ public sealed partial class OfficeViewModel(
             await updateUseCase.ExecuteAsync(
                 EditingId.Value, _editingConcurrencyToken,
                 Name, Category, Region,
-                NullIfEmpty(PostalCode), NullIfEmpty(Address), NullIfEmpty(PhoneNumber),
-                NullIfEmpty(RepresentativeTitleAndName),
+                OptionalPostalCodeInput, OptionalAddressInput, OptionalPhoneNumberInput,
+                OptionalRepresentativeTitleAndNameInput,
                 Environment.UserName, default);
             SaveErrorMessage = null;
             IsSaved = true;
@@ -139,19 +130,9 @@ public sealed partial class OfficeViewModel(
     [RelayCommand]
     private void Discard()
     {
-        OfficeNumber = string.Empty;
-        Name = string.Empty;
-        Category = ServiceCategory.TypeB;
-        Region = RegionGrade.None;
-        PostalCode = string.Empty;
-        Address = string.Empty;
-        PhoneNumber = string.Empty;
-        RepresentativeTitleAndName = string.Empty;
+        ResetForm();
         SaveErrorMessage = null;
         IsSaved = false;
         SelectedItem = null;
     }
-
-    private static string? NullIfEmpty(string? value) =>
-        string.IsNullOrWhiteSpace(value) ? null : value;
 }

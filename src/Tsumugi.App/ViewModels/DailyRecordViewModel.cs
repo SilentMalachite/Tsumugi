@@ -278,7 +278,7 @@ public sealed partial class DailyRecordViewModel(
             {
                 await correct.ExecuteAsync(
                     effectiveId, EditorAttendance, EditorTransport, EditorMealProvided,
-                    NullIfEmpty(EditorNote), EditorServiceStartTime, EditorServiceEndTime,
+                    InputText.NullIfEmpty(EditorNote), EditorServiceStartTime, EditorServiceEndTime,
                     EditorSpecialVisitSupportMinutes, EditorOffsiteSupportApplied,
                     EditorMedicalCoordinationType, EditorTrialUseSupportType,
                     EditorRegionalCollaborationApplied, EditorIntensiveSupportApplied,
@@ -290,7 +290,7 @@ public sealed partial class DailyRecordViewModel(
             {
                 await record.ExecuteAsync(
                     RecipientId, cell.Date, EditorAttendance, EditorTransport, EditorMealProvided,
-                    NullIfEmpty(EditorNote), EditorServiceStartTime, EditorServiceEndTime,
+                    InputText.NullIfEmpty(EditorNote), EditorServiceStartTime, EditorServiceEndTime,
                     EditorSpecialVisitSupportMinutes, EditorOffsiteSupportApplied,
                     EditorMedicalCoordinationType, EditorTrialUseSupportType,
                     EditorRegionalCollaborationApplied, EditorIntensiveSupportApplied,
@@ -448,6 +448,4 @@ public sealed partial class DailyRecordViewModel(
         _loadedEpisodeRecipientId = Guid.Empty;
     }
 
-    private static string? NullIfEmpty(string? value) =>
-        string.IsNullOrWhiteSpace(value) ? null : value;
 }
