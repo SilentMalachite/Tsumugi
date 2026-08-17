@@ -14,10 +14,8 @@ public sealed class RegisterFirstRunUseCase(RegisterOfficeUseCase registerOffice
     {
         ArgumentNullException.ThrowIfNull(input);
 
-        // 初回ウィザードでは地域区分未選択を拒否する（既存 OfficeView の挙動は変えない）。
-        if (input.RegionGrade == RegionGrade.None)
-            throw new ArgumentException("地域区分を選択してください。", nameof(input));
-
+        // 地域区分未選択の拒否は RegisterOfficeUseCase 側に置く。ここに持つと
+        // 事業所管理画面からの登録・更新に同じ規則が掛からず抜け道が残る。
         return registerOffice.ExecuteAsync(
             input.OfficeNumber,
             input.Name,

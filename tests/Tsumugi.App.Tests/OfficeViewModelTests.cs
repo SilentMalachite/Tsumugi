@@ -25,7 +25,7 @@ public sealed class OfficeViewModelTests
     {
         _repo.Add(Office.Create(
             Guid.NewGuid(), "1234567890", "テスト事業所",
-            ServiceCategory.TypeB, RegionGrade.None,
+            ServiceCategory.TypeB, RegionGrade.Grade4,
             "u", DateTimeOffset.UnixEpoch, Guid.NewGuid()));
 
         var vm = NewVm();
@@ -88,7 +88,7 @@ public sealed class OfficeViewModelTests
     public async Task SelectedItem_loads_form_for_editing()
     {
         var office = Office.Create(Guid.NewGuid(), "1234567890", "旧名",
-            ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            ServiceCategory.TypeB, RegionGrade.Grade4, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
             postalCode: "100-0001", address: "東京都千代田区", phoneNumber: "03-1234-5678",
             representativeTitleAndName: "代表 山田太郎");
         _repo.Add(office);
@@ -110,7 +110,7 @@ public sealed class OfficeViewModelTests
     public async Task UpdateCommand_renames_selected_office()
     {
         var office = Office.Create(Guid.NewGuid(), "1234567890", "旧名",
-            ServiceCategory.TypeB, RegionGrade.None, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+            ServiceCategory.TypeB, RegionGrade.Grade4, "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
         _repo.Add(office);
         var vm = NewVm();
         await vm.LoadAsync();

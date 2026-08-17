@@ -36,7 +36,6 @@
                     <TextBlock Text="地域区分" />
                     <ComboBox SelectedItem="{Binding Region}" MinWidth="160">
                         <ComboBox.Items>
-                            <enums:RegionGrade>None</enums:RegionGrade>
                             <enums:RegionGrade>Grade1</enums:RegionGrade>
                             <enums:RegionGrade>Grade2</enums:RegionGrade>
                             <enums:RegionGrade>Grade3</enums:RegionGrade>

@@ -62,7 +62,8 @@ public sealed class FirstRunWizardViewModelTests
         await vm.RegisterCommand.ExecuteAsync(null);
 
         registered.Should().Be(0);
-        vm.SaveErrorMessage.Should().Contain("地域区分");
+        // 完全一致で見る。Contain だと " (Parameter 'input')" の混入を見逃す。
+        vm.SaveErrorMessage.Should().Be("地域区分を選択してください。");
         (await _repo.ListAsync(default)).Should().BeEmpty();
     }
 
@@ -78,7 +79,7 @@ public sealed class FirstRunWizardViewModelTests
         await vm.RegisterCommand.ExecuteAsync(null);
 
         registered.Should().Be(0);
-        vm.SaveErrorMessage.Should().Contain("事業所名");
+        vm.SaveErrorMessage.Should().Be("事業所名は必須です。");
         (await _repo.ListAsync(default)).Should().BeEmpty();
     }
 

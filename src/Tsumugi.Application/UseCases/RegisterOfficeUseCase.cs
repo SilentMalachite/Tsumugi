@@ -1,5 +1,6 @@
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Dtos;
+using Tsumugi.Application.Validation;
 using Tsumugi.Domain.Enums;
 using OfficeEntity = Tsumugi.Domain.Entities.Office;
 
@@ -25,9 +26,10 @@ public sealed class RegisterOfficeUseCase(
         string actor, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(officeNumber))
-            throw new ArgumentException("事業所番号は必須です。", nameof(officeNumber));
+            throw new InputValidationException("事業所番号は必須です。", nameof(officeNumber));
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("事業所名は必須です。", nameof(name));
+            throw new InputValidationException("事業所名は必須です。", nameof(name));
+        ValidateRegion(region);
         ValidateOptionalInput(postalCode, 16, nameof(postalCode), "郵便番号");
         ValidateOptionalInput(address, 256, nameof(address), "住所");
         ValidateOptionalInput(phoneNumber, 32, nameof(phoneNumber), "電話番号");
@@ -62,14 +64,24 @@ public sealed class RegisterOfficeUseCase(
             office.RepresentativeTitleAndName);
     }
 
+    /// <summary>
+    /// 地域区分単価は報酬算定に直結するため、未選択のまま保存させない。
+    /// 特定の画面ではなく登録・更新の入口に置く（画面ごとの実装では抜け道が残る）。
+    /// </summary>
+    internal static void ValidateRegion(RegionGrade region)
+    {
+        if (region == RegionGrade.None)
+            throw new InputValidationException("地域区分を選択してください。", nameof(region));
+    }
+
     internal static void ValidateOptionalInput(
         string? value, int maxLength, string parameterName, string displayName)
     {
         if (value is null)
             return;
         if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException($"{displayName}は空白以外を指定してください。", parameterName);
+            throw new InputValidationException($"{displayName}は空白以外を指定してください。", parameterName);
         if (value.Length > maxLength)
-            throw new ArgumentException($"{displayName}は{maxLength}文字以内で指定してください。", parameterName);
+            throw new InputValidationException($"{displayName}は{maxLength}文字以内で指定してください。", parameterName);
     }
 }

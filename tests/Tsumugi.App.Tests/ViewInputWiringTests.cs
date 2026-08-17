@@ -25,6 +25,16 @@ public sealed class ViewInputWiringTests
     }
 
     [Fact]
+    public void OfficeView_does_not_offer_region_none_as_a_choice()
+    {
+        // 地域区分単価は報酬算定に直結する。選べる状態で残すと、
+        // 初回ウィザードが弾いた不正状態へ事業所管理から戻せてしまう。
+        var xml = ReadView("OfficeView.axaml");
+
+        xml.Should().NotContain("<enums:RegionGrade>None</enums:RegionGrade>");
+    }
+
+    [Fact]
     public void OfficeView_binds_F5_to_LoadCommand()
     {
         var xml = ReadView("OfficeView.axaml");
