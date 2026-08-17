@@ -82,10 +82,11 @@ public sealed partial class DisabilityCertificateViewModel(
     public async Task RefreshAlertsAsync()
     {
         var alerts = await queryRenewals.ExecuteAsync(AsOfDate, ThresholdDays, default);
+        var recipientsForAlerts = await listRecipients.ExecuteAsync(includeArchived: true, default);
         RenewalDueItems.Clear();
         foreach (var alert in alerts)
         {
-            var recipientName = Recipients
+            var recipientName = recipientsForAlerts
                 .SingleOrDefault(recipient => recipient.Id == alert.RecipientId)?.KanjiName;
             RenewalDueItems.Add(new RenewalDueDisplayItem(
                 alert.RecipientId, recipientName, alert.NextRenewalDate, alert.RemainingDays));

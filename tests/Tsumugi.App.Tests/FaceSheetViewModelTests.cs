@@ -124,11 +124,64 @@ public sealed class FaceSheetViewModelTests
         sut.SelectedChanges.Should().Contain(x =>
             x.PropertyName == "住所" && x.OldValue == "旧住所" && x.NewValue == "新住所");
     }
+
+    [Fact]
+    public async Task Switching_recipient_discards_stale_latest_and_history_results()
+    {
+        var recipientA = Recipient.Create(
+            Guid.NewGuid(), "利用者A", "リヨウシャエー",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var recipientB = Recipient.Create(
+            Guid.NewGuid(), "利用者B", "リヨウシャビー",
+            new DateOnly(1991, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        _recipients.Add(recipientA);
+        _recipients.Add(recipientB);
+        _sheets.Add(FaceSheet.Create(
+            Guid.NewGuid(), recipientA.Id, "a", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            address: "Aの住所"));
+        _sheets.Add(FaceSheet.Create(
+            Guid.NewGuid(), recipientB.Id, "b", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            address: "Bの住所"));
+        var releaseA = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var bHistoryLoaded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _sheets.BeforeFindLatestByRecipientAsync = async (recipientId, _) =>
+        {
+            if (recipientId == recipientA.Id) await releaseA.Task;
+        };
+        _sheets.BeforeListByRecipientAsync = (recipientId, _) =>
+        {
+            if (recipientId == recipientB.Id) bHistoryLoaded.SetResult();
+            return Task.CompletedTask;
+        };
+
+        var sut = NewVm();
+        await sut.InitializeAsync();
+        sut.SelectedRecipient = sut.Recipients.Single(recipient => recipient.Id == recipientA.Id);
+        sut.SelectedRecipient = sut.Recipients.Single(recipient => recipient.Id == recipientB.Id);
+        await bHistoryLoaded.Task;
+
+        sut.Address.Should().Be("Bの住所");
+        sut.HistoryItems.Should().ContainSingle()
+            .Which.FaceSheet.RecipientId.Should().Be(recipientB.Id);
+        sut.SelectedHistoryItem!.FaceSheet.RecipientId.Should().Be(recipientB.Id);
+
+        releaseA.SetResult();
+        await Task.Yield();
+        await Task.Yield();
+
+        sut.Address.Should().Be("Bの住所");
+        sut.HistoryItems.Should().ContainSingle()
+            .Which.FaceSheet.RecipientId.Should().Be(recipientB.Id);
+        sut.SelectedHistoryItem!.FaceSheet.RecipientId.Should().Be(recipientB.Id);
+        sut.SelectedChanges.Should().BeEmpty();
+    }
 }
 
 internal sealed class InMemoryFaceSheetRepo : IFaceSheetRepository
 {
     private readonly List<FaceSheet> _list = [];
+    public Func<Guid, CancellationToken, Task>? BeforeFindLatestByRecipientAsync { get; set; }
+    public Func<Guid, CancellationToken, Task>? BeforeListByRecipientAsync { get; set; }
 
     public void Add(FaceSheet sheet) => _list.Add(sheet);
     public Task AddAsync(FaceSheet faceSheet, CancellationToken ct)
@@ -137,16 +190,25 @@ internal sealed class InMemoryFaceSheetRepo : IFaceSheetRepository
         return Task.CompletedTask;
     }
 
-    public Task<FaceSheet?> FindLatestByRecipientAsync(Guid recipientId, CancellationToken ct) =>
-        Task.FromResult(_list.Where(sheet => sheet.RecipientId == recipientId)
-            .OrderByDescending(sheet => sheet.CreatedAt)
-            .FirstOrDefault());
+    public async Task<FaceSheet?> FindLatestByRecipientAsync(Guid recipientId, CancellationToken ct)
+    {
+        if (BeforeFindLatestByRecipientAsync is not null)
+            await BeforeFindLatestByRecipientAsync(recipientId, ct);
 
-    public Task<IReadOnlyList<FaceSheet>> ListByRecipientAsync(Guid recipientId, CancellationToken ct) =>
-        Task.FromResult<IReadOnlyList<FaceSheet>>(
-            _list.Where(sheet => sheet.RecipientId == recipientId)
-                .OrderBy(sheet => sheet.CreatedAt)
-                .ToArray());
+        return _list.Where(sheet => sheet.RecipientId == recipientId)
+            .OrderByDescending(sheet => sheet.CreatedAt)
+            .FirstOrDefault();
+    }
+
+    public async Task<IReadOnlyList<FaceSheet>> ListByRecipientAsync(Guid recipientId, CancellationToken ct)
+    {
+        if (BeforeListByRecipientAsync is not null)
+            await BeforeListByRecipientAsync(recipientId, ct);
+
+        return _list.Where(sheet => sheet.RecipientId == recipientId)
+            .OrderBy(sheet => sheet.CreatedAt)
+            .ToArray();
+    }
 }
 
 internal sealed class MutableFaceSheetClock(DateTimeOffset start) : TimeProvider

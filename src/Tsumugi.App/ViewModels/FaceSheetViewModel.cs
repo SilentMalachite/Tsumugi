@@ -16,6 +16,8 @@ public sealed partial class FaceSheetViewModel(
     SaveFaceSheetUseCase saveUseCase,
     QueryFaceSheetHistoryUseCase queryHistory) : ViewModelBase
 {
+    private int _loadGeneration;
+
     public ObservableCollection<RecipientDto> Recipients { get; } = new();
     public ObservableCollection<FaceSheetHistoryDto> HistoryItems { get; } = new();
     public ObservableCollection<FaceSheetChangeDisplayItem> SelectedChanges { get; } = new();
@@ -83,20 +85,26 @@ public sealed partial class FaceSheetViewModel(
 
     private async Task LoadLatestAsync()
     {
+        var generation = ++_loadGeneration;
         ClearForm();
         if (SelectedRecipient is not { } r) return;
         var sheet = await getLatest.ExecuteAsync(r.Id, default);
+        if (!IsCurrentLoad(r.Id, generation)) return;
         if (sheet is not null) ApplyFromDto(sheet);
-        await ReloadHistoryAsync(r.Id);
+        await ReloadHistoryAsync(r.Id, generation);
     }
 
-    private async Task ReloadHistoryAsync(Guid recipientId)
+    private async Task ReloadHistoryAsync(Guid recipientId, int generation)
     {
         var history = await queryHistory.ExecuteAsync(recipientId, default);
+        if (!IsCurrentLoad(recipientId, generation)) return;
         HistoryItems.Clear();
         foreach (var item in history) HistoryItems.Add(item);
         SelectedHistoryItem = HistoryItems.LastOrDefault();
     }
+
+    private bool IsCurrentLoad(Guid recipientId, int generation) =>
+        generation == _loadGeneration && SelectedRecipient?.Id == recipientId;
 
     private void ClearForm()
     {

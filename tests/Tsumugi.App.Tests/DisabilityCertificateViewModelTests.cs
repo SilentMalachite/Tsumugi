@@ -72,6 +72,28 @@ public sealed class DisabilityCertificateViewModelTests
     }
 
     [Fact]
+    public async Task Refresh_displays_archived_recipient_name_for_renewal_alert()
+    {
+        var recipientId = Guid.NewGuid();
+        _recipients.Add(Recipient.Create(
+                recipientId, "アーカイブ利用者", "アーカイブリヨウシャ",
+                new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid())
+            .Archive("u", DateTimeOffset.UnixEpoch.AddDays(1)));
+        _handbooks.Add(DisabilityCertificate.Create(
+            Guid.NewGuid(), recipientId, DisabilityCertificateType.Mental, "2級",
+            new DateOnly(2024, 8, 1), "東京都", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            nextRenewalDate: new DateOnly(2026, 8, 20)));
+
+        var sut = NewVm();
+        sut.AsOfDate = new DateOnly(2026, 8, 1);
+        await sut.InitializeAsync();
+
+        sut.Recipients.Should().BeEmpty();
+        sut.RenewalDueItems.Should().ContainSingle()
+            .Which.RecipientName.Should().Be("アーカイブ利用者");
+    }
+
+    [Fact]
     public async Task Selecting_recipient_loads_consistency_warnings()
     {
         var recipientId = Guid.NewGuid();

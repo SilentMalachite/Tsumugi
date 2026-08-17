@@ -11,7 +11,14 @@ public sealed class QueryDisabilityCertificateRenewalsUseCase(IDisabilityCertifi
         DateOnly asOf, int thresholdDays, CancellationToken ct)
     {
         var all = await repo.ListAllAsync(ct);
-        var hits = DisabilityCertificatePolicy.FindRenewalDue(all, asOf, thresholdDays);
+        var current = all
+            .GroupBy(certificate => new { certificate.RecipientId, certificate.Type })
+            .Select(group => group
+                .OrderByDescending(certificate => certificate.IssuedDate)
+                .ThenByDescending(certificate => certificate.CreatedAt)
+                .First())
+            .ToArray();
+        var hits = DisabilityCertificatePolicy.FindRenewalDue(current, asOf, thresholdDays);
         // NextRenewalDate!.Value: FindRenewalDue は更新日 null を除外する。
         return hits.Select(hit => new DisabilityCertificateRenewalDueDto(
             hit.Certificate.Id,
