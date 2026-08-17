@@ -7,7 +7,7 @@ using Avalonia.Markup.Xaml;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tsumugi.App.Settings;
-using Tsumugi.App.ViewModels;
+using Tsumugi.App.Startup;
 using Tsumugi.Application.UseCases.Backup;
 using Tsumugi.Infrastructure.Persistence;
 using Tsumugi.Infrastructure.Reporting;
@@ -49,9 +49,12 @@ public partial class App : AvaloniaApplication
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var mainVm = _appScope.ServiceProvider.GetRequiredService<MainViewModel>();
-            desktop.MainWindow = new MainWindow(mainVm);
             desktop.ShutdownRequested += OnShutdownRequested;
+            var host = new AvaloniaInitialWindowHost(desktop, _appScope.ServiceProvider);
+            var coordinator = _appScope.ServiceProvider
+                .GetRequiredService<FirstRunStartupCoordinator>();
+            var orchestrator = new FirstRunDesktopStartupOrchestrator(coordinator, host);
+            _ = orchestrator.StartAsync();
         }
 
         base.OnFrameworkInitializationCompleted();

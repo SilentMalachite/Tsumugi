@@ -5,6 +5,7 @@ using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Tsumugi.App;
+using Tsumugi.App.Startup;
 using Tsumugi.App.ViewModels;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Audit;
@@ -13,6 +14,7 @@ using Tsumugi.Application.UseCases;
 using Tsumugi.Application.UseCases.Backup;
 using Tsumugi.Application.UseCases.Certificate;
 using Tsumugi.Application.UseCases.Claim;
+using Tsumugi.Application.UseCases.Office;
 using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Application.UseCases.Wage;
 using Tsumugi.Application.UseCases.WorkRecord;
@@ -245,6 +247,28 @@ public sealed class CompositionRootTests
             // Phase 4 S3a: バックアップ・復元
             scope.ServiceProvider.GetRequiredService<ExportBackupCopyUseCase>().Should().NotBeNull();
             scope.ServiceProvider.GetRequiredService<BackupViewModel>().Should().NotBeNull();
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Location_aware_composition_root_resolves_first_run_services()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"tsumugi-first-run-di-{Guid.NewGuid():N}");
+        try
+        {
+            var location = new SqliteLocationService(root);
+            location.EnsureSecuredStorage();
+            using var provider = (ServiceProvider)CompositionRoot.Build(location);
+            using var scope = provider.CreateScope();
+
+            scope.ServiceProvider.GetRequiredService<RegisterFirstRunUseCase>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<FirstRunStartupCoordinator>().Should().NotBeNull();
+            scope.ServiceProvider.GetRequiredService<FirstRunWizardViewModel>().Should().NotBeNull();
         }
         finally
         {

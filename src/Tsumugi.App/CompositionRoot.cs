@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Tsumugi.App.Navigation;
+using Tsumugi.App.Startup;
 using Tsumugi.App.ViewModels;
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Claim;
@@ -216,6 +217,11 @@ public static class CompositionRoot
         services.AddSingleton<Tsumugi.App.Services.IApplicationShutdown, Tsumugi.App.Services.AvaloniaApplicationShutdown>();
         services.AddTransient<BackupViewModel>();
         services.AddScoped<MainViewModel>();
+
+        // Phase 4 S5: 初回登録は保存先を知るデスクトップ起動経路だけで利用する。
+        services.AddScoped<RegisterFirstRunUseCase>();
+        services.AddScoped<FirstRunStartupCoordinator>();
+        services.AddTransient<FirstRunWizardViewModel>();
 
         return services;
     }

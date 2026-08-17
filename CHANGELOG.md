@@ -9,7 +9,7 @@
 ### 計画
 - フェーズ 3-0（出典・契約・土台）— final-fix後のtargeted test、fresh full quality gate、最終レビュー（Critical / High / Medium 0件）を通過し、2026-07-11に受け入れ済み。詳細は [`docs/phase3-0-acceptance.md`](docs/phase3-0-acceptance.md)。
 - フェーズ 3-1（請求計算・入力基盤）— 現行計画Tasks 2〜10の入力契約スライス、Task 12のclaim-master schema v2、Task 13の基準該当B型公式計算契約・source inventoryを実装済み。Task 11の入力UIから継続し、Phase 3-1全体は未受け入れ。
-- フェーズ 4（リリース準備・運用ハードニング）残り: 暗号化バックアップ（S3b）・配布パッケージング・運用ガイド・手動 QA（S5）。詳細は `docs/superpowers/specs/2026-07-05-phase4-remaining-roadmap.md`。
+- フェーズ 4（リリース準備・運用ハードニング）残り: 暗号化バックアップ（S3b）・S5 の Windows 実機 smoke。詳細は `docs/superpowers/specs/2026-07-05-phase4-remaining-roadmap.md`。
 
 ### 追加（Added）— Phase 3-0: 国保連請求の出典・契約・土台
 - ADR 0020〜0026に、令和6/8報酬・地域単価・サービスコード、事業所体制、負担上限、平均工賃月額、国保連CSV、端数、append-only請求snapshotの出典・版・規則を記録。負担上限は令和6年4月から令和8年6月以降まで連続するR6/R7/R8の5-version source chainで固定。
@@ -36,9 +36,16 @@
 - **2026-05以前の月を扱う事業所は施設区分（`OfficeClaimProfile.FacilityClassification`）の入力が必須**。Phase 3-6（ADR 0048）以降、未入力のまま処遇改善(Ⅰ)/(Ⅲ)/(Ⅳ)を宣言していると 2024-06〜2026-05 の全月で preview・再確定が fail-close する（過去月の訂正に及ぶ）。
 - **未投入の制度実値**: 保護施設事務費の実値record・runtime算定、`PaymentBand` 境界マスタ（平均工賃月額からの band 自動導出）、R8-06 の定員超過・生活支援員等欠員・サービス管理責任者欠員3シート、`r8-reform-status-exempt`、体制届 option 8（filed-transition）、option 10（生産活動支援）と参加評価型。詳細は `docs/open-questions.md`。
 - **旧暫定体制届キー（`mealProvision` / `transportSupport`）が公式キーへ未移行**。算定に効かないまま書かれ続けている。送迎体制加算・食事提供体制加算のマスタ投入と同時に移行する。
-- NuGet audit suppression（GHSA-2m69-gcr7-jv3q）の解除、配布パッケージング、運用ガイド。
+- NuGet audit suppression（GHSA-2m69-gcr7-jv3q）の解除。
 - **FileVault（macOS）／BitLocker（Windows）の有効化が運用要件になった**（ADR 0003 追補）。本アプリはDB本体を暗号化しないため、端末盗難への備えはOSディスク暗号化に委ねている。
-- **終了時自動バックアップ・復元の実機確認が未実施**。`ShutdownRequested` 経路とAvalonia実画面の挙動はheadlessテストで検証できず、かつWindows実機が無いため、macOS/Windows双方での手動QAが必要。
+- **終了時自動バックアップ・復元の Windows 実機確認が未実施**。macOS smoke は Phase 4 S5 で記録済み。`ShutdownRequested` 経路の headless 限界は変わらない。
+
+## Phase 4 S5 部分完了 (2026-08-18)
+
+- self-contained 発行スクリプトを追加した（AC4-9 の macOS 側）。`build/publish.sh`（`osx-arm64`）／`build/publish.ps1`（`win-x64`）、Release・単一ファイル・trim 無効。成果物は `artifacts/publish/<RID>/`（追跡しない）。配布構成は ADR 0054
+- 初回セットアップウィザードを実装した（AC4-10）。判定は `Office` 件数 0（空 DB ファイル有無ではない）。専用 `FirstRunWizardWindow` を MainWindow より先に表示し、管理者（職氏名）は既存 `RepresentativeTitleAndName` へ保存。キャンセル／閉じるはアプリ終了。地域区分 `None` は初回では拒否
+- 運用ガイド `docs/operations.md` と手動 QA 表 `docs/manual-qa.md` を追加した（AC4-11 の macOS 側）。macOS smoke を 2026-08-18 に記録。**Windows 実機 smoke は未実施**
+- AC4-9〜AC4-11: macOS まで完了。Windows 実機確認待ち。両 OS 完了を「AC クローズ」とは呼ばない
 
 ## Phase 4 S4 完了 (2026-08-17)
 

@@ -136,8 +136,13 @@ internal sealed class InMemoryOfficeRepo : IOfficeRepository
 {
     private readonly List<Office> _list = [];
     public Func<CancellationToken, Task>? BeforeListAsync { get; set; }
+    public Func<CancellationToken, Task>? BeforeAddAsync { get; set; }
     public void Add(Office o) => _list.Add(o);
-    public Task AddAsync(Office o, CancellationToken ct) { _list.Add(o); return Task.CompletedTask; }
+    public async Task AddAsync(Office o, CancellationToken ct)
+    {
+        if (BeforeAddAsync is not null) await BeforeAddAsync(ct);
+        _list.Add(o);
+    }
     public Task<Office?> FindByIdAsync(Guid id, CancellationToken ct) =>
         Task.FromResult<Office?>(_list.FirstOrDefault(o => o.Id == id));
     public Task<Office?> FindByNumberAsync(string officeNumber, CancellationToken ct) =>
