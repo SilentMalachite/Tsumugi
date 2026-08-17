@@ -19,4 +19,16 @@ public sealed class FaceSheetRepository(TsumugiDbContext db) : IFaceSheetReposit
             .ToListAsync(ct);
         return rows.OrderByDescending(f => f.CreatedAt).FirstOrDefault();
     }
+
+    public async Task<IReadOnlyList<FaceSheet>> ListByRecipientAsync(
+        Guid recipientId, CancellationToken ct)
+    {
+        // SQLite は ORDER BY DateTimeOffset を直接サポートしないため、
+        // RecipientId で絞り込んだ後にメモリ上で並べ替える。
+        // 同一利用者のフェースシート版数は実運用で数十件以下を想定する。
+        var rows = await db.FaceSheets.AsNoTracking()
+            .Where(f => f.RecipientId == recipientId)
+            .ToListAsync(ct);
+        return rows.OrderBy(f => f.CreatedAt).ToArray();
+    }
 }

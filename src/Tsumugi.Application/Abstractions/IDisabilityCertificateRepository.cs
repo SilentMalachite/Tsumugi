@@ -7,4 +7,5 @@ public interface IDisabilityCertificateRepository
     Task AddAsync(DisabilityCertificate certificate, CancellationToken ct);
     Task<IReadOnlyList<DisabilityCertificate>> ListByRecipientAsync(
         Guid recipientId, CancellationToken ct);
+    Task<IReadOnlyList<DisabilityCertificate>> ListAllAsync(CancellationToken ct);
 }

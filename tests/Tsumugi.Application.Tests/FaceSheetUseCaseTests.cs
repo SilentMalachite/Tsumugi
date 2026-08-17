@@ -50,6 +50,38 @@ public sealed class FaceSheetUseCaseTests
         var act = () => sut.ExecuteAsync(new SaveFaceSheetInput(Guid.Empty), "u", default);
         await act.Should().ThrowAsync<ArgumentException>();
     }
+
+    [Fact]
+    public async Task History_query_returns_empty_changes_for_oldest_version()
+    {
+        var recipientId = Guid.NewGuid();
+        var repo = new FakeFaceSheetRepository();
+        var oldest = FaceSheet.Create(
+            Guid.NewGuid(), recipientId, "first", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            phoneNumber: "111");
+        var newest = FaceSheet.Create(
+            Guid.NewGuid(), recipientId, "second", DateTimeOffset.UnixEpoch.AddHours(1), Guid.NewGuid(),
+            phoneNumber: "222");
+        repo.Added.Add(newest);
+        repo.Added.Add(oldest);
+        var sut = new QueryFaceSheetHistoryUseCase(repo);
+
+        var result = await sut.ExecuteAsync(recipientId, default);
+
+        result.Should().HaveCount(2);
+        result[0].FaceSheet.Id.Should().Be(oldest.Id);
+        result[0].FaceSheet.CreatedAt.Should().Be(oldest.CreatedAt);
+        result[0].FaceSheet.CreatedBy.Should().Be("first");
+        result[0].ChangesFromPrevious.Should().BeEmpty();
+        result[1].FaceSheet.Id.Should().Be(newest.Id);
+        result[1].ChangesFromPrevious.Should().ContainSingle()
+            .Which.Should().BeEquivalentTo(new
+            {
+                PropertyName = "PhoneNumber",
+                OldValue = "111",
+                NewValue = "222",
+            });
+    }
 }
 
 internal sealed class FakeFaceSheetRepository : IFaceSheetRepository
@@ -60,6 +92,12 @@ internal sealed class FakeFaceSheetRepository : IFaceSheetRepository
     public Task<FaceSheet?> FindLatestByRecipientAsync(Guid recipientId, CancellationToken ct) =>
         Task.FromResult(Added.Where(f => f.RecipientId == recipientId)
             .OrderByDescending(f => f.CreatedAt).FirstOrDefault());
+
+    public Task<IReadOnlyList<FaceSheet>> ListByRecipientAsync(Guid recipientId, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyList<FaceSheet>>(
+            Added.Where(f => f.RecipientId == recipientId)
+                .OrderBy(f => f.CreatedAt)
+                .ToArray());
 }
 
 internal sealed class MutableClock(DateTimeOffset start) : TimeProvider
