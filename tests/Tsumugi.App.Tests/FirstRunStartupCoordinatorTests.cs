@@ -12,7 +12,20 @@ public sealed class FirstRunStartupCoordinatorTests
     private readonly InMemoryOfficeRepo _repo = new();
 
     private FirstRunStartupCoordinator NewSut() =>
-        new(new ListOfficesUseCase(_repo));
+        new(new CountOfficesUseCase(_repo));
+
+    [Fact]
+    public async Task DecideAsync_does_not_materialize_the_office_list()
+    {
+        // 起き先の判定に要るのは件数だけ。全 Office を読んで OfficeDto 10 フィールドへ
+        // 射影するのは、最初のウィンドウを出す前の経路では無駄でしかない。
+        _repo.BeforeListAsync = _ => throw new InvalidOperationException("list must not be called");
+        var sut = NewSut();
+
+        var act = () => sut.DecideAsync();
+
+        await act.Should().NotThrowAsync();
+    }
 
     [Fact]
     public async Task DecideAsync_when_no_offices_returns_Wizard()
@@ -41,12 +54,12 @@ public sealed class FirstRunStartupCoordinatorTests
     [Fact]
     public async Task DecideAsync_propagates_repository_exception()
     {
-        _repo.BeforeListAsync = _ => throw new InvalidOperationException("list failed");
+        _repo.BeforeCountAsync = _ => throw new InvalidOperationException("count failed");
         var sut = NewSut();
 
         var act = () => sut.DecideAsync();
 
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("list failed");
+            .WithMessage("count failed");
     }
 }

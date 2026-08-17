@@ -4,8 +4,9 @@ namespace Tsumugi.Domain.Logic;
 public static class FirstRunPolicy
 {
     /// <summary>
-    /// 事業所が未登録（件数 1 未満）なら初回登録が必要。
-    /// 負数も未登録扱いとし、例外は投げない。
+    /// 事業所が未登録なら初回登録が必要。
+    /// 件数は COUNT(*) 由来なので負数は起こらないが、境界を跨いだときに
+    /// 「未登録」側へ倒れるよう <c>&lt; 1</c> で書く（例外は投げない）。
     /// </summary>
     public static bool NeedsFirstRun(int officeCount) => officeCount < 1;
 }

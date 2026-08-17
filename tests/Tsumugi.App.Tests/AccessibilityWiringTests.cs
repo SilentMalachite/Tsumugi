@@ -32,7 +32,7 @@ public sealed class AccessibilityWiringTests
     /// </summary>
     private static IEnumerable<(string RelativePath, string Content)> EnumerateViewXaml()
     {
-        var root = FindSolutionRoot();
+        var root = RepositoryPaths.Root;
         var appDir = Path.Combine(root, "src", "Tsumugi.App");
 
         var files = Directory
@@ -130,14 +130,4 @@ public sealed class AccessibilityWiringTests
                      "ハードコード違反: " + string.Join(Environment.NewLine, violations));
     }
 
-    private static string FindSolutionRoot()
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null)
-        {
-            if (dir.EnumerateFiles("Tsumugi.sln").Any()) return dir.FullName;
-            dir = dir.Parent;
-        }
-        throw new InvalidOperationException("Tsumugi.sln が祖先方向に見つからない");
-    }
 }

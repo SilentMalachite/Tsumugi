@@ -55,17 +55,6 @@ public sealed class ViewLifecycleWiringTests
         ViewsRequiringInitialize.Should().HaveCount(10);
     }
 
-    private static string LocateView(string fileName)
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null)
-        {
-            if (dir.EnumerateFiles("Tsumugi.sln").Any())
-            {
-                return Path.Combine(dir.FullName, "src", "Tsumugi.App", "Views", fileName);
-            }
-            dir = dir.Parent;
-        }
-        throw new InvalidOperationException("Tsumugi.sln が祖先方向に見つからない");
-    }
+    private static string LocateView(string fileName) =>
+        RepositoryPaths.View(fileName);
 }

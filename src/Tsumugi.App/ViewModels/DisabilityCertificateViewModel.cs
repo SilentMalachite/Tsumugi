@@ -144,10 +144,10 @@ public sealed partial class DisabilityCertificateViewModel(
             await registerUseCase.ExecuteAsync(
                 r.Id, Type, Grade, IssuedDate, IssuingAuthority,
                 Environment.UserName, default,
-                subtype: NullIfEmpty(Subtype),
+                subtype: InputText.NullIfEmpty(Subtype),
                 nextRenewalDate: NextRenewalDate,
-                certificateNumber: NullIfEmpty(CertificateNumber),
-                notes: NullIfEmpty(Notes));
+                certificateNumber: InputText.NullIfEmpty(CertificateNumber),
+                notes: InputText.NullIfEmpty(Notes));
 
             SaveErrorMessage = null;
             IsSaved = true;
@@ -170,5 +170,4 @@ public sealed partial class DisabilityCertificateViewModel(
         }
     }
 
-    private static string? NullIfEmpty(string? s) => string.IsNullOrWhiteSpace(s) ? null : s;
 }

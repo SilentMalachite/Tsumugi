@@ -6,11 +6,11 @@ namespace Tsumugi.Domain.Tests;
 
 public sealed class FirstRunPolicyTests
 {
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void NeedsFirstRun_is_true_when_office_count_is_below_one(int officeCount)
-        => FirstRunPolicy.NeedsFirstRun(officeCount).Should().BeTrue();
+    // 呼び出し元は SELECT COUNT(*) の結果を渡すので負数は起こらない。
+    // 到達しない入力のケースは置かない。
+    [Fact]
+    public void NeedsFirstRun_is_true_when_no_office_is_registered()
+        => FirstRunPolicy.NeedsFirstRun(0).Should().BeTrue();
 
     [Theory]
     [InlineData(1)]

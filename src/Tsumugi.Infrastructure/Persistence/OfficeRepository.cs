@@ -27,4 +27,7 @@ public sealed class OfficeRepository(TsumugiDbContext db) : IOfficeRepository
 
     public async Task<IReadOnlyList<Office>> ListAsync(CancellationToken ct) =>
         await db.Offices.AsNoTracking().OrderBy(o => o.OfficeNumber).ToListAsync(ct);
+
+    /// <summary>SELECT COUNT(*)。行の読み出しも materialize もしない。</summary>
+    public Task<int> CountAsync(CancellationToken ct) => db.Offices.CountAsync(ct);
 }

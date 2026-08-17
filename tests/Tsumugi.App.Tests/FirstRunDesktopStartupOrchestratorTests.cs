@@ -32,7 +32,7 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
             "u", DateTimeOffset.UnixEpoch, Guid.NewGuid()));
         var host = new FakeInitialWindowHost();
         var sut = new FirstRunDesktopStartupOrchestrator(
-            new FirstRunStartupCoordinator(new ListOfficesUseCase(repo)), host);
+            new FirstRunStartupCoordinator(new CountOfficesUseCase(repo)), host);
 
         await sut.StartAsync();
 
@@ -113,15 +113,15 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
     private static FirstRunDesktopStartupOrchestrator NewFailingSut(
         IInitialWindowHost host, Exception failure)
     {
-        var repo = new InMemoryOfficeRepo { BeforeListAsync = _ => throw failure };
+        var repo = new InMemoryOfficeRepo { BeforeCountAsync = _ => throw failure };
         return new FirstRunDesktopStartupOrchestrator(
-            new FirstRunStartupCoordinator(new ListOfficesUseCase(repo)), host);
+            new FirstRunStartupCoordinator(new CountOfficesUseCase(repo)), host);
     }
 
     [Fact]
     public void FirstRunWizardWindow_wires_commands_events_and_required_choices()
     {
-        var root = FindRepositoryRoot();
+        var root = RepositoryPaths.Root;
         var xaml = File.ReadAllText(Path.Combine(
             root, "src", "Tsumugi.App", "FirstRunWizardWindow.axaml"));
         var codeBehind = File.ReadAllText(Path.Combine(
@@ -136,18 +136,14 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
         codeBehind.Should().Contain("Registered");
         codeBehind.Should().Contain("Cancelled");
         codeBehind.Should().Contain("Closing");
-
-        var host = File.ReadAllText(Path.Combine(
-            root, "src", "Tsumugi.App", "Startup", "AvaloniaInitialWindowHost.cs"));
-        host.IndexOf("registered();", StringComparison.Ordinal)
-            .Should().BeLessThan(host.IndexOf("wizard.Close();", StringComparison.Ordinal),
-                because: "登録成功時はメインウィンドウを先に設定してからウィザードを閉じる");
+        // 「MainWindow を出してからウィザードを閉じる」順序は
+        // CompleteRegistration_shows_main_before_closing_the_wizard が振る舞いで担保する。
     }
 
     [Fact]
     public void AvaloniaInitialWindowHost_shutdown_requests_via_TryShutdown_not_direct_Shutdown()
     {
-        var root = FindRepositoryRoot();
+        var root = RepositoryPaths.Root;
         var host = File.ReadAllText(Path.Combine(
             root, "src", "Tsumugi.App", "Startup", "AvaloniaInitialWindowHost.cs"));
         var app = File.ReadAllText(Path.Combine(
@@ -167,27 +163,51 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
     }
 
     [Fact]
-    public void AvaloniaInitialWindowHost_shows_each_window_before_replacing_or_closing_wizard()
+    public void CompleteRegistration_shows_main_before_closing_the_wizard()
     {
-        var root = FindRepositoryRoot();
-        var host = File.ReadAllText(Path.Combine(
-            root, "src", "Tsumugi.App", "Startup", "AvaloniaInitialWindowHost.cs"));
+        // Close を先にすると最後の Window が消えて desktop が終了しうる。
+        // 順序そのものを振る舞いで検証する（ソース上の出現位置ではなく）。
+        var order = new List<string>();
 
-        host.Should().Contain(
-            "desktop.MainWindow = mainWindow;\n        mainWindow.Show();",
+        AvaloniaInitialWindowHost.CompleteRegistration(
+            showMain: () => order.Add("show-main"),
+            closeWizard: () => order.Add("close-wizard"));
+
+        order.Should().Equal(["show-main", "close-wizard"]);
+    }
+
+    [Fact]
+    public void CompleteRegistration_leaves_the_wizard_open_when_showing_main_fails()
+    {
+        // 差し替えが失敗したのにウィザードを閉じると、ウィンドウが1つも無い状態で
+        // 職員が取り残される。FirstRunWizardViewModel 側の案内も見えない。
+        var closed = 0;
+
+        var act = () => AvaloniaInitialWindowHost.CompleteRegistration(
+            showMain: () => throw new InvalidOperationException("show failed"),
+            closeWizard: () => closed++);
+
+        act.Should().Throw<InvalidOperationException>();
+        closed.Should().Be(0);
+    }
+
+    [Fact]
+    public void AvaloniaInitialWindowHost_shows_each_window_instead_of_only_assigning_it()
+    {
+        var host = File.ReadAllText(Path.Combine(
+            RepositoryPaths.AppProject, "Startup", "AvaloniaInitialWindowHost.cs"));
+
+        // 空白・改行の差では落ちないようにする（整形しただけで赤くなるのは退行検出ではない）。
+        host.Should().MatchRegex(@"desktop\.MainWindow\s*=\s*mainWindow;\s*mainWindow\.Show\(\);",
             because: "MainWindow の代入だけでは表示されないため");
-        host.Should().Contain(
-            "desktop.MainWindow = wizard;\n        wizard.Show();",
+        host.Should().MatchRegex(@"desktop\.MainWindow\s*=\s*wizard;\s*wizard\.Show\(\);",
             because: "Wizard の代入だけでは表示されないため");
-        host.IndexOf("mainWindow.Show();", StringComparison.Ordinal)
-            .Should().BeLessThan(host.IndexOf("wizard.Close();", StringComparison.Ordinal),
-                because: "登録成功時は MainWindow の Show 完了後にのみ Wizard を閉じる");
     }
 
     [Fact]
     public void FirstRunWizardWindow_cancels_unfinished_close_and_disables_interaction_before_single_shutdown_request()
     {
-        var root = FindRepositoryRoot();
+        var root = RepositoryPaths.Root;
         var codeBehind = File.ReadAllText(Path.Combine(
             root, "src", "Tsumugi.App", "FirstRunWizardWindow.axaml.cs"));
 
@@ -200,7 +220,7 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
     }
 
     private static FirstRunStartupCoordinator NewCoordinator() =>
-        new(new ListOfficesUseCase(new InMemoryOfficeRepo()));
+        new(new CountOfficesUseCase(new InMemoryOfficeRepo()));
 
     private sealed class FakeInitialWindowHost : IInitialWindowHost
     {
@@ -232,19 +252,6 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
         public void Shutdown() => ShutdownCount++;
     }
 
-    private static string FindRepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null)
-        {
-            if (directory.EnumerateFiles("Tsumugi.sln").Any())
-                return directory.FullName;
-
-            directory = directory.Parent;
-        }
-
-        throw new InvalidOperationException("Tsumugi.sln が祖先方向に見つからない");
-    }
 
     private static int CountOccurrences(string text, string value)
     {

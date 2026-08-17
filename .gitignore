@@ -9,7 +9,7 @@ coverage.json
 coverage.cobertura.xml
 coverage.opencover.xml
 .worktrees/
-artifacts/
+artifacts/publish/
 *.db
 *.db-shm
 *.db-wal

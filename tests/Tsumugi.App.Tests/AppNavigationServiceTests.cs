@@ -59,7 +59,7 @@ public sealed class AppNavigationServiceTests
     [Fact]
     public void MainWindow_binds_SelectedIndex_two_way_and_has_no_direct_index_writes()
     {
-        var root = FindRepositoryRoot();
+        var root = RepositoryPaths.Root;
         var xaml = File.ReadAllText(Path.Combine(root, "src", "Tsumugi.App", "MainWindow.axaml"));
         var codeBehind = File.ReadAllText(
             Path.Combine(root, "src", "Tsumugi.App", "MainWindow.axaml.cs"));
@@ -479,19 +479,6 @@ public sealed class AppNavigationServiceTests
         Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
         if (Directory.Exists(root))
             Directory.Delete(root, recursive: true);
-    }
-
-    private static string FindRepositoryRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null
-            && !File.Exists(Path.Combine(directory.FullName, "Tsumugi.sln")))
-        {
-            directory = directory.Parent;
-        }
-
-        return directory?.FullName
-            ?? throw new DirectoryNotFoundException("Repository root was not found.");
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]

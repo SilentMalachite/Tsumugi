@@ -8,7 +8,7 @@ namespace Tsumugi.App.ViewModels;
 
 /// <summary>初回起動ウィザード専用の事業所登録 ViewModel。</summary>
 public sealed partial class FirstRunWizardViewModel(
-    RegisterFirstRunUseCase registerFirstRun) : ViewModelBase
+    RegisterFirstRunUseCase registerFirstRun) : OfficeFormViewModelBase
 {
     private const string UnexpectedRegisterFailureMessage =
         "登録に失敗しました。入力内容を確認して再度お試しください。";
@@ -19,15 +19,6 @@ public sealed partial class FirstRunWizardViewModel(
     // 登録が永続化された後は true。再実行すると「既に登録されています」になり原因が読めないため封じる。
     private bool _registrationCompleted;
 
-    [ObservableProperty] private string _officeNumber = string.Empty;
-    [ObservableProperty] private string _name = string.Empty;
-    [ObservableProperty] private ServiceCategory _category = ServiceCategory.TypeB;
-    [ObservableProperty] private RegionGrade _region = RegionGrade.None;
-    [ObservableProperty] private string _postalCode = string.Empty;
-    [ObservableProperty] private string _address = string.Empty;
-    [ObservableProperty] private string _phoneNumber = string.Empty;
-    [ObservableProperty] private string _representativeTitleAndName = string.Empty;
-    [ObservableProperty] private string? _saveErrorMessage;
     [ObservableProperty] private bool _isSaving;
 
     /// <summary>登録成功時に Window 側が購読する寿命イベント。</summary>
@@ -52,10 +43,10 @@ public sealed partial class FirstRunWizardViewModel(
                 Name,
                 Category,
                 Region,
-                NullIfEmpty(PostalCode),
-                NullIfEmpty(Address),
-                NullIfEmpty(PhoneNumber),
-                NullIfEmpty(RepresentativeTitleAndName));
+                OptionalPostalCodeInput,
+                OptionalAddressInput,
+                OptionalPhoneNumberInput,
+                OptionalRepresentativeTitleAndNameInput);
 
             await registerFirstRun.ExecuteAsync(
                 input, Environment.UserName, CancellationToken.None);
@@ -116,7 +107,4 @@ public sealed partial class FirstRunWizardViewModel(
 
     partial void OnIsSavingChanged(bool value) =>
         CancelCommand.NotifyCanExecuteChanged();
-
-    private static string? NullIfEmpty(string? value) =>
-        string.IsNullOrWhiteSpace(value) ? null : value;
 }
