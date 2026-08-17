@@ -1,5 +1,6 @@
 using Avalonia.Animation;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Styling;
 using AvaloniaApplication = Avalonia.Application;
 
@@ -44,10 +45,24 @@ public static class AccessibilityDefaults
             app.Resources[k] = v;
         }
 
+        app.Styles.Add(BuildControlFontSizeStyle());
+
         if (ReducedMotion)
         {
             app.Styles.Add(BuildReducedMotionStyle());
         }
+    }
+
+    // フォント拡大追従: TextBlock はラベルごとに BaseFontSize を指定できるが、
+    // TextBox/Button/ComboBox は Fluent テーマの固定値を使う。全 TemplatedControl の
+    // 既定を MinimumFontSize に合わせ、ラベルだけ拡大して入力欄が据え置きになるのを防ぐ。
+    // 各 View の明示指定（HeadingFontSize 等）はローカル値なので、この Style より優先される。
+    private static Style BuildControlFontSizeStyle()
+    {
+        var style = new Style(s => s.OfType<TemplatedControl>());
+        style.Setters.Add(new Setter(
+            TemplatedControl.FontSizeProperty, (double)UiDefaults.MinimumFontSize));
+        return style;
     }
 
     // 低アニメーション: あらゆる Control の Transitions を null にし、暗黙のフェード/スライドを抑止する。

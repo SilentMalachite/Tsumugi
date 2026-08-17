@@ -1,3 +1,4 @@
+using Avalonia.Controls.Primitives;
 using Avalonia.Styling;
 using FluentAssertions;
 using Tsumugi.App.Settings;
@@ -61,6 +62,25 @@ public sealed class AccessibilityDefaultsTests
         app.Resources.Should().ContainKey("BaseFontSize");
         app.Resources.Should().ContainKey("HeadingFontSize");
         app.Resources.Should().ContainKey("DailyCellSize");
+    }
+
+    [Fact]
+    public void Apply_scales_control_content_font_with_minimum_font_size()
+    {
+        // TextBlock はラベルごとに BaseFontSize を指定できるが、TextBox/Button/ComboBox は
+        // Fluent テーマの固定値（14）を使う。MinimumFontSize を上げたときに
+        // ラベルだけ拡大して入力欄が据え置きになるのを防ぐ（ハード制約5：フォント拡大追従）。
+        var app = new TestableApplication();
+        AccessibilityDefaults.Apply(app);
+
+        var setter = app.Styles
+            .OfType<Style>()
+            .SelectMany(style => style.Setters)
+            .OfType<Setter>()
+            .FirstOrDefault(s => s.Property == TemplatedControl.FontSizeProperty);
+
+        setter.Should().NotBeNull();
+        setter!.Value.Should().Be((double)UiDefaults.MinimumFontSize);
     }
 
     [Fact]

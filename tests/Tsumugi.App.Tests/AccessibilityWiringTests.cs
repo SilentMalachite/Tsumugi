@@ -22,14 +22,38 @@ public sealed class AccessibilityWiringTests
     private static readonly Regex HardcodedFontSizePattern =
         new(@"FontSize\s*=\s*""\s*\d", RegexOptions.Compiled);
 
+    /// <summary>
+    /// 画面の axaml を列挙する。Views/ 配下の UserControl に加え、App 直下に置かれる
+    /// Window（MainWindow / FirstRunWizardWindow / StartupFailureWindow …）も対象にする。
+    /// App.axaml はリソース定義側なので含めない。
+    /// </summary>
     private static IEnumerable<(string RelativePath, string Content)> EnumerateViewXaml()
     {
         var root = FindSolutionRoot();
-        var viewsDir = Path.Combine(root, "src", "Tsumugi.App", "Views");
-        foreach (var file in Directory.EnumerateFiles(viewsDir, "*.axaml", SearchOption.AllDirectories))
+        var appDir = Path.Combine(root, "src", "Tsumugi.App");
+
+        var files = Directory
+            .EnumerateFiles(Path.Combine(appDir, "Views"), "*.axaml", SearchOption.AllDirectories)
+            .Concat(Directory.EnumerateFiles(appDir, "*Window.axaml", SearchOption.TopDirectoryOnly));
+
+        foreach (var file in files)
         {
             yield return (Path.GetRelativePath(root, file), File.ReadAllText(file));
         }
+    }
+
+    [Fact]
+    public void Enumeration_covers_window_xaml_outside_the_views_folder()
+    {
+        // Window は Views/ の外（App 直下）に置かれる。ここを列挙しないと、
+        // 新しい画面がハード制約5の機械判定をすり抜ける。
+        var paths = EnumerateViewXaml().Select(x => x.RelativePath).ToList();
+
+        paths.Should().Contain(p => p.EndsWith("MainWindow.axaml", StringComparison.Ordinal));
+        paths.Should().Contain(p => p.EndsWith("FirstRunWizardWindow.axaml", StringComparison.Ordinal));
+        paths.Should().Contain(p => p.EndsWith("StartupFailureWindow.axaml", StringComparison.Ordinal));
+        paths.Should().NotContain(p => p.EndsWith("App.axaml", StringComparison.Ordinal),
+            because: "App.axaml は画面ではなくリソース定義側");
     }
 
     [Fact]
