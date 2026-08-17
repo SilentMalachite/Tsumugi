@@ -145,7 +145,7 @@ S1→S5・S3a→S5・S4→S5の依存はいずれも解消済み（S5のみ未�
 **実際の採用**（着手時ロードマップ案からの差分）:
 
 - UI は MainWindow への独立タブ追加ではなく、**既存タブへの埋め込み**（`DisabilityCertificateView` / `FaceSheetView` / `CertificateView`）。`AppSection`・ナビ順は変更していない。
-- AC4-8 は当初推奨「自社は Contract のみ」ではなく **[ADR 0053](../../decisions/0053-contracted-provider-and-contract-roles.md)**（工賃=`Contract`／請求 CSV=`ContractedProvider`・自事業所行必須）で [ADR 0032](../../decisions/0032-contract-information-as-individual-input.md) と整合させた。二重入力警告・staleness 自動修復は対象外。
+- AC4-8 は当初推奨「自社は Contract のみ」ではなく **[ADR 0053](../../decisions/0053-contracted-provider-and-contract-roles.md)**（工賃=`Contract`／請求 CSV=`ContractedProvider`・自事業所行必須）で [ADR 0032](../../decisions/0032-contract-information-as-individual-input.md) と整合させた。二重入力警告 UI・staleness 自動修復は S4 対象外とし、`docs/open-questions.md` へ分離起票した。
 
 実装済み成果物:
 

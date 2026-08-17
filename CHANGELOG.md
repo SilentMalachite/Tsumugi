@@ -46,8 +46,8 @@
 - フェースシートの履歴差分表示を実装した（AC4-6）。`FaceSheetDiff.Compare`（業務プロパティのみ）→ Query UseCase → 既存 `FaceSheetView` 内パネルで版一覧と選択版・直前版の差分を表示。最古版は差分なし
 - 受給者証と手帳の障害種別整合警告を実装した（AC4-7）。`DisabilityConsistencyPolicy.Detect`（Physical／Intellectual／Mental の双方向・難病は検査しない）→ Query UseCase → `CertificateView`／`DisabilityCertificateView` のバナー。保存は妨げない
 - UI は MainWindow タブ追加ではなく既存タブへの埋め込み。スキーマ変更・migration・登録フロー変更なし
-- Contract／ContractedProvider の責務分離を ADR 0053 で確定した（AC4-8）。工賃の当月対象選定は `Contract`、請求 CSV 契約情報は自事業所行を含む `ContractedProvider`（[ADR 0032](docs/decisions/0032-contract-information-as-individual-input.md) 維持）。自社除外運用は不採用。二重入力警告 UI・証訂正後 staleness 自動修復は対象外
-- `docs/open-questions.md` の該当 4 項をクローズ。療育等級 ComboBox 外部化・フェースシート独自項目・staleness 自動修復は未解決のまま
+- Contract／ContractedProvider の責務分離を ADR 0053 で確定した（AC4-8）。工賃の当月対象選定は `Contract`、請求 CSV 契約情報は自事業所行を含む `ContractedProvider`（[ADR 0032](docs/decisions/0032-contract-information-as-individual-input.md) 維持）。自社除外運用は不採用
+- `docs/open-questions.md` の該当 4 項（手帳更新／差分／整合／Contract・ContractedProvider 責務分離）をクローズ。療育等級 ComboBox 外部化・フェースシート独自項目は未解決のまま。二重入力警告 UI と証訂正後 staleness 自動修復は S4 対象外のため、それぞれ別 open-question として分離起票
 - AC4-5〜AC4-8 達成
 
 ## Phase 4 S3a 完了 (2026-08-16)

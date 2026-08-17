@@ -1,8 +1,8 @@
 # ADR 0053: Contract と ContractedProvider の責務分離
 
 - 状態: 確定（2026-08-17）
-- 関連: [ADR 0032](0032-contract-information-as-individual-input.md)、[ADR 0010](0010-certificate-fields.md)（受給者証入力面）
-- 関連 open-question: 「ContractedProvider と Contract の整理」（本 ADR でクローズ）
+- 関連: [ADR 0032](0032-contract-information-as-individual-input.md)、[ADR 0010](0010-certificate-mhlw-form-shape.md)（受給者証入力面）
+- 関連 open-question: 「ContractedProvider と Contract の整理」（本 ADR でクローズ）。未実装の残作業は「Contract / ContractedProvider 二重入力警告 UI」「証訂正後 ContractedProvider staleness 自動修復」へ分離起票
 
 ## 結論
 
@@ -53,7 +53,7 @@ Phase 4 S4 では UI 補完（精神手帳更新アラート・フェースシ�
 
 ### 決定3: 二重入力警告 UI と staleness 自動修復は S4 外
 
-`Contract` と自事業所の `ContractedProvider` は内容が重なりうるが、S4 では警告バナーや保存時検証を追加しない。受給者証訂正後に `ContractedProvider.CertificateId` が古くなる staleness の自動修復も対象外とする。いずれも未解決のまま残す。
+`Contract` と自事業所の `ContractedProvider` は内容が重なりうるが、S4 では警告バナーや保存時検証を追加しない。受給者証訂正後に `ContractedProvider.CertificateId` が古くなる staleness の自動修復も対象外とする。責務分離の決定クローズとは別に、`docs/open-questions.md` へ未実装項として分離起票する。
 
 ## 影響
 
@@ -64,8 +64,8 @@ Phase 4 S4 では UI 補完（精神手帳更新アラート・フェースシ�
 
 ### 残る限界
 
-1. **二重入力は運用で吸収する。** `Contract` と自事業所 `ContractedProvider` の期間・支給量が食い違っても、本 ADR 時点では機械警告しない。
-2. **証訂正後の `ContractedProvider` staleness は自動修復しない。** 訂正後に記入欄を手で直す必要がある場合がある。
+1. **二重入力は運用で吸収する。** `Contract` と自事業所 `ContractedProvider` の期間・支給量が食い違っても、本 ADR 時点では機械警告しない（open-question「Contract / ContractedProvider 二重入力警告 UI」）。
+2. **証訂正後の `ContractedProvider` staleness は自動修復しない。** 訂正後に記入欄を手で直す必要がある場合がある（open-question「証訂正後 ContractedProvider staleness 自動修復」。Phase 3-1/3-2 受け入れ証跡から継承）。
 3. **オフライン責務・伝送範囲は変えない。** 本 ADR は入力の正本の整理のみであり、国保連への伝送・電子証明書処理は引き続きアプリの範囲外である。
 
 ### テスト／実装との関係
