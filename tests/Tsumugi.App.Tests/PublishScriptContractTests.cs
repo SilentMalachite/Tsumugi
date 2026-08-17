@@ -36,6 +36,25 @@ public sealed class PublishScriptContractTests
     }
 
     [Fact]
+    public void publish_scripts_abort_when_dotnet_publish_fails()
+    {
+        var root = FindRepositoryRoot();
+        var sh = File.ReadAllText(Path.Combine(root, "build", "publish.sh"));
+        var ps1 = File.ReadAllText(Path.Combine(root, "build", "publish.ps1"));
+
+        sh.Should().Contain("set -euo pipefail",
+            because: "失敗したビルドを成功として配布しない");
+
+        // $ErrorActionPreference は Windows PowerShell 5.1 / PowerShell 7.0-7.2 では
+        // ネイティブコマンドに適用されない。終了コードを自分で検査しないと
+        // dotnet publish の失敗を検出できず、空の成果物が配布されうる。
+        ps1.Should().Contain("$LASTEXITCODE",
+            because: "native command の失敗は $LASTEXITCODE でしか検出できない");
+        ps1.Should().MatchRegex(@"exit\s+\$LASTEXITCODE",
+            because: "失敗をスクリプト自身の終了コードとして呼び出し側へ伝える");
+    }
+
+    [Fact]
     public void gitignore_excludes_artifacts_directory()
     {
         var root = FindRepositoryRoot();
