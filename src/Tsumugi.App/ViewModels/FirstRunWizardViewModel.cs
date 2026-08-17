@@ -30,13 +30,15 @@ public sealed partial class FirstRunWizardViewModel(
     /// <summary>キャンセル時に Window 側が購読する寿命イベント。</summary>
     public Action? Cancelled { get; set; }
 
+    // CancellationToken 引数を付けない（AsyncRelayCommand の再入が先行実行をキャンセルするのを防ぐ）。
     [RelayCommand]
-    private async Task RegisterAsync(CancellationToken ct = default)
+    private async Task RegisterAsync()
     {
         if (IsSaving)
             return;
 
         IsSaving = true;
+        var succeeded = false;
         try
         {
             var input = new RegisterFirstRunInput(
@@ -49,14 +51,11 @@ public sealed partial class FirstRunWizardViewModel(
                 NullIfEmpty(PhoneNumber),
                 NullIfEmpty(RepresentativeTitleAndName));
 
-            await registerFirstRun.ExecuteAsync(input, Environment.UserName, ct);
+            await registerFirstRun.ExecuteAsync(
+                input, Environment.UserName, CancellationToken.None);
 
             SaveErrorMessage = null;
-            Registered?.Invoke();
-        }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
-        {
-            throw;
+            succeeded = true;
         }
         catch (ArgumentException ex)
         {
@@ -74,13 +73,25 @@ public sealed partial class FirstRunWizardViewModel(
         {
             IsSaving = false;
         }
+
+        // 永続化成功後・IsSaving=false の状態で呼ぶ。callback 例外は登録失敗にしない。
+        if (succeeded)
+            Registered?.Invoke();
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanCancel))]
     private void Cancel()
     {
+        if (IsSaving)
+            return;
+
         Cancelled?.Invoke();
     }
+
+    private bool CanCancel() => !IsSaving;
+
+    partial void OnIsSavingChanged(bool value) =>
+        CancelCommand.NotifyCanExecuteChanged();
 
     private static string? NullIfEmpty(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value;

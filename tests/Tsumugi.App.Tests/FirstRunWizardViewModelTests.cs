@@ -161,6 +161,84 @@ public sealed class FirstRunWizardViewModelTests
         vm.IsSaving.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task RegisterCommand_callback_exception_does_not_report_register_failure()
+    {
+        var vm = NewVm();
+        FillValid(vm);
+        vm.Registered += () => throw new InvalidOperationException("window switch failed");
+
+        var act = () => vm.RegisterCommand.ExecuteAsync(null);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("window switch failed");
+        vm.SaveErrorMessage.Should().BeNull();
+        vm.IsSaving.Should().BeFalse();
+        (await _repo.ListAsync(default)).Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task CancelCommand_while_saving_does_not_invoke_Cancelled()
+    {
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        _repo.BeforeAddAsync = async _ => await gate.Task;
+        var vm = NewVm();
+        FillValid(vm);
+        var cancelled = 0;
+        vm.Cancelled += () => cancelled++;
+
+        var first = vm.RegisterCommand.ExecuteAsync(null);
+        await WaitUntilAsync(() => vm.IsSaving);
+
+        vm.CancelCommand.Execute(null);
+
+        cancelled.Should().Be(0);
+        vm.CancelCommand.CanExecute(null).Should().BeFalse();
+
+        gate.SetResult();
+        await first;
+
+        cancelled.Should().Be(0);
+        vm.CancelCommand.CanExecute(null).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RegisterCommand_reentry_does_not_cancel_in_flight_registration()
+    {
+        var enteredAdd = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var observedTokens = new List<CancellationToken>();
+        var cancelledAfterReentry = false;
+        _repo.BeforeAddAsync = async ct =>
+        {
+            observedTokens.Add(ct);
+            enteredAdd.SetResult();
+            await gate.Task;
+            // 再入後も先行登録の CT がキャンセルされていないこと。
+            cancelledAfterReentry = ct.IsCancellationRequested;
+        };
+        var vm = NewVm();
+        FillValid(vm);
+        var registered = 0;
+        vm.Registered += () => registered++;
+
+        var first = vm.RegisterCommand.ExecuteAsync(null);
+        await enteredAdd.Task;
+
+        var second = vm.RegisterCommand.ExecuteAsync(null);
+        await second;
+
+        gate.SetResult();
+        await first;
+
+        cancelledAfterReentry.Should().BeFalse();
+        observedTokens.Should().ContainSingle();
+        observedTokens[0].CanBeCanceled.Should().BeFalse();
+        registered.Should().Be(1);
+        (await _repo.ListAsync(default)).Should().ContainSingle();
+        vm.SaveErrorMessage.Should().BeNull();
+    }
+
     private static async Task WaitUntilAsync(Func<bool> condition, int timeoutMs = 2000)
     {
         var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
