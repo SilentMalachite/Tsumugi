@@ -23,6 +23,13 @@ try {
         Write-Error "dotnet publish failed with exit code $LASTEXITCODE."
         exit $LASTEXITCODE
     }
+
+    # 単一ファイル発行でもネイティブライブラリはサイドカーとして残り、NOTICE と
+    # NotoSansJP.LICENSE.txt も実行ファイルの隣に出力される。実行ファイルだけを
+    # コピーすると起動に失敗するか、ライセンス欠落のまま配布される。
+    Write-Host ""
+    Write-Host "発行完了: $output/"
+    Write-Host "配布するときは、実行ファイル単体ではなくこのディレクトリごとコピーしてください。"
 }
 finally {
     Pop-Location

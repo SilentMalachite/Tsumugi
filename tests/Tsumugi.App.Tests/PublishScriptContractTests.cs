@@ -55,6 +55,29 @@ public sealed class PublishScriptContractTests
     }
 
     [Fact]
+    public void publish_scripts_tell_the_operator_to_copy_the_whole_output_directory()
+    {
+        var root = FindRepositoryRoot();
+        var csproj = File.ReadAllText(
+            Path.Combine(root, "src", "Tsumugi.App", "Tsumugi.App.csproj"));
+        var sh = File.ReadAllText(Path.Combine(root, "build", "publish.sh"));
+        var ps1 = File.ReadAllText(Path.Combine(root, "build", "publish.ps1"));
+
+        // 単一ファイル発行でも IncludeNativeLibrariesForSelfExtract を立てていないため
+        // ネイティブライブラリはサイドカーのまま出力され、NOTICE と
+        // NotoSansJP.LICENSE.txt も CopyToPublishDirectory で実行ファイルの隣に並ぶ。
+        // 実行ファイル1個だけをコピーすると起動失敗、またはライセンス欠落で配布される。
+        csproj.Should().Contain("NOTICE");
+        csproj.Should().Contain("NotoSansJP.LICENSE.txt");
+        csproj.Should().Contain("<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>");
+
+        sh.Should().Contain("ディレクトリごと",
+            because: "配布単位はディレクトリだと発行した本人に伝える");
+        ps1.Should().Contain("ディレクトリごと",
+            because: "配布単位はディレクトリだと発行した本人に伝える");
+    }
+
+    [Fact]
     public void gitignore_excludes_artifacts_directory()
     {
         var root = FindRepositoryRoot();

@@ -31,7 +31,12 @@
 
 どちらのスクリプトも `dotnet publish` が失敗した時点で中断し、非ゼロの終了コードを返す。**発行後は必ず終了コードを確認する**（`echo $?` / `$LASTEXITCODE`）。0 以外なら成果物は不完全なので配布しない。
 
-生成された単一ファイル実行バイナリを、対象端末へオフラインでコピーして配布する。インストーラ・コード署名・オンライン更新は対象外（ADR 0054）。
+**配布単位は `artifacts/publish/<RID>/` ディレクトリ全体**。実行ファイル1個だけをコピーしてはいけない。`PublishSingleFile` はマネージドアセンブリのみを束ねる設定（`IncludeNativeLibrariesForSelfExtract` は立てていない）なので、次が実行ファイルの隣にサイドカーとして残る。
+
+- Avalonia のネイティブライブラリ（`libSkiaSharp` / `libHarfBuzzSharp` など）— 欠けると起動時に描画初期化で失敗する
+- `NOTICE` と `assets/fonts/NotoSansJP.LICENSE.txt` — 欠けるとライセンス表示義務を満たさないまま配布される
+
+このディレクトリを対象端末へオフラインでコピーする。インストーラ・コード署名・オンライン更新は対象外（ADR 0054）。
 
 Windows 実機での起動確認は別途 `docs/manual-qa.md` を参照する（未実施の行が残る場合がある）。
 
