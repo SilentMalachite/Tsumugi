@@ -18,7 +18,7 @@ public sealed partial class FaceSheetViewModel(
 {
     public ObservableCollection<RecipientDto> Recipients { get; } = new();
     public ObservableCollection<FaceSheetHistoryDto> HistoryItems { get; } = new();
-    public ObservableCollection<FaceSheetChangeDto> SelectedChanges { get; } = new();
+    public ObservableCollection<FaceSheetChangeDisplayItem> SelectedChanges { get; } = new();
 
     [ObservableProperty] private RecipientDto? _selectedRecipient;
 
@@ -70,7 +70,8 @@ public sealed partial class FaceSheetViewModel(
     {
         SelectedChanges.Clear();
         if (value is null) return;
-        foreach (var change in value.ChangesFromPrevious) SelectedChanges.Add(change);
+        foreach (var change in value.ChangesFromPrevious)
+            SelectedChanges.Add(FaceSheetChangeDisplayItem.From(change));
     }
 
     public async Task LoadRecipientsAsync(CancellationToken ct = default)

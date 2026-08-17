@@ -21,7 +21,7 @@ public sealed partial class DisabilityCertificateViewModel(
 {
     public ObservableCollection<RecipientDto> Recipients { get; } = new();
     public ObservableCollection<DisabilityCertificateDto> Items { get; } = new();
-    public ObservableCollection<DisabilityCertificateRenewalDueDto> RenewalDueItems { get; } = new();
+    public ObservableCollection<RenewalDueDisplayItem> RenewalDueItems { get; } = new();
     public ObservableCollection<string> ConsistencyWarnings { get; } = new();
 
     public IReadOnlyList<DisabilityCertificateType> TypeOptions { get; } = new[]
@@ -83,7 +83,13 @@ public sealed partial class DisabilityCertificateViewModel(
     {
         var alerts = await queryRenewals.ExecuteAsync(AsOfDate, ThresholdDays, default);
         RenewalDueItems.Clear();
-        foreach (var alert in alerts) RenewalDueItems.Add(alert);
+        foreach (var alert in alerts)
+        {
+            var recipientName = Recipients
+                .SingleOrDefault(recipient => recipient.Id == alert.RecipientId)?.KanjiName;
+            RenewalDueItems.Add(new RenewalDueDisplayItem(
+                alert.RecipientId, recipientName, alert.NextRenewalDate, alert.RemainingDays));
+        }
         if (SelectedRecipient is not null)
             await ReloadConsistencyWarningsAsync();
     }

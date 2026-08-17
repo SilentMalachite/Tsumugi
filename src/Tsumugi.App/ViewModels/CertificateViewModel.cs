@@ -131,7 +131,7 @@ public sealed partial class CertificateViewModel(
     private Guid _loadedProviderCertificateId;
     private readonly Dictionary<Guid, Guid> _certificateRootByRevisionId = [];
     private bool _isApplyingNavigationContext;
-    private DateOnly? _navigationServiceDate;
+    private long _consistencyRequestGeneration;
 
     partial void OnSelectedRecipientChanged(RecipientDto? value)
     {
@@ -195,10 +195,7 @@ public sealed partial class CertificateViewModel(
         CancellationToken ct = default)
     {
         if (serviceDate is { } date)
-        {
             AsOfDate = date;
-            _navigationServiceDate = date;
-        }
 
         _isApplyingNavigationContext = true;
         try
@@ -377,10 +374,11 @@ public sealed partial class CertificateViewModel(
 
     private async Task ReloadConsistencyWarningsAsync(CancellationToken ct = default)
     {
+        var requestGeneration = ++_consistencyRequestGeneration;
         ConsistencyWarnings.Clear();
         if (RecipientId == Guid.Empty) return;
-        var asOf = _navigationServiceDate ?? SelectedCertificate?.Validity.Start ?? AsOfDate;
-        var warnings = await queryConsistency.ExecuteAsync(RecipientId, asOf, ct);
+        var warnings = await queryConsistency.ExecuteAsync(RecipientId, AsOfDate, ct);
+        if (requestGeneration != _consistencyRequestGeneration) return;
         foreach (var warning in warnings) ConsistencyWarnings.Add(FormatConsistencyWarning(warning));
     }
 
