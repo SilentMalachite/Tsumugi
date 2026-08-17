@@ -13,9 +13,12 @@ namespace Tsumugi.App.ViewModels;
 public sealed partial class FaceSheetViewModel(
     ListRecipientsUseCase listRecipients,
     GetLatestFaceSheetUseCase getLatest,
-    SaveFaceSheetUseCase saveUseCase) : ViewModelBase
+    SaveFaceSheetUseCase saveUseCase,
+    QueryFaceSheetHistoryUseCase queryHistory) : ViewModelBase
 {
     public ObservableCollection<RecipientDto> Recipients { get; } = new();
+    public ObservableCollection<FaceSheetHistoryDto> HistoryItems { get; } = new();
+    public ObservableCollection<FaceSheetChangeDto> SelectedChanges { get; } = new();
 
     [ObservableProperty] private RecipientDto? _selectedRecipient;
 
@@ -56,11 +59,19 @@ public sealed partial class FaceSheetViewModel(
     [ObservableProperty] private string? _lastUpdatedBy;
     [ObservableProperty] private string? _saveErrorMessage;
     [ObservableProperty] private bool _isSaved;
+    [ObservableProperty] private FaceSheetHistoryDto? _selectedHistoryItem;
 
     partial void OnSelectedRecipientChanged(RecipientDto? value)
         => _ = LoadLatestAsync();
 
     public Task InitializeAsync(CancellationToken ct = default) => LoadRecipientsAsync(ct);
+
+    partial void OnSelectedHistoryItemChanged(FaceSheetHistoryDto? value)
+    {
+        SelectedChanges.Clear();
+        if (value is null) return;
+        foreach (var change in value.ChangesFromPrevious) SelectedChanges.Add(change);
+    }
 
     public async Task LoadRecipientsAsync(CancellationToken ct = default)
     {
@@ -74,12 +85,23 @@ public sealed partial class FaceSheetViewModel(
         ClearForm();
         if (SelectedRecipient is not { } r) return;
         var sheet = await getLatest.ExecuteAsync(r.Id, default);
-        if (sheet is null) return;
-        ApplyFromDto(sheet);
+        if (sheet is not null) ApplyFromDto(sheet);
+        await ReloadHistoryAsync(r.Id);
+    }
+
+    private async Task ReloadHistoryAsync(Guid recipientId)
+    {
+        var history = await queryHistory.ExecuteAsync(recipientId, default);
+        HistoryItems.Clear();
+        foreach (var item in history) HistoryItems.Add(item);
+        SelectedHistoryItem = HistoryItems.LastOrDefault();
     }
 
     private void ClearForm()
     {
+        HistoryItems.Clear();
+        SelectedChanges.Clear();
+        SelectedHistoryItem = null;
         PostalCode = string.Empty;
         Address = string.Empty;
         PhoneNumber = string.Empty;
@@ -179,6 +201,8 @@ public sealed partial class FaceSheetViewModel(
             LastUpdatedAt = saved.CreatedAt;
             LastUpdatedBy = saved.CreatedBy;
             SaveErrorMessage = null;
+            IsSaved = true;
+            await LoadLatestAsync();
             IsSaved = true;
         }
         catch (ArgumentException ex)

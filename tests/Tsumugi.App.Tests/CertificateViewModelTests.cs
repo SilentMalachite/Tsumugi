@@ -5,6 +5,7 @@ using Tsumugi.Application.UseCases.Certificate;
 using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
+using Tsumugi.Domain.Logic.Claim;
 using Tsumugi.Domain.ValueObjects;
 using Xunit;
 
@@ -26,7 +27,14 @@ public sealed class CertificateViewModelTests
         new CorrectCertificateUseCase(_certs, _uow, _clock),
         new RegisterContractedProviderUseCase(_providers, _uow, _clock),
         new ListContractedProvidersUseCase(_providers),
-        new UpdateContractedProviderUseCase(_providers, _uow));
+        new UpdateContractedProviderUseCase(_providers, _uow),
+        new QueryDisabilityConsistencyUseCase(_certs, new InMemoryDisabilityCertificateRepo()));
+
+    [Fact]
+    public void New_view_model_exposes_consistency_warnings()
+    {
+        NewVm().ConsistencyWarnings.Should().BeEmpty();
+    }
 
     [Fact]
     public async Task LoadAsync_populates_expiring_items()
@@ -521,7 +529,26 @@ internal sealed class InMemoryCertRepo : Tsumugi.Application.Abstractions.ICerti
     public Task<IReadOnlyList<Certificate>> ListAllAsync(CancellationToken ct) =>
         Task.FromResult<IReadOnlyList<Certificate>>(_list);
     public Task<Certificate?> FindEffectiveAsync(Guid rid, DateOnly asOf, CancellationToken ct) =>
-        Task.FromResult<Certificate?>(null);
+        Task.FromResult(CertificatePolicy.EffectiveVersion(
+            _list.Where(c => c.RecipientId == rid), asOf));
+}
+
+internal sealed class InMemoryDisabilityCertificateRepo : IDisabilityCertificateRepository
+{
+    private readonly List<DisabilityCertificate> _certificates = [];
+
+    public void Add(DisabilityCertificate certificate) => _certificates.Add(certificate);
+    public Task AddAsync(DisabilityCertificate certificate, CancellationToken ct)
+    {
+        _certificates.Add(certificate);
+        return Task.CompletedTask;
+    }
+    public Task<IReadOnlyList<DisabilityCertificate>> ListByRecipientAsync(
+        Guid recipientId, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyList<DisabilityCertificate>>(
+            _certificates.Where(certificate => certificate.RecipientId == recipientId).ToArray());
+    public Task<IReadOnlyList<DisabilityCertificate>> ListAllAsync(CancellationToken ct) =>
+        Task.FromResult<IReadOnlyList<DisabilityCertificate>>(_certificates);
 }
 
 internal sealed class InMemoryContractedProviderRepo : IContractedProviderRepository
