@@ -1,0 +1,88 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Tsumugi.App.ViewModels"
+        xmlns:enums="using:Tsumugi.Domain.Enums"
+        xmlns:conv="using:Tsumugi.App.Converters"
+        x:Class="Tsumugi.App.FirstRunWizardWindow"
+        x:DataType="vm:FirstRunWizardViewModel"
+        Title="つむぎ - 初回セットアップ"
+        Width="680"
+        MinWidth="520"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterScreen">
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+Enter" Command="{Binding RegisterCommand}" />
+        <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+    </Window.KeyBindings>
+    <ScrollViewer Margin="24">
+        <StackPanel Spacing="12">
+            <TextBlock Text="初回セットアップ"
+                       FontSize="{DynamicResource HeadingFontSize}"
+                       FontWeight="Bold" />
+            <TextBlock Text="事業所の基本情報を登録してください。後から事業所管理で変更できます。"
+                       FontSize="{DynamicResource BaseFontSize}"
+                       TextWrapping="Wrap" />
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="16" RowSpacing="10">
+                <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Spacing="4">
+                    <TextBlock Text="事業所番号（必須）" FontSize="{DynamicResource BaseFontSize}" />
+                    <TextBox Text="{Binding OfficeNumber}" Watermark="例：2700012345" />
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Spacing="4">
+                    <TextBlock Text="名称（必須）" FontSize="{DynamicResource BaseFontSize}" />
+                    <TextBox Text="{Binding Name}" Watermark="例：つむぎ作業所" />
+                </StackPanel>
+                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="4">
+                    <TextBlock Text="サービス種別" FontSize="{DynamicResource BaseFontSize}" />
+                    <ComboBox SelectedItem="{Binding Category}">
+                        <ComboBox.Items>
+                            <enums:ServiceCategory>TypeB</enums:ServiceCategory>
+                        </ComboBox.Items>
+                    </ComboBox>
+                </StackPanel>
+                <StackPanel Grid.Row="2" Grid.Column="1" Spacing="4">
+                    <TextBlock Text="地域区分（必須）" FontSize="{DynamicResource BaseFontSize}" />
+                    <ComboBox SelectedItem="{Binding Region}">
+                        <ComboBox.Items>
+                            <enums:RegionGrade>Grade1</enums:RegionGrade>
+                            <enums:RegionGrade>Grade2</enums:RegionGrade>
+                            <enums:RegionGrade>Grade3</enums:RegionGrade>
+                            <enums:RegionGrade>Grade4</enums:RegionGrade>
+                            <enums:RegionGrade>Grade5</enums:RegionGrade>
+                            <enums:RegionGrade>Grade6</enums:RegionGrade>
+                            <enums:RegionGrade>Grade7</enums:RegionGrade>
+                            <enums:RegionGrade>Other</enums:RegionGrade>
+                        </ComboBox.Items>
+                    </ComboBox>
+                </StackPanel>
+                <StackPanel Grid.Row="3" Grid.Column="0" Spacing="4">
+                    <TextBlock Text="郵便番号（任意）" FontSize="{DynamicResource BaseFontSize}" />
+                    <TextBox Text="{Binding PostalCode}" />
+                </StackPanel>
+                <StackPanel Grid.Row="3" Grid.Column="1" Spacing="4">
+                    <TextBlock Text="電話番号（任意）" FontSize="{DynamicResource BaseFontSize}" />
+                    <TextBox Text="{Binding PhoneNumber}" />
+                </StackPanel>
+                <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Spacing="4">
+                    <TextBlock Text="住所（任意）" FontSize="{DynamicResource BaseFontSize}" />
+                    <TextBox Text="{Binding Address}" />
+                </StackPanel>
+                <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Spacing="4">
+                    <TextBlock Text="管理者（職氏名）（任意）" FontSize="{DynamicResource BaseFontSize}" />
+                    <TextBox Text="{Binding RepresentativeTitleAndName}" />
+                </StackPanel>
+            </Grid>
+            <TextBlock Text="{Binding SaveErrorMessage}"
+                       Foreground="#FFB00020"
+                       FontSize="{DynamicResource BaseFontSize}"
+                       IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="キャンセル (Escape)"
+                        Command="{Binding CancelCommand}"
+                        IsEnabled="{Binding !IsSaving}" />
+                <Button Content="登録 (Ctrl+Enter)"
+                        Command="{Binding RegisterCommand}"
+                        IsEnabled="{Binding !IsSaving}" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Window>
