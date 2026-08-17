@@ -15,4 +15,7 @@ public sealed class DisabilityCertificateRepository(TsumugiDbContext db) : IDisa
             .Where(c => c.RecipientId == recipientId)
             .OrderByDescending(c => c.IssuedDate)
             .ToListAsync(ct);
+
+    public async Task<IReadOnlyList<DisabilityCertificate>> ListAllAsync(CancellationToken ct) =>
+        await db.DisabilityCertificates.AsNoTracking().ToListAsync(ct);
 }

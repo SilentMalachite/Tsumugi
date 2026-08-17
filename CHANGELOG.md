@@ -9,7 +9,7 @@
 ### 計画
 - フェーズ 3-0（出典・契約・土台）— final-fix後のtargeted test、fresh full quality gate、最終レビュー（Critical / High / Medium 0件）を通過し、2026-07-11に受け入れ済み。詳細は [`docs/phase3-0-acceptance.md`](docs/phase3-0-acceptance.md)。
 - フェーズ 3-1（請求計算・入力基盤）— 現行計画Tasks 2〜10の入力契約スライス、Task 12のclaim-master schema v2、Task 13の基準該当B型公式計算契約・source inventoryを実装済み。Task 11の入力UIから継続し、Phase 3-1全体は未受け入れ。
-- フェーズ 4（リリース準備・運用ハードニング）残り: 暗号化方針決定・バックアップ自動化・記録UI補完・配布パッケージング・運用ガイド。詳細は `07_ClaudeCode_Phase4実装指示_リリース準備_Tsumugi.md`。
+- フェーズ 4（リリース準備・運用ハードニング）残り: 暗号化バックアップ（S3b）・配布パッケージング・運用ガイド・手動 QA（S5）。詳細は `docs/superpowers/specs/2026-07-05-phase4-remaining-roadmap.md`。
 
 ### 追加（Added）— Phase 3-0: 国保連請求の出典・契約・土台
 - ADR 0020〜0026に、令和6/8報酬・地域単価・サービスコード、事業所体制、負担上限、平均工賃月額、国保連CSV、端数、append-only請求snapshotの出典・版・規則を記録。負担上限は令和6年4月から令和8年6月以降まで連続するR6/R7/R8の5-version source chainで固定。
@@ -39,6 +39,16 @@
 - NuGet audit suppression（GHSA-2m69-gcr7-jv3q）の解除、配布パッケージング、運用ガイド。
 - **FileVault（macOS）／BitLocker（Windows）の有効化が運用要件になった**（ADR 0003 追補）。本アプリはDB本体を暗号化しないため、端末盗難への備えはOSディスク暗号化に委ねている。
 - **終了時自動バックアップ・復元の実機確認が未実施**。`ShutdownRequested` 経路とAvalonia実画面の挙動はheadlessテストで検証できず、かつWindows実機が無いため、macOS/Windows双方での手動QAが必要。
+
+## Phase 4 S4 完了 (2026-08-17)
+
+- 精神障害者保健福祉手帳の更新アラートを実装した（AC4-5）。`DisabilityCertificatePolicy.FindRenewalDue`（精神・`NextRenewalDate` あり・残日数 0〜しきい値）→ Query UseCase → 既存 `DisabilityCertificateView` 内パネル。しきい値既定 30 日
+- フェースシートの履歴差分表示を実装した（AC4-6）。`FaceSheetDiff.Compare`（業務プロパティのみ）→ Query UseCase → 既存 `FaceSheetView` 内パネルで版一覧と選択版・直前版の差分を表示。最古版は差分なし
+- 受給者証と手帳の障害種別整合警告を実装した（AC4-7）。`DisabilityConsistencyPolicy.Detect`（Physical／Intellectual／Mental の双方向・難病は検査しない）→ Query UseCase → `CertificateView`／`DisabilityCertificateView` のバナー。保存は妨げない
+- UI は MainWindow タブ追加ではなく既存タブへの埋め込み。スキーマ変更・migration・登録フロー変更なし
+- Contract／ContractedProvider の責務分離を ADR 0053 で確定した（AC4-8）。工賃の当月対象選定は `Contract`、請求 CSV 契約情報は自事業所行を含む `ContractedProvider`（[ADR 0032](docs/decisions/0032-contract-information-as-individual-input.md) 維持）。自社除外運用は不採用
+- `docs/open-questions.md` の該当 4 項（手帳更新／差分／整合／Contract・ContractedProvider 責務分離）をクローズ。療育等級 ComboBox 外部化・フェースシート独自項目は未解決のまま。二重入力警告 UI と証訂正後 staleness 自動修復は S4 対象外のため、それぞれ別 open-question として分離起票
+- AC4-5〜AC4-8 達成
 
 ## Phase 4 S3a 完了 (2026-08-16)
 

@@ -52,12 +52,15 @@ public static class CompositionRoot
         services.AddScoped<RestoreRecipientUseCase>();
         services.AddScoped<RegisterDisabilityCertificateUseCase>();
         services.AddScoped<ListDisabilityCertificatesUseCase>();
+        services.AddScoped<QueryDisabilityCertificateRenewalsUseCase>();
         services.AddScoped<SaveFaceSheetUseCase>();
         services.AddScoped<GetLatestFaceSheetUseCase>();
+        services.AddScoped<QueryFaceSheetHistoryUseCase>();
 
         // Phase 1: 受給者証
         services.AddScoped<RegisterCertificateUseCase>();
         services.AddScoped<ListExpiringCertificatesUseCase>();
+        services.AddScoped<QueryDisabilityConsistencyUseCase>();
         services.AddScoped<ListCertificatesByRecipientUseCase>();
         services.AddScoped<CorrectCertificateUseCase>();
         services.AddScoped<RegisterContractedProviderUseCase>();

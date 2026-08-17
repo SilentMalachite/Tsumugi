@@ -45,6 +45,73 @@ public sealed class DisabilityCertificateUseCaseTests
             new DateOnly(2024, 4, 1), "東京都", "u", default);
         await act.Should().ThrowAsync<ArgumentException>();
     }
+
+    [Fact]
+    public async Task Renewal_query_projects_mental_certificate_due_within_threshold()
+    {
+        var recipientId = Guid.NewGuid();
+        var due = DisabilityCertificate.Create(
+            Guid.NewGuid(), recipientId, DisabilityCertificateType.Mental, "2級",
+            new DateOnly(2024, 4, 1), "東京都", "test", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            nextRenewalDate: new DateOnly(2026, 4, 10));
+        var repo = new FakeDisabilityCertificateRepository();
+        repo.Added.Add(due);
+        var sut = new QueryDisabilityCertificateRenewalsUseCase(repo);
+
+        var result = await sut.ExecuteAsync(new DateOnly(2026, 4, 1), 30, default);
+
+        result.Should().ContainSingle().Which.Should().BeEquivalentTo(new
+        {
+            CertificateId = due.Id,
+            RecipientId = recipientId,
+            Type = DisabilityCertificateType.Mental,
+            Grade = "2級",
+            NextRenewalDate = new DateOnly(2026, 4, 10),
+            RemainingDays = 9,
+        });
+    }
+
+    [Fact]
+    public async Task Renewal_query_ignores_due_previous_version_when_current_version_is_not_due()
+    {
+        var recipientId = Guid.NewGuid();
+        var previousDue = DisabilityCertificate.Create(
+            Guid.NewGuid(), recipientId, DisabilityCertificateType.Mental, "2級",
+            new DateOnly(2024, 4, 1), "東京都", "test", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            nextRenewalDate: new DateOnly(2026, 4, 10));
+        var currentNotDue = DisabilityCertificate.Create(
+            Guid.NewGuid(), recipientId, DisabilityCertificateType.Mental, "1級",
+            new DateOnly(2025, 4, 1), "東京都", "test", DateTimeOffset.UnixEpoch.AddDays(1), Guid.NewGuid(),
+            nextRenewalDate: new DateOnly(2027, 4, 1));
+        var repo = new FakeDisabilityCertificateRepository();
+        repo.Added.AddRange([previousDue, currentNotDue]);
+        var sut = new QueryDisabilityCertificateRenewalsUseCase(repo);
+
+        var result = await sut.ExecuteAsync(new DateOnly(2026, 4, 1), 30, default);
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Renewal_query_uses_newer_created_at_when_issued_dates_are_equal()
+    {
+        var recipientId = Guid.NewGuid();
+        var previousDue = DisabilityCertificate.Create(
+            Guid.NewGuid(), recipientId, DisabilityCertificateType.Mental, "2級",
+            new DateOnly(2024, 4, 1), "東京都", "test", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            nextRenewalDate: new DateOnly(2026, 4, 10));
+        var currentNotDue = DisabilityCertificate.Create(
+            Guid.NewGuid(), recipientId, DisabilityCertificateType.Mental, "1級",
+            new DateOnly(2024, 4, 1), "東京都", "test", DateTimeOffset.UnixEpoch.AddTicks(1), Guid.NewGuid(),
+            nextRenewalDate: new DateOnly(2027, 4, 1));
+        var repo = new FakeDisabilityCertificateRepository();
+        repo.Added.AddRange([previousDue, currentNotDue]);
+        var sut = new QueryDisabilityCertificateRenewalsUseCase(repo);
+
+        var result = await sut.ExecuteAsync(new DateOnly(2026, 4, 1), 30, default);
+
+        result.Should().BeEmpty();
+    }
 }
 
 internal sealed class FakeDisabilityCertificateRepository : IDisabilityCertificateRepository
@@ -58,4 +125,7 @@ internal sealed class FakeDisabilityCertificateRepository : IDisabilityCertifica
             Added.Where(c => c.RecipientId == recipientId)
                  .OrderByDescending(c => c.IssuedDate)
                  .ToArray());
+
+    public Task<IReadOnlyList<DisabilityCertificate>> ListAllAsync(CancellationToken ct) =>
+        Task.FromResult<IReadOnlyList<DisabilityCertificate>>(Added.ToArray());
 }

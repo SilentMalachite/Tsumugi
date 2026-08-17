@@ -254,6 +254,27 @@ public sealed class CompositionRootTests
     }
 
     [Fact]
+    public void Phase4_s4_query_use_cases_and_existing_view_models_resolve()
+    {
+        var services = new ServiceCollection().AddTsumugiServices("Data Source=:memory:");
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+
+        scope.ServiceProvider.GetRequiredService<QueryDisabilityCertificateRenewalsUseCase>()
+            .Should().NotBeNull();
+        scope.ServiceProvider.GetRequiredService<QueryFaceSheetHistoryUseCase>()
+            .Should().NotBeNull();
+        scope.ServiceProvider.GetRequiredService<QueryDisabilityConsistencyUseCase>()
+            .Should().NotBeNull();
+        scope.ServiceProvider.GetRequiredService<DisabilityCertificateViewModel>()
+            .Should().NotBeNull();
+        scope.ServiceProvider.GetRequiredService<FaceSheetViewModel>()
+            .Should().NotBeNull();
+        scope.ServiceProvider.GetRequiredService<CertificateViewModel>()
+            .Should().NotBeNull();
+    }
+
+    [Fact]
     public void Infrastructure_is_swappable_via_service_collection()
     {
         // App は IOfficeRepository を抽象で消費する。テストで差し替え可能であることを示す。

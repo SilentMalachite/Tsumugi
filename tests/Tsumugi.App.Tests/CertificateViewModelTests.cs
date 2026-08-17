@@ -5,6 +5,7 @@ using Tsumugi.Application.UseCases.Certificate;
 using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Domain.Entities;
 using Tsumugi.Domain.Enums;
+using Tsumugi.Domain.Logic.Claim;
 using Tsumugi.Domain.ValueObjects;
 using Xunit;
 
@@ -15,6 +16,7 @@ public sealed class CertificateViewModelTests
     private readonly InMemoryCertRepo _certs = new();
     private readonly InMemoryRecipientRepoForCertificate _recipients = new();
     private readonly InMemoryContractedProviderRepo _providers = new();
+    private readonly InMemoryDisabilityCertificateRepo _handbooks = new();
     private readonly InMemoryUow _uow = new();
     private readonly FixedClock _clock = new(DateTimeOffset.UnixEpoch);
 
@@ -26,7 +28,77 @@ public sealed class CertificateViewModelTests
         new CorrectCertificateUseCase(_certs, _uow, _clock),
         new RegisterContractedProviderUseCase(_providers, _uow, _clock),
         new ListContractedProvidersUseCase(_providers),
-        new UpdateContractedProviderUseCase(_providers, _uow));
+        new UpdateContractedProviderUseCase(_providers, _uow),
+        new QueryDisabilityConsistencyUseCase(_certs, _handbooks));
+
+    [Fact]
+    public void New_view_model_exposes_consistency_warnings()
+    {
+        NewVm().ConsistencyWarnings.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Selecting_certificate_shows_consistency_warning_for_effective_mismatch()
+    {
+        var rid = Guid.NewGuid();
+        _recipients.Add(Recipient.Create(rid, "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid()));
+        var cert = Certificate.Create(Guid.NewGuid(), rid, "1234567890",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            disabilities: new DisabilityCategories(
+                Physical: true, Intellectual: false, Mental: false, Intractable: false));
+        _certs.Add(cert);
+
+        var vm = NewVm();
+        vm.AsOfDate = new DateOnly(2026, 8, 1);
+        (await vm.ApplyNavigationContextAsync(rid, new DateOnly(2026, 8, 1), cert.Id)).Should().BeTrue();
+
+        vm.ConsistencyWarnings.Should().ContainSingle()
+            .Which.Should().Contain("身体障害").And.Contain("受給者証にはありますが");
+    }
+
+    [Fact]
+    public async Task Consistency_reload_discards_stale_async_result()
+    {
+        var rid = Guid.NewGuid();
+        _recipients.Add(Recipient.Create(rid, "氏名", "シメイ",
+            new DateOnly(1990, 1, 1), "u", DateTimeOffset.UnixEpoch, Guid.NewGuid()));
+        var certA = Certificate.Create(Guid.NewGuid(), rid, "1111111111",
+            new DateRange(new DateOnly(2026, 4, 1), new DateOnly(2027, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            disabilities: new DisabilityCategories(
+                Physical: true, Intellectual: false, Mental: false, Intractable: false));
+        var certB = Certificate.Create(Guid.NewGuid(), rid, "2222222222",
+            new DateRange(new DateOnly(2027, 4, 1), new DateOnly(2028, 3, 31)),
+            23, 9300, "杉並区", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            disabilities: new DisabilityCategories(
+                Physical: false, Intellectual: false, Mental: true, Intractable: false));
+        _certs.Add(certA);
+        _certs.Add(certB);
+
+        var vm = NewVm();
+        vm.AsOfDate = new DateOnly(2026, 8, 1);
+        await vm.LoadRecipientsAsync();
+        vm.SelectedRecipient = vm.Recipients.Single();
+        await Task.Yield();
+
+        _certs.BlockNextFindEffective(rid);
+        vm.SelectedCertificate = vm.CertificatesForRecipient.Single(x => x.Id == certA.Id);
+        await _certs.BlockedFindStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+        vm.AsOfDate = new DateOnly(2027, 8, 1);
+        vm.SelectedCertificate = vm.CertificatesForRecipient.Single(x => x.Id == certB.Id);
+        await Task.Yield();
+        vm.ConsistencyWarnings.Should().ContainSingle()
+            .Which.Should().Contain("精神障害");
+
+        _certs.ReleaseBlockedFind();
+        await Task.Yield();
+
+        vm.ConsistencyWarnings.Should().ContainSingle()
+            .Which.Should().Contain("精神障害").And.NotContain("身体障害");
+    }
 
     [Fact]
     public async Task LoadAsync_populates_expiring_items()
@@ -512,16 +584,55 @@ internal sealed class InMemoryRecipientRepoForCertificate : Tsumugi.Application.
 internal sealed class InMemoryCertRepo : Tsumugi.Application.Abstractions.ICertificateRepository
 {
     private readonly List<Certificate> _list = new();
+    private Guid? _blockedFindRecipientId;
+    private TaskCompletionSource? _releaseBlockedFind;
+    public TaskCompletionSource BlockedFindStarted { get; private set; } =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
     public int Count => _list.Count;
     public IReadOnlyList<Certificate> AllForTest => _list;
     public void Add(Certificate c) => _list.Add(c);
+    public void BlockNextFindEffective(Guid recipientId)
+    {
+        _blockedFindRecipientId = recipientId;
+        _releaseBlockedFind = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        BlockedFindStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+    public void ReleaseBlockedFind() => _releaseBlockedFind?.TrySetResult();
     public Task AddAsync(Certificate c, CancellationToken ct) { _list.Add(c); return Task.CompletedTask; }
     public Task<IReadOnlyList<Certificate>> ListByRecipientAsync(Guid rid, CancellationToken ct) =>
         Task.FromResult<IReadOnlyList<Certificate>>(_list.Where(c => c.RecipientId == rid).ToArray());
     public Task<IReadOnlyList<Certificate>> ListAllAsync(CancellationToken ct) =>
         Task.FromResult<IReadOnlyList<Certificate>>(_list);
-    public Task<Certificate?> FindEffectiveAsync(Guid rid, DateOnly asOf, CancellationToken ct) =>
-        Task.FromResult<Certificate?>(null);
+    public async Task<Certificate?> FindEffectiveAsync(Guid rid, DateOnly asOf, CancellationToken ct)
+    {
+        if (_blockedFindRecipientId == rid)
+        {
+            _blockedFindRecipientId = null;
+            BlockedFindStarted.TrySetResult();
+            await _releaseBlockedFind!.Task.WaitAsync(ct);
+        }
+
+        return CertificatePolicy.EffectiveVersion(
+            _list.Where(c => c.RecipientId == rid), asOf);
+    }
+}
+
+internal sealed class InMemoryDisabilityCertificateRepo : IDisabilityCertificateRepository
+{
+    private readonly List<DisabilityCertificate> _certificates = [];
+
+    public void Add(DisabilityCertificate certificate) => _certificates.Add(certificate);
+    public Task AddAsync(DisabilityCertificate certificate, CancellationToken ct)
+    {
+        _certificates.Add(certificate);
+        return Task.CompletedTask;
+    }
+    public Task<IReadOnlyList<DisabilityCertificate>> ListByRecipientAsync(
+        Guid recipientId, CancellationToken ct) =>
+        Task.FromResult<IReadOnlyList<DisabilityCertificate>>(
+            _certificates.Where(certificate => certificate.RecipientId == recipientId).ToArray());
+    public Task<IReadOnlyList<DisabilityCertificate>> ListAllAsync(CancellationToken ct) =>
+        Task.FromResult<IReadOnlyList<DisabilityCertificate>>(_certificates);
 }
 
 internal sealed class InMemoryContractedProviderRepo : IContractedProviderRepository

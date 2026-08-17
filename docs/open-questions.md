@@ -77,15 +77,17 @@
 - [x] **食事提供体制加算 / 高額障害福祉サービス費等（2026-07-11 クローズ / ADR 0020〜0022）**: [ADR 0020](decisions/0020-claim-master-sources-and-versioning.md) と [ADR 0022](decisions/0022-burden-cap-master.md) で、令和6年4月から令和8年6月以降まで切れ目のない5 release source chainを確定し、[ADR 0021](decisions/0021-office-capability-official-codes.md) で体制・サービスコード境界を分離した。令和6年内を含むsource gapは0。Phase 3-0では出典・版・規則だけを確定しており、単位数・利用額の外部マスタ投入と実計算はPhase 3-1で実装する。
 - [x] **負担区分の月額上限金額表（2026-07-11 クローズ / ADR 0020・0022）**: [ADR 0020](decisions/0020-claim-master-sources-and-versioning.md) と [ADR 0022](decisions/0022-burden-cap-master.md) で `r6-04` / `r6-06` / `r7-01` / `r7-09` / `r8-06` の5 releaseを連続させ、令和6年を含むsource gapを0にした。制度区分、受給者証記載上限、上限額管理結果の優先関係を維持し、入力未指定、証上限未入力、管理結果未入力を0円扱いせずフェイルクローズする。制度額をC#へ直書きせず、外部マスタ実値と算定はPhase 3-1で実装する。
 - [ ] **計画相談支援事業者マスタ**: 現状は受給者証ごとに事業者名を自由記述。複数受給者で同じ事業者を参照することが多いため、Phase 3 で `ConsultationProvider` マスタを切り出して FK 参照に変更するか検討する。
-- [ ] **ContractedProvider と Contract の整理**: Phase 1 既存の `Contract` は自社事業所の利用契約のみ表現する。新規 `ContractedProvider` は受給者証「サービス事業者記入欄」に書かれる**全契約事業所**（他事業所含む）を網羅する。重複格納を避けたい場合は、自社契約は `Contract` 側のみで管理し `ContractedProvider` には他事業所のみ書く運用も検討する。Phase 2 着手前に運用方針を確定する。
+- [x] **ContractedProvider と Contract の整理（2026-08-17 クローズ / ADR 0053）**: 工賃の当月対象選定の正本は `Contract`、請求 CSV 契約情報の正本は自事業所行を含む `ContractedProvider` と確定した（[ADR 0032](decisions/0032-contract-information-as-individual-input.md) を維持）。自社を `ContractedProvider` から除外する運用は採らない。詳細は [ADR 0053](decisions/0053-contracted-provider-and-contract-roles.md)。未実装の残作業は下記2項へ分離した。
+- [ ] **[Phase4-S4/ADR 0053 follow-up] Contract / ContractedProvider 二重入力警告 UI（2026-08-17 追加）**: [ADR 0053](decisions/0053-contracted-provider-and-contract-roles.md) 決定3により、自事業所について `Contract`（工賃対象選定）と `ContractedProvider`（請求 CSV 契約情報）が並存し内容が重なりうるが、食い違いを機械警告する UI／保存時検証は未実装。解除条件: 両系統の差分を読み取り警告として可視化する（保存は妨げない方針を維持する場合はその旨を ADR または仕様で固定する）。追跡: ADR 0053 残る限界#1、[ADR 0032](decisions/0032-contract-information-as-individual-input.md)。
+- [ ] **[Phase4-S4/ADR 0053 follow-up] 証訂正後 ContractedProvider staleness 自動修復（2026-08-17 追加 / Phase 3-1・3-2 継承）**: 受給者証を訂正すると `ContractedProvider.CertificateId` が旧証を指したままになりうる。自動修復は未実装で、記入欄の手直しが必要になる場合がある。解除条件: 証訂正後に現行証へ追従する修復、または同等の fail-close／警告経路を実装する。追跡: [ADR 0053](decisions/0053-contracted-provider-and-contract-roles.md) 残る限界#2、`docs/phase3-1-acceptance.md` §4「ContractedProviderの証訂正後staleness」、`docs/phase3-2-acceptance.md` §5、`ClaimCalculationSnapshotReader.ReadEffectiveContractedProvidersByRecipientAsync` の XML doc-comment（`.superpowers/sdd/task-9c-report.md`）。
 
 ## Phase 1 障害者手帳・フェースシート（2026-06-28 追加）
 
 - [ ] **療育手帳の等級表記**: 自治体ごとに「A1/A2/B1/B2」「1〜4度」「重度/中軽度」など表記が異なるため、`DisabilityCertificate.Grade` は文字列で受けている（ADR 0011）。利用自治体の表記体系が確定したら、自治体ごとの選択肢を `ComboBox` の候補として提供できるよう設定で外部化することを検討する。
-- [ ] **精神障害者保健福祉手帳の更新通知**: 2 年ごとの更新が必要。`NextRenewalDate` を保持しているが、期限が近い手帳を一覧でアラート表示するビュー（受給者証期限アラートと同様）は未実装。Phase 2 で追加する。
+- [x] **精神障害者保健福祉手帳の更新通知（2026-08-17 クローズ / Phase 4 S4 / AC4-5）**: `DisabilityCertificatePolicy.FindRenewalDue`（精神・`NextRenewalDate` あり・残日数 0〜しきい値）→ `QueryDisabilityCertificateRenewalsUseCase` → `DisabilityCertificateView` 内パネルで一覧表示する。しきい値既定 30 日。身体・療育は対象外。証跡: `DisabilityCertificatePolicyTests` / `DisabilityCertificateViewModelTests`。
 - [ ] **フェースシートの自治体/事業所独自項目**: 連絡先・医療・受給状況・生活歴の主要グループは実装済みだが、事業所により「行動障害特性」「コミュニケーション手段」「移動手段」「日課」等の追加項目を求める場合がある。利用事業所の様式が判明したら個別項目として追加するか、`AssessmentSummary` の構造化を検討する。
-- [ ] **フェースシート履歴の差分表示**: append-only により全バージョン保持されるが、UI からは現行版しか見えない。Phase 2 で「直前バージョンとの差分」「変更履歴一覧」を提供する案あり。
-- [ ] **障害者手帳と受給者証の障害種別整合**: 受給者証側の `Disabilities`（身体/知的/精神/難病）チェックと、障害者手帳の `Type` の整合性は現状チェックしていない。例えば「身体手帳のみ所持しているのに受給者証で精神もチェック」というデータが入りうる。Phase 2 で警告（エラーではない）として通知する案を検討する。
+- [x] **フェースシート履歴の差分表示（2026-08-17 クローズ / Phase 4 S4 / AC4-6）**: `FaceSheetDiff.Compare`（業務プロパティのみ・null≠空文字）→ `QueryFaceSheetHistoryUseCase` → `FaceSheetView` 内パネルで版一覧と選択版・直前版の差分を表示する。最古版は差分なし。任意の 2 版比較 UI は採っていない。証跡: `FaceSheetDiffTests` / `FaceSheetViewModelTests`。
+- [x] **障害者手帳と受給者証の障害種別整合（2026-08-17 クローズ / Phase 4 S4 / AC4-7）**: `DisabilityConsistencyPolicy.Detect`（Physical / Intellectual / Mental の双方向・難病は検査しない）→ `QueryDisabilityConsistencyUseCase` → `CertificateView` / `DisabilityCertificateView` の警告バナー。保存は妨げない。証跡: `DisabilityConsistencyPolicyTests` / `CertificateViewModelTests` / `DisabilityCertificateViewModelTests`。
 
 ## Phase 2 工賃計算（2026-06-28 追加）
 

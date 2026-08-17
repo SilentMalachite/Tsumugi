@@ -169,6 +169,28 @@
                 <TextBlock Text="{Binding SaveErrorMessage}"
                            Foreground="#FF4444"
                            IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
+                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="履歴" FontWeight="Bold" />
+                        <DataGrid ItemsSource="{Binding HistoryItems}"
+                                  SelectedItem="{Binding SelectedHistoryItem}"
+                                  IsReadOnly="True" AutoGenerateColumns="False" MaxHeight="180">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="作成日時" Binding="{Binding FaceSheet.CreatedAt}" Width="*" />
+                                <DataGridTextColumn Header="作成者" Binding="{Binding FaceSheet.CreatedBy}" Width="*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <TextBlock Text="直前版との差分（最古版は差分なし）" FontWeight="Bold" />
+                        <DataGrid ItemsSource="{Binding SelectedChanges}" IsReadOnly="True"
+                                  AutoGenerateColumns="False" MaxHeight="180">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="項目" Binding="{Binding PropertyName}" Width="*" />
+                                <DataGridTextColumn Header="変更前" Binding="{Binding OldValue}" Width="*" />
+                                <DataGridTextColumn Header="変更後" Binding="{Binding NewValue}" Width="*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
                 <Button Content="フェースシートを保存（新バージョンとして追記） (Ctrl+S)"
                         Command="{Binding SaveCommand}" HorizontalAlignment="Left" />
             </StackPanel>

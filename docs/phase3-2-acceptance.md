@@ -108,7 +108,7 @@ Task 4/5/7/8 で pinned された、実 `JsonClaimMasterProvider`・実requireme
 - **Task 7 review Important #3 — 4フィールドの孤立した自己参照readiness条件**: `ClaimInput.ExceptionalUsageStartMonth`/`ExceptionalUsageEndMonth`/`ExceptionalUsageDays`/`StandardUsageDayTotal`（`provider:J121:04:030-033`）は自己参照のみの`modelPresent`/`modelNonZero`条件で、`MunicipalSubsidyAmountYen`等が持つcross-field Any-mergeを持たないため恒常的にfail-open（値の有無に関わらずreadiness issueにならない）。spec §3.1の21 `report:*`フィールド一覧には含まれず、CSV `provider:*`スコープ（Phase 3-3）に属するためPhase 3-2の対象外。`docs/open-questions.md`に新規起票済み（§6参照）。
 - **production DB migration前提**: v1→v2の破壊的置換は「production DBに確定revisionが存在しない」（spec §4.2）という前提に立つ。Phase 3-1マージ直後でGUI貫通も未実施のため、この前提は本受け入れ時点でも引き続き成立している（確定revisionを書き込むUI操作パス自体が人手で実行されていないため）。この前提が崩れた場合は別途data migration ADRの起票が必要。
 - **`AbsenceResponseNote`の汎用フィールド流用**（Phase 3-2 Task 3由来、継続）: `DailyRecord.Note`汎用フィールドから`absenceResponseNote`へマップしており、専用カラムではない。将来帳票側で区別が必要になった場合に見直す。
-- **`ContractedProvider`の証訂正後staleness**（Phase 3-1継承）: `docs/open-questions.md`「ContractedProviderとContractの整理」に未クローズのまま残存。
+- **`ContractedProvider`の証訂正後staleness**（Phase 3-1継承）: 責務分離は ADR 0053 でクローズ済み。未実装の自動修復は `docs/open-questions.md`「[Phase4-S4/ADR 0053 follow-up] 証訂正後 ContractedProvider staleness 自動修復」に分離起票して残存。
 
 ## 6. `./build/ci.sh` 実行証跡
 

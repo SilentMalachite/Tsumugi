@@ -26,7 +26,8 @@ public sealed partial class CertificateViewModel(
     CorrectCertificateUseCase correctUseCase,
     RegisterContractedProviderUseCase registerProvider,
     ListContractedProvidersUseCase listProviders,
-    UpdateContractedProviderUseCase updateProvider) : ViewModelBase
+    UpdateContractedProviderUseCase updateProvider,
+    QueryDisabilityConsistencyUseCase queryConsistency) : ViewModelBase
 {
     private const string ProviderContextReloadMessage =
         "対象の受給者証が変更されています。最新状態を再読込してください。";
@@ -37,6 +38,7 @@ public sealed partial class CertificateViewModel(
     public ObservableCollection<RecipientDto> Recipients { get; } = new();
     public ObservableCollection<CertificateDto> CertificatesForRecipient { get; } = new();
     public ObservableCollection<ContractedProviderDto> ContractedProviders { get; } = new();
+    public ObservableCollection<string> ConsistencyWarnings { get; } = new();
 
     public IReadOnlyList<Gender> GenderOptions { get; } =
         new[] { Gender.Unspecified, Gender.Male, Gender.Female, Gender.Other };
@@ -129,6 +131,7 @@ public sealed partial class CertificateViewModel(
     private Guid _loadedProviderCertificateId;
     private readonly Dictionary<Guid, Guid> _certificateRootByRevisionId = [];
     private bool _isApplyingNavigationContext;
+    private long _consistencyRequestGeneration;
 
     partial void OnSelectedRecipientChanged(RecipientDto? value)
     {
@@ -145,6 +148,7 @@ public sealed partial class CertificateViewModel(
         UpperLimitManagementProviderNumber = value?.UpperLimitManagementProviderNumber ?? string.Empty;
         if (!_isApplyingNavigationContext)
             _ = ReloadProvidersAsync();
+        _ = ReloadConsistencyWarningsAsync();
     }
 
     partial void OnSelectedProviderChanged(ContractedProviderDto? value)
@@ -217,6 +221,7 @@ public sealed partial class CertificateViewModel(
                 return false;
 
             await ReloadProvidersAsync(ct);
+            await ReloadConsistencyWarningsAsync(ct);
             return true;
         }
         finally
@@ -293,6 +298,7 @@ public sealed partial class CertificateViewModel(
             OverlapWarning = warnings.Count > 0 ? string.Join(" ", warnings) : null;
             IsSaved = true;
             await ReloadCertificatesAsync();
+            await ReloadConsistencyWarningsAsync();
         }
         catch (ArgumentException ex)
         {
@@ -335,6 +341,7 @@ public sealed partial class CertificateViewModel(
             SaveErrorMessage = null;
             IsSaved = true;
             await ReloadAndSelectCertificateHeadAsync(rootId);
+            await ReloadConsistencyWarningsAsync();
         }
         catch (ArgumentException ex)
         {
@@ -364,6 +371,30 @@ public sealed partial class CertificateViewModel(
         SelectedCertificate = CertificatesForRecipient
             .SingleOrDefault(item => item.RootCertificateId == rootId);
     }
+
+    private async Task ReloadConsistencyWarningsAsync(CancellationToken ct = default)
+    {
+        var requestGeneration = ++_consistencyRequestGeneration;
+        ConsistencyWarnings.Clear();
+        if (RecipientId == Guid.Empty) return;
+        var warnings = await queryConsistency.ExecuteAsync(RecipientId, AsOfDate, ct);
+        if (requestGeneration != _consistencyRequestGeneration) return;
+        foreach (var warning in warnings) ConsistencyWarnings.Add(FormatConsistencyWarning(warning));
+    }
+
+    private static string FormatConsistencyWarning(DisabilityConsistencyWarningDto warning) =>
+        $"{(warning.Type switch
+        {
+            DisabilityCertificateType.Physical => "身体障害",
+            DisabilityCertificateType.Intellectual => "知的障害",
+            DisabilityCertificateType.Mental => "精神障害",
+            _ => throw new ArgumentOutOfRangeException(nameof(warning)),
+        })}は{(warning.Direction switch
+        {
+            Tsumugi.Domain.Logic.DisabilityConsistencyDirection.CertificateOnly => "受給者証にはありますが、対応する手帳がありません。",
+            Tsumugi.Domain.Logic.DisabilityConsistencyDirection.HandbookOnly => "手帳にはありますが、受給者証にありません。",
+            _ => throw new ArgumentOutOfRangeException(nameof(warning)),
+        })}";
 
     [RelayCommand]
     private async Task AddProviderAsync()

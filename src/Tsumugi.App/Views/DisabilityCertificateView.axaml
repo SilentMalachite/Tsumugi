@@ -4,6 +4,9 @@
              xmlns:conv="using:Tsumugi.App.Converters"
              x:Class="Tsumugi.App.Views.DisabilityCertificateView"
              x:DataType="vm:DisabilityCertificateViewModel">
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="F5" Command="{Binding RefreshAlertsCommand}" />
+    </UserControl.KeyBindings>
     <DockPanel>
         <DockPanel DockPanel.Dock="Top" Margin="8,8,8,4">
             <TextBlock Text="障害者手帳"
@@ -11,6 +14,36 @@
         </DockPanel>
 
         <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="8">
+            <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="精神障害者保健福祉手帳の更新予定" FontWeight="Bold" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBox Text="{Binding AsOfDate, Converter={x:Static conv:DateOnlyConverter.Instance}}"
+                                 Watermark="基準日" Width="140" />
+                        <TextBox Text="{Binding ThresholdDays}" Watermark="しきい値（日）" Width="140" />
+                        <Button Content="更新 (F5)" Command="{Binding RefreshAlertsCommand}" />
+                    </StackPanel>
+                    <DataGrid ItemsSource="{Binding RenewalDueItems}" IsReadOnly="True"
+                              AutoGenerateColumns="False" MaxHeight="180">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="利用者" Binding="{Binding RecipientName}" Width="*" />
+                            <DataGridTextColumn Header="更新予定日" Binding="{Binding NextRenewalDate}" Width="Auto" />
+                            <DataGridTextColumn Header="残日数" Binding="{Binding RemainingDays}" Width="Auto" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+            <Border Background="#FFF3CD" BorderBrush="#D39E00" BorderThickness="1" CornerRadius="4" Padding="8"
+                    IsVisible="{Binding ConsistencyWarnings.Count, Converter={x:Static conv:CountGreaterThanZeroConverter.Instance}}">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="障害種別の整合を確認してください" FontWeight="Bold" />
+                    <ItemsControl ItemsSource="{Binding ConsistencyWarnings}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" /></DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
             <StackPanel Spacing="2">
                 <TextBlock Text="利用者（必須）" />
                 <ComboBox ItemsSource="{Binding Recipients}"

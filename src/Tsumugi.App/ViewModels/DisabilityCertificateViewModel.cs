@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Tsumugi.Application.Dtos;
+using Tsumugi.Application.UseCases.Certificate;
 using Tsumugi.Application.UseCases.Recipient;
 using Tsumugi.Domain.Enums;
 
@@ -14,10 +15,14 @@ namespace Tsumugi.App.ViewModels;
 public sealed partial class DisabilityCertificateViewModel(
     ListRecipientsUseCase listRecipients,
     RegisterDisabilityCertificateUseCase registerUseCase,
-    ListDisabilityCertificatesUseCase listUseCase) : ViewModelBase
+    ListDisabilityCertificatesUseCase listUseCase,
+    QueryDisabilityCertificateRenewalsUseCase queryRenewals,
+    QueryDisabilityConsistencyUseCase queryConsistency) : ViewModelBase
 {
     public ObservableCollection<RecipientDto> Recipients { get; } = new();
     public ObservableCollection<DisabilityCertificateDto> Items { get; } = new();
+    public ObservableCollection<RenewalDueDisplayItem> RenewalDueItems { get; } = new();
+    public ObservableCollection<string> ConsistencyWarnings { get; } = new();
 
     public IReadOnlyList<DisabilityCertificateType> TypeOptions { get; } = new[]
     {
@@ -40,11 +45,17 @@ public sealed partial class DisabilityCertificateViewModel(
 
     [ObservableProperty] private string? _saveErrorMessage;
     [ObservableProperty] private bool _isSaved;
+    [ObservableProperty] private int _thresholdDays = 30;
+    [ObservableProperty] private DateOnly _asOfDate = DateOnly.FromDateTime(DateTime.Today);
 
     partial void OnSelectedRecipientChanged(RecipientDto? value)
-        => _ = ReloadAsync();
+        => _ = ReloadForRecipientAsync();
 
-    public Task InitializeAsync(CancellationToken ct = default) => LoadRecipientsAsync(ct);
+    public async Task InitializeAsync(CancellationToken ct = default)
+    {
+        await LoadRecipientsAsync(ct);
+        await RefreshAlertsAsync();
+    }
 
     public async Task LoadRecipientsAsync(CancellationToken ct = default)
     {
@@ -60,6 +71,51 @@ public sealed partial class DisabilityCertificateViewModel(
         var list = await listUseCase.ExecuteAsync(r.Id, default);
         foreach (var c in list) Items.Add(c);
     }
+
+    private async Task ReloadForRecipientAsync()
+    {
+        await ReloadAsync();
+        await ReloadConsistencyWarningsAsync();
+    }
+
+    [RelayCommand]
+    public async Task RefreshAlertsAsync()
+    {
+        var alerts = await queryRenewals.ExecuteAsync(AsOfDate, ThresholdDays, default);
+        var recipientsForAlerts = await listRecipients.ExecuteAsync(includeArchived: true, default);
+        RenewalDueItems.Clear();
+        foreach (var alert in alerts)
+        {
+            var recipientName = recipientsForAlerts
+                .SingleOrDefault(recipient => recipient.Id == alert.RecipientId)?.KanjiName;
+            RenewalDueItems.Add(new RenewalDueDisplayItem(
+                alert.RecipientId, recipientName, alert.NextRenewalDate, alert.RemainingDays));
+        }
+        if (SelectedRecipient is not null)
+            await ReloadConsistencyWarningsAsync();
+    }
+
+    private async Task ReloadConsistencyWarningsAsync()
+    {
+        ConsistencyWarnings.Clear();
+        if (SelectedRecipient is not { } recipient) return;
+        var warnings = await queryConsistency.ExecuteAsync(recipient.Id, AsOfDate, default);
+        foreach (var warning in warnings) ConsistencyWarnings.Add(FormatConsistencyWarning(warning));
+    }
+
+    private static string FormatConsistencyWarning(DisabilityConsistencyWarningDto warning) =>
+        $"{(warning.Type switch
+        {
+            DisabilityCertificateType.Physical => "身体障害",
+            DisabilityCertificateType.Intellectual => "知的障害",
+            DisabilityCertificateType.Mental => "精神障害",
+            _ => throw new ArgumentOutOfRangeException(nameof(warning)),
+        })}は{(warning.Direction switch
+        {
+            Tsumugi.Domain.Logic.DisabilityConsistencyDirection.CertificateOnly => "受給者証にはありますが、対応する手帳がありません。",
+            Tsumugi.Domain.Logic.DisabilityConsistencyDirection.HandbookOnly => "手帳にはありますが、受給者証にありません。",
+            _ => throw new ArgumentOutOfRangeException(nameof(warning)),
+        })}";
 
     [RelayCommand]
     private async Task AddAsync()
@@ -104,6 +160,8 @@ public sealed partial class DisabilityCertificateViewModel(
             NextRenewalDate = null;
 
             await ReloadAsync();
+            await RefreshAlertsAsync();
+            await ReloadConsistencyWarningsAsync();
         }
         catch (ArgumentException ex)
         {

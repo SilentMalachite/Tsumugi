@@ -82,4 +82,61 @@ public sealed class DisabilityCertificateAndFaceSheetRoundTripTests : IClassFixt
             latest.PensionDetails.Should().Be("障害基礎年金1級");
         }
     }
+
+    [Fact]
+    public async Task DisabilityCertificate_ListAllAsync_returns_all_recipients_without_tracking()
+    {
+        var first = DisabilityCertificate.Create(
+            Guid.NewGuid(), Guid.NewGuid(), DisabilityCertificateType.Mental, "2級",
+            new DateOnly(2024, 4, 1), "東京都", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        var second = DisabilityCertificate.Create(
+            Guid.NewGuid(), Guid.NewGuid(), DisabilityCertificateType.Physical, "1級",
+            new DateOnly(2025, 4, 1), "東京都", "u", DateTimeOffset.UnixEpoch, Guid.NewGuid());
+        await using (var ctx = _fixture.NewContext())
+        {
+            ctx.DisabilityCertificates.AddRange(first, second);
+            await ctx.SaveChangesAsync();
+        }
+
+        await using (var ctx = _fixture.NewContext())
+        {
+            var repo = new DisabilityCertificateRepository(ctx);
+            var all = await repo.ListAllAsync(default);
+
+            all.Select(c => c.Id).Should().Contain([first.Id, second.Id]);
+            ctx.ChangeTracker.Entries<DisabilityCertificate>().Should().BeEmpty(
+                "全件照会は AsNoTracking で追跡しない");
+        }
+    }
+
+    [Fact]
+    public async Task FaceSheet_ListByRecipientAsync_returns_created_at_ascending_without_other_recipients()
+    {
+        var recipientId = Guid.NewGuid();
+        var otherRecipientId = Guid.NewGuid();
+        var oldest = FaceSheet.Create(
+            Guid.NewGuid(), recipientId, "first", DateTimeOffset.UnixEpoch, Guid.NewGuid(),
+            phoneNumber: "111");
+        var other = FaceSheet.Create(
+            Guid.NewGuid(), otherRecipientId, "other", DateTimeOffset.UnixEpoch.AddMinutes(30), Guid.NewGuid(),
+            phoneNumber: "999");
+        var newest = FaceSheet.Create(
+            Guid.NewGuid(), recipientId, "second", DateTimeOffset.UnixEpoch.AddHours(1), Guid.NewGuid(),
+            phoneNumber: "222");
+        await using (var ctx = _fixture.NewContext())
+        {
+            ctx.FaceSheets.AddRange(newest, other, oldest);
+            await ctx.SaveChangesAsync();
+        }
+
+        await using (var ctx = _fixture.NewContext())
+        {
+            var repo = new FaceSheetRepository(ctx);
+            var list = await repo.ListByRecipientAsync(recipientId, default);
+
+            list.Should().HaveCount(2);
+            list.Select(f => f.Id).Should().Equal(oldest.Id, newest.Id);
+            list.Should().OnlyContain(f => f.RecipientId == recipientId);
+        }
+    }
 }
