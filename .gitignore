@@ -22,3 +22,6 @@ graphify-out/
 # Python bytecode (build/ のスクリプト実行時に生成される)
 __pycache__/
 *.pyc
+
+# superpowers プラグインのセッション作業ディレクトリ（プロジェクト成果物ではない）
+.superpowers/
