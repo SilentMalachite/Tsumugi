@@ -56,10 +56,10 @@
                       AutomationProperties.Name="福祉・介護職員等処遇改善加算(Ⅴ) 区分" />
         </StackPanel>
         <TextBlock Text="{Binding SaveErrorMessage}"
-                   Foreground="#FF4444"
+                   Foreground="{DynamicResource ErrorForeground}"
                    IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
         <TextBlock Text="{Binding OverlapWarning}"
-                   Foreground="#FFAA00"
+                   Foreground="{DynamicResource WarningForeground}"
                    IsVisible="{Binding OverlapWarning, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
         <Button Content="保存 (Ctrl+S)" Command="{Binding SaveCommand}" />
     </StackPanel>

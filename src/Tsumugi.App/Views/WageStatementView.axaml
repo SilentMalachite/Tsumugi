@@ -31,7 +31,7 @@
         </StackPanel>
         <TextBlock DockPanel.Dock="Top" Text="{Binding StatusMessage}" Foreground="LightGreen" Margin="8,0" />
         <TextBlock DockPanel.Dock="Top" Text="{Binding ErrorMessage}" Foreground="Red" Margin="8,0" />
-        <Border DockPanel.Dock="Top" Background="#553300" Padding="8" Margin="8,0"
+        <Border DockPanel.Dock="Top" Background="{DynamicResource WarningPanelBackground}" Padding="8" Margin="8,0"
                 IsVisible="{Binding HasCorrectionHistory}">
             <TextBlock Text="この月には訂正履歴があります（再確定済み）" Foreground="White" />
         </Border>

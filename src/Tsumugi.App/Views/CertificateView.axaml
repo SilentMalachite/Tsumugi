@@ -39,7 +39,7 @@
             <StackPanel Spacing="12" Margin="8">
 
                 <!-- 1. 支給決定障害者等 -->
-                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                <Border BorderBrush="{DynamicResource SubtleBorder}" BorderThickness="1" CornerRadius="4" Padding="8">
                     <StackPanel Spacing="6">
                         <TextBlock Text="1. 支給決定障害者等" FontWeight="Bold" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -91,7 +91,7 @@
                 </Border>
 
                 <!-- 2. 障害種別 -->
-                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                <Border BorderBrush="{DynamicResource SubtleBorder}" BorderThickness="1" CornerRadius="4" Padding="8">
                     <StackPanel Spacing="6">
                         <TextBlock Text="2. 障害種別" FontWeight="Bold" />
                         <StackPanel Orientation="Horizontal" Spacing="16">
@@ -114,7 +114,7 @@
                     </StackPanel>
                 </Border>
 
-                <Border Background="#FFF3CD" BorderBrush="#D39E00" BorderThickness="1" CornerRadius="4" Padding="8"
+                <Border Background="{DynamicResource WarningPanelBackground}" BorderBrush="{DynamicResource WarningPanelBorder}" BorderThickness="1" CornerRadius="4" Padding="8"
                         IsVisible="{Binding ConsistencyWarnings.Count, Converter={x:Static conv:CountGreaterThanZeroConverter.Instance}}">
                     <StackPanel Spacing="4">
                         <TextBlock Text="障害種別の整合を確認してください" FontWeight="Bold" />
@@ -127,7 +127,7 @@
                 </Border>
 
                 <!-- 3. 訓練等給付費の支給決定内容 -->
-                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                <Border BorderBrush="{DynamicResource SubtleBorder}" BorderThickness="1" CornerRadius="4" Padding="8">
                     <StackPanel Spacing="6">
                         <TextBlock Text="3. 訓練等給付費の支給決定内容" FontWeight="Bold" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -190,7 +190,7 @@
                 </Border>
 
                 <!-- 4. 計画相談支援給付費の支援内容 -->
-                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                <Border BorderBrush="{DynamicResource SubtleBorder}" BorderThickness="1" CornerRadius="4" Padding="8">
                     <StackPanel Spacing="6">
                         <TextBlock Text="4. 計画相談支援給付費の支援内容" FontWeight="Bold" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -215,7 +215,7 @@
                 </Border>
 
                 <!-- 5. 利用者負担に関する事項 -->
-                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                <Border BorderBrush="{DynamicResource SubtleBorder}" BorderThickness="1" CornerRadius="4" Padding="8">
                     <StackPanel Spacing="6">
                         <TextBlock Text="5. 利用者負担に関する事項" FontWeight="Bold" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -246,10 +246,10 @@
                 <!-- 保存ボタンとメッセージ -->
                 <StackPanel Spacing="4">
                     <TextBlock Text="{Binding SaveErrorMessage}"
-                               Foreground="#FF4444"
+                               Foreground="{DynamicResource ErrorForeground}"
                                IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
                     <TextBlock Text="{Binding OverlapWarning}"
-                               Foreground="#FFAA00"
+                               Foreground="{DynamicResource WarningForeground}"
                                IsVisible="{Binding OverlapWarning, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
                     <Button Content="受給者証を保存 (Ctrl+S)" Command="{Binding SaveCommand}" />
                     <Button Content="選択中の受給者証を訂正 (Ctrl+S)"
@@ -257,7 +257,7 @@
                 </StackPanel>
 
                 <!-- 6. サービス事業者記入欄 -->
-                <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+                <Border BorderBrush="{DynamicResource SubtleBorder}" BorderThickness="1" CornerRadius="4" Padding="8">
                     <StackPanel Spacing="6">
                         <TextBlock Text="6. サービス事業者記入欄" FontWeight="Bold" />
                         <StackPanel Spacing="2">
@@ -313,7 +313,7 @@
                             <TextBox Text="{Binding ProviderNotes}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="40" />
                         </StackPanel>
                         <TextBlock Text="{Binding ProviderSaveErrorMessage}"
-                                   Foreground="#FF4444"
+                                   Foreground="{DynamicResource ErrorForeground}"
                                    IsVisible="{Binding ProviderSaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
                         <Button Content="契約事業所を追加" Command="{Binding AddProviderCommand}" HorizontalAlignment="Left" />
                         <Button Content="選択中の契約事業所を更新" Command="{Binding UpdateProviderCommand}"

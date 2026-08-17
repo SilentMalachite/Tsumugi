@@ -22,6 +22,9 @@ public sealed class AccessibilityWiringTests
     private static readonly Regex HardcodedFontSizePattern =
         new(@"FontSize\s*=\s*""\s*\d", RegexOptions.Compiled);
 
+    private static readonly Regex HardcodedColorPattern =
+        new(@"(Foreground|Background|BorderBrush)\s*=\s*""\s*#", RegexOptions.Compiled);
+
     /// <summary>
     /// 画面の axaml を列挙する。Views/ 配下の UserControl に加え、App 直下に置かれる
     /// Window（MainWindow / FirstRunWizardWindow / StartupFailureWindow …）も対象にする。
@@ -98,6 +101,31 @@ public sealed class AccessibilityWiringTests
 
         violations.Should().BeEmpty(
             because: "FontSize は UiDefaults.MinimumFontSize に追従するため DynamicResource 経由で指定する。" +
+                     Environment.NewLine +
+                     "ハードコード違反: " + string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact]
+    public void Views_do_not_hardcode_color_literals()
+    {
+        // 既定テーマはダーク。画面ごとに色を直書きすると、テーマ前提が崩れたときに
+        // 一箇所ずつ壊れる（例: 明るい警告背景に明るい文字＝読めない）。
+        // 色は AccessibilityDefaults のセマンティックなリソース経由で参照する。
+        var violations = new List<string>();
+        foreach (var (rel, xml) in EnumerateViewXaml())
+        {
+            var lines = xml.Split('\n');
+            for (var i = 0; i < lines.Length; i++)
+            {
+                if (HardcodedColorPattern.IsMatch(lines[i]))
+                {
+                    violations.Add($"{rel}:{i + 1}: {lines[i].Trim()}");
+                }
+            }
+        }
+
+        violations.Should().BeEmpty(
+            because: "Foreground / Background / BorderBrush は DynamicResource 経由で指定する。" +
                      Environment.NewLine +
                      "ハードコード違反: " + string.Join(Environment.NewLine, violations));
     }

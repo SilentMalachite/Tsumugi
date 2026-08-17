@@ -1,6 +1,8 @@
 using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Styling;
 using AvaloniaApplication = Avalonia.Application;
 
@@ -31,7 +33,20 @@ public static class AccessibilityDefaults
         ["HeadingFontSize"] = (double)(UiDefaults.MinimumFontSize + 4),
         // 日次記録セルなど固定寸法の代わりに使う、フォントに比例した1辺サイズ。
         ["DailyCellSize"] = (double)(UiDefaults.MinimumFontSize * 7),
+
+        // セマンティックな色。既定のダーク背景（Fluent ≒ #202020）に対して
+        // WCAG AA（本文 4.5:1）以上を満たす値を選ぶ。画面ごとの直書きは
+        // AccessibilityWiringTests が禁止する。
+        ["ErrorForeground"] = Brush(0xFF, 0x44, 0x44),          // 対 #202020 ≒ 4.8:1
+        ["WarningForeground"] = Brush(0xFF, 0xAA, 0x00),        // 対 #202020 ≒ 8.5:1
+        ["WarningPanelBackground"] = Brush(0x55, 0x33, 0x00),   // 暗い琥珀。既定の明るい文字が乗る
+        ["WarningPanelBorder"] = Brush(0xD3, 0x9E, 0x00),
+        ["SubtleBorder"] = Brush(0x44, 0x44, 0x44),
     };
+
+    // 文字列パースを使わない（カルチャ明示ガードに掛かるうえ、成分の方が読める）。
+    private static ImmutableSolidColorBrush Brush(byte r, byte g, byte b) =>
+        new(Color.FromRgb(r, g, b));
 
     /// <summary>Application インスタンスにテーマ・リソース・低アニメーション Style を適用する。</summary>
     public static void Apply(AvaloniaApplication app)

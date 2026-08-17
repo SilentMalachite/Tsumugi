@@ -72,7 +72,7 @@
                 </StackPanel>
             </Grid>
             <TextBlock Text="{Binding SaveErrorMessage}"
-                       Foreground="#FFB00020"
+                       Foreground="{DynamicResource ErrorForeground}"
                        FontSize="{DynamicResource BaseFontSize}"
                        IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">

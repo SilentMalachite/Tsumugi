@@ -23,7 +23,7 @@
         </DockPanel>
         <TextBlock DockPanel.Dock="Top" Margin="8,0,8,4"
                    Text="{Binding OperationMessage}"
-                   Foreground="#FF4444"
+                   Foreground="{DynamicResource ErrorForeground}"
                    IsVisible="{Binding OperationMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
         <DataGrid ItemsSource="{Binding Items}"
                   SelectedItem="{Binding Selected}"
