@@ -68,22 +68,54 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
     }
 
     [Fact]
-    public async Task StartAsync_when_coordinator_fails_shuts_down_once_without_leaking_exception()
+    public async Task StartAsync_when_coordinator_fails_reports_the_failure_instead_of_exiting_silently()
     {
-        var repo = new InMemoryOfficeRepo
-        {
-            BeforeListAsync = _ => throw new InvalidOperationException("list failed"),
-        };
+        // 無言終了だと職員には「ダブルクリックしても何も起きない」としか見えず、
+        // docs/operations.md §6 の報告手順（エラー文言の安全な要約）も踏めない。
         var host = new FakeInitialWindowHost();
-        var sut = new FirstRunDesktopStartupOrchestrator(
-            new FirstRunStartupCoordinator(new ListOfficesUseCase(repo)), host);
+        var sut = NewFailingSut(host, new InvalidOperationException("list failed"));
 
         var act = () => sut.StartAsync();
 
         await act.Should().NotThrowAsync();
         host.ShowMainCount.Should().Be(0);
         host.ShowWizardCount.Should().Be(0);
+        host.StartupFailureMessages.Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task StartAsync_startup_failure_summary_names_the_error_kind_without_exception_detail()
+    {
+        var host = new FakeInitialWindowHost();
+        var sut = NewFailingSut(host, new InvalidOperationException("list failed"));
+
+        await sut.StartAsync();
+
+        var message = host.StartupFailureMessages.Single();
+        message.Should().Contain(nameof(InvalidOperationException),
+            because: "職員が報告できる手掛かりを残す（docs/operations.md §6）");
+        message.Should().NotContain("list failed",
+            because: "例外本文は保存先フルパス等を含みうる（CLAUDE.md ハード制約4）");
+    }
+
+    [Fact]
+    public async Task StartAsync_falls_back_to_shutdown_when_the_failure_screen_cannot_be_shown()
+    {
+        var host = new FakeInitialWindowHost { ShowStartupFailureThrows = true };
+        var sut = NewFailingSut(host, new InvalidOperationException("list failed"));
+
+        var act = () => sut.StartAsync();
+
+        await act.Should().NotThrowAsync();
         host.ShutdownCount.Should().Be(1);
+    }
+
+    private static FirstRunDesktopStartupOrchestrator NewFailingSut(
+        IInitialWindowHost host, Exception failure)
+    {
+        var repo = new InMemoryOfficeRepo { BeforeListAsync = _ => throw failure };
+        return new FirstRunDesktopStartupOrchestrator(
+            new FirstRunStartupCoordinator(new ListOfficesUseCase(repo)), host);
     }
 
     [Fact]
@@ -177,6 +209,8 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
         public int ShutdownCount { get; private set; }
         public Action? Registered { get; private set; }
         public Action? Cancelled { get; private set; }
+        public List<string> StartupFailureMessages { get; } = [];
+        public bool ShowStartupFailureThrows { get; init; }
 
         public void ShowMain() => ShowMainCount++;
 
@@ -185,6 +219,14 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
             ShowWizardCount++;
             Registered = registered;
             Cancelled = cancelled;
+        }
+
+        public void ShowStartupFailure(string message)
+        {
+            if (ShowStartupFailureThrows)
+                throw new InvalidOperationException("failure screen unavailable");
+
+            StartupFailureMessages.Add(message);
         }
 
         public void Shutdown() => ShutdownCount++;

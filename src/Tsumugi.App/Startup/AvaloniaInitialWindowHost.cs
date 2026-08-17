@@ -35,6 +35,17 @@ public sealed class AvaloniaInitialWindowHost(
         wizard.Show();
     }
 
+    public void ShowStartupFailure(string message)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+
+        // 代入だけでは表示されない。閉じると OnLastWindowClose から
+        // 終了時バックアップを経て終了する。
+        var window = new StartupFailureWindow(message);
+        desktop.MainWindow = window;
+        window.Show();
+    }
+
     /// <summary>
     /// <see cref="IClassicDesktopStyleApplicationLifetime.TryShutdown"/> で
     /// <c>ShutdownRequested</c> を発火し、App の終了時バックアップへ通す。

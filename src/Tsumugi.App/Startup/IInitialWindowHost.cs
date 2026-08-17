@@ -7,5 +7,12 @@ public interface IInitialWindowHost
 
     void ShowWizard(Action registered, Action cancelled);
 
+    /// <summary>
+    /// 起動処理が失敗したことを職員へ提示する。無言終了にすると
+    /// 「ダブルクリックしても何も起きない」としか見えず、報告もできない。
+    /// </summary>
+    /// <param name="message">保存先パスや氏名を含まない安全な要約。</param>
+    void ShowStartupFailure(string message);
+
     void Shutdown();
 }
