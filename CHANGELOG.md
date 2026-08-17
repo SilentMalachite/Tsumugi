@@ -47,6 +47,13 @@
 - 運用ガイド `docs/operations.md` と手動 QA 表 `docs/manual-qa.md` を追加した（AC4-11 の macOS 側）。macOS smoke を 2026-08-18 に記録。**Windows 実機 smoke は未実施**
 - AC4-9〜AC4-11: macOS まで完了。Windows 実機確認待ち。両 OS 完了を「AC クローズ」とは呼ばない
 
+### 修正（Fixed）— Phase 4 S5 レビュー指摘 (2026-08-18)
+
+- `build/publish.ps1` が `dotnet publish` の失敗を検出するようにした。`$ErrorActionPreference = "Stop"` は Windows PowerShell 5.1／PowerShell 7.0-7.2 ではネイティブコマンドに効かず、`$LASTEXITCODE` も未検査だったため、壊れたビルドが成功として配布されうる状態だった。`publish.sh` の `set -euo pipefail` と対称にし、両スクリプトの契約をテストで固定
+- 登録成功後の Window 差し替えで例外が出てもプロセスを落とさないようにした。`Registered?.Invoke()` が try/catch の外にあり、DB コミット後の MainWindow 構築で例外が出ると `AsyncRelayCommand` の async void 経路で UI スレッドへ再スローされていた。固定文言で再起動を案内し（例外本文は出さない）、永続化後は登録ボタンを無効化する
+- 起動処理の失敗を無言終了せず `StartupFailureWindow` で提示するようにした。従来はウィンドウを一つも出さずに終了コード 0 で消えており、職員には「何も起きない」としか見えなかった。表示は例外の型名のみで、保存先パス・氏名を含まない（ハード制約4）
+- `AccessibilityWiringTests` の列挙に App 直下の `*Window.axaml` を加えた。Window は `Views/` の外にあるため、`MainWindow`・`FirstRunWizardWindow` がハード制約5の機械判定をすり抜けていた。あわせて `AccessibilityDefaults` が全 `TemplatedControl` の既定 FontSize を `UiDefaults.MinimumFontSize` に合わせ、フォント拡大時にラベルだけ拡大して入力欄が据え置きになるのを解消
+
 ## Phase 4 S4 完了 (2026-08-17)
 
 - 精神障害者保健福祉手帳の更新アラートを実装した（AC4-5）。`DisabilityCertificatePolicy.FindRenewalDue`（精神・`NextRenewalDate` あり・残日数 0〜しきい値）→ Query UseCase → 既存 `DisabilityCertificateView` 内パネル。しきい値既定 30 日
