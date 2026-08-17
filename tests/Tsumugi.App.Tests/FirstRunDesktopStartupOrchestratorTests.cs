@@ -32,7 +32,7 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
             "u", DateTimeOffset.UnixEpoch, Guid.NewGuid()));
         var host = new FakeInitialWindowHost();
         var sut = new FirstRunDesktopStartupOrchestrator(
-            new FirstRunStartupCoordinator(new ListOfficesUseCase(repo)), host);
+            new FirstRunStartupCoordinator(new CountOfficesUseCase(repo)), host);
 
         await sut.StartAsync();
 
@@ -113,9 +113,9 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
     private static FirstRunDesktopStartupOrchestrator NewFailingSut(
         IInitialWindowHost host, Exception failure)
     {
-        var repo = new InMemoryOfficeRepo { BeforeListAsync = _ => throw failure };
+        var repo = new InMemoryOfficeRepo { BeforeCountAsync = _ => throw failure };
         return new FirstRunDesktopStartupOrchestrator(
-            new FirstRunStartupCoordinator(new ListOfficesUseCase(repo)), host);
+            new FirstRunStartupCoordinator(new CountOfficesUseCase(repo)), host);
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
     }
 
     private static FirstRunStartupCoordinator NewCoordinator() =>
-        new(new ListOfficesUseCase(new InMemoryOfficeRepo()));
+        new(new CountOfficesUseCase(new InMemoryOfficeRepo()));
 
     private sealed class FakeInitialWindowHost : IInitialWindowHost
     {

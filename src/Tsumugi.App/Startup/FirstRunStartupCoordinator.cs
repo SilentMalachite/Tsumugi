@@ -7,13 +7,13 @@ namespace Tsumugi.App.Startup;
 /// 事業所件数から初回ウィザード／メインの行き先を決める。
 /// migration・Window・DI には依存しない。
 /// </summary>
-public sealed class FirstRunStartupCoordinator(ListOfficesUseCase listOffices)
+public sealed class FirstRunStartupCoordinator(CountOfficesUseCase countOffices)
 {
     public async Task<FirstRunStartupDestination> DecideAsync(
         CancellationToken ct = default)
     {
-        var offices = await listOffices.ExecuteAsync(ct);
-        return FirstRunPolicy.NeedsFirstRun(offices.Count)
+        var officeCount = await countOffices.ExecuteAsync(ct);
+        return FirstRunPolicy.NeedsFirstRun(officeCount)
             ? FirstRunStartupDestination.Wizard
             : FirstRunStartupDestination.Main;
     }

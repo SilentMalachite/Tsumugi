@@ -136,6 +136,7 @@ internal sealed class InMemoryOfficeRepo : IOfficeRepository
 {
     private readonly List<Office> _list = [];
     public Func<CancellationToken, Task>? BeforeListAsync { get; set; }
+    public Func<CancellationToken, Task>? BeforeCountAsync { get; set; }
     public Func<CancellationToken, Task>? BeforeAddAsync { get; set; }
     public void Add(Office o) => _list.Add(o);
     public async Task AddAsync(Office o, CancellationToken ct)
@@ -157,5 +158,13 @@ internal sealed class InMemoryOfficeRepo : IOfficeRepository
     {
         if (BeforeListAsync is not null) await BeforeListAsync(ct);
         return _list;
+    }
+
+    // ListAsync へフォールバックしない。件数だけを見る経路が全件読み出しへ
+    // 戻っていないことを、テストから観測できるようにする。
+    public async Task<int> CountAsync(CancellationToken ct)
+    {
+        if (BeforeCountAsync is not null) await BeforeCountAsync(ct);
+        return _list.Count;
     }
 }

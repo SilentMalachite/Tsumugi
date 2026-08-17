@@ -44,6 +44,7 @@ public static class CompositionRoot
         // Phase 1: 事業所 (更新・一覧)
         services.AddScoped<UpdateOfficeUseCase>();
         services.AddScoped<ListOfficesUseCase>();
+        services.AddScoped<CountOfficesUseCase>();
 
         // Phase 1: 受給者
         services.AddScoped<RegisterRecipientUseCase>();
