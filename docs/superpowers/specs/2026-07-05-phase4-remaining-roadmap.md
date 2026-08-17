@@ -1,8 +1,8 @@
 # Tsumugi Phase 4 残余 実装ロードマップ（S2〜S5）
 
 > **Source**: `07_ClaudeCode_Phase4実装指示_リリース準備_Tsumugi.md` を接地したもの。
-> **Status**: 設計合意済（2026-07-05）/ 現況追記（2026-07-12）/ 現況追記（2026-07-26）/ 現況追記（2026-08-15）/ 現況追記（2026-08-16）/ 現況追記（2026-08-17）。S0・S1・S2・S3a・S4完了、S3b・S5未着手。各未着手スライスの詳細 spec は着手直前に本書から派生させる。Phase 3-4（R8-06制度実値投入。証跡: `docs/phase3-4-acceptance.md`）が2026-07-26に完了し、S2（bulk operations禁止＋NetArchTest ADR）に着手、2026-08-15に完了した（ADR 0050・0051、証跡: 本書 §2・§5、`CHANGELOG.md` Phase 4 S2 節）。続けてS3a（バックアップ運用化＋暗号化決着）に着手、2026-08-16に完了した（ADR 0003改・0052、証跡: 本書 §2・§5、`CHANGELOG.md` Phase 4 S3a 節）。S4（UI補完3点＋ContractedProvider ADR）は2026-08-17に完了した（ADR 0053、証跡: 本書 §2・§5・§8.4、`CHANGELOG.md` Phase 4 S4 節）。S3b（暗号化バックアップ）は独立して未着手のまま残る。次の未着手は **S5**。
-> **位置づけ**: Phase 4 全 6 スライスのうち **S0**（`v0.3.0-phase4-s0`）・**S1**（`v0.3.1-phase4-s1`）・**S2**（2026-08-15完了、版タグ未付与）・**S3a**（2026-08-16完了、版タグ未付与）・**S4**（2026-08-17完了、版タグ未付与）は完了。本書は残りのS3b・S5を管理する。平均工賃の正式定義はADR 0023で確定し、請求用実装をPhase 3-1 Task 15へ移管した。
+> **Status**: 設計合意済（2026-07-05）/ 現況追記（2026-07-12）/ 現況追記（2026-07-26）/ 現況追記（2026-08-15）/ 現況追記（2026-08-16）/ 現況追記（2026-08-17）/ 現況追記（2026-08-18）。S0・S1・S2・S3a・S4完了、S5 は **macOS まで完了・Windows 実機 smoke は未実施**。S3b（暗号化バックアップ）は独立して未着手。Phase 3-4（R8-06制度実値投入。証跡: `docs/phase3-4-acceptance.md`）が2026-07-26に完了し、S2（bulk operations禁止＋NetArchTest ADR）に着手、2026-08-15に完了した（ADR 0050・0051、証跡: 本書 §2・§5、`CHANGELOG.md` Phase 4 S2 節）。続けてS3a（バックアップ運用化＋暗号化決着）に着手、2026-08-16に完了した（ADR 0003改・0052、証跡: 本書 §2・§5、`CHANGELOG.md` Phase 4 S3a 節）。S4（UI補完3点＋ContractedProvider ADR）は2026-08-17に完了した（ADR 0053、証跡: 本書 §2・§5・§8.4、`CHANGELOG.md` Phase 4 S4 節）。S5（配布＋初回セットアップ＋運用ガイド＋macOS smoke）は2026-08-18に部分完了した（ADR 0054、証跡: 本書 §2・§5・§8.5、`docs/operations.md`、`docs/manual-qa.md`、`CHANGELOG.md` Phase 4 S5 節）。**AC4-9〜11 を完全達成とは呼ばない**。
+> **位置づけ**: Phase 4 全 6 スライスのうち **S0**（`v0.3.0-phase4-s0`）・**S1**（`v0.3.1-phase4-s1`）・**S2**（2026-08-15完了、版タグ未付与）・**S3a**（2026-08-16完了、版タグ未付与）・**S4**（2026-08-17完了、版タグ未付与）・**S5**（2026-08-18 部分完了、Windows 実機未実施、版タグ未付与）は実装済み。本書は残りの S3b と S5 の Windows 実機確認を管理する。平均工賃の正式定義はADR 0023で確定し、請求用実装をPhase 3-1 Task 15へ移管した。
 
 ---
 
@@ -21,7 +21,7 @@ Phase 4残余（S2〜S5）を独立レビュー可能な単位に分割し、着
 | **S3a ✅** | (B) バックアップ運用化＋暗号化決着 | 終了時自動バックアップ／世代管理（同日最新1つ×7日）／復元 UseCase／保存先権限強制（`SecureFileSystem` 共通化）／暗号化 ADR 0003 決着（(a) 平文＋OSファイル権限 ＋ (c) OSディスク暗号化への委譲。SQLCipher 不採用） | AC4-3, AC4-4 | 0003 改・0052 | 完了（2026-08-16） | 解消済み |
 | **S3b** | (B) 暗号化バックアップ（「控えを保存」の任意暗号化） | AES-256-GCM 単発によるバックアップファイル暗号化（spec §3 決定7） | — | 着手時に再採番 | 中（1 PR） | S3a 完了により着手可能。**未着手** |
 | **S4 ✅** | (C) UI 補完 3 点＋ContractedProvider ADR | `DisabilityCertificatePolicy.FindRenewalDue`／`FaceSheetDiff.Compare`／障害種別整合警告純粋関数／既存タブへの埋め込みパネル・バナー／ContractedProvider ADR 0053 | AC4-5〜AC4-8 | 0053 | 完了（2026-08-17） | 解消済み |
-| **S5** | (D) 発行＋初回セットアップ＋運用ガイド＋手動 QA | `build/publish.sh`／`build/publish.ps1`／初回セットアップウィザード VM＋View／`docs/operations.md`／`docs/manual-qa.md`／両 OS smoke 実施記録 | AC4-9〜AC4-11 | 着手時に再採番 | 中（1〜2 PR＋実機 QA） | 実機（macOS/Windows）が必要 |
+| **S5 部分完了** | (D) 発行＋初回セットアップ＋運用ガイド＋手動 QA | `build/publish.sh`／`build/publish.ps1`／初回セットアップウィザード／`docs/operations.md`／`docs/manual-qa.md`／macOS smoke 実施記録 | AC4-9〜AC4-11（macOS まで） | 0054 | 部分完了（2026-08-18）。Windows 実機 smoke は未実施 | Windows 実機確認が残る |
 | **Phase 3-1へ移管** | 請求用平均工賃月額 | ADR 0023で正式定義とPhase 2指標との責務分離を確定。`AverageWageCalculator`はPhase 3-1 Task 15で実装 | AC4-14 / AC3-2 | 0023 | Phase 3-1計画で管理 | 定義ブロッカー解消済み |
 
 **運用値-1（KouchinModule突合）はS0で完了済み**。運用値-2（請求用平均工賃月額）はADR 0023で正式定義を確定し、Phase 2の`AverageWageMetric`を破壊変更せず、請求専用実装へ分離した。
@@ -30,7 +30,7 @@ Phase 4残余（S2〜S5）を独立レビュー可能な単位に分割し、着
 
 ## 3. 着手順
 
-S1完了後の残順序は **S2 → S3 → S4 → S5**（Phase 4文書 §8）。並行に独立系統として動かせるが、レビュー波を作らないため直列で回す。請求用平均工賃はPhase 3-1計画で別管理する。S2完了（2026-08-15）後の残順序は **S3 → S4 → S5**。S3a完了（2026-08-16）後の残順序は **S4 → S5**。S4完了（2026-08-17）後の残順序は **S5**。S3b（暗号化バックアップ）はS3aから独立して着手できるが**未着手のまま**残っている。
+S1完了後の残順序は **S2 → S3 → S4 → S5**（Phase 4文書 §8）。並行に独立系統として動かせるが、レビュー波を作らないため直列で回す。請求用平均工賃はPhase 3-1計画で別管理する。S2完了（2026-08-15）後の残順序は **S3 → S4 → S5**。S3a完了（2026-08-16）後の残順序は **S4 → S5**。S4完了（2026-08-17）後の残順序は **S5**。S5 は 2026-08-18 に macOS まで部分完了。S3b（暗号化バックアップ）はS3aから独立して着手できるが**未着手のまま**残っている。Windows 実機 smoke も未実施。
 
 ---
 
@@ -48,7 +48,7 @@ S5 (配布)           ─→ S1〜S4 完了物すべてが実機 smoke の対象
 請求用平均工賃       ─→ ADR 0023の契約をPhase 3-1 Task 15で実装
 ```
 
-S1→S5・S3a→S5・S4→S5の依存はいずれも解消済み（S5のみ未着手）。S2は独立する。S3b（暗号化バックアップ）はS5運用ガイドの前提ではない（S3aの決定7で扱いを確定済み。運用ガイドはS3aの成果のみを前提に書ける）。**未着手は S5 と独立の S3b**。
+S1→S5・S3a→S5・S4→S5の依存はいずれも解消済み。S2は独立する。S3b（暗号化バックアップ）はS5運用ガイドの前提ではない（S3aの決定7で扱いを確定済み。運用ガイドはS3aの成果のみを前提に書ける）。**未着手は独立の S3b と、S5 の Windows 実機 smoke**。
 
 ---
 
@@ -64,9 +64,9 @@ S1→S5・S3a→S5・S4→S5の依存はいずれも解消済み（S5のみ未�
 | AC4-6 フェースシート差分表示 | S4 | ✅ 完了 | `FaceSheetDiff.Compare`＋既存 `FaceSheetView` 埋め込み |
 | AC4-7 障害種別整合警告 | S4 | ✅ 完了 | 警告のみ／保存は妨げない。証・手帳の両 View にバナー |
 | AC4-8 ContractedProvider 運用 ADR | S4 | ✅ 完了 | ADR 0053。工賃=`Contract`／請求CSV=`ContractedProvider`（自社行必須・ADR 0032維持） |
-| AC4-9 self-contained 発行 smoke | S5 | 未着手 | `win-x64` / `osx-arm64` |
-| AC4-10 初回セットアップウィザード | S5 | 未着手 | DBなし判定＋事業所登録 |
-| AC4-11 運用ガイド＋手動 QA 実施記録 | S5 | 未着手 | 両OS各1回 |
+| AC4-9 self-contained 発行 smoke | S5 | 部分完了 | `osx-arm64` 実機実施済み。`win-x64` はスクリプト／静的契約のみ。完全達成とは呼ばない |
+| AC4-10 初回セットアップウィザード | S5 | ✅ 完了 | `Office` 0 件判定＋専用 Wizard。キャンセルはアプリ終了 |
+| AC4-11 運用ガイド＋手動 QA 実施記録 | S5 | 部分完了 | `operations.md`＋`manual-qa.md`＋macOS 記録。Windows 実機は未実施行 |
 | AC4-12 bulk 禁止スキャナ＋NetArchTest ADR | S2 | ✅ 完了 | 意図的違反で赤確認済み（T1〜T3で実測。証跡: ADR 0050 テスト節） |
 | AC4-13 KouchinModule 突合正式化 | S0 | ✅ 完了 | ADR 0012 v2 |
 | AC4-14 平均工賃月額 正式化 | Phase 3-1へ移管 | 定義確定 | ADR 0023。請求用実装はPhase 3-1 Task 15 |
@@ -86,7 +86,7 @@ S1→S5・S3a→S5・S4→S5の依存はいずれも解消済み（S5のみ未�
 | 再採番（当初0021） | 決着 | S2 | NetArchTest 採否（推奨: 見送り） |
 | 再採番（当初0022） | 決着 | S3 | バックアップ運用化（世代・自動・復元・権限） |
 | 0053（実績） | 確定 | S4 | ContractedProvider / Contract 責務分離（工賃=`Contract`／請求CSV=`ContractedProvider`・自社行必須。当初「自社は Contract のみ」案は不採用） |
-| 再採番（当初0024） | 決着 | S5 | 配布構成（self-contained・単一ファイル・トリミング既定オフ） |
+| 0054（実績） | 確定 | S5 | 配布構成（self-contained・単一ファイル・trim 無効。Windows 実機 smoke は未実施） |
 
 いずれも「暫定 → 確定」パターンではなく、**初手から確定**として書く（一次情報の抜けがある場合のみ、その項目だけ open-questions 継続）。
 
@@ -157,20 +157,15 @@ S1→S5・S3a→S5・S4→S5の依存はいずれも解消済み（S5のみ未�
 - `docs/open-questions.md`（手帳更新／差分／整合警告／ContractedProvider の 4 項クローズ）
 - CHANGELOG 更新（Phase 4 S4 節）
 
-### 8.5 S5（配布＋初回セットアップ＋運用ガイド＋手動 QA）
+### 8.5 S5（配布＋初回セットアップ＋運用ガイド＋手動 QA）— 部分完了（2026-08-18）
 
-- `build/publish.sh`（macOS）／`build/publish.ps1`（Windows）
-- Application:
-  - `FirstRunPolicy.cs`（純粋関数、DB 有無→初回判定）
-  - `RegisterFirstRunUseCase.cs`（事業所登録＋管理者名）
-- App:
-  - `FirstRunWizardViewModel` / `FirstRunWizardView`
-  - `App.axaml.cs` の起動フローに `FirstRunPolicy` を挿入
-- `docs/operations.md`（新規、日本語運用ガイド）
-- `docs/manual-qa.md`（新規、実施記録テーブル付き）
-- 配布構成ADR（新規、番号は着手時に採番。トリミング既定オフ）
-- 両 OS 実機 smoke 実施 → `docs/manual-qa.md` 追記（S5 の最終コミット）
-- CHANGELOG 更新
+- `build/publish.sh`（`osx-arm64`）／`build/publish.ps1`（`win-x64`）
+- Domain: `FirstRunPolicy.NeedsFirstRun(int)`（`Office` 件数 0 で初回。DB ファイル有無は使わない）
+- Application: `RegisterFirstRunUseCase`（既存 `RegisterOfficeUseCase` へ委譲。管理者名は `RepresentativeTitleAndName`）
+- App: `FirstRunWizardWindow` を MainWindow より先に表示。成功時は Main を先に `Show` してから Wizard を閉じる。キャンセルは `TryShutdown` で終了時バックアップを経由
+- `docs/operations.md`／`docs/manual-qa.md`／[ADR 0054](../../../decisions/0054-distribution-configuration.md)
+- macOS 実機 smoke 実施済み。**Windows 実機 smoke は未実施**（AC4-9〜11 の完全クローズではない）
+- CHANGELOG 更新（Phase 4 S5 節）
 
 ---
 

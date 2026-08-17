@@ -6,20 +6,20 @@ AC4-9〜AC4-11 向けの実機／発行 smoke 記録。設計は `docs/superpowe
 
 | OS | 実施日 | 実施者 | OS・ハードウェア | 発行物 SHA-256 | 結果 | 備考 |
 |---|---|---|---|---|---|---|
-| macOS (`osx-arm64`) | （未実施） | （未記入） | （未記入） | （未記入） | 未実施 | Task 6 で記録する |
+| macOS (`osx-arm64`) | 2026-08-18 | 利用者確認 | macOS darwin 25.6.0 / arm64 | `7bd123a5170a59a46120e1e829ab26e31a324c45ae6d0cc5968d8902c1a5c832`（`Tsumugi.App`） | 実施・合格 | `./build/publish.sh` 成功。ネイティブ dylib はサイドカーとして同梱。Windows 実機は未実施 |
 | Windows (`win-x64`) | （未実施） | （未記入） | （未記入） | （未記入） | 未実施 | Windows 実機未実施。発行スクリプト契約テストのみ実行済み |
 
 ## チェック表（macOS / `osx-arm64`）
 
 | # | 項目 | 結果 | 備考 |
 |---|---|---|---|
-| 1 | 発行スクリプト成功、単一ファイル生成（`./build/publish.sh` → `artifacts/publish/osx-arm64/`） | 未実施 | |
-| 2 | クリーンな ApplicationData で起動すると Wizard が出る | 未実施 | |
-| 3 | `RegionGrade.None` は登録できず、必須／任意入力エラーが安全に表示される | 未実施 | |
-| 4 | 妥当な事業所・管理者職氏名を登録できる | 未実施 | |
-| 5 | 再起動後は Wizard なしで MainWindow | 未実施 | |
-| 6 | 終了時自動バックアップが生成される（[ADR 0052](decisions/0052-backup-operations.md)） | 未実施 | |
-| 7 | キーボード操作（`Ctrl+Enter`／`Escape`、フォーカス順、フォント拡大、Reduce Motion） | 未実施 | |
+| 1 | 発行スクリプト成功、単一ファイル生成（`./build/publish.sh` → `artifacts/publish/osx-arm64/`） | 実施 | `Tsumugi.App`（Mach-O arm64、約 103MB）。`PublishSingleFile=true` だが native dylib／フォントはサイドカー |
+| 2 | クリーンな ApplicationData で起動すると Wizard が出る | 実施 | |
+| 3 | `RegionGrade.None` は登録できず、必須／任意入力エラーが安全に表示される | 実施 | |
+| 4 | 妥当な事業所・管理者職氏名を登録できる | 実施 | |
+| 5 | 再起動後は Wizard なしで MainWindow | 実施 | |
+| 6 | 終了時自動バックアップが生成される（[ADR 0052](decisions/0052-backup-operations.md)） | 実施 | |
+| 7 | キーボード操作（`Ctrl+Enter`／`Escape`、フォーカス順、フォント拡大、Reduce Motion） | 実施 | |
 
 ## チェック表（Windows / `win-x64`）
 
