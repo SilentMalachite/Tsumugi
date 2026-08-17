@@ -57,6 +57,12 @@
 - 地域区分未選択（`RegionGrade.None`）の拒否を `RegisterOfficeUseCase.ValidateRegion` へ移し、登録・更新の両入口から呼ぶようにした。従来は初回ウィザード専用のガードで、`OfficeView` は `None` を選択肢に残し `UpdateOfficeUseCase` は `region` を未検証だったため、事業所管理画面から同じ不正状態へ戻せた
 - 入力検証の文言から `(Parameter 'officeNumber')` を除いた。`InputValidationException`（`ArgumentException` 派生・paramName を基底へ渡さず `FieldName` で保持）を追加し、事業所の入力検証をこれに置き換え。引数の取り違えなどプログラマ側の誤りは従来どおり `ArgumentException`。同じ欠陥を持っていた `DateValidationException` も基底を差し替え
 - 画面の色をセマンティックなリソース（`ErrorForeground` ほか）へ集約し、色リテラル44箇所を `DynamicResource` へ置き換えた。初回ウィザードのエラー色 `#FFB00020` はダーク既定でコントラスト比約 2.2:1（AA 未満）。あわせて `CertificateView` / `DisabilityCertificateView` の整合性警告パネルが `Background="#FFF3CD"`（ほぼ白）＋ 明るい既定文字色で**ダーク既定では読めなかった**のを修正。直書き禁止ゲートを `AccessibilityWiringTests` に追加
+- 初回ウィザードの寿命状態を `FirstRunWizardLifecycle`（Avalonia 非依存）へ切り出し、登録完了・終了要求それぞれの再入ガードと、Closing を許可する条件を振る舞いで検証できるようにした。`OnRegistered` には `RequestCancellation` にあったガードが無かった
+- `AvaloniaInitialWindowHost.CompleteRegistration` を切り出し、「MainWindow を出してからウィザードを閉じる」順序を振る舞いで固定した。従来のテストは別メソッドにある文字列の `IndexOf` 比較で、メソッドの宣言順に依存するだけで実行順序を証明しておらず、インデント込みの完全一致も固定していた
+- 初回起動判定を `SELECT COUNT(*)` にした（`IOfficeRepository.CountAsync` / `CountOfficesUseCase`）。従来は全 `Office` を materialize し `OfficeDto` 10 フィールドへ射影してから `.Count` だけを見ていた
+- 事業所フォームの状態を `OfficeFormViewModelBase` へ、`NullIfEmpty` を `InputText` へ集約した。前者は `OfficeViewModel` と `FirstRunWizardViewModel` の逐語コピー、後者は**4箇所**のコピー（うち2つは引数名が割れていた）
+- テストアセンブリ内に6実装あったリポジトリルート解決を `RepositoryPaths` へ集約した
+- `.gitignore` の除外を ADR 0054 決定2 が名指しする `artifacts/publish/` へ揃えた。`artifacts/` 全体の除外は .NET SDK の既定 `ArtifactsPath` ルートを巻き込む
 
 ## Phase 4 S4 完了 (2026-08-17)
 
