@@ -32,5 +32,10 @@ public sealed class AvaloniaInitialWindowHost(
         desktop.MainWindow = wizard;
     }
 
-    public void Shutdown() => desktop.Shutdown();
+    /// <summary>
+    /// <see cref="IClassicDesktopStyleApplicationLifetime.TryShutdown"/> で
+    /// <c>ShutdownRequested</c> を発火し、App の終了時バックアップへ通す。
+    /// 直接 <c>Shutdown()</c> すると handler を bypass する。
+    /// </summary>
+    public void Shutdown() => desktop.TryShutdown();
 }

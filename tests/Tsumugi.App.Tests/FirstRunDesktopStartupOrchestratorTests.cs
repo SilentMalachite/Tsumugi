@@ -112,6 +112,28 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
                 because: "登録成功時はメインウィンドウを先に設定してからウィザードを閉じる");
     }
 
+    [Fact]
+    public void AvaloniaInitialWindowHost_shutdown_requests_via_TryShutdown_not_direct_Shutdown()
+    {
+        var root = FindRepositoryRoot();
+        var host = File.ReadAllText(Path.Combine(
+            root, "src", "Tsumugi.App", "Startup", "AvaloniaInitialWindowHost.cs"));
+        var app = File.ReadAllText(Path.Combine(
+            root, "src", "Tsumugi.App", "App.axaml.cs"));
+
+        host.Should().Contain("TryShutdown(",
+            because: "TryShutdown は ShutdownRequested を発火し、終了時バックアップを経由できる");
+        host.Should().NotContain("desktop.Shutdown(",
+            because: "直接 Shutdown すると ShutdownRequested を bypass してバックアップを飛ばす");
+
+        app.IndexOf("ShutdownRequested += OnShutdownRequested", StringComparison.Ordinal)
+            .Should().BeLessThan(
+                app.IndexOf("orchestrator.StartAsync()", StringComparison.Ordinal),
+                because: "初回終了要求より先に終了時バックアップ handler を登録する");
+        app.Should().Contain("desktop.Shutdown(",
+            because: "バックアップ完了後の最終終了は再入 guard 付きで Shutdown する");
+    }
+
     private static FirstRunStartupCoordinator NewCoordinator() =>
         new(new ListOfficesUseCase(new InMemoryOfficeRepo()));
 
