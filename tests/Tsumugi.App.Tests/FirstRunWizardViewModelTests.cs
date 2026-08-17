@@ -162,19 +162,66 @@ public sealed class FirstRunWizardViewModelTests
     }
 
     [Fact]
-    public async Task RegisterCommand_callback_exception_does_not_report_register_failure()
+    public async Task RegisterCommand_does_not_propagate_exception_from_Registered_callback()
     {
+        // Registered は Window 差し替え（MainWindow 構築）を呼ぶ。ここで例外が漏れると
+        // AsyncRelayCommand の async void 経路で UI スレッドへ再スローされ、
+        // 事業所を永続化した直後にプロセスが落ちる。
         var vm = NewVm();
         FillValid(vm);
         vm.Registered += () => throw new InvalidOperationException("window switch failed");
 
         var act = () => vm.RegisterCommand.ExecuteAsync(null);
 
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("window switch failed");
-        vm.SaveErrorMessage.Should().BeNull();
+        await act.Should().NotThrowAsync();
         vm.IsSaving.Should().BeFalse();
         (await _repo.ListAsync(default)).Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task RegisterCommand_reports_window_switch_failure_without_exposing_exception_detail()
+    {
+        var vm = NewVm();
+        FillValid(vm);
+        vm.Registered += () => throw new InvalidOperationException("window switch failed");
+
+        await vm.RegisterCommand.ExecuteAsync(null);
+
+        vm.SaveErrorMessage.Should().NotBeNullOrWhiteSpace();
+        vm.SaveErrorMessage.Should().NotContain("window switch failed",
+            because: "例外本文には保存先パス等が混ざりうる（CLAUDE.md ハード制約4）");
+        vm.SaveErrorMessage.Should().Contain("再起動",
+            because: "登録は完了しているので、職員がとるべき行動は再起動だと伝える");
+    }
+
+    [Fact]
+    public async Task RegisterCommand_is_disabled_after_registration_so_a_failed_switch_cannot_retry()
+    {
+        // 登録済みで再実行すると「既に登録されています」になり、職員には原因が読めない。
+        var vm = NewVm();
+        FillValid(vm);
+        vm.Registered += () => throw new InvalidOperationException("window switch failed");
+
+        await vm.RegisterCommand.ExecuteAsync(null);
+
+        vm.RegisterCommand.CanExecute(null).Should().BeFalse();
+        (await _repo.ListAsync(default)).Should().ContainSingle();
+    }
+
+    [Fact]
+    public async Task CancelCommand_stays_available_after_a_failed_window_switch()
+    {
+        // 唯一の脱出経路。終了後の再起動では Office が 1 件あるので MainWindow へ進む。
+        var vm = NewVm();
+        FillValid(vm);
+        vm.Registered += () => throw new InvalidOperationException("window switch failed");
+        var cancelled = 0;
+        vm.Cancelled += () => cancelled++;
+
+        await vm.RegisterCommand.ExecuteAsync(null);
+        vm.CancelCommand.Execute(null);
+
+        cancelled.Should().Be(1);
     }
 
     [Fact]
