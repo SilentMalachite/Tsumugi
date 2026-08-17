@@ -136,12 +136,8 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
         codeBehind.Should().Contain("Registered");
         codeBehind.Should().Contain("Cancelled");
         codeBehind.Should().Contain("Closing");
-
-        var host = File.ReadAllText(Path.Combine(
-            root, "src", "Tsumugi.App", "Startup", "AvaloniaInitialWindowHost.cs"));
-        host.IndexOf("registered();", StringComparison.Ordinal)
-            .Should().BeLessThan(host.IndexOf("wizard.Close();", StringComparison.Ordinal),
-                because: "登録成功時はメインウィンドウを先に設定してからウィザードを閉じる");
+        // 「MainWindow を出してからウィザードを閉じる」順序は
+        // CompleteRegistration_shows_main_before_closing_the_wizard が振る舞いで担保する。
     }
 
     [Fact]
@@ -167,21 +163,45 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
     }
 
     [Fact]
-    public void AvaloniaInitialWindowHost_shows_each_window_before_replacing_or_closing_wizard()
+    public void CompleteRegistration_shows_main_before_closing_the_wizard()
     {
-        var root = RepositoryPaths.Root;
-        var host = File.ReadAllText(Path.Combine(
-            root, "src", "Tsumugi.App", "Startup", "AvaloniaInitialWindowHost.cs"));
+        // Close を先にすると最後の Window が消えて desktop が終了しうる。
+        // 順序そのものを振る舞いで検証する（ソース上の出現位置ではなく）。
+        var order = new List<string>();
 
-        host.Should().Contain(
-            "desktop.MainWindow = mainWindow;\n        mainWindow.Show();",
+        AvaloniaInitialWindowHost.CompleteRegistration(
+            showMain: () => order.Add("show-main"),
+            closeWizard: () => order.Add("close-wizard"));
+
+        order.Should().Equal(["show-main", "close-wizard"]);
+    }
+
+    [Fact]
+    public void CompleteRegistration_leaves_the_wizard_open_when_showing_main_fails()
+    {
+        // 差し替えが失敗したのにウィザードを閉じると、ウィンドウが1つも無い状態で
+        // 職員が取り残される。FirstRunWizardViewModel 側の案内も見えない。
+        var closed = 0;
+
+        var act = () => AvaloniaInitialWindowHost.CompleteRegistration(
+            showMain: () => throw new InvalidOperationException("show failed"),
+            closeWizard: () => closed++);
+
+        act.Should().Throw<InvalidOperationException>();
+        closed.Should().Be(0);
+    }
+
+    [Fact]
+    public void AvaloniaInitialWindowHost_shows_each_window_instead_of_only_assigning_it()
+    {
+        var host = File.ReadAllText(Path.Combine(
+            RepositoryPaths.AppProject, "Startup", "AvaloniaInitialWindowHost.cs"));
+
+        // 空白・改行の差では落ちないようにする（整形しただけで赤くなるのは退行検出ではない）。
+        host.Should().MatchRegex(@"desktop\.MainWindow\s*=\s*mainWindow;\s*mainWindow\.Show\(\);",
             because: "MainWindow の代入だけでは表示されないため");
-        host.Should().Contain(
-            "desktop.MainWindow = wizard;\n        wizard.Show();",
+        host.Should().MatchRegex(@"desktop\.MainWindow\s*=\s*wizard;\s*wizard\.Show\(\);",
             because: "Wizard の代入だけでは表示されないため");
-        host.IndexOf("mainWindow.Show();", StringComparison.Ordinal)
-            .Should().BeLessThan(host.IndexOf("wizard.Close();", StringComparison.Ordinal),
-                because: "登録成功時は MainWindow の Show 完了後にのみ Wizard を閉じる");
     }
 
     [Fact]
