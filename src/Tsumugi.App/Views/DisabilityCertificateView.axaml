@@ -26,7 +26,8 @@
                     <DataGrid ItemsSource="{Binding RenewalDueItems}" IsReadOnly="True"
                               AutoGenerateColumns="False" MaxHeight="180">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="更新予定日" Binding="{Binding NextRenewalDate}" Width="*" />
+                            <DataGridTextColumn Header="利用者" Binding="{Binding RecipientName}" Width="*" />
+                            <DataGridTextColumn Header="更新予定日" Binding="{Binding NextRenewalDate}" Width="Auto" />
                             <DataGridTextColumn Header="残日数" Binding="{Binding RemainingDays}" Width="Auto" />
                         </DataGrid.Columns>
                     </DataGrid>

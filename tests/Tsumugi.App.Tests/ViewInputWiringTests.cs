@@ -247,6 +247,20 @@ public sealed class ViewInputWiringTests
         xml.Should().Contain("{Binding CsvExportSection.HasMissingFields}");
     }
 
+    // NOTE(teeth): 更新アラート一覧は利用者を特定できないと運用できない。
+    // RecipientName を持つ表示行があっても XAML に列が無いと画面に出ない。
+    [Fact]
+    public void DisabilityCertificateView_renewal_grid_binds_recipient_name_with_japanese_header()
+    {
+        var xml = ReadView("DisabilityCertificateView.axaml");
+
+        xml.Should().Contain("ItemsSource=\"{Binding RenewalDueItems}\"");
+        xml.Should().Contain("Header=\"利用者\"",
+            because: "更新予定一覧の利用者列は日本語ヘッダで識別できる必要がある");
+        xml.Should().Contain("Binding=\"{Binding RecipientName}\"",
+            because: "更新予定一覧は RecipientName（未取得時はフォールバック文言）を表示する必要がある");
+    }
+
     private static string ReadView(string fileName)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
