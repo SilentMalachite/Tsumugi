@@ -47,6 +47,17 @@
 - 運用ガイド `docs/operations.md` と手動 QA 表 `docs/manual-qa.md` を追加した（AC4-11 の macOS 側）。macOS smoke を 2026-08-18 に記録。**Windows 実機 smoke は未実施**
 - AC4-9〜AC4-11: macOS まで完了。Windows 実機確認待ち。両 OS 完了を「AC クローズ」とは呼ばない
 
+### 修正（Fixed）— Phase 4 S5 レビュー指摘 (2026-08-18)
+
+- `build/publish.ps1` が `dotnet publish` の失敗を検出するようにした。`$ErrorActionPreference = "Stop"` は Windows PowerShell 5.1／PowerShell 7.0-7.2 ではネイティブコマンドに効かず、`$LASTEXITCODE` も未検査だったため、壊れたビルドが成功として配布されうる状態だった。`publish.sh` の `set -euo pipefail` と対称にし、両スクリプトの契約をテストで固定
+- 登録成功後の Window 差し替えで例外が出てもプロセスを落とさないようにした。`Registered?.Invoke()` が try/catch の外にあり、DB コミット後の MainWindow 構築で例外が出ると `AsyncRelayCommand` の async void 経路で UI スレッドへ再スローされていた。固定文言で再起動を案内し（例外本文は出さない）、永続化後は登録ボタンを無効化する
+- 起動処理の失敗を無言終了せず `StartupFailureWindow` で提示するようにした。従来はウィンドウを一つも出さずに終了コード 0 で消えており、職員には「何も起きない」としか見えなかった。表示は例外の型名のみで、保存先パス・氏名を含まない（ハード制約4）
+- `AccessibilityWiringTests` の列挙に App 直下の `*Window.axaml` を加えた。Window は `Views/` の外にあるため、`MainWindow`・`FirstRunWizardWindow` がハード制約5の機械判定をすり抜けていた。あわせて `AccessibilityDefaults` が全 `TemplatedControl` の既定 FontSize を `UiDefaults.MinimumFontSize` に合わせ、フォント拡大時にラベルだけ拡大して入力欄が据え置きになるのを解消
+- 配布単位が `artifacts/publish/<RID>/` ディレクトリ全体であることを手順・ADR・発行スクリプトの出力に固定した。`IncludeNativeLibrariesForSelfExtract` を立てていないためネイティブライブラリはサイドカーで残り、`NOTICE` と `NotoSansJP.LICENSE.txt` も隣に出力される。実行ファイル1個のコピーでは起動失敗またはライセンス欠落になる（ADR 0054 決定2-1）
+- 地域区分未選択（`RegionGrade.None`）の拒否を `RegisterOfficeUseCase.ValidateRegion` へ移し、登録・更新の両入口から呼ぶようにした。従来は初回ウィザード専用のガードで、`OfficeView` は `None` を選択肢に残し `UpdateOfficeUseCase` は `region` を未検証だったため、事業所管理画面から同じ不正状態へ戻せた
+- 入力検証の文言から `(Parameter 'officeNumber')` を除いた。`InputValidationException`（`ArgumentException` 派生・paramName を基底へ渡さず `FieldName` で保持）を追加し、事業所の入力検証をこれに置き換え。引数の取り違えなどプログラマ側の誤りは従来どおり `ArgumentException`。同じ欠陥を持っていた `DateValidationException` も基底を差し替え
+- 画面の色をセマンティックなリソース（`ErrorForeground` ほか）へ集約し、色リテラル44箇所を `DynamicResource` へ置き換えた。初回ウィザードのエラー色 `#FFB00020` はダーク既定でコントラスト比約 2.2:1（AA 未満）。あわせて `CertificateView` / `DisabilityCertificateView` の整合性警告パネルが `Background="#FFF3CD"`（ほぼ白）＋ 明るい既定文字色で**ダーク既定では読めなかった**のを修正。直書き禁止ゲートを `AccessibilityWiringTests` に追加
+
 ## Phase 4 S4 完了 (2026-08-17)
 
 - 精神障害者保健福祉手帳の更新アラートを実装した（AC4-5）。`DisabilityCertificatePolicy.FindRenewalDue`（精神・`NextRenewalDate` あり・残日数 0〜しきい値）→ Query UseCase → 既存 `DisabilityCertificateView` 内パネル。しきい値既定 30 日

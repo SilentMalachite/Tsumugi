@@ -113,6 +113,93 @@ public sealed class RegisterOfficeUseCaseTests
         await act.Should().ThrowAsync<Tsumugi.Application.OptimisticConcurrencyException>();
     }
 
+    [Theory]
+    [InlineData("", "名称", "事業所番号は必須です。")]
+    [InlineData("1234567890", "", "事業所名は必須です。")]
+    public async Task Register_validation_message_carries_no_parameter_name_decoration(
+        string officeNumber, string name, string expected)
+    {
+        // ViewModel は ex.Message をそのまま画面に出す。ArgumentException(message, paramName) の
+        // Message には " (Parameter 'officeNumber')" が付き、職員に英語のデバッグ装飾が見える。
+        var sut = new RegisterOfficeUseCase(
+            new FakeOfficeRepository(), new FakeUnitOfWork(), Clock);
+
+        var act = () => sut.ExecuteAsync(
+            officeNumber, name, ServiceCategory.TypeB, RegionGrade.Grade4,
+            "tester", CancellationToken.None);
+
+        var ex = (await act.Should().ThrowAsync<ArgumentException>()).Which;
+        ex.Message.Should().Be(expected);
+    }
+
+    [Fact]
+    public async Task Register_optional_field_validation_message_carries_no_parameter_name_decoration()
+    {
+        var sut = new RegisterOfficeUseCase(
+            new FakeOfficeRepository(), new FakeUnitOfWork(), Clock);
+
+        var act = () => sut.ExecuteAsync(
+            "1234567890", "名称", ServiceCategory.TypeB, RegionGrade.Grade4,
+            postalCode: "   ", address: null, phoneNumber: null,
+            representativeTitleAndName: null, "tester", CancellationToken.None);
+
+        var ex = (await act.Should().ThrowAsync<ArgumentException>()).Which;
+        ex.Message.Should().Be("郵便番号は空白以外を指定してください。");
+    }
+
+    [Fact]
+    public async Task Update_validation_message_carries_no_parameter_name_decoration()
+    {
+        var token = Guid.NewGuid();
+        var existing = Office.Create(Guid.NewGuid(), "1234567890", "旧名",
+            ServiceCategory.TypeB, RegionGrade.Grade3, "u", DateTimeOffset.UnixEpoch, token);
+        var repo = new FakeOfficeRepository { Existing = existing };
+        var sut = new UpdateOfficeUseCase(repo, new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
+
+        var act = () => sut.ExecuteAsync(
+            existing.Id, expectedConcurrencyToken: token,
+            "", ServiceCategory.TypeB, RegionGrade.Grade3, "tester", CancellationToken.None);
+
+        var ex = (await act.Should().ThrowAsync<ArgumentException>()).Which;
+        ex.Message.Should().Be("事業所名は必須です。");
+    }
+
+    [Fact]
+    public async Task Register_rejects_region_none()
+    {
+        // 地域区分単価は報酬算定に直結する。初回ウィザードだけで弾いても、
+        // 事業所管理画面から同じ不正状態へ戻せてしまう。
+        var sut = new RegisterOfficeUseCase(
+            new FakeOfficeRepository(), new FakeUnitOfWork(), Clock);
+
+        var act = () => sut.ExecuteAsync(
+            "1234567890", "名称", ServiceCategory.TypeB, RegionGrade.None,
+            "tester", CancellationToken.None);
+
+        var ex = (await act.Should().ThrowAsync<ArgumentException>()).Which;
+        ex.Message.Should().Be("地域区分を選択してください。");
+    }
+
+    [Fact]
+    public async Task Update_rejects_region_none()
+    {
+        var token = Guid.NewGuid();
+        var existing = Office.Create(Guid.NewGuid(), "1234567890", "旧名",
+            ServiceCategory.TypeB, RegionGrade.Grade3, "u", DateTimeOffset.UnixEpoch, token);
+        var repo = new FakeOfficeRepository { Existing = existing };
+        var sut = new UpdateOfficeUseCase(repo, new FakeUnitOfWork(),
+            new FixedTimeProvider(DateTimeOffset.UnixEpoch), new NoopAuditTrail());
+
+        var act = () => sut.ExecuteAsync(
+            existing.Id, expectedConcurrencyToken: token,
+            "新名", ServiceCategory.TypeB, RegionGrade.None, "tester", CancellationToken.None);
+
+        var ex = (await act.Should().ThrowAsync<ArgumentException>()).Which;
+        ex.Message.Should().Be("地域区分を選択してください。");
+        repo.Updated.Should().BeNull();
+    }
+
     [Fact]
     public async Task Update_succeeds_when_expected_token_matches_current()
     {

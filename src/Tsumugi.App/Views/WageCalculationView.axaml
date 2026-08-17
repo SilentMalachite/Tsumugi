@@ -29,7 +29,7 @@
         </StackPanel>
         <TextBlock DockPanel.Dock="Top" Text="{Binding SummaryLine}"
                    Margin="8,0,8,4" FontWeight="Bold" />
-        <Border DockPanel.Dock="Top" Background="#553300" Padding="8" Margin="8,0"
+        <Border DockPanel.Dock="Top" Background="{DynamicResource WarningPanelBackground}" Padding="8" Margin="8,0"
                 IsVisible="{Binding HasMismatchWarning}">
             <TextBlock Text="警告: 配分計と原資が一致していません" Foreground="White" />
         </Border>

@@ -56,6 +56,14 @@ msi／pkg／dmg、コード署名、自動更新は別スライスの運用・�
 
 発行成果物はリポジトリにコミットしない。`.gitignore` で `artifacts/publish/` を除外する（S5 完了文書タスクと同期）。配布は生成物のコピーで行う。
 
+### 決定2-1: 配布単位は出力ディレクトリ全体（2026-08-18 追記）
+
+「単一ファイル」は `PublishSingleFile` によるマネージドアセンブリの束ね方の話であって、**配布単位が実行ファイル1個になるという意味ではない**。`IncludeNativeLibrariesForSelfExtract` は立てていないため、Avalonia のネイティブライブラリ（`libSkiaSharp` / `libHarfBuzzSharp` 等）は実行ファイルの隣にサイドカーとして残る。加えて `NOTICE` と `assets/fonts/NotoSansJP.LICENSE.txt` を `CopyToPublishDirectory` で並べており、これらはライセンス表示のため配布物に必要である。
+
+したがって配布は `artifacts/publish/<RID>/` **ディレクトリごと**行う。この事実は `docs/manual-qa.md` の macOS smoke 記録（「native dylib／フォントはサイドカー」）と一致する。
+
+`IncludeNativeLibrariesForSelfExtract=true` を採らないのは、実行時にネイティブを一時ディレクトリへ展開する挙動が加わり、記録済みの macOS smoke の前提を変えるためである。ライセンスファイルは結局サイドカーとして残るので、実行ファイル1個での配布は当該フラグを立てても成立しない。
+
 ### 決定3: trim を有効化しない
 
 Avalonia（XAML／テーマ／コントロールの動的解決）と EF Core（モデル・マイグレーション・プロバイダのリフレクション）を理由に、`PublishTrimmed=false` を明示する。サイズ最適化が必要になったときは別スライスで除外リスト付きの再評価を行う。

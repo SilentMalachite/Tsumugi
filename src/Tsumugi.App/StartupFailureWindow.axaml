@@ -1,0 +1,21 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Tsumugi.App.StartupFailureWindow"
+        Title="つむぎ - 起動に失敗しました"
+        Width="560"
+        MinWidth="420"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterScreen">
+    <StackPanel Margin="24" Spacing="16">
+        <TextBlock Text="起動に失敗しました"
+                   FontSize="{DynamicResource HeadingFontSize}"
+                   FontWeight="Bold" />
+        <TextBlock x:Name="MessageText"
+                   FontSize="{DynamicResource BaseFontSize}"
+                   TextWrapping="Wrap" />
+        <Button x:Name="CloseButton"
+                Content="閉じて終了する"
+                IsDefault="True"
+                HorizontalAlignment="Right" />
+    </StackPanel>
+</Window>

@@ -83,7 +83,7 @@ public sealed class CompositionRootTests
                     "紡木 太郎", "ツムギ タロウ", new DateOnly(1990, 1, 1)), "test", default);
             var office = await scope.ServiceProvider.GetRequiredService<RegisterOfficeUseCase>()
                 .ExecuteAsync("1234567890", "Tsumugi事業所", ServiceCategory.TypeB,
-                    RegionGrade.None, "test", default);
+                    RegionGrade.Grade4, "test", default);
             var (certificate, _) = await scope.ServiceProvider
                 .GetRequiredService<RegisterCertificateUseCase>()
                 .ExecuteAsync(new RegisterCertificateInput(

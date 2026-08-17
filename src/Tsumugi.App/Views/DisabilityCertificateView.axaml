@@ -14,7 +14,7 @@
         </DockPanel>
 
         <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="8">
-            <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+            <Border BorderBrush="{DynamicResource SubtleBorder}" BorderThickness="1" CornerRadius="4" Padding="8">
                 <StackPanel Spacing="6">
                     <TextBlock Text="精神障害者保健福祉手帳の更新予定" FontWeight="Bold" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
@@ -33,7 +33,7 @@
                     </DataGrid>
                 </StackPanel>
             </Border>
-            <Border Background="#FFF3CD" BorderBrush="#D39E00" BorderThickness="1" CornerRadius="4" Padding="8"
+            <Border Background="{DynamicResource WarningPanelBackground}" BorderBrush="{DynamicResource WarningPanelBorder}" BorderThickness="1" CornerRadius="4" Padding="8"
                     IsVisible="{Binding ConsistencyWarnings.Count, Converter={x:Static conv:CountGreaterThanZeroConverter.Instance}}">
                 <StackPanel Spacing="4">
                     <TextBlock Text="障害種別の整合を確認してください" FontWeight="Bold" />
@@ -58,7 +58,7 @@
                 </ComboBox>
             </StackPanel>
 
-            <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+            <Border BorderBrush="{DynamicResource SubtleBorder}" BorderThickness="1" CornerRadius="4" Padding="8">
                 <StackPanel Spacing="6">
                     <TextBlock Text="新しい手帳情報を追加（等級改定や更新時も追記）" FontWeight="Bold" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
@@ -106,7 +106,7 @@
                         </StackPanel>
                     </StackPanel>
                     <TextBlock Text="{Binding SaveErrorMessage}"
-                               Foreground="#FF4444"
+                               Foreground="{DynamicResource ErrorForeground}"
                                IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
                     <Button Content="追加" Command="{Binding AddCommand}" HorizontalAlignment="Left" />
                 </StackPanel>

@@ -25,14 +25,14 @@
 
             <Border IsVisible="{Binding RestoreArmed}"
                     Padding="8" CornerRadius="4"
-                    Background="#553300">
+                    Background="{DynamicResource WarningPanelBackground}">
                 <TextBlock TextWrapping="Wrap"
                            Text="確認: もう一度「選択した世代へ復元」を押すと、現在のデータベースを置き換えます。" />
             </Border>
 
             <Border IsVisible="{Binding RestartRequired}"
                     Padding="8" CornerRadius="4"
-                    Background="#553300">
+                    Background="{DynamicResource WarningPanelBackground}">
                 <TextBlock TextWrapping="Wrap"
                            Text="復元しました。アプリを終了します。再起動してください。" />
             </Border>

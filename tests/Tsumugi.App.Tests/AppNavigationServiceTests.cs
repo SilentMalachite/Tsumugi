@@ -623,7 +623,7 @@ public sealed class AppNavigationServiceTests
                     "1234567890",
                     "Tsumugi事業所",
                     ServiceCategory.TypeB,
-                    RegionGrade.None,
+                    RegionGrade.Grade4,
                     "test",
                     default);
             var (certificate, _) = await scope.ServiceProvider

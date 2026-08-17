@@ -41,7 +41,7 @@
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="vm:DailyCellViewModel">
                         <!-- セル寸法と文字サイズは UiDefaults.MinimumFontSize に追従する。固定 px は使わない。 -->
-                        <Border BorderBrush="#444" BorderThickness="1" Margin="2"
+                        <Border BorderBrush="{DynamicResource SubtleBorder}" BorderThickness="1" Margin="2"
                                 MinWidth="{DynamicResource DailyCellSize}"
                                 MinHeight="{DynamicResource DailyCellSize}">
                             <StackPanel Spacing="2" Margin="4">
@@ -76,7 +76,7 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+            <Border BorderBrush="{DynamicResource SubtleBorder}" BorderThickness="1" CornerRadius="4" Padding="8">
               <StackPanel Spacing="8">
                 <TextBlock Text="選択日の請求入力" FontWeight="Bold" />
                 <StackPanel Orientation="Horizontal" Spacing="8">
@@ -129,13 +129,13 @@
                     <TextBox Text="{Binding EditorNote}" />
                   </StackPanel>
                 </StackPanel>
-                <TextBlock Text="{Binding DailyRecordErrorMessage}" Foreground="#FF4444" />
+                <TextBlock Text="{Binding DailyRecordErrorMessage}" Foreground="{DynamicResource ErrorForeground}" />
                 <Button Content="選択日を保存 (Ctrl+S)" Command="{Binding SaveSelectedDailyRecordCommand}"
                         HorizontalAlignment="Left" />
               </StackPanel>
             </Border>
 
-            <Border BorderBrush="#444" BorderThickness="1" CornerRadius="4" Padding="8">
+            <Border BorderBrush="{DynamicResource SubtleBorder}" BorderThickness="1" CornerRadius="4" Padding="8">
               <StackPanel Spacing="8">
                 <TextBlock Text="重度支援対象期間" FontWeight="Bold" />
                 <StackPanel Orientation="Horizontal" Spacing="8">
@@ -157,7 +157,7 @@
                   <TextBlock Text="EffectiveHeadId:" />
                   <TextBlock Text="{Binding EpisodeEffectiveHeadId}" />
                 </StackPanel>
-                <TextBlock Text="{Binding EpisodeErrorMessage}" Foreground="#FF4444" />
+                <TextBlock Text="{Binding EpisodeErrorMessage}" Foreground="{DynamicResource ErrorForeground}" />
                 <DataGrid ItemsSource="{Binding EpisodeRevisions}" IsReadOnly="True"
                           AutoGenerateColumns="False" MaxHeight="180">
                   <DataGrid.Columns>

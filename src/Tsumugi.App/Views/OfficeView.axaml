@@ -36,7 +36,6 @@
                     <TextBlock Text="地域区分" />
                     <ComboBox SelectedItem="{Binding Region}" MinWidth="160">
                         <ComboBox.Items>
-                            <enums:RegionGrade>None</enums:RegionGrade>
                             <enums:RegionGrade>Grade1</enums:RegionGrade>
                             <enums:RegionGrade>Grade2</enums:RegionGrade>
                             <enums:RegionGrade>Grade3</enums:RegionGrade>
@@ -68,7 +67,7 @@
                 </StackPanel>
             </StackPanel>
             <TextBlock Text="{Binding SaveErrorMessage}"
-                       Foreground="#FF4444"
+                       Foreground="{DynamicResource ErrorForeground}"
                        IsVisible="{Binding SaveErrorMessage, Converter={x:Static conv:StringNotEmptyConverter.Instance}}" />
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <Button Content="新規登録 (Ctrl+S)" Command="{Binding SaveCommand}" />

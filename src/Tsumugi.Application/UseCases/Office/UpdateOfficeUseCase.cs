@@ -1,5 +1,6 @@
 using Tsumugi.Application.Abstractions;
 using Tsumugi.Application.Audit;
+using Tsumugi.Application.Validation;
 using Tsumugi.Domain.Enums;
 
 namespace Tsumugi.Application.UseCases.Office;
@@ -47,7 +48,8 @@ public sealed class UpdateOfficeUseCase(
         if (existing.ConcurrencyToken != expectedConcurrencyToken)
             throw new OptimisticConcurrencyException(nameof(Tsumugi.Domain.Entities.Office), id);
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("事業所名は必須です。", nameof(name));
+            throw new InputValidationException("事業所名は必須です。", nameof(name));
+        RegisterOfficeUseCase.ValidateRegion(region);
         if (replaceClaimInputs)
         {
             RegisterOfficeUseCase.ValidateOptionalInput(
