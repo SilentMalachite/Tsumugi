@@ -12,7 +12,9 @@ public sealed class AvaloniaInitialWindowHost(
     public void ShowMain()
     {
         var mainViewModel = services.GetRequiredService<MainViewModel>();
-        desktop.MainWindow = new MainWindow(mainViewModel);
+        var mainWindow = new MainWindow(mainViewModel);
+        desktop.MainWindow = mainWindow;
+        mainWindow.Show();
     }
 
     public void ShowWizard(Action registered, Action cancelled)
@@ -30,6 +32,7 @@ public sealed class AvaloniaInitialWindowHost(
         };
         wizard.CancellationRequested += cancelled;
         desktop.MainWindow = wizard;
+        wizard.Show();
     }
 
     /// <summary>

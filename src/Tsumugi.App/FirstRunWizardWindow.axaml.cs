@@ -38,8 +38,13 @@ public partial class FirstRunWizardWindow : Window
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)
     {
-        if (!_registrationCompleted)
-            RequestCancellation();
+        if (_registrationCompleted)
+            return;
+
+        // 最後の Window を閉じて OnLastWindowClose から再度終了要求が出ることを防ぐ。
+        // 最終終了は App のバックアップ完了後の desktop.Shutdown に委ねる。
+        e.Cancel = true;
+        RequestCancellation();
     }
 
     private void RequestCancellation()
@@ -48,6 +53,7 @@ public partial class FirstRunWizardWindow : Window
             return;
 
         _cancellationRequested = true;
+        IsEnabled = false;
         CancellationRequested?.Invoke();
     }
 }

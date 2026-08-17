@@ -134,6 +134,39 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
             because: "バックアップ完了後の最終終了は再入 guard 付きで Shutdown する");
     }
 
+    [Fact]
+    public void AvaloniaInitialWindowHost_shows_each_window_before_replacing_or_closing_wizard()
+    {
+        var root = FindRepositoryRoot();
+        var host = File.ReadAllText(Path.Combine(
+            root, "src", "Tsumugi.App", "Startup", "AvaloniaInitialWindowHost.cs"));
+
+        host.Should().Contain(
+            "desktop.MainWindow = mainWindow;\n        mainWindow.Show();",
+            because: "MainWindow の代入だけでは表示されないため");
+        host.Should().Contain(
+            "desktop.MainWindow = wizard;\n        wizard.Show();",
+            because: "Wizard の代入だけでは表示されないため");
+        host.IndexOf("mainWindow.Show();", StringComparison.Ordinal)
+            .Should().BeLessThan(host.IndexOf("wizard.Close();", StringComparison.Ordinal),
+                because: "登録成功時は MainWindow の Show 完了後にのみ Wizard を閉じる");
+    }
+
+    [Fact]
+    public void FirstRunWizardWindow_cancels_unfinished_close_and_disables_interaction_before_single_shutdown_request()
+    {
+        var root = FindRepositoryRoot();
+        var codeBehind = File.ReadAllText(Path.Combine(
+            root, "src", "Tsumugi.App", "FirstRunWizardWindow.axaml.cs"));
+
+        codeBehind.Should().Contain("e.Cancel = true;",
+            because: "未完了 wizard の Close は OnLastWindowClose を発火させない");
+        codeBehind.Should().Contain("IsEnabled = false;",
+            because: "キャンセル確定後はバックアップ待ち中の登録操作を禁止する");
+        CountOccurrences(codeBehind, "CancellationRequested?.Invoke();").Should().Be(1,
+            because: "Cancel と Closing は単一の終了要求経路へ集約する");
+    }
+
     private static FirstRunStartupCoordinator NewCoordinator() =>
         new(new ListOfficesUseCase(new InMemoryOfficeRepo()));
 
@@ -169,5 +202,18 @@ public sealed class FirstRunDesktopStartupOrchestratorTests
         }
 
         throw new InvalidOperationException("Tsumugi.sln が祖先方向に見つからない");
+    }
+
+    private static int CountOccurrences(string text, string value)
+    {
+        var count = 0;
+        var offset = 0;
+        while ((offset = text.IndexOf(value, offset, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            offset += value.Length;
+        }
+
+        return count;
     }
 }
