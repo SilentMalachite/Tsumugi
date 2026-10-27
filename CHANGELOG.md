@@ -6,6 +6,13 @@
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-27
+
+フェーズ2（マスタ・日次記録・工賃計算・PDF帳票）を当面の完成形として出す最初の正式版。[0.3.1-phase4-s1] 以降の本節から「Phase 3-2 完了」節までの変更（Phase 3-2〜3-6、体制届宣言の充足可能性検査、Phase 4 S2〜S5）をすべて含む。国保連請求データ生成（フェーズ3）は同梱するが実験的機能で、出力は公式の取込システムで検証していない。
+
+- 配布物は self-contained 発行の `osx-arm64` と `win-x64`（ADR 0054）。**macOS は実機 smoke 済み、Windows は実機 smoke 未実施**（下記 deferred）。
+- アセンブリのバージョンを `1.0.0` にした（`Directory.Build.props`）。
+
 ### スコープ確定 — フェーズ2を当面の完成形とする (2026-10-27)
 
 - Tsumugi の当面の完成形をフェーズ2（マスタ・日次記録・工賃計算・PDF帳票）と確定した（`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`）。提供価値の中心は「記録と工賃計算の端末内完結」とする。
@@ -493,7 +500,9 @@ Codex レビュー Round 1〜6 で挙がった全 14 件（H 8 + M 4 + L 2）を
 
 ---
 
-[Unreleased]: https://github.com/SilentMalachite/Tsumugi/compare/v0.2.0-phase2...HEAD
+[Unreleased]: https://github.com/SilentMalachite/Tsumugi/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/SilentMalachite/Tsumugi/compare/v0.3.0-phase4-s0...v1.0.0
+[0.3.0-phase4-s0]: https://github.com/SilentMalachite/Tsumugi/compare/v0.2.0-phase2...v0.3.0-phase4-s0
 [0.2.0-phase2]: https://github.com/SilentMalachite/Tsumugi/compare/v0.1.0-phase1...v0.2.0-phase2
 [0.1.0-phase1]: https://github.com/SilentMalachite/Tsumugi/compare/v0.0.1-phase0...v0.1.0-phase1
 [0.0.1-phase0]: https://github.com/SilentMalachite/Tsumugi/releases/tag/v0.0.1-phase0
