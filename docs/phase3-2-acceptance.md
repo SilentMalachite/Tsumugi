@@ -1,5 +1,7 @@
 # Phase 3-2（snapshot v2 + 3帳票）受け入れ証跡
 
+> **2026-10 優先度低下（将来拡張）**: フェーズ2を当面の完成形とするスコープ確定（`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`）により、国保連請求は実験的機能・将来拡張として開発の優先対象から外した。本書は削除せず記録として残す。実装済みのコードは残置しているが、現物の請求書類・公式の取込システムでは検証していない。
+
 - 対象: `docs/superpowers/specs/2026-07-20-phase3-2-reports-redesign-design.md`（正本spec）§15 成功基準5項目
 - 実装計画: `docs/superpowers/plans/2026-07-20-phase3-2-reports.md`（Task 1〜14 完了・チェック済み。本書はTask 15の証跡）
 - 記録日: 2026-07-20 / ブランチ: `feature/phase3-2-reports`

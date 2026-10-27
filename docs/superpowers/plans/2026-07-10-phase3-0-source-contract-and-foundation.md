@@ -1,5 +1,7 @@
 # Tsumugi Phase 3-0 出典・契約・土台 実装計画
 
+> **2026-10 優先度低下（将来拡張）**: フェーズ2を当面の完成形とするスコープ確定（`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`）により、国保連請求は実験的機能・将来拡張として開発の優先対象から外した。本書は削除せず記録として残す。実装済みのコードは残置しているが、現物の請求書類・公式の取込システムでは検証していない。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Phase 3-1以降が制度値やCSV項目を推測せずに実装できるよう、ADR 0020〜0026、公式項目マッピング、版付きマスタ契約、CSV仕様アセンブリ、append-only請求スナップショットの永続化土台を完成させる。

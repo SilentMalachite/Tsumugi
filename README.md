@@ -1,7 +1,7 @@
 # Tsumugi（紡ぎ）
 
 > 就労継続支援B型事業所向け **オフライン専用** デスクトップアプリ
-> 記録・工賃計算・国保連請求データ生成を一体で扱う
+> 日々の記録と工賃計算を端末内で完結させる（国保連請求データ生成は実験的機能・将来拡張）
 
 [![CI](https://github.com/SilentMalachite/Tsumugi/actions/workflows/ci.yml/badge.svg)](https://github.com/SilentMalachite/Tsumugi/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
@@ -11,7 +11,9 @@
 
 ## 概要
 
-**Tsumugi** は、障害福祉サービス（就労継続支援B型）を提供する事業所の日常業務を支援するデスクトップアプリです。サービス提供実績の記録、利用者への工賃計算、国民健康保険団体連合会（国保連）に提出する請求データ（CSV）の生成までを、**端末完結・ネットワーク接続なし** で扱えるように設計されています。
+**Tsumugi** は、障害福祉サービス（就労継続支援B型）を提供する事業所の日常業務を支援するデスクトップアプリです。利用者・受給者証・契約などのマスタ管理、サービス提供実績の日次記録、利用者への工賃計算と工賃明細・支払一覧の PDF 出力を、**端末完結・ネットワーク接続なし** で扱えます。
+
+**現時点の完成形はフェーズ 2（記録＋工賃計算）です**（2026-10 にスコープ確定。[`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`](07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md)）。国民健康保険団体連合会（国保連）向けの請求データ（CSV）・請求帳票の生成もコードとしては実装済みですが、現物の請求書類や公式の取込システムでの検証ができていないため **実験的機能** と位置づけ、現時点のスコープ外・将来拡張として扱います。
 
 ハンドリングする個人情報（氏名・受給者証番号・障害情報など）の保護を最優先にし、SQLite データベースのファイル権限を OS レベルで強制し、外部通信を持たない構造を CI で機械的に保証しています。
 
@@ -21,14 +23,17 @@
 - **クロスプラットフォーム** — macOS / Windows / Linux 上で動作。CLI ビルドと UI テストが 3 OS で緑。
 - **データ保護** — DB は OS のユーザー専用領域に配置し、Unix `0700` / `0600`、Windows は現在ユーザーのみの DACL（継承無効）を **作成時に強制**。
 - **追記型データモデル** — エンティティは C# `record` ＋ append-only。訂正は元データを破壊せず履歴として残す。
-- **報酬告示の外部化** — 単位数・加算・地域区分単価・CSV フィールドはコードに直書きせず、シード JSON ＋ DB で `適用開始年月` 単位にバージョン管理。
+- **工賃計算** — 出来高・時給・固定・均等の 4 方式、Σ配分＝原資 の不変条件、確定スナップショット、工賃明細・支払一覧の PDF 帳票。
+- **報酬告示の外部化（実験的な請求機能）** — 単位数・加算・地域区分単価・CSV フィールドはコードに直書きせず、シード JSON ＋ DB で `適用開始年月` 単位にバージョン管理。
 - **アクセシビリティ既定** — ダークテーマ / 低アニメーション / 広い余白・行間 / フォント拡大追従 / 頻用操作のキーボード完結。
 - **VACUUM INTO バックアップ** — 単一ファイルバックアップ手段を標準提供。
 - **アーキテクチャ検査** — 依存方向違反を Domain / Application / Infrastructure 各層で機械的に検出。
 
 ## 責務境界（重要・誤解防止）
 
-国保連請求は **「仕様準拠の請求データ（CSV）を生成し、公式の取込・送信システムにインポートできる状態」まで** が責務です。**伝送・電子証明書・回線処理はアプリの範囲外** とし、これによりオフライン特性を担保します。
+本アプリが提供価値として保証するのは **記録と工賃計算の端末内完結** です。国保連請求データ生成は実験的機能であり、実際の請求に使う前に公式の取込・送信システムでの検証が必要です。
+
+国保連請求データ生成の責務は **「仕様準拠の請求データ（CSV）を生成し、公式の取込・送信システムにインポートできる状態」まで** です。**伝送・電子証明書・回線処理はアプリの範囲外** とし、これによりオフライン特性を担保します。
 
 ## 動作環境
 
@@ -86,9 +91,10 @@ src/
 - [x] **フェーズ 0** — プロジェクト基盤・DI 合成ルート・EF Core 往復・VACUUM INTO バックアップ・品質ゲート・オフライン検査・SQLite 権限ポリシー（AC0-1 〜 AC0-6 完了）
 - [x] **フェーズ 1** — マスタ + 記録（利用者 / 受給者証 / 契約 / 事業所 / 事業所体制 / 日次記録の CRUD、追記型・楽観的同時実行・期限アラート、AC1-1 〜 AC1-9 完了）
 - [x] **フェーズ 2** — 工賃計算（作業実績・WageFund / WageSettings 期間マスタ・4 方式（Piece/Hourly/Fixed/Equal）・Σ配分=原資 不変条件・WageStatement 確定スナップショット・PDF 帳票・AuditEntry）。AC2-8 の `AverageWageMetric` はPhase 2の暫定集計として互換保持し、請求用の正式定義はADR 0023で確定
-- [ ] **フェーズ 3** — 国保連請求。Phase 3-0（出典・版付きマスタ境界・CSV仕様・append-only請求土台）は受け入れ済み。Phase 3-1は現行計画Tasks 2〜10の入力モデル、migration、repository、保存ユースケース、typed requirements、算定前readiness gateに加え、Task 12のclaim-master schema v2とTask 13の基準該当B型公式計算契約・source inventoryを実装済み。Task 11の入力UI、対象service-codeのproduction seed、保護施設事務費実値入力、resolver・runtime請求計算、validated finalization、帳票・CSV生成は未完了
+- [ ] **フェーズ 3（将来拡張・現時点ではスコープ外）** — 国保連請求データ生成。Phase 3-0〜3-6 のコード（入力UI・令和6/8年度の制度実値・報酬算定・3帳票・国保連請求CSV生成）はリポジトリに残置しているが、現物の請求書類・公式の取込システムでの検証ができておらず、県や事業所による様式差も確かめていないため **実験的機能** とする。開発の優先対象から外し、追加開発は行わない。未投入の制度実値など残課題は [`docs/open-questions.md`](docs/open-questions.md) と各 `docs/phase3-*-acceptance.md` を参照
+- [ ] **フェーズ 4** — リリース準備・運用ハードニング。S0〜S4 完了、S5（配布・初回セットアップ・運用ガイド）は macOS まで完了。残りは暗号化バックアップ（S3b）と Windows 実機 smoke。詳細は [`docs/superpowers/specs/2026-07-05-phase4-remaining-roadmap.md`](docs/superpowers/specs/2026-07-05-phase4-remaining-roadmap.md)
 
-各フェーズの受け入れ基準は [`01_ClaudeCode_実装指示書_Tsumugi.md`](01_ClaudeCode_実装指示書_Tsumugi.md) §7 を参照。フェーズ 1 実装指示は [`04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md`](04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md)、フェーズ 2 実装指示は [`05_ClaudeCode_Phase2実装指示_工賃計算_Tsumugi.md`](05_ClaudeCode_Phase2実装指示_工賃計算_Tsumugi.md)、フェーズ 3 実装指示は [`06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md`](06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md)。
+各フェーズの受け入れ基準は [`01_ClaudeCode_実装指示書_Tsumugi.md`](01_ClaudeCode_実装指示書_Tsumugi.md) §7 を参照。フェーズ 1 実装指示は [`04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md`](04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md)、フェーズ 2 実装指示は [`05_ClaudeCode_Phase2実装指示_工賃計算_Tsumugi.md`](05_ClaudeCode_Phase2実装指示_工賃計算_Tsumugi.md)、フェーズ 3 実装指示は [`06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md`](06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md)（将来拡張として優先度を下げた）、スコープ確定の判断は [`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`](07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md)。
 
 ## データ保護とセキュリティ
 
@@ -120,8 +126,10 @@ src/
 | [04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md](04_ClaudeCode_Phase1実装指示_マスタと記録_Tsumugi.md) | フェーズ1（マスタ・記録）実装指示と受け入れ基準 |
 | [05_ClaudeCode_Phase2実装指示_工賃計算_Tsumugi.md](05_ClaudeCode_Phase2実装指示_工賃計算_Tsumugi.md) | フェーズ2（工賃計算）実装指示と受け入れ基準 |
 | [docs/phase2-acceptance.md](docs/phase2-acceptance.md) | フェーズ2 受け入れ基準セルフチェック |
-| [06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md](06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md) | フェーズ3（国保連請求）実装指示と受け入れ基準 |
-| [docs/phase3-0-acceptance.md](docs/phase3-0-acceptance.md) | フェーズ3-0 受け入れ証跡と後続進捗 |
+| [06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md](06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md) | フェーズ3（国保連請求）実装指示と受け入れ基準（将来拡張・実験的） |
+| [07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md](07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md) | フェーズ2を当面の完成形とするスコープ確定 |
+| [docs/phase3-0-acceptance.md](docs/phase3-0-acceptance.md) 〜 [docs/phase3-6-acceptance.md](docs/phase3-6-acceptance.md) | フェーズ3-0〜3-6 受け入れ証跡（実験的機能） |
+| [docs/operations.md](docs/operations.md) | 運用ガイド（配布・バックアップ・復元） |
 | [docs/phase3-claim-field-mapping.md](docs/phase3-claim-field-mapping.md) | 国保連CSV・帳票の全項目mappingとPhase 3-1入力対象 |
 | [docs/superpowers/specs/2026-07-14-phase3-1-task13-protected-facility-b-formula-and-source-inventory-design.md](docs/superpowers/specs/2026-07-14-phase3-1-task13-protected-facility-b-formula-and-source-inventory-design.md) | 基準該当B型の公式計算契約・runtime入力要件・source inventory設計 |
 | [docs/decisions/](docs/decisions/) | Architecture Decision Records（ADR） |

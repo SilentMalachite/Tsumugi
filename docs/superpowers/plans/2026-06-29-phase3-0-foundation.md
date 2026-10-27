@@ -1,5 +1,7 @@
 # Tsumugi Phase 3-0 実装計画 — 土台（出典確定＋非ブロッキング先行）
 
+> **2026-10 優先度低下（将来拡張）**: フェーズ2を当面の完成形とするスコープ確定（`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`）により、国保連請求は実験的機能・将来拡張として開発の優先対象から外した。本書は削除せず記録として残す。実装済みのコードは残置しているが、現物の請求書類・公式の取込システムでは検証していない。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Phase 3-1〜3-3 の前提となる出典確定（ADR 0018〜0024, 0026）と、出典に依存しない土台コード（日本語フォント埋込、ハードコード機械判定スキャナ、マスタ抽象、`Tsumugi.Infrastructure.Csv` アセンブリ空殻、`ClaimBatch`/`ClaimDetail` の追記型骨組み）を一通り揃える。

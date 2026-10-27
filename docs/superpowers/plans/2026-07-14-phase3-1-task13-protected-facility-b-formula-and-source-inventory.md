@@ -1,5 +1,7 @@
 # Phase 3-1 Task 13 Protected Facility B Formula and Source Inventory Implementation Plan
 
+> **2026-10 優先度低下（将来拡張）**: フェーズ2を当面の完成形とするスコープ確定（`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`）により、国保連請求は実験的機能・将来拡張として開発の優先対象から外した。本書は削除せず記録として残す。実装済みのコードは残置しているが、現物の請求書類・公式の取込システムでは検証していない。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 基準該当就労継続支援B型44 source rowsについて、公式式、比較対象、地方公共団体補正、保護施設事務費入力要件及びprovenanceをclosed contractで表現し、Task 13 source inventoryを44 documents／61 ranges／14,726 rows／0 schema-gapへ確定する。

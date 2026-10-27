@@ -1,5 +1,7 @@
 # Phase 3-2 再設計: snapshot v2 + 3帳票（QuestPDF）
 
+> **2026-10 優先度低下（将来拡張）**: フェーズ2を当面の完成形とするスコープ確定（`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`）により、国保連請求は実験的機能・将来拡張として開発の優先対象から外した。本書は削除せず記録として残す。実装済みのコードは残置しているが、現物の請求書類・公式の取込システムでは検証していない。
+
 - 作成日: 2026-07-20
 - 位置付け: Phase 3-2（帳票）の正本spec。旧計画 `docs/superpowers/plans/2026-06-29-phase3-2-reports.md` は本specの実装計画に置き換える
 - 親仕様: `01_ClaudeCode_実装指示書_Tsumugi.md` / `06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md` §4.2, §7 (3-2), §8
