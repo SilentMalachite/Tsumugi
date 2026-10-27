@@ -1,5 +1,7 @@
 # Phase 3-1 Claim Calculation and Input Foundation Implementation Plan
 
+> **2026-10 優先度低下（将来拡張）**: フェーズ2を当面の完成形とするスコープ確定（`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`）により、国保連請求は実験的機能・将来拡張として開発の優先対象から外した。本書は削除せず記録として残す。実装済みのコードは残置しているが、現物の請求書類・公式の取込システムでは検証していない。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Phase 3-0のfail-closed請求土台へ、公式出典に基づく請求入力、令和6・令和8の版付き算定、プレビュー・差分、validated snapshot、append-only確定を接続し、AC3-1 / 2 / 3 / 4 / 8 / 9を一括受け入れ可能にする。

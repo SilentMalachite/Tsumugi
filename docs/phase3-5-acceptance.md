@@ -1,5 +1,7 @@
 # Phase 3-5（指定障害者支援施設variantの実値投入）受け入れ証跡
 
+> **2026-10 優先度低下（将来拡張）**: フェーズ2を当面の完成形とするスコープ確定（`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`）により、国保連請求は実験的機能・将来拡張として開発の優先対象から外した。本書は削除せず記録として残す。実装済みのコードは残置しているが、現物の請求書類・公式の取込システムでは検証していない。
+
 - 対象: `06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md` — ADR 0045が「確定できなかった区分」として持ち越した指定障害者支援施設variant（465138・465140・465141・465176）の実値投入
 - spec: `docs/superpowers/specs/2026-07-26-phase3-5-facility-classification-design.md`
 - 計画: `docs/superpowers/plans/2026-07-26-phase3-5-facility-classification.md`

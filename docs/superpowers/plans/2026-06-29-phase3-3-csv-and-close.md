@@ -1,5 +1,7 @@
 # Tsumugi Phase 3-3 実装計画 — CSV 生成＋請求確定
 
+> **2026-10 優先度低下（将来拡張）**: フェーズ2を当面の完成形とするスコープ確定（`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`）により、国保連請求は実験的機能・将来拡張として開発の優先対象から外した。本書は削除せず記録として残す。実装済みのコードは残置しているが、現物の請求書類・公式の取込システムでは検証していない。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Phase 3-0 で骨組みを置いた `Tsumugi.Infrastructure.Csv` アセンブリに、ADR 0023 で確定した国保連請求 CSV インターフェース仕様に基づく `ClaimCsvWriter` を実装する。`Recipient` を CSV 必須項目（性別等）で拡張し migration を発行する。`CloseClaimUseCase` で確定スナップショット（`ClaimBatch.New`、再実行は `Correct`、取下げは `Cancel`）を追記する。App に CSV エクスポート / 請求確定 View を追加。最後に `build/ci.sh` の Application カバレッジ閾値を 70 → 90 に昇格する。

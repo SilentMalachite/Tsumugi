@@ -1,5 +1,7 @@
 # Phase 3-6（R6-06世代 処遇改善の施設variantと(Ⅴ)、体制届option存在検査）受け入れ証跡
 
+> **2026-10 優先度低下（将来拡張）**: フェーズ2を当面の完成形とするスコープ確定（`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`）により、国保連請求は実験的機能・将来拡張として開発の優先対象から外した。本書は削除せず記録として残す。実装済みのコードは残置しているが、現物の請求書類・公式の取込システムでは検証していない。
+
 - 対象: `06_ClaudeCode_Phase3実装指示_国保連請求_Tsumugi.md` — Phase 3-5 最終レビューが持ち越したR6-06世代の施設区分欠落、ADR 0045 が未確定として保留した処遇改善(Ⅴ)、およびその一般形である「宣言された体制届optionに対応するマスタ行が当月に無いときの無音の0円」
 - spec: `docs/superpowers/specs/2026-07-26-phase3-6-r6-06-treatment-improvement-design.md`
 - 計画: `docs/superpowers/plans/2026-07-26-phase3-6-r6-06-treatment-improvement.md`

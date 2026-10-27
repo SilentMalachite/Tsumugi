@@ -1,5 +1,7 @@
 # Phase 3-1（最小垂直スライス）受け入れ証跡
 
+> **2026-10 優先度低下（将来拡張）**: フェーズ2を当面の完成形とするスコープ確定（`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`）により、国保連請求は実験的機能・将来拡張として開発の優先対象から外した。本書は削除せず記録として残す。実装済みのコードは残置しているが、現物の請求書類・公式の取込システムでは検証していない。
+
 - 対象: `docs/superpowers/specs/2026-07-19-phase3-1-minimal-vertical-slice-redesign-design.md`（正本spec）§8 成功基準5項目
 - 実装計画: `docs/superpowers/plans/2026-07-19-phase3-1-minimal-vertical-slice.md`（Task 1〜13 完了・チェック済み。本書はTask 14の証跡）
 - 記録日: 2026-07-19 / ブランチ: `feature/phase3-1-vertical-slice`

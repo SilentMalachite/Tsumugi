@@ -1,5 +1,7 @@
 # Phase 3-1 Task 13 基準該当B型 公式計算契約・Source Inventory設計
 
+> **2026-10 優先度低下（将来拡張）**: フェーズ2を当面の完成形とするスコープ確定（`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`）により、国保連請求は実験的機能・将来拡張として開発の優先対象から外した。本書は削除せず記録として残す。実装済みのコードは残置しているが、現物の請求書類・公式の取込システムでは検証していない。
+
 **Status:** Design approved; implementation not started
 **Date:** 2026-07-14
 **Scope:** Task 13 follow-up — 基準該当就労継続支援B型44行のschema-gap解消、公式計算契約、source inventory及びprovenance契約

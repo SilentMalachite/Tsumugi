@@ -1,5 +1,7 @@
 # Phase 3-4 実装計画 — 令和8年6月施行分（R8-06）の制度実値投入
 
+> **2026-10 優先度低下（将来拡張）**: フェーズ2を当面の完成形とするスコープ確定（`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`）により、国保連請求は実験的機能・将来拡張として開発の優先対象から外した。本書は削除せず記録として残す。実装済みのコードは残置しているが、現物の請求書類・公式の取込システムでは検証していない。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** `claim-master-r8-06` の制度実値（地域単価・負担上限の適用判断、処遇改善加算、改定対象の新12区分）を production seed へ投入し、2026-06 以降のサービス提供月が改定対象・対象外を問わず請求プレビューから CSV 生成まで通る状態にする。

@@ -1,5 +1,7 @@
 # Phase 3-1 Task 13 Claim Master Seed Design
 
+> **2026-10 優先度低下（将来拡張）**: フェーズ2を当面の完成形とするスコープ確定（`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`）により、国保連請求は実験的機能・将来拡張として開発の優先対象から外した。本書は削除せず記録として残す。実装済みのコードは残置しているが、現物の請求書類・公式の取込システムでは検証していない。
+
 **Status:** Spec review approved; source inventory correction approved
 **Date:** 2026-07-14
 **Scope:** Task 13のみ — manifest v2変換・再監査、一次資料取得、R6／R8制度実値seed、機械検証、独立全件照合
