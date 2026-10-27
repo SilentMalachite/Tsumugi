@@ -6,6 +6,7 @@
 [![CI](https://github.com/SilentMalachite/Tsumugi/actions/workflows/ci.yml/badge.svg)](https://github.com/SilentMalachite/Tsumugi/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4.svg)](https://dotnet.microsoft.com/)
+[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/SilentMalachite/Tsumugi/releases/tag/v1.0.0)
 
 ---
 
@@ -14,6 +15,8 @@
 **Tsumugi** は、障害福祉サービス（就労継続支援B型）を提供する事業所の日常業務を支援するデスクトップアプリです。利用者・受給者証・契約などのマスタ管理、サービス提供実績の日次記録、利用者への工賃計算と工賃明細・支払一覧の PDF 出力を、**端末完結・ネットワーク接続なし** で扱えます。
 
 **現時点の完成形はフェーズ 2（記録＋工賃計算）です**（2026-10 にスコープ確定。[`07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md`](07_ClaudeCode_Phase2完了宣言とスコープ確定_Tsumugi.md)）。国民健康保険団体連合会（国保連）向けの請求データ（CSV）・請求帳票の生成もコードとしては実装済みですが、現物の請求書類や公式の取込システムでの検証ができていないため **実験的機能** と位置づけ、現時点のスコープ外・将来拡張として扱います。
+
+最新版は **v1.0.0**（2026-10-27）です。macOS（Apple Silicon）／Windows（x64）向けの self-contained 版を [GitHub Releases](https://github.com/SilentMalachite/Tsumugi/releases/tag/v1.0.0) から入手できます。Windows 版は実機での動作確認が済んでいません。
 
 ハンドリングする個人情報（氏名・受給者証番号・障害情報など）の保護を最優先にし、SQLite データベースのファイル権限を OS レベルで強制し、外部通信を持たない構造を CI で機械的に保証しています。
 
